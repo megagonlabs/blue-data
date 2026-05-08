@@ -1,0 +1,13 @@
+[project]
+name = "blue-data"
+version = "0.1.0"
+description = "Blue Data Intelligence Layer"
+
+dependencies = [
+    "pandas",
+    "numpy"
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
