@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 
-class JSONSource(ABC):
+class JSONStore(ABC):
     """Abstract JSON storage interface."""
 
     @abstractmethod

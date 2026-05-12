@@ -1,4 +1,4 @@
-from blue_data.core.stores.memory_json_source import MemoryJSONSource
+from blue_data.core.stores.memory_json_store import MemoryJSONStore
 
 
 class Registry:
@@ -6,7 +6,7 @@ class Registry:
 
     def __init__(self, name="REGISTRY", store=None):
         self.name = name
-        self.store = store or MemoryJSONSource()
+        self.store = store or MemoryJSONStore()
 
         if self.store.get("$") in (None, {}):
             self.store.set("$", {"contents": {}})
