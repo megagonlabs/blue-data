@@ -53,6 +53,9 @@ class SQLiteDBSource(DataSource):
         # TODO:
         return None
 
+    def sync(self, registry):
+        print(f"Syncing source: {self.name}")
+
     # database  path
     def _get_database_directory(self):
         connection_properties = self.properties['connection']

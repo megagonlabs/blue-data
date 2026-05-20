@@ -425,3 +425,19 @@ class DataRegistry(Registry):
             f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
             description,
         )
+
+    def sync_source(
+        self,
+        source_name: str,
+    ):
+        source = self.get_source(source_name)
+
+        if source is None:
+            raise ValueError(f"Source not registered: {source_name}")
+
+        if not hasattr(source, "sync"):
+            raise NotImplementedError(
+                f"{source.__class__.__name__} does not support sync()"
+            )
+
+        return source.sync(self)
