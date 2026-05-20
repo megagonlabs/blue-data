@@ -189,3 +189,239 @@ class DataRegistry(Registry):
             record_type="attribute",
             scope=f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
         )
+
+    # ---------- hierarchy property helpers ----------
+
+    def get_source_database_property(
+        self,
+        source: str,
+        database: str,
+        key: str,
+    ):
+        return self.get_record_property(
+            database,
+            "database",
+            f"/source/{source}",
+            key,
+        )
+
+    def set_source_database_property(
+        self,
+        source: str,
+        database: str,
+        key: str,
+        value,
+    ):
+        return self.set_record_property(
+            database,
+            "database",
+            f"/source/{source}",
+            key,
+            value,
+        )
+
+    def get_source_database_collection_property(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        key: str,
+    ):
+        return self.get_record_property(
+            collection,
+            "collection",
+            f"/source/{source}/database/{database}",
+            key,
+        )
+
+    def set_source_database_collection_property(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        key: str,
+        value,
+    ):
+        return self.set_record_property(
+            collection,
+            "collection",
+            f"/source/{source}/database/{database}",
+            key,
+            value,
+        )
+
+    def get_source_database_collection_entity_property(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        key: str,
+    ):
+        return self.get_record_property(
+            entity,
+            "entity",
+            f"/source/{source}/database/{database}/collection/{collection}",
+            key,
+        )
+
+    def set_source_database_collection_entity_property(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        key: str,
+        value,
+    ):
+        return self.set_record_property(
+            entity,
+            "entity",
+            f"/source/{source}/database/{database}/collection/{collection}",
+            key,
+            value,
+        )
+
+    def get_source_database_collection_entity_attribute_property(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        attribute: str,
+        key: str,
+    ):
+        return self.get_record_property(
+            attribute,
+            "attribute",
+            f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
+            key,
+        )
+
+    def set_source_database_collection_entity_attribute_property(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        attribute: str,
+        key: str,
+        value,
+    ):
+        return self.set_record_property(
+            attribute,
+            "attribute",
+            f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
+            key,
+            value,
+        )
+
+        # ---------- hierarchy description helpers ----------
+
+    def get_source_database_description(
+        self,
+        source: str,
+        database: str,
+    ):
+        return self.get_record_description(
+            database,
+            "database",
+            f"/source/{source}",
+        )
+
+    def set_source_database_description(
+        self,
+        source: str,
+        database: str,
+        description: str,
+    ):
+        return self.set_record_description(
+            database,
+            "database",
+            f"/source/{source}",
+            description,
+        )
+
+    def get_source_database_collection_description(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+    ):
+        return self.get_record_description(
+            collection,
+            "collection",
+            f"/source/{source}/database/{database}",
+        )
+
+    def set_source_database_collection_description(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        description: str,
+    ):
+        return self.set_record_description(
+            collection,
+            "collection",
+            f"/source/{source}/database/{database}",
+            description,
+        )
+
+    def get_source_database_collection_entity_description(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+    ):
+        return self.get_record_description(
+            entity,
+            "entity",
+            f"/source/{source}/database/{database}/collection/{collection}",
+        )
+
+    def set_source_database_collection_entity_description(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        description: str,
+    ):
+        return self.set_record_description(
+            entity,
+            "entity",
+            f"/source/{source}/database/{database}/collection/{collection}",
+            description,
+        )
+
+    def get_source_database_collection_entity_attribute_description(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        attribute: str,
+    ):
+        return self.get_record_description(
+            attribute,
+            "attribute",
+            f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
+        )
+
+    def set_source_database_collection_entity_attribute_description(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        attribute: str,
+        description: str,
+    ):
+        return self.set_record_description(
+            attribute,
+            "attribute",
+            f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
+            description,
+        )
