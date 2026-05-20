@@ -40,8 +40,8 @@ class Registry:
         return self.store.get(self._record_key(name, type, scope))
 
     
-    def list_records(self):
-        return [
+    def list_records(self, record_type: str | None = None, scope: str | None = None):
+        records = [
             value
             for key, value in self.store.data.items()
             if (
@@ -52,6 +52,16 @@ class Registry:
                 and "scope" in value
             )
         ]
+
+        if record_type is not None:
+            records = [r for r in records if r.get("type") == record_type]
+
+        if scope is not None:
+            records = [r for r in records if r.get("scope") == scope]
+
+        return records
+    
+    
 
     def deregister_record(self, name, type, scope="/"):
         self.store.delete(self._record_key(name, type, scope))

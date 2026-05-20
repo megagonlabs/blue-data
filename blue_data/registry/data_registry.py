@@ -150,3 +150,42 @@ class DataRegistry(Registry):
             description=description,
             properties=properties or {},
         )
+
+    def list_source_databases(self, source: str):
+        return self.list_records(
+            record_type="database",
+            scope=f"/source/{source}",
+        )
+
+    def list_database_collections(
+        self,
+        source: str,
+        database: str,
+    ):
+        return self.list_records(
+            record_type="collection",
+            scope=f"/source/{source}/database/{database}",
+        )
+
+    def list_collection_entities(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+    ):
+        return self.list_records(
+            record_type="entity",
+            scope=f"/source/{source}/database/{database}/collection/{collection}",
+        )
+
+    def list_entity_attributes(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+    ):
+        return self.list_records(
+            record_type="attribute",
+            scope=f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
+        )
