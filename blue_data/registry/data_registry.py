@@ -891,7 +891,7 @@ class DataRegistry(Registry):
         record = self.get_source_database(source, database)
         return self.deregister(record)
     
-        # ---------- collection update/deregister/get helpers ----------
+    # ---------- collection update/deregister/get helpers ----------
 
     def get_source_database_collection(
         self,
@@ -932,7 +932,7 @@ class DataRegistry(Registry):
         record = self.get_source_database_collection(source, database, collection)
         return self.deregister(record)
     
-        # ---------- entity update/deregister/get helpers ----------
+    # ---------- entity update/deregister/get helpers ----------
 
     def get_source_database_collection_entity(
         self,
@@ -980,4 +980,263 @@ class DataRegistry(Registry):
             entity,
         )
         return self.deregister(record)
+    
+        # ---------- entity attribute update/deregister/get helpers ----------
+
+    def get_source_database_collection_entity_attribute(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        attribute: str,
+    ):
+        return self.get_record(
+            attribute,
+            "attribute",
+            f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
+        )
+
+    def update_source_database_collection_entity_attribute(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        attribute: str,
+        description: str | None = None,
+        properties: dict | None = None,
+        icon: str | None = None,
+    ):
+        return self.update_record(
+            attribute,
+            "attribute",
+            f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
+            description=description,
+            properties=properties,
+            icon=icon,
+        )
+
+    def deregister_source_database_collection_entity_attribute(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        attribute: str,
+    ):
+        record = self.get_source_database_collection_entity_attribute(
+            source,
+            database,
+            collection,
+            entity,
+            attribute,
+        )
+        return self.deregister(record)
+    
+        # ---------- create operation helpers ----------
+
+    def create_source_database(
+        self,
+        source: str,
+        database: str,
+        properties: dict | None = None,
+        overwrite: bool = False,
+        recursive: bool = False,
+    ):
+        source_obj = self.get_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        if self.get_source_database(source, database) and not overwrite:
+            return None
+
+        if self.get_source_database(source, database) and overwrite:
+            self.deregister_source_database(source, database)
+
+        result = source_obj.create_database(
+            database,
+            properties=properties or {},
+            overwrite=overwrite,
+        )
+
+        if result and result.get("status") in {"success", "registry_only", "skipped"}:
+            self.sync_source(source, recursive=recursive)
+
+            for key, value in (properties or {}).items():
+                self.set_source_database_property(
+                    source,
+                    database,
+                    key,
+                    value,
+                )
+
+        return result
+
+    def create_source_database_collection(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        properties: dict | None = None,
+        overwrite: bool = False,
+        recursive: bool = False,
+    ):
+        source_obj = self.get_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        if self.get_source_database_collection(source, database, collection) and not overwrite:
+            return None
+
+        if self.get_source_database_collection(source, database, collection) and overwrite:
+            self.deregister_source_database_collection(source, database, collection)
+
+        result = source_obj.create_database_collection(
+            database,
+            collection,
+            properties=properties or {},
+            overwrite=overwrite,
+        )
+
+        if result and result.get("status") in {"success", "registry_only", "skipped"}:
+            self.sync_source_database(
+                source,
+                database,
+                source_obj=source_obj,
+                recursive=recursive,
+            )
+
+            for key, value in (properties or {}).items():
+                self.set_source_database_collection_property(
+                    source,
+                    database,
+                    collection,
+                    key,
+                    value,
+                )
+
+        return result
+
+    def create_source_database_collection_entity(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        properties: dict | None = None,
+        creation_properties: dict | None = None,
+        overwrite: bool = False,
+        recursive: bool = False,
+    ):
+        source_obj = self.get_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        # Ensure parent database exists in registry
+        if not self.get_source_database(source, database):
+            self.register_source_database(
+                source=source,
+                database=database,
+            )
+
+        # Ensure parent collection exists in registry
+        if not self.get_source_database_collection(source, database, collection):
+            self.register_source_database_collection(
+                source=source,
+                database=database,
+                collection=collection,
+            )
+
+        if self.get_source_database_collection_entity(source, database, collection, entity) and not overwrite:
+            return None
+
+        if self.get_source_database_collection_entity(source, database, collection, entity) and overwrite:
+            self.deregister_source_database_collection_entity(
+                source,
+                database,
+                collection,
+                entity,
+            )
+
+        result = source_obj.create_database_collection_entity(
+            database,
+            collection,
+            entity,
+            properties=creation_properties or {},
+            overwrite=overwrite,
+        )
+
+        if result and result.get("status") in {"success", "registry_only", "skipped"}:
+            self.sync_source_database_collection(
+                source,
+                database,
+                collection,
+                source_obj=source_obj,
+            )
+
+            for key, value in (properties or {}).items():
+                self.set_source_database_collection_entity_property(
+                    source,
+                    database,
+                    collection,
+                    entity,
+                    key,
+                    value,
+                )
+
+        return result
+        
+    def create_source_database_collection_relation(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+        properties: dict | None = None,
+        overwrite: bool = False,
+        recursive: bool = False,
+    ):
+        source_obj = self.get_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        if self.get_source_database_collection_relation(source, database, collection, relation) and not overwrite:
+            return None
+
+        if self.get_source_database_collection_relation(source, database, collection, relation) and overwrite:
+            self.deregister_source_database_collection_relation(
+                source,
+                database,
+                collection,
+                relation,
+            )
+
+        result = source_obj.create_database_collection_relation(
+            database,
+            collection,
+            relation,
+            properties=properties or {},
+            overwrite=overwrite,
+        )
+
+        if result and result.get("status") in {"success", "registry_only", "skipped"}:
+            self.sync_source_database_collection(
+                source,
+                database,
+                collection,
+                source_obj=source_obj,
+            )
+
+            for key, value in (properties or {}).items():
+                self.set_source_database_collection_relation_property(
+                    source,
+                    database,
+                    collection,
+                    relation,
+                    key,
+                    value,
+                )
+
+        return result
             
