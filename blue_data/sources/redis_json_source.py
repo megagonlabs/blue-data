@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from blue_data.core.stores.json_source import JSONSource
+from blue_data.sources.json_source import JSONSource
 
 
 class RedisJSONSource(JSONSource):

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from blue_data.core.stores.json_store import JSONStore
+#from blue_data.core.registry.sources.json_source import JSONSource
+from blue_data.sources.json_source import JSONSource
 
 
-class MemoryJSONStore(JSONStore):
+class MemoryJSONSource(JSONSource):
     """In-memory JSON storage backend for local/dev/test use."""
 
     def __init__(self):
