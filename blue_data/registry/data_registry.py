@@ -316,7 +316,7 @@ class DataRegistry(Registry):
             value,
         )
 
-        # ---------- hierarchy description helpers ----------
+    # ---------- hierarchy description helpers ----------
 
     def get_source_database_description(
         self,
@@ -681,3 +681,89 @@ class DataRegistry(Registry):
             )
 
         return stats
+
+    def collect_source_stats(
+        self,
+        source: str,
+        recursive: bool = False,
+        sample_limit: int = 10,
+    ):
+        source_obj = self.get_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        stats = source_obj.fetch_source_stats()
+
+        if stats:
+            self.set_record_property(
+                source,
+                "source",
+                "/",
+                "stats",
+                stats,
+            )
+
+        if recursive:
+            for database_record in self.list_source_databases(source):
+                database = database_record["name"]
+
+                self.collect_source_database_stats(
+                    source,
+                    database,
+                )
+
+                for collection_record in self.list_database_collections(
+                    source,
+                    database,
+                ):
+                    collection = collection_record["name"]
+
+                    self.collect_source_database_collection_stats(
+                        source,
+                        database,
+                        collection,
+                    )
+
+                    for entity_record in self.list_collection_entities(
+                        source,
+                        database,
+                        collection,
+                    ):
+                        entity = entity_record["name"]
+
+                        self.collect_source_database_collection_entity_stats(
+                            source,
+                            database,
+                            collection,
+                            entity,
+                        )
+
+                        for attribute_record in self.list_entity_attributes(
+                            source,
+                            database,
+                            collection,
+                            entity,
+                        ):
+                            attribute = attribute_record["name"]
+
+                            self.collect_source_database_collection_entity_attribute_stats(
+                                source,
+                                database,
+                                collection,
+                                entity,
+                                attribute,
+                                sample_limit=sample_limit,
+                            )
+
+        return stats
+    
+    def list_collection_relations(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+    ):
+        return self.list_records(
+            record_type="relation",
+            scope=f"/source/{source}/database/{database}/collection/{collection}",
+        )
