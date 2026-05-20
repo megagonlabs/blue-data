@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+import json
+from typing import Any
+
 from blue_data.sources.memory_json_source import MemoryJSONSource
 
 
@@ -40,7 +45,13 @@ class Registry:
         return self.store.get(self._record_key(name, type, scope))
 
     
-    def list_records(self, record_type: str | None = None, scope: str | None = None):
+    
+    def list_records(
+        self,
+        record_type: str | None = None,
+        scope: str | None = None,
+        recursive: bool = False,
+    ):
         records = [
             value
             for key, value in self.store.data.items()
@@ -57,11 +68,18 @@ class Registry:
             records = [r for r in records if r.get("type") == record_type]
 
         if scope is not None:
-            records = [r for r in records if r.get("scope") == scope]
+            if recursive:
+                records = [
+                    r
+                    for r in records
+                    if r.get("scope") == scope
+                    or r.get("scope", "").startswith(scope.rstrip("/") + "/")
+                ]
+            else:
+                records = [r for r in records if r.get("scope") == scope]
 
         return records
-    
-    
+        
 
     def deregister_record(self, name, type, scope="/"):
         self.store.delete(self._record_key(name, type, scope))
@@ -99,5 +117,132 @@ class Registry:
         record["description"] = description
         self.store.set(self._record_key(name, type, scope), record)
         return record
+    
+    def update_record(
+        self,
+        name,
+        type,
+        scope="/",
+        description=None,
+        properties=None,
+        icon=None,
+    ):
+        original = self.get_record(name, type, scope)
 
-        
+        if not original:
+            return self.register_record(
+                name=name,
+                type=type,
+                scope=scope,
+                description=description or "",
+                properties=properties or {},
+                icon=icon,
+            )
+
+        updated = dict(original)
+
+        if description is not None:
+            updated["description"] = description
+
+        if icon is not None:
+            updated["icon"] = icon
+
+        if properties is not None:
+            current_properties = updated.get("properties", {}) or {}
+            current_properties.update(properties)
+            updated["properties"] = current_properties
+
+        self.store.set(self._record_key(name, type, scope), updated)
+        return original, updated
+
+
+    def deregister(self, record):
+        if not record:
+            return None
+
+        return self.deregister_record(
+            record["name"],
+            record["type"],
+            record["scope"],
+        )
+
+
+    def filter_record_contents(
+        self,
+        name,
+        type,
+        scope,
+        filter_type=None,
+        filter_name=None,
+        single=False,
+    ):
+        parent_key = self._record_key(name, type, scope)
+        parent_prefix = parent_key.rstrip("/") + "/"
+
+        matches = []
+
+        for key, value in self.store.data.items():
+            if key == "$" or not isinstance(value, dict):
+                continue
+
+            if not key.startswith(parent_prefix):
+                continue
+
+            if filter_type is not None and value.get("type") != filter_type:
+                continue
+
+            if filter_name is not None and value.get("name") != filter_name:
+                continue
+
+            matches.append(value)
+
+        if single:
+            return matches[0] if matches else None
+
+        return matches
+
+
+    def dumps(self):
+        return json.dumps(self.list_records(recursive=True), indent=2)
+
+
+    def dump(self, output_file):
+        with open(output_file, "w") as fp:
+            json.dump(self.list_records(recursive=True), fp, indent=2)
+
+
+    def loads(self, input_string):
+        records = json.loads(input_string)
+        self._load_records(records)
+
+
+    def load(self, input_file):
+        with open(input_file, "r") as fp:
+            records = json.load(fp)
+        self._load_records(records)
+
+
+    def _load_records(self, records):
+        for record in records:
+            self.register_record(
+                name=record["name"],
+                type=record["type"],
+                scope=record.get("scope", "/"),
+                description=record.get("description", ""),
+                properties=record.get("properties", {}),
+                created_by=record.get("created_by"),
+                icon=record.get("icon"),
+            )
+
+    def delete_record_property(self, name, type, scope, key):
+        record = self.get_record(name, type, scope)
+        if not record:
+            return None
+
+        record.setdefault("properties", {})
+        deleted = record["properties"].pop(key, None)
+
+        self.store.set(self._record_key(name, type, scope), record)
+        return deleted
+
+            

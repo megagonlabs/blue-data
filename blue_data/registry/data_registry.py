@@ -810,3 +810,26 @@ class DataRegistry(Registry):
         )
 
         return semantic_info
+
+    def enrich_source(self, source: str):
+        for database_record in self.list_source_databases(source):
+            database = database_record["name"]
+
+            for collection_record in self.list_database_collections(source, database):
+                collection = collection_record["name"]
+
+                for entity_record in self.list_collection_entities(source, database, collection):
+                    entity = entity_record["name"]
+
+                    for attribute_record in self.list_entity_attributes(
+                        source, database, collection, entity
+                    ):
+                        attribute = attribute_record["name"]
+
+                        self.enrich_source_database_collection_entity_attribute(
+                            source,
+                            database,
+                            collection,
+                            entity,
+                            attribute,
+                        )
