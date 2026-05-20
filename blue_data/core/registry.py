@@ -69,4 +69,35 @@ class Registry:
     def _record_key(self, name, type, scope="/"):
         return f"{scope.rstrip('/')}/{type}/{name}"
 
+    def get_record_properties(self, name, type, scope="/"):
+        record = self.get_record(name, type, scope)
+        return (record or {}).get("properties", {})
+
+    def get_record_property(self, name, type, scope, key):
+        return self.get_record_properties(name, type, scope).get(key)
+
+    def set_record_property(self, name, type, scope, key, value):
+        record = self.get_record(name, type, scope)
+        if not record:
+            raise ValueError(f"Record not found: {scope}/{type}/{name}")
+
+        record.setdefault("properties", {})
+        record["properties"][key] = value
+
+        self.store.set(self._record_key(name, type, scope), record)
+        return record
+
+    def get_record_description(self, name, type, scope="/"):
+        record = self.get_record(name, type, scope)
+        return (record or {}).get("description")
+
+    def set_record_description(self, name, type, scope, description):
+        record = self.get_record(name, type, scope)
+        if not record:
+            raise ValueError(f"Record not found: {scope}/{type}/{name}")
+
+        record["description"] = description
+        self.store.set(self._record_key(name, type, scope), record)
+        return record
+
         
