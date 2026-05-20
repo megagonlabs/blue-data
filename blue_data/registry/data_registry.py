@@ -46,3 +46,107 @@ class DataRegistry(Registry):
             collection=collection,
             optional_properties=optional_properties or {},
         )
+
+    
+    # ---------- hierarchy helpers ----------
+
+    def register_source_database(
+        self,
+        source: str,
+        database: str,
+        description: str = "",
+        properties: dict | None = None,
+    ):
+        return self.register_record(
+            name=database,
+            type="database",
+            scope=f"/source/{source}",
+            description=description,
+            properties=properties or {},
+        )
+
+    def register_source_database_collection(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        description: str = "",
+        properties: dict | None = None,
+    ):
+        return self.register_record(
+            name=collection,
+            type="collection",
+            scope=f"/source/{source}/database/{database}",
+            description=description,
+            properties=properties or {},
+        )
+
+    def register_source_database_collection_entity(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        description: str = "",
+        properties: dict | None = None,
+    ):
+        return self.register_record(
+            name=entity,
+            type="entity",
+            scope=f"/source/{source}/database/{database}/collection/{collection}",
+            description=description,
+            properties=properties or {},
+        )
+
+    def register_source_database_collection_entity_attribute(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        attribute: str,
+        description: str = "",
+        properties: dict | None = None,
+    ):
+        return self.register_record(
+            name=attribute,
+            type="attribute",
+            scope=f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
+            description=description,
+            properties=properties or {},
+        )
+
+    def register_source_database_collection_relation(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+        description: str = "",
+        properties: dict | None = None,
+    ):
+        return self.register_record(
+            name=relation,
+            type="relation",
+            scope=f"/source/{source}/database/{database}/collection/{collection}",
+            description=description,
+            properties=properties or {},
+        )
+
+    def register_source_database_collection_relation_attribute(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+        attribute: str,
+        description: str = "",
+        properties: dict | None = None,
+    ):
+        return self.register_record(
+            name=attribute,
+            type="attribute",
+            scope=f"/source/{source}/database/{database}/collection/{collection}/relation/{relation}",
+            description=description,
+            properties=properties or {},
+        )
