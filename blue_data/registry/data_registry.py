@@ -426,18 +426,140 @@ class DataRegistry(Registry):
             description,
         )
 
-    def sync_source(
-        self,
-        source_name: str,
-    ):
-        source = self.get_source(source_name)
+    
+    # ---------- sync helpers ----------
 
-        if source is None:
-            raise ValueError(f"Source not registered: {source_name}")
+    def sync_source(self, source: str, recursive: bool = False):
+        source_obj = self.get_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
 
-        if not hasattr(source, "sync"):
-            raise NotImplementedError(
-                f"{source.__class__.__name__} does not support sync()"
+        metadata = source_obj.fetch_metadata()
+        if metadata:
+            self.set_record_property(source, "source", "/", "metadata", metadata)
+
+        databases = source_obj.fetch_databases()
+
+        for database in databases:
+            self.register_source_database(
+                source=source,
+                database=database,
             )
 
-        return source.sync(self)
+            if recursive:
+                self.sync_source_database(
+                    source=source,
+                    database=database,
+                    source_obj=source_obj,
+                    recursive=recursive,
+                )
+
+    def sync_source_database(
+        self,
+        source: str,
+        database: str,
+        source_obj=None,
+        recursive: bool = False,
+    ):
+        if source_obj is None:
+            source_obj = self.get_source(source)
+
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        metadata = source_obj.fetch_database_metadata(database)
+        if metadata:
+            self.set_source_database_property(
+                source,
+                database,
+                "metadata",
+                metadata,
+            )
+
+        collections = source_obj.fetch_database_collections(database)
+
+        for collection in collections:
+            self.register_source_database_collection(
+                source=source,
+                database=database,
+                collection=collection,
+            )
+
+            if recursive:
+                self.sync_source_database_collection(
+                    source=source,
+                    database=database,
+                    collection=collection,
+                    source_obj=source_obj,
+                )
+
+    def sync_source_database_collection(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        source_obj=None,
+    ):
+        if source_obj is None:
+            source_obj = self.get_source(source)
+
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        metadata = source_obj.fetch_database_collection_metadata(
+            database,
+            collection,
+        )
+
+        if metadata:
+            self.set_source_database_collection_property(
+                source,
+                database,
+                collection,
+                "metadata",
+                metadata,
+            )
+
+        entities = source_obj.fetch_database_collection_entities(
+            database,
+            collection,
+        )
+
+        for entity_name, entity_obj in entities.items():
+            self.register_source_database_collection_entity(
+                source=source,
+                database=database,
+                collection=collection,
+                entity=entity_name,
+                properties=entity_obj.get("properties", {}),
+            )
+
+            attributes = (
+                entity_obj
+                .get("contents", {})
+                .get("attributes", {})
+            )
+
+            for attr_name, attr_props in attributes.items():
+                self.register_source_database_collection_entity_attribute(
+                    source=source,
+                    database=database,
+                    collection=collection,
+                    entity=entity_name,
+                    attribute=attr_name,
+                    properties=attr_props,
+                )
+
+        relations = source_obj.fetch_database_collection_relations(
+            database,
+            collection,
+        )
+
+        for relation_name, relation_obj in relations.items():
+            self.register_source_database_collection_relation(
+                source=source,
+                database=database,
+                collection=collection,
+                relation=relation_name,
+                properties=relation_obj.get("properties", {}),
+            )
