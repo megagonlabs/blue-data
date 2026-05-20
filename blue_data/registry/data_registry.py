@@ -833,3 +833,151 @@ class DataRegistry(Registry):
                             entity,
                             attribute,
                         )
+
+     # ---------- source record helpers ----------
+
+    def get_source_record(self, source: str):
+        return self.get_record(source, "source", "/")
+
+    def update_source(
+        self,
+        source: str,
+        description: str | None = None,
+        properties: dict | None = None,
+        icon: str | None = None,
+    ):
+        return self.update_record(
+            source,
+            "source",
+            "/",
+            description=description,
+            properties=properties,
+            icon=icon,
+        )
+
+    def deregister_source(self, source: str):
+        record = self.get_source_record(source)
+        self.sources.pop(source, None)
+        return self.deregister(record)
+    
+
+    # ---------- database update/deregister/get helpers ----------
+
+    def get_source_database(self, source: str, database: str):
+        return self.get_record(
+            database,
+            "database",
+            f"/source/{source}",
+        )
+
+    def update_source_database(
+        self,
+        source: str,
+        database: str,
+        description: str | None = None,
+        properties: dict | None = None,
+        icon: str | None = None,
+    ):
+        return self.update_record(
+            database,
+            "database",
+            f"/source/{source}",
+            description=description,
+            properties=properties,
+            icon=icon,
+        )
+
+    def deregister_source_database(self, source: str, database: str):
+        record = self.get_source_database(source, database)
+        return self.deregister(record)
+    
+        # ---------- collection update/deregister/get helpers ----------
+
+    def get_source_database_collection(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+    ):
+        return self.get_record(
+            collection,
+            "collection",
+            f"/source/{source}/database/{database}",
+        )
+
+    def update_source_database_collection(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        description: str | None = None,
+        properties: dict | None = None,
+        icon: str | None = None,
+    ):
+        return self.update_record(
+            collection,
+            "collection",
+            f"/source/{source}/database/{database}",
+            description=description,
+            properties=properties,
+            icon=icon,
+        )
+
+    def deregister_source_database_collection(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+    ):
+        record = self.get_source_database_collection(source, database, collection)
+        return self.deregister(record)
+    
+        # ---------- entity update/deregister/get helpers ----------
+
+    def get_source_database_collection_entity(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+    ):
+        return self.get_record(
+            entity,
+            "entity",
+            f"/source/{source}/database/{database}/collection/{collection}",
+        )
+
+    def update_source_database_collection_entity(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        description: str | None = None,
+        properties: dict | None = None,
+        icon: str | None = None,
+    ):
+        return self.update_record(
+            entity,
+            "entity",
+            f"/source/{source}/database/{database}/collection/{collection}",
+            description=description,
+            properties=properties,
+            icon=icon,
+        )
+
+    def deregister_source_database_collection_entity(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+    ):
+        record = self.get_source_database_collection_entity(
+            source,
+            database,
+            collection,
+            entity,
+        )
+        return self.deregister(record)
+            
