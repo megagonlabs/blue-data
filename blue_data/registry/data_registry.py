@@ -563,3 +563,24 @@ class DataRegistry(Registry):
                 relation=relation_name,
                 properties=relation_obj.get("properties", {}),
             )
+
+    def collect_source_database_stats(
+        self,
+        source: str,
+        database: str,
+    ):
+        source_obj = self.get_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        stats = source_obj.fetch_database_stats(database)
+
+        if stats:
+            self.set_source_database_property(
+                source,
+                database,
+                "stats",
+                stats,
+            )
+
+        return stats
