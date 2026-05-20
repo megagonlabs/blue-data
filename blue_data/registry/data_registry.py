@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from blue_data.core.registry import Registry
 from blue_data.core.source import DataSource
+from blue_data.enrichment.value_semantics.semantic_types import SemanticTypeInferencer
 
 
 class DataRegistry(Registry):
@@ -10,6 +11,7 @@ class DataRegistry(Registry):
     def __init__(self, name: str = "DATA_REGISTRY", store=None):
         super().__init__(name=name, store=store)
         self.sources: dict[str, DataSource] = {}
+        self.semantic_type_inferencer = SemanticTypeInferencer()
 
     def register_source(self, source: DataSource) -> None:
         self.sources[source.name] = source
@@ -767,3 +769,44 @@ class DataRegistry(Registry):
             record_type="relation",
             scope=f"/source/{source}/database/{database}/collection/{collection}",
         )
+
+    def enrich_source_database_collection_entity_attribute(
+    self,
+    source: str,
+    database: str,
+    collection: str,
+    entity: str,
+    attribute: str,
+):
+        stats = self.get_source_database_collection_entity_attribute_property(
+            source,
+            database,
+            collection,
+            entity,
+            attribute,
+            "stats",
+        )
+
+        if not stats:
+            stats = self.collect_source_database_collection_entity_attribute_stats(
+                source,
+                database,
+                collection,
+                entity,
+                attribute,
+            )
+
+        values = stats.get("sample_values", [])
+        semantic_info = self.semantic_type_inferencer.infer(values)
+
+        self.set_source_database_collection_entity_attribute_property(
+            source,
+            database,
+            collection,
+            entity,
+            attribute,
+            "value_semantics",
+            semantic_info,
+        )
+
+        return semantic_info
