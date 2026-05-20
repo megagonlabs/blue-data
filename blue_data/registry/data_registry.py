@@ -570,6 +570,7 @@ class DataRegistry(Registry):
         database: str,
     ):
         source_obj = self.get_source(source)
+    
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
 
@@ -579,6 +580,102 @@ class DataRegistry(Registry):
             self.set_source_database_property(
                 source,
                 database,
+                "stats",
+                stats,
+            )
+
+        return stats
+
+    def collect_source_database_collection_stats(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+    ):
+        source_obj = self.get_source(source)
+
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        entities = self.list_collection_entities(source, database, collection)
+        relations = self.list_collection_relations(source, database, collection) if hasattr(self, "list_collection_relations") else []
+
+        stats = source_obj.fetch_collection_stats(
+            database,
+            collection,
+            entities,
+            relations,
+        )
+
+        if stats:
+            self.set_source_database_collection_property(
+                source,
+                database,
+                collection,
+                "stats",
+                stats,
+            )
+
+        return stats
+
+    def collect_source_database_collection_entity_stats(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+    ):
+        source_obj = self.get_source(source)
+        
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        stats = source_obj.fetch_entity_stats(
+            database,
+            collection,
+            entity,
+        )
+
+        if stats:
+            self.set_source_database_collection_entity_property(
+                source,
+                database,
+                collection,
+                entity,
+                "stats",
+                stats,
+            )
+
+        return stats
+
+    def collect_source_database_collection_entity_attribute_stats(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        attribute: str,
+        sample_limit: int = 10,
+    ):
+        source_obj = self.get_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        stats = source_obj.fetch_property_stats(
+            database,
+            collection,
+            entity,
+            attribute,
+            sample_limit=sample_limit,
+        )
+
+        if stats:
+            self.set_source_database_collection_entity_attribute_property(
+                source,
+                database,
+                collection,
+                entity,
+                attribute,
                 "stats",
                 stats,
             )
