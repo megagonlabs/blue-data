@@ -1,16 +1,26 @@
 from __future__ import annotations
 
+from blue_data.core.registry import Registry
 from blue_data.core.source import DataSource
 
 
-class DataRegistry:
-    """In-memory registry for data sources."""
+class DataRegistry(Registry):
+    """Registry for managing data sources."""
 
-    def __init__(self):
+    def __init__(self, name: str = "DATA_REGISTRY", store=None):
+        super().__init__(name=name, store=store)
         self.sources: dict[str, DataSource] = {}
 
     def register_source(self, source: DataSource) -> None:
         self.sources[source.name] = source
+
+        self.register_record(
+            name=source.name,
+            type="source",
+            scope="/",
+            description=f"{source.name} data source",
+            properties=source.properties,
+        )
 
     def get_source(self, name: str) -> DataSource | None:
         return self.sources.get(name)
