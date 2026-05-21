@@ -6,14 +6,21 @@ from blue_data.enrichment.value_semantics.semantic_types import SemanticTypeInfe
 
 
 class DataRegistry(Registry):
-    """Registry for managing data sources."""
+    """Registry for managing data sources and their hierarchical metadata.
+
+    Extends Registry with typed helpers that map the path convention
+    ``source → database → collection → entity/relation → attribute``, plus
+    sync, stats-collection, and semantic-enrichment operations.
+    """
 
     def __init__(self, name: str = "DATA_REGISTRY", store=None):
+        """Initialize the registry with an optional backing store."""
         super().__init__(name=name, store=store)
         self.sources: dict[str, DataSource] = {}
         self.semantic_type_inferencer = SemanticTypeInferencer()
 
     def register_source(self, source: DataSource) -> None:
+        """Register a DataSource and add a corresponding top-level registry record."""
         self.sources[source.name] = source
 
         self.register_record(
@@ -25,9 +32,11 @@ class DataRegistry(Registry):
         )
 
     def get_source(self, name: str) -> DataSource | None:
+        """Return the live DataSource object for *name*, or None if not registered."""
         return self.sources.get(name)
 
     def list_sources(self) -> list[str]:
+        """Return the names of all registered sources."""
         return list(self.sources.keys())
 
     def execute_query(
@@ -38,6 +47,7 @@ class DataRegistry(Registry):
         collection: str | None = None,
         optional_properties: dict | None = None,
     ):
+        """Execute *query* against the named source, raising ValueError if it is not registered."""
         source_obj = self.get_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
@@ -49,7 +59,7 @@ class DataRegistry(Registry):
             optional_properties=optional_properties or {},
         )
 
-    
+
     # ---------- hierarchy helpers ----------
 
     def register_source_database(
@@ -59,6 +69,7 @@ class DataRegistry(Registry):
         description: str = "",
         properties: dict | None = None,
     ):
+        """Register a database record under the given source."""
         return self.register_record(
             name=database,
             type="database",
@@ -75,6 +86,7 @@ class DataRegistry(Registry):
         description: str = "",
         properties: dict | None = None,
     ):
+        """Register a collection record under the given source/database."""
         return self.register_record(
             name=collection,
             type="collection",
@@ -92,6 +104,7 @@ class DataRegistry(Registry):
         description: str = "",
         properties: dict | None = None,
     ):
+        """Register an entity record under the given source/database/collection."""
         return self.register_record(
             name=entity,
             type="entity",
@@ -110,6 +123,7 @@ class DataRegistry(Registry):
         description: str = "",
         properties: dict | None = None,
     ):
+        """Register an attribute record under the given entity."""
         return self.register_record(
             name=attribute,
             type="attribute",
@@ -127,6 +141,7 @@ class DataRegistry(Registry):
         description: str = "",
         properties: dict | None = None,
     ):
+        """Register a relation record under the given source/database/collection."""
         return self.register_record(
             name=relation,
             type="relation",
@@ -145,6 +160,7 @@ class DataRegistry(Registry):
         description: str = "",
         properties: dict | None = None,
     ):
+        """Register an attribute record under the given relation."""
         return self.register_record(
             name=attribute,
             type="attribute",
@@ -154,6 +170,7 @@ class DataRegistry(Registry):
         )
 
     def list_source_databases(self, source: str):
+        """Return all database records registered under *source*."""
         return self.list_records(
             record_type="database",
             scope=f"/source/{source}",
@@ -164,6 +181,7 @@ class DataRegistry(Registry):
         source: str,
         database: str,
     ):
+        """Return all collection records registered under *source/database*."""
         return self.list_records(
             record_type="collection",
             scope=f"/source/{source}/database/{database}",
@@ -175,6 +193,7 @@ class DataRegistry(Registry):
         database: str,
         collection: str,
     ):
+        """Return all entity records registered under *source/database/collection*."""
         return self.list_records(
             record_type="entity",
             scope=f"/source/{source}/database/{database}/collection/{collection}",
@@ -187,6 +206,7 @@ class DataRegistry(Registry):
         collection: str,
         entity: str,
     ):
+        """Return all attribute records registered under the given entity."""
         return self.list_records(
             record_type="attribute",
             scope=f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
@@ -200,6 +220,7 @@ class DataRegistry(Registry):
         database: str,
         key: str,
     ):
+        """Return the value of property *key* on the given database record."""
         return self.get_record_property(
             database,
             "database",
@@ -214,6 +235,7 @@ class DataRegistry(Registry):
         key: str,
         value,
     ):
+        """Set property *key* to *value* on the given database record."""
         return self.set_record_property(
             database,
             "database",
@@ -229,6 +251,7 @@ class DataRegistry(Registry):
         collection: str,
         key: str,
     ):
+        """Return the value of property *key* on the given collection record."""
         return self.get_record_property(
             collection,
             "collection",
@@ -244,6 +267,7 @@ class DataRegistry(Registry):
         key: str,
         value,
     ):
+        """Set property *key* to *value* on the given collection record."""
         return self.set_record_property(
             collection,
             "collection",
@@ -260,6 +284,7 @@ class DataRegistry(Registry):
         entity: str,
         key: str,
     ):
+        """Return the value of property *key* on the given entity record."""
         return self.get_record_property(
             entity,
             "entity",
@@ -276,6 +301,7 @@ class DataRegistry(Registry):
         key: str,
         value,
     ):
+        """Set property *key* to *value* on the given entity record."""
         return self.set_record_property(
             entity,
             "entity",
@@ -293,6 +319,7 @@ class DataRegistry(Registry):
         attribute: str,
         key: str,
     ):
+        """Return the value of property *key* on the given entity attribute record."""
         return self.get_record_property(
             attribute,
             "attribute",
@@ -310,6 +337,7 @@ class DataRegistry(Registry):
         key: str,
         value,
     ):
+        """Set property *key* to *value* on the given entity attribute record."""
         return self.set_record_property(
             attribute,
             "attribute",
@@ -325,6 +353,7 @@ class DataRegistry(Registry):
         source: str,
         database: str,
     ):
+        """Return the description of the given database record."""
         return self.get_record_description(
             database,
             "database",
@@ -337,6 +366,7 @@ class DataRegistry(Registry):
         database: str,
         description: str,
     ):
+        """Set the description of the given database record."""
         return self.set_record_description(
             database,
             "database",
@@ -350,6 +380,7 @@ class DataRegistry(Registry):
         database: str,
         collection: str,
     ):
+        """Return the description of the given collection record."""
         return self.get_record_description(
             collection,
             "collection",
@@ -363,6 +394,7 @@ class DataRegistry(Registry):
         collection: str,
         description: str,
     ):
+        """Set the description of the given collection record."""
         return self.set_record_description(
             collection,
             "collection",
@@ -377,6 +409,7 @@ class DataRegistry(Registry):
         collection: str,
         entity: str,
     ):
+        """Return the description of the given entity record."""
         return self.get_record_description(
             entity,
             "entity",
@@ -391,6 +424,7 @@ class DataRegistry(Registry):
         entity: str,
         description: str,
     ):
+        """Set the description of the given entity record."""
         return self.set_record_description(
             entity,
             "entity",
@@ -406,6 +440,7 @@ class DataRegistry(Registry):
         entity: str,
         attribute: str,
     ):
+        """Return the description of the given entity attribute record."""
         return self.get_record_description(
             attribute,
             "attribute",
@@ -421,6 +456,7 @@ class DataRegistry(Registry):
         attribute: str,
         description: str,
     ):
+        """Set the description of the given entity attribute record."""
         return self.set_record_description(
             attribute,
             "attribute",
@@ -428,10 +464,17 @@ class DataRegistry(Registry):
             description,
         )
 
-    
+
     # ---------- sync helpers ----------
 
     def sync_source(self, source: str, recursive: bool = False):
+        """Reconcile the registry's database list with what the live source reports.
+
+        Adds databases that are new, removes ones that have disappeared, and
+        with ``recursive=True`` descends into every database to sync its
+        collections as well (otherwise only new/merged databases are descended).
+        Also stores any top-level source metadata returned by the source.
+        """
         source_obj = self.get_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
@@ -472,7 +515,7 @@ class DataRegistry(Registry):
                 recursive=recursive,
             )
 
-   
+
     def sync_source_database(
         self,
         source: str,
@@ -480,6 +523,13 @@ class DataRegistry(Registry):
         source_obj=None,
         recursive: bool = False,
     ):
+        """Reconcile the registry's collection list for *database* with the live source.
+
+        Mirrors the add/remove/merge logic of ``sync_source`` one level deeper.
+        Pass *source_obj* to skip the registry lookup when already available.
+        With ``recursive=True`` every collection is descended; otherwise only
+        new and existing (merged) collections are synced.
+        """
         if source_obj is None:
             source_obj = self.get_source(source)
 
@@ -539,6 +589,12 @@ class DataRegistry(Registry):
         collection: str,
         source_obj=None,
     ):
+        """Reconcile entities, their attributes, relations, and relation attributes for *collection*.
+
+        For each object type the method computes adds/removes/merges and
+        calls the appropriate register/deregister/update helpers so the registry
+        reflects the current live schema of the collection.
+        """
         if source_obj is None:
             source_obj = self.get_source(source)
 
@@ -762,14 +818,31 @@ class DataRegistry(Registry):
                     attr_name,
                     properties=relation_attributes[attr_name],
                 )
+       
+        schema = self.get_data_source_schema(
+            source,
+            database,
+            collection,
+            format="json",
+        )
+
+        if schema and schema != "{}":
+            self.set_source_database_collection_property(
+                source,
+                database,
+                collection,
+                "schema",
+                schema,
+            )
 
     def collect_source_database_stats(
         self,
         source: str,
         database: str,
     ):
+        """Fetch stats from the live source for *database* and store them as the ``stats`` property."""
         source_obj = self.get_source(source)
-    
+
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
 
@@ -791,6 +864,7 @@ class DataRegistry(Registry):
         database: str,
         collection: str,
     ):
+        """Fetch stats for *collection* (passing its registered entities/relations) and persist them."""
         source_obj = self.get_source(source)
 
         if source_obj is None:
@@ -824,8 +898,9 @@ class DataRegistry(Registry):
         collection: str,
         entity: str,
     ):
+        """Fetch stats for *entity* from the live source and store them as the ``stats`` property."""
         source_obj = self.get_source(source)
-        
+
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
 
@@ -856,6 +931,7 @@ class DataRegistry(Registry):
         attribute: str,
         sample_limit: int = 10,
     ):
+        """Fetch property-level stats (including sample values) for *attribute* and persist them."""
         source_obj = self.get_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
@@ -887,6 +963,11 @@ class DataRegistry(Registry):
         recursive: bool = False,
         sample_limit: int = 10,
     ):
+        """Collect and store top-level stats for *source*.
+
+        With ``recursive=True`` descends the full hierarchy (databases →
+        collections → entities → attributes), storing stats at each level.
+        """
         source_obj = self.get_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
@@ -955,13 +1036,14 @@ class DataRegistry(Registry):
                             )
 
         return stats
-    
+
     def list_collection_relations(
         self,
         source: str,
         database: str,
         collection: str,
     ):
+        """Return all relation records registered under *source/database/collection*."""
         return self.list_records(
             record_type="relation",
             scope=f"/source/{source}/database/{database}/collection/{collection}",
@@ -975,6 +1057,12 @@ class DataRegistry(Registry):
         entity: str,
         attribute: str,
     ):
+        """Infer and store semantic type information for *attribute*.
+
+        Reads existing stats (or collects them on the fly) to obtain sample
+        values, runs them through the ``SemanticTypeInferencer``, and writes
+        the result as the ``value_semantics`` property on the attribute record.
+        """
         stats = self.get_source_database_collection_entity_attribute_property(
             source,
             database,
@@ -1009,6 +1097,7 @@ class DataRegistry(Registry):
         return semantic_info
 
     def enrich_source(self, source: str):
+        """Run semantic enrichment on every attribute of every entity across all databases and collections."""
         for database_record in self.list_source_databases(source):
             database = database_record["name"]
 
@@ -1034,6 +1123,7 @@ class DataRegistry(Registry):
     # ---------- source record helpers ----------
 
     def get_source_record(self, source: str):
+        """Return the top-level registry record for *source*."""
         return self.get_record(source, "source", "/")
 
     def update_source(
@@ -1043,6 +1133,7 @@ class DataRegistry(Registry):
         properties: dict | None = None,
         icon: str | None = None,
     ):
+        """Update metadata fields on the top-level source record."""
         return self.update_record(
             source,
             "source",
@@ -1053,14 +1144,16 @@ class DataRegistry(Registry):
         )
 
     def deregister_source(self, source: str):
+        """Remove *source* from both the live sources dict and the registry."""
         record = self.get_source_record(source)
         self.sources.pop(source, None)
         return self.deregister(record)
-    
+
 
     # ---------- database update/deregister/get helpers ----------
 
     def get_source_database(self, source: str, database: str):
+        """Return the registry record for *database* under *source*."""
         return self.get_record(
             database,
             "database",
@@ -1075,6 +1168,7 @@ class DataRegistry(Registry):
         properties: dict | None = None,
         icon: str | None = None,
     ):
+        """Update metadata fields on the given database record."""
         return self.update_record(
             database,
             "database",
@@ -1085,9 +1179,10 @@ class DataRegistry(Registry):
         )
 
     def deregister_source_database(self, source: str, database: str):
+        """Remove the given database record from the registry."""
         record = self.get_source_database(source, database)
         return self.deregister(record)
-    
+
     # ---------- collection update/deregister/get helpers ----------
 
     def get_source_database_collection(
@@ -1096,6 +1191,7 @@ class DataRegistry(Registry):
         database: str,
         collection: str,
     ):
+        """Return the registry record for *collection* under *source/database*."""
         return self.get_record(
             collection,
             "collection",
@@ -1111,6 +1207,7 @@ class DataRegistry(Registry):
         properties: dict | None = None,
         icon: str | None = None,
     ):
+        """Update metadata fields on the given collection record."""
         return self.update_record(
             collection,
             "collection",
@@ -1126,9 +1223,10 @@ class DataRegistry(Registry):
         database: str,
         collection: str,
     ):
+        """Remove the given collection record from the registry."""
         record = self.get_source_database_collection(source, database, collection)
         return self.deregister(record)
-    
+
     # ---------- entity update/deregister/get helpers ----------
 
     def get_source_database_collection_entity(
@@ -1138,6 +1236,7 @@ class DataRegistry(Registry):
         collection: str,
         entity: str,
     ):
+        """Return the registry record for *entity* under *source/database/collection*."""
         return self.get_record(
             entity,
             "entity",
@@ -1154,6 +1253,7 @@ class DataRegistry(Registry):
         properties: dict | None = None,
         icon: str | None = None,
     ):
+        """Update metadata fields on the given entity record."""
         return self.update_record(
             entity,
             "entity",
@@ -1170,6 +1270,7 @@ class DataRegistry(Registry):
         collection: str,
         entity: str,
     ):
+        """Remove the given entity record from the registry."""
         record = self.get_source_database_collection_entity(
             source,
             database,
@@ -1177,8 +1278,9 @@ class DataRegistry(Registry):
             entity,
         )
         return self.deregister(record)
-    
+
     # ---------- entity attribute update/deregister/get helpers ----------
+
     def get_source_database_collection_entity_attribute(
         self,
         source: str,
@@ -1187,6 +1289,7 @@ class DataRegistry(Registry):
         entity: str,
         attribute: str,
     ):
+        """Return the registry record for *attribute* under the given entity."""
         return self.get_record(
             attribute,
             "attribute",
@@ -1204,6 +1307,7 @@ class DataRegistry(Registry):
         properties: dict | None = None,
         icon: str | None = None,
     ):
+        """Update metadata fields on the given entity attribute record."""
         return self.update_record(
             attribute,
             "attribute",
@@ -1221,6 +1325,7 @@ class DataRegistry(Registry):
         entity: str,
         attribute: str,
     ):
+        """Remove the given entity attribute record from the registry."""
         record = self.get_source_database_collection_entity_attribute(
             source,
             database,
@@ -1229,7 +1334,7 @@ class DataRegistry(Registry):
             attribute,
         )
         return self.deregister(record)
-    
+
     # ---------- create operation helpers ----------
 
     def create_source_database(
@@ -1240,6 +1345,13 @@ class DataRegistry(Registry):
         overwrite: bool = False,
         recursive: bool = False,
     ):
+        """Create *database* via the live source and register it.
+
+        Returns None (no-op) if the database already exists and *overwrite* is
+        False. If *overwrite* is True the existing registry record is removed
+        before creation. On success the source is re-synced and any extra
+        *properties* are written back to the new record.
+        """
         source_obj = self.get_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
@@ -1278,6 +1390,11 @@ class DataRegistry(Registry):
         overwrite: bool = False,
         recursive: bool = False,
     ):
+        """Create *collection* via the live source and register it under *database*.
+
+        Follows the same overwrite and post-sync semantics as
+        ``create_source_database``.
+        """
         source_obj = self.get_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
@@ -1325,6 +1442,14 @@ class DataRegistry(Registry):
         overwrite: bool = False,
         recursive: bool = False,
     ):
+        """Create *entity* via the live source and register it.
+
+        Automatically registers the parent database and collection in the
+        registry if they are missing. *creation_properties* are passed to the
+        source's create call; *properties* are written back to the registry
+        record after a successful sync. Returns None if the entity already
+        exists and *overwrite* is False.
+        """
         source_obj = self.get_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
@@ -1382,7 +1507,7 @@ class DataRegistry(Registry):
                 )
 
         return result
-        
+
     def create_source_database_collection_relation(
         self,
         source: str,
@@ -1393,6 +1518,11 @@ class DataRegistry(Registry):
         overwrite: bool = False,
         recursive: bool = False,
     ):
+        """Create *relation* via the live source and register it under *collection*.
+
+        Follows the same overwrite and post-sync semantics as
+        ``create_source_database``.
+        """
         source_obj = self.get_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
@@ -1443,6 +1573,7 @@ class DataRegistry(Registry):
         collection: str,
         relation: str,
     ):
+        """Return all attribute records registered under the given relation."""
         return self.list_records(
             record_type="attribute",
             scope=f"/source/{source}/database/{database}/collection/{collection}/relation/{relation}",
@@ -1457,6 +1588,7 @@ class DataRegistry(Registry):
         collection: str,
         relation: str,
     ):
+        """Return the registry record for *relation* under *source/database/collection*."""
         return self.get_record(
             relation,
             "relation",
@@ -1474,6 +1606,7 @@ class DataRegistry(Registry):
         properties: dict | None = None,
         icon: str | None = None,
     ):
+        """Update metadata fields on the given relation record."""
         return self.update_record(
             relation,
             "relation",
@@ -1491,6 +1624,7 @@ class DataRegistry(Registry):
         collection: str,
         relation: str,
     ):
+        """Remove the given relation record from the registry."""
         record = self.get_source_database_collection_relation(
             source,
             database,
@@ -1510,6 +1644,7 @@ class DataRegistry(Registry):
         relation: str,
         key: str,
     ):
+        """Return the value of property *key* on the given relation record."""
         return self.get_record_property(
             relation,
             "relation",
@@ -1527,6 +1662,7 @@ class DataRegistry(Registry):
         key: str,
         value,
     ):
+        """Set property *key* to *value* on the given relation record."""
         return self.set_record_property(
             relation,
             "relation",
@@ -1545,6 +1681,7 @@ class DataRegistry(Registry):
         collection: str,
         relation: str,
     ):
+        """Return the description of the given relation record."""
         return self.get_record_description(
             relation,
             "relation",
@@ -1560,13 +1697,14 @@ class DataRegistry(Registry):
         relation: str,
         description: str,
     ):
+        """Set the description of the given relation record."""
         return self.set_record_description(
             relation,
             "relation",
             f"/source/{source}/database/{database}/collection/{collection}",
             description,
-        )    
-    
+        )
+
     # ---------- relation attribute update/deregister/get helpers ----------
 
     def get_source_database_collection_relation_attribute(
@@ -1577,6 +1715,7 @@ class DataRegistry(Registry):
         relation: str,
         attribute: str,
     ):
+        """Return the registry record for *attribute* under the given relation."""
         return self.get_record(
             attribute,
             "attribute",
@@ -1595,6 +1734,7 @@ class DataRegistry(Registry):
         properties: dict | None = None,
         icon: str | None = None,
     ):
+        """Update metadata fields on the given relation attribute record."""
         return self.update_record(
             attribute,
             "attribute",
@@ -1613,6 +1753,7 @@ class DataRegistry(Registry):
         relation: str,
         attribute: str,
     ):
+        """Remove the given relation attribute record from the registry."""
         record = self.get_source_database_collection_relation_attribute(
             source,
             database,
@@ -1621,4 +1762,36 @@ class DataRegistry(Registry):
             attribute,
         )
         return self.deregister(record)
-                    
+
+    def get_data_source_schema(
+    self,
+    source: str,
+    database: str,
+    collection: str,
+    format: str = "dict",
+    ):
+        schema = {
+            "entities": self.list_collection_entities(
+                source,
+                database,
+                collection,
+            ),
+            "relations": self.list_collection_relations(
+                source,
+                database,
+                collection,
+            ),
+        }
+
+        if format == "dict":
+            return schema
+
+        if format == "json":
+            import json
+            return json.dumps(schema, indent=2)
+
+        if format == "yaml":
+            import yaml
+            return yaml.dump(schema)
+
+        return str(schema)
