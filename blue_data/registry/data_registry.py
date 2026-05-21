@@ -465,6 +465,10 @@ class DataRegistry(Registry):
         )
 
 
+    def sync_all(self, recursive: bool = False):
+        for source in self.list_sources():
+            self.sync_source(source, recursive=recursive)
+        
     # ---------- sync helpers ----------
 
     def sync_source(self, source: str, recursive: bool = False):
