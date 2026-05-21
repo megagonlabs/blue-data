@@ -39,6 +39,7 @@ class DataRegistry(Registry):
         """Return the names of all registered sources."""
         return list(self.sources.keys())
 
+    
     def execute_query(
         self,
         source: str,
@@ -48,9 +49,10 @@ class DataRegistry(Registry):
         optional_properties: dict | None = None,
     ):
         """Execute *query* against the named source, raising ValueError if it is not registered."""
-        source_obj = self.get_source(source)
+      
+        source_obj = self.connect_source(source)
         if source_obj is None:
-            raise ValueError(f"Source not registered: {source}")
+            raise ValueError(f"Source not registered or connectable: {source}")
 
         return source_obj.execute_query(
             query=query,
@@ -58,8 +60,7 @@ class DataRegistry(Registry):
             collection=collection,
             optional_properties=optional_properties or {},
         )
-
-
+    
     # ---------- hierarchy helpers ----------
 
     def register_source_database(
@@ -788,7 +789,7 @@ class DataRegistry(Registry):
                     collection,
                     relation_name,
                 )
-            } if hasattr(self, "get_source_database_collection_relation_attributes") else set()
+            } 
 
             rel_attr_adds = fetched_relation_attributes - registry_relation_attributes
             rel_attr_removes = registry_relation_attributes - fetched_relation_attributes
@@ -1831,5 +1832,84 @@ class DataRegistry(Registry):
                 results.append(record)
 
         return results
+    
+
+    # ---------- source property / connection helpers ----------
+
+    def get_source_properties(self, source: str):
+        return self.get_record_properties(
+            source,
+            "source",
+            "/",
+        )
+
+
+    def get_source_property(self, source: str, key: str):
+        return self.get_record_property(
+            source,
+            "source",
+            "/",
+            key,
+        )
+
+
+    def set_source_property(self, source: str, key: str, value):
+        return self.set_record_property(
+            source,
+            "source",
+            "/",
+            key,
+            value,
+        )
+
+
+    def delete_source_property(self, source: str, key: str):
+        return self.delete_record_property(
+            source,
+            "source",
+            "/",
+            key,
+        )
+
+
+    def get_source_connection(self, source: str):
+        return self.get_source_property(source, "connection")
+
+
+    def set_source_connection(self, source: str, connection: dict):
+        return self.set_source_property(
+            source,
+            "connection",
+            connection,
+        )
+    
+    def connect_source(self, source: str):
+        existing_source = self.get_source(source)
+        if existing_source is not None:
+            return existing_source
+
+        properties = self.get_source_properties(source)
+        if not properties:
+            return None
+
+        connection = properties.get("connection", {})
+        protocol = connection.get("protocol")
+
+        if protocol == "sqlite":
+            from blue_data.sources.sqlite_source import SQLiteDBSource
+            source_obj = SQLiteDBSource(source, properties=properties)
+        elif protocol == "json":
+            subprotocol = connection.get("subprotocol")
+
+            if subprotocol == "memory":
+                from blue_data.sources.memory_json_source import MemoryJSONSource
+                source_obj = MemoryJSONSource(name=source, properties=properties)
+            else:
+                raise ValueError(f"Unsupported JSON subprotocol: {subprotocol}")
+        else:
+            raise ValueError(f"Unsupported source protocol: {protocol}")
+
+        self.sources[source] = source_obj
+        return source_obj
 
     
