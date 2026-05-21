@@ -1768,11 +1768,11 @@ class DataRegistry(Registry):
         return self.deregister(record)
 
     def get_data_source_schema(
-    self,
-    source: str,
-    database: str,
-    collection: str,
-    format: str = "dict",
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        format: str = "dict",
     ):
         schema = {
             "entities": self.list_collection_entities(
@@ -1799,3 +1799,37 @@ class DataRegistry(Registry):
             return yaml.dump(schema)
 
         return str(schema)
+
+    def search_records(
+        self,
+        query: str,
+        record_type: str | None = None,
+        scope: str | None = None,
+    ):
+        query_lower = query.lower()
+
+        records = self.list_records(
+            record_type=record_type,
+            scope=scope,
+            recursive=True if scope else False,
+        )
+
+        results = []
+
+        for record in records:
+            text_parts = [
+                record.get("name", ""),
+                record.get("type", ""),
+                record.get("scope", ""),
+                record.get("description", ""),
+                str(record.get("properties", {})),
+            ]
+
+            haystack = " ".join(text_parts).lower()
+
+            if query_lower in haystack:
+                results.append(record)
+
+        return results
+
+    
