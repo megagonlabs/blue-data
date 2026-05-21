@@ -846,7 +846,7 @@ class DataRegistry(Registry):
         database: str,
     ):
         """Fetch stats from the live source for *database* and store them as the ``stats`` property."""
-        source_obj = self.get_source(source)
+        source_obj = self.connect_source(source)
 
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
@@ -870,7 +870,7 @@ class DataRegistry(Registry):
         collection: str,
     ):
         """Fetch stats for *collection* (passing its registered entities/relations) and persist them."""
-        source_obj = self.get_source(source)
+        source_obj = self.connect_source(source)
 
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
@@ -904,7 +904,7 @@ class DataRegistry(Registry):
         entity: str,
     ):
         """Fetch stats for *entity* from the live source and store them as the ``stats`` property."""
-        source_obj = self.get_source(source)
+        source_obj = self.connect_source(source)
 
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
@@ -937,7 +937,7 @@ class DataRegistry(Registry):
         sample_limit: int = 10,
     ):
         """Fetch property-level stats (including sample values) for *attribute* and persist them."""
-        source_obj = self.get_source(source)
+        source_obj = self.connect_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
 
@@ -973,7 +973,7 @@ class DataRegistry(Registry):
         With ``recursive=True`` descends the full hierarchy (databases →
         collections → entities → attributes), storing stats at each level.
         """
-        source_obj = self.get_source(source)
+        source_obj = self.connect_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
 
@@ -2096,5 +2096,145 @@ class DataRegistry(Registry):
                 attr_name,
                 properties=attributes[attr_name],
             )
+
+    # ---------- relation attribute property helpers ----------
+
+    def get_source_database_collection_relation_attribute_property(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+        attribute: str,
+        key: str,
+    ):
+        return self.get_record_property(
+            attribute,
+            "attribute",
+            f"/source/{source}/database/{database}/collection/{collection}/relation/{relation}",
+            key,
+        )
+
+
+    def set_source_database_collection_relation_attribute_property(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+        attribute: str,
+        key: str,
+        value,
+    ):
+        return self.set_record_property(
+            attribute,
+            "attribute",
+            f"/source/{source}/database/{database}/collection/{collection}/relation/{relation}",
+            key,
+            value,
+        )
+
+
+    # ---------- relation attribute description helpers ----------
+
+    def get_source_database_collection_relation_attribute_description(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+        attribute: str,
+    ):
+        return self.get_record_description(
+            attribute,
+            "attribute",
+            f"/source/{source}/database/{database}/collection/{collection}/relation/{relation}",
+        )
+
+
+    def set_source_database_collection_relation_attribute_description(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+        attribute: str,
+        description: str,
+    ):
+        return self.set_record_description(
+            attribute,
+            "attribute",
+            f"/source/{source}/database/{database}/collection/{collection}/relation/{relation}",
+            description,
+        )
+    
+
+    def collect_source_database_collection_relation_stats(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+    ):
+        source_obj = self.connect_source(source)
+
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        stats = source_obj.fetch_relation_stats(
+            database,
+            collection,
+            relation,
+        )
+
+        if stats:
+            self.set_source_database_collection_relation_property(
+                source,
+                database,
+                collection,
+                relation,
+                "stats",
+                stats,
+            )
+
+        return stats
+
+
+    def collect_source_database_collection_relation_attribute_stats(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+        attribute: str,
+        sample_limit: int = 10,
+    ):
+        source_obj = self.connect_source(source)
+
+        if source_obj is None:
+            raise ValueError(f"Source not registered: {source}")
+
+        stats = source_obj.fetch_property_stats(
+            database,
+            collection,
+            relation,
+            attribute,
+            sample_limit=sample_limit,
+        )
+
+        if stats:
+            self.set_source_database_collection_relation_attribute_property(
+                source,
+                database,
+                collection,
+                relation,
+                attribute,
+                "stats",
+                stats,
+            )
+
+        return stats
+
+    
 
         
