@@ -1911,5 +1911,190 @@ class DataRegistry(Registry):
 
         self.sources[source] = source_obj
         return source_obj
-
     
+
+    def sync_source_database_collection_entity(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        source_obj=None,
+        recursive: bool = False,
+    ):
+        if source_obj is None:
+            source_obj = self.connect_source(source)
+
+        if source_obj is None:
+            raise ValueError(f"Source not registered or connectable: {source}")
+
+        metadata = source_obj.fetch_database_collection_entity_metadata(
+            database,
+            collection,
+            entity,
+        )
+
+        if metadata:
+            self.update_source_database_collection_entity(
+                source,
+                database,
+                collection,
+                entity,
+                properties={"metadata": metadata},
+            )
+
+        try:
+            attributes = source_obj.fetch_database_collection_entity_attributes(
+                database,
+                collection,
+                entity,
+            ) or {}
+        except AttributeError:
+            entity_obj = source_obj.fetch_database_collection_entities(
+                database,
+                collection,
+            ).get(entity, {})
+            attributes = (
+                entity_obj
+                .get("contents", {})
+                .get("attributes", {})
+            )
+
+        fetched_attributes = set(attributes.keys())
+
+        registry_attributes = {
+            record["name"]
+            for record in self.list_entity_attributes(
+                source,
+                database,
+                collection,
+                entity,
+            )
+        }
+
+        attr_adds = fetched_attributes - registry_attributes
+        attr_removes = registry_attributes - fetched_attributes
+        attr_merges = fetched_attributes & registry_attributes
+
+        for attr_name in attr_adds:
+            self.register_source_database_collection_entity_attribute(
+                source=source,
+                database=database,
+                collection=collection,
+                entity=entity,
+                attribute=attr_name,
+                properties=attributes[attr_name],
+            )
+
+        for attr_name in attr_removes:
+            self.deregister_source_database_collection_entity_attribute(
+                source,
+                database,
+                collection,
+                entity,
+                attr_name,
+            )
+
+        for attr_name in attr_adds | attr_merges:
+            self.update_source_database_collection_entity_attribute(
+                source,
+                database,
+                collection,
+                entity,
+                attr_name,
+                properties=attributes[attr_name],
+            )
+
+    def sync_source_database_collection_relation(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+        source_obj=None,
+        recursive: bool = False,
+    ):
+        if source_obj is None:
+            source_obj = self.connect_source(source)
+
+        if source_obj is None:
+            raise ValueError(f"Source not registered or connectable: {source}")
+
+        metadata = source_obj.fetch_database_collection_relation_metadata(
+            database,
+            collection,
+            relation,
+        )
+
+        if metadata:
+            self.update_source_database_collection_relation(
+                source,
+                database,
+                collection,
+                relation,
+                properties={"metadata": metadata},
+            )
+
+        try:
+            attributes = source_obj.fetch_database_collection_relation_attributes(
+                database,
+                collection,
+                relation,
+            ) or {}
+        except AttributeError:
+            relation_obj = source_obj.fetch_database_collection_relations(
+                database,
+                collection,
+            ).get(relation, {})
+            attributes = (
+                relation_obj
+                .get("contents", {})
+                .get("attributes", {})
+            )
+
+        fetched_attributes = set(attributes.keys())
+
+        registry_attributes = {
+            record["name"]
+            for record in self.get_source_database_collection_relation_attributes(
+                source,
+                database,
+                collection,
+                relation,
+            )
+        }
+
+        attr_adds = fetched_attributes - registry_attributes
+        attr_removes = registry_attributes - fetched_attributes
+        attr_merges = fetched_attributes & registry_attributes
+
+        for attr_name in attr_adds:
+            self.register_source_database_collection_relation_attribute(
+                source=source,
+                database=database,
+                collection=collection,
+                relation=relation,
+                attribute=attr_name,
+                properties=attributes[attr_name],
+            )
+
+        for attr_name in attr_removes:
+            self.deregister_source_database_collection_relation_attribute(
+                source,
+                database,
+                collection,
+                relation,
+                attr_name,
+            )
+
+        for attr_name in attr_adds | attr_merges:
+            self.update_source_database_collection_relation_attribute(
+                source,
+                database,
+                collection,
+                relation,
+                attr_name,
+                properties=attributes[attr_name],
+            )
+
+        
