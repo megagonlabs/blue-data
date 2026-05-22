@@ -244,102 +244,47 @@ class Registry:
 
         self.store.set(self._record_key(name, type, scope), record)
         return deleted
-
-    # ---------- source record helpers ----------
-
-    def get_source_record(self, source: str):
-        return self.get_record(source, "source", "/")
-
-    def update_source(
-        self,
-        source: str,
-        description: str | None = None,
-        properties: dict | None = None,
-        icon: str | None = None,
-    ):
-        return self.update_record(
-            source,
-            "source",
-            "/",
-            description=description,
-            properties=properties,
-            icon=icon,
-        )
-
-    def deregister_source(self, source: str):
-        record = self.get_source_record(source)
-        self.sources.pop(source, None)
-        return self.deregister(record)
     
-
-    # ---------- database update/deregister/get helpers ----------
-
-    def get_source_database(self, source: str, database: str):
-        return self.get_record(
-            database,
-            "database",
-            f"/source/{source}",
-        )
-
-    def update_source_database(
+    def filter_records_by_properties(
         self,
-        source: str,
-        database: str,
-        description: str | None = None,
+        record_type: str | None = None,
+        scope: str | None = None,
         properties: dict | None = None,
-        icon: str | None = None,
+        recursive: bool = False,
+        partial_match: bool = False,
     ):
-        return self.update_record(
-            database,
-            "database",
-            f"/source/{source}",
-            description=description,
-            properties=properties,
-            icon=icon,
+        def match_props(record_props, filter_props):
+            for key, expected in filter_props.items():
+                actual = record_props.get(key)
+
+                if isinstance(expected, dict):
+                    if not isinstance(actual, dict):
+                        return False
+                    if not match_props(actual, expected):
+                        return False
+                else:
+                    if partial_match:
+                        if actual is None or str(expected) not in str(actual):
+                            return False
+                    else:
+                        if actual != expected:
+                            return False
+
+            return True
+
+        records = self.list_records(
+            record_type=record_type,
+            scope=scope,
+            recursive=recursive,
         )
 
-    def deregister_source_database(self, source: str, database: str):
-        record = self.get_source_database(source, database)
-        return self.deregister(record)
-    
-        # ---------- collection update/deregister/get helpers ----------
+        if not properties:
+            return records
 
-    def get_source_database_collection(
-        self,
-        source: str,
-        database: str,
-        collection: str,
-    ):
-        return self.get_record(
-            collection,
-            "collection",
-            f"/source/{source}/database/{database}",
-        )
+        return [
+            record
+            for record in records
+            if match_props(record.get("properties", {}) or {}, properties)
+        ]
 
-    def update_source_database_collection(
-        self,
-        source: str,
-        database: str,
-        collection: str,
-        description: str | None = None,
-        properties: dict | None = None,
-        icon: str | None = None,
-    ):
-        return self.update_record(
-            collection,
-            "collection",
-            f"/source/{source}/database/{database}",
-            description=description,
-            properties=properties,
-            icon=icon,
-        )
-
-    def deregister_source_database_collection(
-        self,
-        source: str,
-        database: str,
-        collection: str,
-    ):
-        record = self.get_source_database_collection(source, database, collection)
-        return self.deregister(record)
-            
+   
