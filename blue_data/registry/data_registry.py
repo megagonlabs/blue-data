@@ -1357,7 +1357,7 @@ class DataRegistry(Registry):
         before creation. On success the source is re-synced and any extra
         *properties* are written back to the new record.
         """
-        source_obj = self.get_source(source)
+        source_obj = self.connect_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
 
@@ -1400,7 +1400,7 @@ class DataRegistry(Registry):
         Follows the same overwrite and post-sync semantics as
         ``create_source_database``.
         """
-        source_obj = self.get_source(source)
+        source_obj = self.connect_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
 
@@ -1455,7 +1455,7 @@ class DataRegistry(Registry):
         record after a successful sync. Returns None if the entity already
         exists and *overwrite* is False.
         """
-        source_obj = self.get_source(source)
+        source_obj = self.connect_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
 
@@ -1528,7 +1528,8 @@ class DataRegistry(Registry):
         Follows the same overwrite and post-sync semantics as
         ``create_source_database``.
         """
-        source_obj = self.get_source(source)
+        source_obj = self.connect_source(source)
+
         if source_obj is None:
             raise ValueError(f"Source not registered: {source}")
 
