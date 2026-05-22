@@ -2236,5 +2236,101 @@ class DataRegistry(Registry):
         return stats
 
     
+    def collect_entity_stats(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        source_obj=None,
+    ):
+        if source_obj is None:
+            source_obj = self.connect_source(source)
+
+        if source_obj is None:
+            raise ValueError(f"Source not registered or connectable: {source}")
+
+        stats = source_obj.fetch_entity_stats(database, collection, entity)
+
+        if stats:
+            self.set_source_database_collection_entity_property(
+                source,
+                database,
+                collection,
+                entity,
+                "stats",
+                stats,
+            )
+
+        return stats
+
+
+    def collect_attribute_stats(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        attribute: str,
+        source_obj=None,
+        sample_limit: int = 10,
+    ):
+        if source_obj is None:
+            source_obj = self.connect_source(source)
+
+        if source_obj is None:
+            raise ValueError(f"Source not registered or connectable: {source}")
+
+        stats = source_obj.fetch_property_stats(
+            database,
+            collection,
+            entity,
+            attribute,
+            sample_limit=sample_limit,
+        )
+
+        if stats:
+            self.set_source_database_collection_entity_attribute_property(
+                source,
+                database,
+                collection,
+                entity,
+                attribute,
+                "stats",
+                stats,
+            )
+
+        return stats
+
+
+    def collect_relation_stats(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+        source_obj=None,
+    ):
+        if source_obj is None:
+            source_obj = self.connect_source(source)
+
+        if source_obj is None:
+            raise ValueError(f"Source not registered or connectable: {source}")
+
+        stats = source_obj.fetch_relation_stats(database, collection, relation)
+
+        if stats:
+            self.set_source_database_collection_relation_property(
+                source,
+                database,
+                collection,
+                relation,
+                "stats",
+                stats,
+            )
+
+        return stats
+
+    
 
         
