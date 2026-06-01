@@ -224,15 +224,16 @@ class Registry:
 
     def _load_records(self, records):
         for record in records:
-            self.register_record(
-                name=record["name"],
-                type=record["type"],
-                scope=record.get("scope", "/"),
-                description=record.get("description", ""),
-                properties=record.get("properties", {}),
-                created_by=record.get("created_by"),
-                icon=record.get("icon"),
-            )
+            self.register_record_json(record)
+            #self.register_record(
+            #    name=record["name"],
+            #    type=record["type"],
+            #    scope=record.get("scope", "/"),
+            #    description=record.get("description", ""),
+            #    properties=record.get("properties", {}),
+            #    created_by=record.get("created_by"),
+            #    icon=record.get("icon"),
+            #)
 
     def delete_record_property(self, name, type, scope, key):
         record = self.get_record(name, type, scope)
