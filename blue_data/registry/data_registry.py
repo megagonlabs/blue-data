@@ -2331,7 +2331,94 @@ class DataRegistry(Registry):
             )
 
         return stats
-
     
+    def get_sources(self):
+        return self.list_records(record_type="source", scope="/")
+
+
+    def get_source_databases(self, source: str):
+        return self.list_source_databases(source)
+
+
+    def get_source_database_collections(self, source: str, database: str):
+        return self.list_database_collections(source, database)
+
+
+    def get_source_database_collection_entities(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+    ):
+        return self.list_collection_entities(source, database, collection)
+
+
+    def get_source_database_collection_entity_attributes(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+    ):
+        return self.list_entity_attributes(source, database, collection, entity)
+
+
+    def get_source_database_collection_relations(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+    ):
+        return self.list_collection_relations(source, database, collection)
+    
+    def get_source_database_properties(self, source: str, database: str):
+        return self.get_record_properties(
+            database,
+            "database",
+            f"/source/{source}",
+        )
+
+
+    def get_source_database_collection_properties(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+    ):
+        return self.get_record_properties(
+            collection,
+            "collection",
+            f"/source/{source}/database/{database}",
+        )
+
+
+    def get_source_database_collection_entity_properties(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+    ):
+        return self.get_record_properties(
+            entity,
+            "entity",
+            f"/source/{source}/database/{database}/collection/{collection}",
+        )
+
+
+    def get_source_database_collection_relation_properties(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        relation: str,
+    ):
+        return self.get_record_properties(
+            relation,
+            "relation",
+            f"/source/{source}/database/{database}/collection/{collection}",
+        )
+
+
 
         
