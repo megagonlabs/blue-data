@@ -11,6 +11,7 @@ class Registry:
 
     def __init__(self, name="REGISTRY", store=None):
         self.name = name
+        self.type = "record"
         self.store = store or MemoryJSONSource()
 
         if self.store.get("$") in (None, {}):
@@ -354,5 +355,73 @@ class Registry:
                 records.append(record)
 
         return records
+    
+    encodings = {".": "__DOT__", "*": "__STAR__", "?": "__Q__"}
+
+    def _encode(self, s):
+        if not isinstance(s, str):
+            return s
+
+        for key, value in self.encodings.items():
+            s = s.replace(key, value)
+
+        return s
+
+
+    def _decode(self, s):
+        if not isinstance(s, str):
+            return s
+
+        for key, value in self.encodings.items():
+            s = s.replace(value, key)
+
+        return s
+
+
+    def _encode_dict(self, obj):
+        if isinstance(obj, dict):
+            return {
+                self._encode(key): self._encode_dict(value)
+                for key, value in obj.items()
+            }
+
+        if isinstance(obj, list):
+            return [self._encode_dict(value) for value in obj]
+
+        return obj
+
+
+    def _decode_dict(self, obj):
+        if isinstance(obj, dict):
+            return {
+                self._decode(key): self._decode_dict(value)
+                for key, value in obj.items()
+            }
+
+        if isinstance(obj, list):
+            return [self._decode_dict(value) for value in obj]
+
+        return obj
+
+
+    def _extract_shortname(self, name: str):
+        return str(name).split("/")[-1]
+
+
+    def _derive_scope_from_name(self, name: str, full: bool = False):
+        parts = str(name).split("/")
+
+        if not full:
+            parts = parts[:-1]
+
+        if not parts:
+            return "/"
+
+        scope = ""
+        for part in parts:
+            if part:
+                scope += f"/{self.type}/{part}"
+
+        return scope or "/"
 
    

@@ -2418,6 +2418,22 @@ class DataRegistry(Registry):
             "relation",
             f"/source/{source}/database/{database}/collection/{collection}",
         )
+    
+    def get_source_description(self, source: str):
+        return self.get_record_description(
+            source,
+            "source",
+            "/",
+        )
+
+
+    def set_source_description(self, source: str, description: str):
+            return self.set_record_description(
+                source,
+                "source",
+                "/",
+                description,
+            )
 
 
 
