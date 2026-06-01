@@ -313,5 +313,45 @@ class Registry:
                     )
 
         return registered
+    
+    def get_record_contents(self, name, type, scope="/"):
+        return self.filter_record_contents(
+            name=name,
+            type=type,
+            scope=scope,
+        )
+    
+    def parse_path(self, path: str):
+        parts = path.split("/")[1:]
+        parsed = {}
+
+        keys = parts[::2]
+        values = parts[1::2]
+
+        for key, value in zip(keys, values):
+            parsed[key] = value
+
+        return parsed
+
+
+    def get_contents(self):
+        return self.store.get("$") or {"contents": {}}
+
+
+    def get_records(self):
+        records = []
+
+        for value in self.store.data.values():
+            if (
+                isinstance(value, dict)
+                and "name" in value
+                and "type" in value
+                and "scope" in value
+            ):
+                record = dict(value)
+                record.pop("contents", None)
+                records.append(record)
+
+        return records
 
    
