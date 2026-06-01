@@ -286,5 +286,32 @@ class Registry:
             for record in records
             if match_props(record.get("properties", {}) or {}, properties)
         ]
+    
+    def register_record_json(
+        self,
+        record: dict,
+        recursive: bool = True,
+    ):
+        registered = self.register_record(
+            name=record["name"],
+            type=record.get("type", "default"),
+            scope=record.get("scope", "/"),
+            description=record.get("description", ""),
+            properties=record.get("properties", {}),
+            created_by=record.get("created_by"),
+            icon=record.get("icon"),
+        )
+
+        if recursive:
+            contents = record.get("contents", {}) or {}
+
+            for records_by_name in contents.values():
+                for child_record in records_by_name.values():
+                    self.register_record_json(
+                        child_record,
+                        recursive=True,
+                    )
+
+        return registered
 
    
