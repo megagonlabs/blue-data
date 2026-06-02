@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from blue_data.core.registry import Registry
 from blue_data.core.source import DataSource
+from blue_data.sources.postgres_source import PostgresDBSource
+            
 from blue_data.enrichment.value_semantics.semantic_types import SemanticTypeInferencer
 
 
@@ -1899,6 +1901,8 @@ class DataRegistry(Registry):
         if protocol == "sqlite":
             from blue_data.sources.sqlite_source import SQLiteDBSource
             source_obj = SQLiteDBSource(source, properties=properties)
+        elif protocol == "postgres":
+            source_obj = PostgresDBSource(source, properties=properties)
         elif protocol == "json":
             subprotocol = connection.get("subprotocol")
 
@@ -2435,6 +2439,6 @@ class DataRegistry(Registry):
                 description,
             )
 
-
+ 
 
         
