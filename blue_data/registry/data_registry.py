@@ -3,6 +3,12 @@ from __future__ import annotations
 from blue_data.core.registry import Registry
 from blue_data.core.source import DataSource
 from blue_data.sources.postgres_source import PostgresDBSource
+from blue_data.sources.neo4j_source import NEO4JSource
+from blue_data.sources.sqlite_source import SQLiteDBSource
+from blue_data.sources.mysql_source import MySQLDBSource
+from blue_data.sources.mongodb_source import MongoDBSource
+
+
             
 from blue_data.enrichment.value_semantics.semantic_types import SemanticTypeInferencer
 
@@ -1901,8 +1907,19 @@ class DataRegistry(Registry):
         if protocol == "sqlite":
             from blue_data.sources.sqlite_source import SQLiteDBSource
             source_obj = SQLiteDBSource(source, properties=properties)
+        
         elif protocol == "postgres":
             source_obj = PostgresDBSource(source, properties=properties)
+
+        elif protocol == "mysql":
+            source_obj = MySQLDBSource(source, properties=properties)
+
+        elif protocol == "mongodb":
+            source_obj = MongoDBSource(source, properties=properties)
+   
+        elif protocol in {"bolt", "neo4j"}:
+            source_obj = NEO4JSource(source, properties=properties)
+        
         elif protocol == "json":
             subprotocol = connection.get("subprotocol")
 
