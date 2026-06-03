@@ -1919,6 +1919,7 @@ class DataRegistry(Registry):
    
         elif protocol in {"bolt", "neo4j"}:
             source_obj = NEO4JSource(source, properties=properties)
+
         
         elif protocol == "json":
             subprotocol = connection.get("subprotocol")
@@ -1928,6 +1929,16 @@ class DataRegistry(Registry):
                 source_obj = MemoryJSONSource(name=source, properties=properties)
             else:
                 raise ValueError(f"Unsupported JSON subprotocol: {subprotocol}")
+        
+        elif protocol == "vector":
+            subprotocol = connection.get("subprotocol")
+
+            if subprotocol == "redis":
+                from blue_data.sources.redis_vector_source import RedisVectorSource
+                source_obj = RedisVectorSource(source, properties=properties)
+            else:
+                raise ValueError(f"Unsupported vector subprotocol: {subprotocol}")
+                
         else:
             raise ValueError(f"Unsupported source protocol: {protocol}")
 
