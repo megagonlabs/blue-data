@@ -424,4 +424,44 @@ class Registry:
 
         return scope or "/"
 
+    
+    def update_record_json(self, record: dict):
+        return self.update_record(
+            name=record["name"],
+            type=record["type"],
+            scope=record.get("scope", "/"),
+            description=record.get("description"),
+            properties=record.get("properties"),
+            icon=record.get("icon"),
+        )
+
+
+    def get_record_data(self, name: str, type: str, scope: str = "/"):
+        return self.get_record(name, type, scope)
+
+
+    def set_record_data(self, name: str, type: str, scope: str = "/", data=None):
+        record = self.get_record(name, type, scope)
+
+        if record is None:
+            raise KeyError(f"Record not found: {type}/{name} in {scope}")
+
+        if data is None:
+            data = {}
+
+        record["data"] = data
+
+        return self.store.set(self._record_key(name, type, scope), record)
+
+
+    def delete_record_data(self, name: str, type: str, scope: str = "/"):
+        record = self.get_record(name, type, scope)
+
+        if record is None:
+            raise KeyError(f"Record not found: {type}/{name} in {scope}")
+
+        record.pop("data", None)
+
+        return self.store.set(self._record_key(name, type, scope), record)
+
    
