@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from blue_data.core.registry import Registry
+from blue_data.search.registry_search import RegistrySearch
+
 from blue_data.core.source import DataSource
 from blue_data.sources.postgres_source import PostgresDBSource
 from blue_data.sources.neo4j_source import NEO4JSource
 from blue_data.sources.sqlite_source import SQLiteDBSource
 from blue_data.sources.mysql_source import MySQLDBSource
 from blue_data.sources.mongodb_source import MongoDBSource
+from blue_data.sources.redis_source import RedisSource
+    
 
 
             
@@ -26,6 +30,9 @@ class DataRegistry(Registry):
         super().__init__(name=name, store=store)
         self.sources: dict[str, DataSource] = {}
         self.semantic_type_inferencer = SemanticTypeInferencer()
+        self.search_engine = RegistrySearch(
+            registry=self,
+        )   
 
     def register_source(self, source: DataSource) -> None:
         """Register a DataSource and add a corresponding top-level registry record."""
@@ -1939,6 +1946,8 @@ class DataRegistry(Registry):
             else:
                 raise ValueError(f"Unsupported vector subprotocol: {subprotocol}")
                 
+        elif protocol == "redis":
+            source_obj = RedisSource(source, properties=properties)
         else:
             raise ValueError(f"Unsupported source protocol: {protocol}")
 
@@ -2466,6 +2475,19 @@ class DataRegistry(Registry):
                 "/",
                 description,
             )
+    
+    def search_records(self, *args, **kwargs):
+        return self.search_engine.keyword_search(
+            *args,
+            **kwargs,
+        )
+
+
+    def search_records_hierarchical(self, *args, **kwargs):
+        return self.search_engine.search_records_hierarchical(
+            *args,
+            **kwargs,
+        )
 
  
 
