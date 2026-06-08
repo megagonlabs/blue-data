@@ -14,7 +14,7 @@ import logging
 
 ###### Blue_Data Core 
 from blue_data.core.source import DataSource
-from blue_data.core.schema import DataSchema
+from core.schema import DataSchema
 
 
 ###############

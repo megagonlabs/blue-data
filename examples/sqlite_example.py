@@ -1,5 +1,5 @@
-from blue_data.registry.registry import DataRegistry
-from blue_data.registry.sources.sqlite_source import SQLiteDBSource
+from registry.data_registry import DataRegistry
+from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
 
 registry = DataRegistry()

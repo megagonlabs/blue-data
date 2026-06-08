@@ -3,7 +3,7 @@ import logging
 from neo4j import GraphDatabase
 
 from blue_data.core.source import DataSource
-from blue_data.core.schema import DataSchema
+from core.schema import DataSchema
 
 
 NATIVE_NODE_PROPERTIES_QUERY = """

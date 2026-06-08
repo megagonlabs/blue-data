@@ -1,6 +1,6 @@
-from blue_data.registry.data_registry import DataRegistry
-from blue_data.sources.memory_json_source import MemoryJSONSource
-from blue_data.sources.sqlite_source import SQLiteDBSource
+from registry.data_registry import DataRegistry
+from source.json.memory_json_source import MemoryJSONSource
+from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
 
 registry = DataRegistry(store=MemoryJSONSource())

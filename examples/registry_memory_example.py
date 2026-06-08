@@ -1,4 +1,4 @@
-from blue_data.core.registry import Registry
+from registry.registry import Registry
 
 registry = Registry()
 

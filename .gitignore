@@ -6,3 +6,11 @@ venv/
 dist/
 build/
 *.egg-info/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+dist/
+build/

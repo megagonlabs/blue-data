@@ -1,0 +1,32 @@
+[project]
+name = "blue-data"
+version = "0.1.0"
+description = "Blue Data Intelligence Layer"
+requires-python = ">=3.10"
+
+dependencies = [
+    "pandas",
+    "numpy",
+]
+
+[project.optional-dependencies]
+postgres  = ["psycopg2-binary"]
+mysql     = ["mysql-connector-python"]
+mongodb   = ["pymongo"]
+neo4j     = ["neo4j"]
+redis     = ["redis"]
+dev       = ["pytest"]
+all = [
+    "psycopg2-binary",
+    "mysql-connector-python",
+    "pymongo",
+    "neo4j",
+    "redis",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src/blue-data"]
