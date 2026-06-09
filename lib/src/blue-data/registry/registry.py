@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 from source.json.memory_json_source import MemoryJSONSource
+from core.utils.utils import deep_merge
 
 
 class Registry:
@@ -26,6 +27,7 @@ class Registry:
         properties=None,
         created_by=None,
         icon=None,
+        rebuild: bool | None = None,
     ):
         record = {
             "name": name,
@@ -40,7 +42,7 @@ class Registry:
 
         key = self._record_key(name, type, scope)
         self.store.set(key, record)
-        self._on_record_changed(record)
+        self._on_record_changed(record, rebuild=rebuild)
         return record
 
     def get_record(self, name, type, scope="/"):
@@ -83,9 +85,9 @@ class Registry:
         return records
         
 
-    def deregister_record(self, name, type, scope="/"):
+    def deregister_record(self, name, type, scope="/", rebuild: bool | None = None):
         self.store.delete(self._record_key(name, type, scope))
-        self._on_record_deleted(name, type, scope)
+        self._on_record_deleted(name, type, scope, rebuild=rebuild)
 
     def _record_key(self, name, type, scope="/"):
         return f"{scope.rstrip('/')}/{type}/{name}"
@@ -97,7 +99,7 @@ class Registry:
     def get_record_property(self, name, type, scope, key):
         return self.get_record_properties(name, type, scope).get(key)
 
-    def set_record_property(self, name, type, scope, key, value):
+    def set_record_property(self, name, type, scope, key, value, rebuild: bool | None = None):
         record = self.get_record(name, type, scope)
         if not record:
             raise ValueError(f"Record not found: {scope}/{type}/{name}")
@@ -106,21 +108,21 @@ class Registry:
         record["properties"][key] = value
 
         self.store.set(self._record_key(name, type, scope), record)
-        self._on_record_changed(record)
+        self._on_record_changed(record, rebuild=rebuild)
         return record
 
     def get_record_description(self, name, type, scope="/"):
         record = self.get_record(name, type, scope)
         return (record or {}).get("description")
 
-    def set_record_description(self, name, type, scope, description):
+    def set_record_description(self, name, type, scope, description, rebuild: bool | None = None):
         record = self.get_record(name, type, scope)
         if not record:
             raise ValueError(f"Record not found: {scope}/{type}/{name}")
 
         record["description"] = description
         self.store.set(self._record_key(name, type, scope), record)
-        self._on_record_changed(record)
+        self._on_record_changed(record, rebuild=rebuild)
         return record
 
     def update_record(
@@ -131,6 +133,7 @@ class Registry:
         description=None,
         properties=None,
         icon=None,
+        rebuild: bool | None = None,
     ):
         original = self.get_record(name, type, scope)
 
@@ -142,6 +145,7 @@ class Registry:
                 description=description or "",
                 properties=properties or {},
                 icon=icon,
+                rebuild=rebuild,
             )
 
         updated = dict(original)
@@ -153,15 +157,15 @@ class Registry:
             updated["icon"] = icon
 
         if properties is not None:
-            current_properties = updated.get("properties", {}) or {}
-            current_properties.update(properties)
-            updated["properties"] = current_properties
+            updated["properties"] = deep_merge(
+                updated.get("properties") or {}, properties
+            )
 
         self.store.set(self._record_key(name, type, scope), updated)
-        self._on_record_changed(updated)
+        self._on_record_changed(updated, rebuild=rebuild)
         return original, updated
 
-    def deregister(self, record):
+    def deregister(self, record, rebuild: bool | None = None):
         if not record:
             return None
 
@@ -169,6 +173,7 @@ class Registry:
             record["name"],
             record["type"],
             record["scope"],
+            rebuild=rebuild,
         )
 
 
@@ -240,7 +245,7 @@ class Registry:
             #    icon=record.get("icon"),
             #)
 
-    def delete_record_property(self, name, type, scope, key):
+    def delete_record_property(self, name, type, scope, key, rebuild: bool | None = None):
         record = self.get_record(name, type, scope)
         if not record:
             return None
@@ -249,6 +254,7 @@ class Registry:
         deleted = record["properties"].pop(key, None)
 
         self.store.set(self._record_key(name, type, scope), record)
+        self._on_record_changed(record, rebuild=rebuild)
         return deleted
     
     def filter_records_by_properties(
@@ -297,6 +303,7 @@ class Registry:
         self,
         record: dict,
         recursive: bool = True,
+        rebuild: bool | None = None,
     ):
         registered = self.register_record(
             name=record["name"],
@@ -306,6 +313,7 @@ class Registry:
             properties=record.get("properties", {}),
             created_by=record.get("created_by"),
             icon=record.get("icon"),
+            rebuild=rebuild,
         )
 
         if recursive:
@@ -316,6 +324,7 @@ class Registry:
                     self.register_record_json(
                         child_record,
                         recursive=True,
+                        rebuild=rebuild,
                     )
 
         return registered
@@ -429,7 +438,7 @@ class Registry:
         return scope or "/"
 
     
-    def update_record_json(self, record: dict):
+    def update_record_json(self, record: dict, rebuild: bool | None = None):
         return self.update_record(
             name=record["name"],
             type=record["type"],
@@ -437,15 +446,20 @@ class Registry:
             description=record.get("description"),
             properties=record.get("properties"),
             icon=record.get("icon"),
+            rebuild=rebuild,
         )
 
 
     # ---------- extension hooks ----------
 
-    def _on_record_changed(self, record: dict) -> None:
-        """Called after every record create/update. Override in subclasses."""
+    def _on_record_changed(self, record: dict, rebuild: bool | None = None) -> None:
+        """Called after every record create/update. Override in subclasses.
 
-    def _on_record_deleted(self, name: str, type: str, scope: str) -> None:
+        rebuild=True forces indexing; rebuild=False suppresses it;
+        rebuild=None defers to the subclass default (e.g. DataRegistry._rebuild).
+        """
+
+    def _on_record_deleted(self, name: str, type: str, scope: str, rebuild: bool | None = None) -> None:
         """Called after every record delete. Override in subclasses."""
 
     def get_record_data(self, name: str, type: str, scope: str = "/"):

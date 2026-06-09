@@ -43,12 +43,14 @@ class DataRegistry(Registry):
 
     # ---------- rebuild hooks ----------
 
-    def _on_record_changed(self, record: dict) -> None:
-        if self._rebuild:
+    def _on_record_changed(self, record: dict, rebuild: bool | None = None) -> None:
+        should = self._rebuild if rebuild is None else rebuild
+        if should:
             self.search_engine.index_record(record)
 
-    def _on_record_deleted(self, name: str, type: str, scope: str) -> None:
-        if self._rebuild:
+    def _on_record_deleted(self, name: str, type: str, scope: str, rebuild: bool | None = None) -> None:
+        should = self._rebuild if rebuild is None else rebuild
+        if should:
             self.search_engine.remove_record_from_index(name, type, scope)
 
     def register_source(self, source: DataSource) -> None:
