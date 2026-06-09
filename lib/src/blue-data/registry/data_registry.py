@@ -19,14 +19,37 @@ class DataRegistry(Registry):
     sync, stats-collection, and semantic-enrichment operations.
     """
 
-    def __init__(self, name: str = "DATA_REGISTRY", store=None):
-        """Initialize the registry with an optional backing store."""
+    def __init__(
+        self,
+        name: str = "DATA_REGISTRY",
+        store=None,
+        vector_source=None,
+        embedding_fn=None,
+        rebuild: bool = False,
+        index_name: str = "registry_index",
+        hybrid_config: dict | None = None,
+    ):
         super().__init__(name=name, store=store)
         self.sources: dict[str, DataSource] = {}
         self.semantic_type_inferencer = SemanticTypeInferencer()
+        self._rebuild = rebuild
         self.search_engine = RegistrySearch(
             registry=self,
-        )   
+            vector_source=vector_source,
+            embedding_fn=embedding_fn,
+            index_name=index_name,
+            hybrid_config=hybrid_config,
+        )
+
+    # ---------- rebuild hooks ----------
+
+    def _on_record_changed(self, record: dict) -> None:
+        if self._rebuild:
+            self.search_engine.index_record(record)
+
+    def _on_record_deleted(self, name: str, type: str, scope: str) -> None:
+        if self._rebuild:
+            self.search_engine.remove_record_from_index(name, type, scope)
 
     def register_source(self, source: DataSource) -> None:
         """Register a DataSource and add a corresponding top-level registry record."""

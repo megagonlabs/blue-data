@@ -40,6 +40,7 @@ class Registry:
 
         key = self._record_key(name, type, scope)
         self.store.set(key, record)
+        self._on_record_changed(record)
         return record
 
     def get_record(self, name, type, scope="/"):
@@ -84,6 +85,7 @@ class Registry:
 
     def deregister_record(self, name, type, scope="/"):
         self.store.delete(self._record_key(name, type, scope))
+        self._on_record_deleted(name, type, scope)
 
     def _record_key(self, name, type, scope="/"):
         return f"{scope.rstrip('/')}/{type}/{name}"
@@ -104,6 +106,7 @@ class Registry:
         record["properties"][key] = value
 
         self.store.set(self._record_key(name, type, scope), record)
+        self._on_record_changed(record)
         return record
 
     def get_record_description(self, name, type, scope="/"):
@@ -117,8 +120,9 @@ class Registry:
 
         record["description"] = description
         self.store.set(self._record_key(name, type, scope), record)
+        self._on_record_changed(record)
         return record
-    
+
     def update_record(
         self,
         name,
@@ -154,8 +158,8 @@ class Registry:
             updated["properties"] = current_properties
 
         self.store.set(self._record_key(name, type, scope), updated)
+        self._on_record_changed(updated)
         return original, updated
-
 
     def deregister(self, record):
         if not record:
@@ -435,6 +439,14 @@ class Registry:
             icon=record.get("icon"),
         )
 
+
+    # ---------- extension hooks ----------
+
+    def _on_record_changed(self, record: dict) -> None:
+        """Called after every record create/update. Override in subclasses."""
+
+    def _on_record_deleted(self, name: str, type: str, scope: str) -> None:
+        """Called after every record delete. Override in subclasses."""
 
     def get_record_data(self, name: str, type: str, scope: str = "/"):
         return self.get_record(name, type, scope)
