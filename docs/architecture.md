@@ -5,31 +5,44 @@
 `blue-data` is a data intelligence layer built around two independent abstraction hierarchies that compose together in `DataRegistry`.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    DataRegistry                     │
-│  (extends Registry, adds live-source operations)    │
-│                                                     │
-│   sources: { name → DataSource }                    │
-│   store:   JSONSource  (registry state)             │
-└──────────────┬───────────────────────┬──────────────┘
-               │                       │
-    ┌──────────▼──────────┐  ┌─────────▼──────────┐
-    │     DataSource      │  │      Registry       │
-    │  (external data)    │  │  (key/value store)  │
-    └──────────┬──────────┘  └─────────┬───────────┘
-               │                       │
-    ┌──────────▼──────────┐  ┌─────────▼───────────┐
-    │  SQLiteDBSource     │  │   JSONSource (ABC)   │
-    │  PostgresDBSource   │  │  MemoryJSONSource    │
-    │  (your source...)   │  │  RedisJSONSource     │
-    └─────────────────────┘  └─────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                       DataRegistry                           │
+│  (extends Registry, adds live-source ops + search)           │
+│                                                              │
+│   sources: { name → DataSource }                             │
+│   store:   JSONSource   (registry state)                     │
+│   search_engine: RegistrySearch  (BM25 + vector hybrid)      │
+└────────────┬───────────────────────┬─────────────────────────┘
+             │                       │
+  ┌──────────▼──────────┐  ┌─────────▼──────────────────────┐
+  │     DataSource      │  │           Registry              │
+  │  (external data)    │  │  (generic key/value catalog)    │
+  └──────────┬──────────┘  └─────────┬──────────────────────┘
+             │                       │
+  ┌──────────▼──────────┐  ┌─────────▼──────────┐
+  │  SQLiteDBSource     │  │   JSONSource (ABC)  │
+  │  PostgresDBSource   │  │  MemoryJSONSource   │
+  │  RedisSource        │  │  RedisJSONSource    │
+  │  Neo4jGraphSource   │  └────────────────────-┘
+  │  ...                │
+  └─────────────────────┘
+
+  Vector search backend (injected into RegistrySearch):
+
+  ┌─────────────────────┐
+  │   VectorSource      │
+  │  MemoryVectorSource │  ← dev / test
+  │  RedisVectorSource  │  ← production (Redis Stack)
+  └─────────────────────┘
 ```
 
 **DataSource hierarchy** — adapters for external data stores. They read and write to databases/files but know nothing about the registry.
 
 **JSONSource / Registry hierarchy** — a persistent key/value store that holds catalog records describing data sources and their contents.
 
-`DataRegistry` bridges the two: it holds live `DataSource` objects in `self.sources` and mirrors their structure into the registry via `sync_*` methods.
+**VectorSource hierarchy** — pluggable vector index used by the search engine. Separate from both `DataSource` and `JSONSource`.
+
+`DataRegistry` bridges all three: it holds live `DataSource` objects in `self.sources`, persists catalog records via `JSONSource`, and indexes them for search via `VectorSource`.
 
 ---
 
@@ -65,7 +78,7 @@ Every record is a dict with these standard fields:
 }
 ```
 
-Stats and schema metadata are stored as properties on the corresponding record — not as separate record types:
+Stats and schema metadata are stored as properties on the corresponding record:
 
 ```python
 record["properties"]["stats"]    = {"row_count": 1000}
@@ -136,14 +149,58 @@ Inference is deterministic and works on Python value types only (no LLM calls). 
 
 ---
 
+## Data flow: search
+
+`search_records(query, ...)` runs a three-component hybrid search over all registry records.
+
+```
+search_records(query)
+  └─ RegistrySearch.hybrid_search
+       ├─ BM25 pass: score each record's name + description text
+       ├─ Vector pass: score_record → KNN lookup in VectorSource
+       ├─ combine_scores(bm25_weight, vector_weight, value_weight)
+       ├─ apply thresholds (bm25_threshold, vector_threshold, combined_threshold)
+       └─ return top-k ranked results
+```
+
+Records are indexed into `VectorSource` on every `register_record` / `update_record` call (when `rebuild=True`). The index is rebuilt in bulk after `load()` / `loads()`.
+
+**Search pipeline classes** (`registry/search/`):
+
+| Class | Role |
+|---|---|
+| `RegistrySearch` | Top-level wiring: holds `HybridSearch` + `RecordIndexer` |
+| `HybridSearch` | Orchestrates BM25 + vector scoring and threshold filtering |
+| `VectorSearch` | Embedding computation and KNN via `VectorSource` |
+| `RecordIndexer` | Keeps `VectorSource` index in sync (upsert / delete) |
+| `KeywordSearch` | BM25-only fallback when no `VectorSource` is configured |
+| `ranking` | `combine_scores`, `normalize_weights`, `aggregate_value_scores` |
+
+---
+
 ## JSONSource backends
 
 | Class | Storage | Use |
 |---|---|---|
 | `MemoryJSONSource` | Python `dict` | Development, testing |
-| `RedisJSONSource` | Redis JSON | Production (not yet implemented) |
+| `RedisJSONSource` | Redis JSON (RedisJSON module) | Production |
 
-The `Registry` class accepts any `JSONSource` via its `store` parameter, making it straightforward to swap backends.
+`RedisJSONSource` stores each registry path as a separate Redis key prefixed by a configurable namespace. The `data` property does a SCAN to support `list_records()`.
+
+> Requires **Redis Stack** (`redis-stack-server`) — the `JSON.SET` command is not available in standard Redis.
+
+---
+
+## VectorSource backends
+
+| Class | Storage | Use |
+|---|---|---|
+| `MemoryVectorSource` | Python `dict` + numpy cosine | Development, testing |
+| `RedisVectorSource` | RedisJSON + RediSearch KNN | Production |
+
+Both implement the same `execute_query` interface with operations: `VECTOR.CREATE_INDEX`, `VECTOR.UPSERT`, `VECTOR.DELETE`, `VECTOR.KNN`.
+
+> `RedisVectorSource` also requires **Redis Stack** for `FT.CREATE` and `FT.SEARCH`.
 
 ---
 

@@ -1,10 +1,16 @@
 # API Reference
 
-## `blue_data.core.source.DataSource`
+> **Import note:** Until the top-level package name is finalised, add `lib/src/blue-data` to `PYTHONPATH` and import modules directly. Examples below use this style.
+
+---
+
+## `DataSource`
 
 Base class for all data source adapters. Subclasses override only the methods they support; the defaults return empty results without raising.
 
 ```python
+from source.source import DataSource
+
 DataSource(name: str, properties: dict | None = None)
 ```
 
@@ -78,11 +84,13 @@ DataSource(name: str, properties: dict | None = None)
 
 ---
 
-## `blue_data.core.registry.Registry`
+## `Registry`
 
 Generic key/value catalog backed by a `JSONSource`. All records are addressable by `(name, type, scope)`.
 
 ```python
+from registry.registry import Registry
+
 Registry(name: str = "REGISTRY", store: JSONSource | None = None)
 ```
 
@@ -90,13 +98,15 @@ Registry(name: str = "REGISTRY", store: JSONSource | None = None)
 
 | Method | Returns | Description |
 |---|---|---|
-| `register_record(name, type, scope, description, properties, created_by, icon)` | `dict` | Create and store a new record |
+| `register_record(name, type, scope, description, properties, created_by, icon, rebuild)` | `dict` | Create and store a new record |
 | `get_record(name, type, scope)` | `dict \| None` | Retrieve a record by identity |
-| `update_record(name, type, scope, description, properties, icon)` | `tuple \| dict` | Upsert a record, merging properties |
-| `deregister_record(name, type, scope)` | `None` | Delete a record |
-| `deregister(record)` | `None` | Delete using a record dict |
+| `update_record(name, type, scope, description, properties, icon, rebuild)` | `tuple \| dict` | Upsert a record, deep-merging properties |
+| `deregister_record(name, type, scope, rebuild)` | `None` | Delete a record |
+| `deregister(record, rebuild)` | `None` | Delete using a record dict |
 | `list_records(record_type, scope, recursive)` | `list[dict]` | Query records by type/scope |
 | `filter_record_contents(name, type, scope, filter_type, filter_name, single)` | `list[dict]` | Find child records under a parent path |
+
+The `rebuild` parameter on write methods controls search index updates: `True` forces re-indexing, `False` suppresses it, `None` defers to the instance-level default (`DataRegistry._rebuild`).
 
 **Properties**
 
@@ -104,10 +114,18 @@ Registry(name: str = "REGISTRY", store: JSONSource | None = None)
 |---|---|---|
 | `get_record_properties(name, type, scope)` | `dict` | All properties on a record |
 | `get_record_property(name, type, scope, key)` | `Any` | Single property value |
-| `set_record_property(name, type, scope, key, value)` | `dict` | Set a property |
-| `delete_record_property(name, type, scope, key)` | `Any` | Remove a property, returns old value |
+| `set_record_property(name, type, scope, key, value, rebuild)` | `dict` | Set a property |
+| `delete_record_property(name, type, scope, key, rebuild)` | `Any` | Remove a property, returns old value |
 | `get_record_description(name, type, scope)` | `str \| None` | Description field |
-| `set_record_description(name, type, scope, description)` | `dict` | Set description field |
+| `set_record_description(name, type, scope, description, rebuild)` | `dict` | Set description field |
+
+**Data access**
+
+| Method | Returns | Description |
+|---|---|---|
+| `get_record_data(name, type, scope, key)` | `Any` | Return full record or a specific top-level key |
+| `set_record_data(name, type, scope, key, value, rebuild)` | `dict` | Set an arbitrary top-level key on a record |
+| `delete_record_data(name, type, scope, key, rebuild)` | `dict` | Delete an arbitrary top-level key |
 
 **Filtering**
 
@@ -123,24 +141,46 @@ Registry(name: str = "REGISTRY", store: JSONSource | None = None)
 | `dump(output_file)` | Write all records to a file |
 | `loads(input_string)` | Load records from a JSON string |
 | `load(input_file)` | Load records from a file |
-| `register_record_json(record, recursive)` | Register a record dict (and optionally its nested `contents`) |
+| `register_record_json(record, recursive, rebuild)` | Register a record dict (and optionally its nested `contents`) |
+| `build_index()` | Bulk re-index all records into the search index |
 
 ---
 
-## `blue_data.registry.data_registry.DataRegistry`
+## `DataRegistry`
 
-Extends `Registry` with live-source operations. The central class for most use.
+Extends `Registry` with live-source operations and hybrid search. The central class for most use.
 
 ```python
-DataRegistry(name: str = "DATA_REGISTRY", store: JSONSource | None = None)
+from registry.data_registry import DataRegistry
+
+DataRegistry(
+    name: str = "DATA_REGISTRY",
+    store: JSONSource | None = None,
+    vector_source: VectorSource | None = None,
+    embedding_fn: Callable[[str], list[float]] | None = None,
+    rebuild: bool = False,
+    index_name: str = "registry_index",
+    vector_dim: int = 1536,
+    hybrid_config: dict | None = None,
+)
 ```
+
+| Parameter | Description |
+|---|---|
+| `store` | Registry storage backend. Defaults to `MemoryJSONSource` |
+| `vector_source` | Vector index for search. Omit to use keyword-only search |
+| `embedding_fn` | Callable that converts text to a vector of length `vector_dim` |
+| `rebuild` | If `True`, index every record on write. If `False`, only index on explicit `build_index()` |
+| `index_name` | Name of the vector index created in `VectorSource` |
+| `vector_dim` | Dimensionality of embedding vectors |
+| `hybrid_config` | Override any key from `DEFAULT_PARAMS` (see Search section below) |
 
 **Attributes**
 
 | Attribute | Type | Description |
 |---|---|---|
 | `sources` | `dict[str, DataSource]` | Live source objects by name |
-| `semantic_type_inferencer` | `SemanticTypeInferencer` | Used by `enrich_source` |
+| `search_engine` | `RegistrySearch` | Hybrid search engine |
 
 ### Source management
 
@@ -150,12 +190,11 @@ DataRegistry(name: str = "DATA_REGISTRY", store: JSONSource | None = None)
 | `get_source(name)` | Return the live `DataSource` for `name` |
 | `list_sources()` | Names of all registered sources |
 | `deregister_source(source)` | Remove source object and its registry record |
-| `connect_source(source)` | Return the live source object, reconstructing from properties if needed |
 | `execute_query(source, query, database, collection, optional_properties)` | Delegate query to the named source |
 
 ### Hierarchy helpers
 
-These are typed wrappers around `register_record` / `get_record` / `list_records` / `update_record` / `deregister_record`. The full list follows the pattern `{verb}_source_database[_collection[_entity[_attribute]]]`.
+Typed wrappers around `register_record` / `get_record` / `list_records` / `update_record` / `deregister_record`. Pattern: `{verb}_source_database[_collection[_entity[_attribute]]]`.
 
 **Register**
 ```python
@@ -167,36 +206,7 @@ register_source_database_collection_relation(source, database, collection, relat
 register_source_database_collection_relation_attribute(source, database, collection, relation, attribute, ...)
 ```
 
-**Get**
-```python
-get_source_database(source, database)
-get_source_database_collection(source, database, collection)
-get_source_database_collection_entity(source, database, collection, entity)
-get_source_database_collection_entity_attribute(source, database, collection, entity, attribute)
-get_source_database_collection_relation(source, database, collection, relation)
-```
-
-**List**
-```python
-list_source_databases(source)
-list_database_collections(source, database)
-list_collection_entities(source, database, collection)
-list_entity_attributes(source, database, collection, entity)
-list_collection_relations(source, database, collection)
-get_source_database_collection_relation_attributes(source, database, collection, relation)
-```
-
-**Update / Deregister** — same naming pattern as above.
-
-### Property and description helpers
-
-Every level in the hierarchy has `get_*_property`, `set_*_property`, `get_*_description`, `set_*_description` variants. Examples:
-
-```python
-set_source_database_property(source, database, key, value)
-get_source_database_collection_entity_attribute_property(source, db, col, entity, attr, key)
-set_source_database_collection_entity_description(source, db, col, entity, description)
-```
+**Get / List / Update / Deregister** — same naming pattern.
 
 ### Sync
 
@@ -213,8 +223,6 @@ Sync is **idempotent**. After each collection sync, the collection's `schema` pr
 
 ### Stats collection
 
-Fetch stats from the live source and persist as `"stats"` property on the corresponding record.
-
 | Method | Persists to |
 |---|---|
 | `collect_source_stats(source, recursive=False)` | Source record + optionally all descendants |
@@ -222,50 +230,197 @@ Fetch stats from the live source and persist as `"stats"` property on the corres
 | `collect_source_database_collection_stats(source, database, collection)` | Collection record |
 | `collect_source_database_collection_entity_stats(source, database, collection, entity)` | Entity record |
 | `collect_source_database_collection_entity_attribute_stats(source, database, collection, entity, attribute)` | Attribute record |
-| `collect_entity_stats(source, database, collection, entity)` | Shorthand for entity-level |
-| `collect_attribute_stats(source, database, collection, entity, attribute)` | Shorthand for attribute-level |
-| `collect_relation_stats(source, database, collection, relation)` | Relation record |
 
 ### Semantic enrichment
 
 | Method | Description |
 |---|---|
-| `enrich_source_database_collection_entity_attribute(source, db, col, entity, attr)` | Infer semantic type from `stats.sample_values` and write to attribute `"semantic_type"` property |
-| `enrich_source(source)` | Enrich all attributes for all entities across all collections |
+| `enrich_source_database_collection_entity_attribute(source, db, col, entity, attr)` | Infer semantic type from `stats.sample_values` and write to `"semantic_type"` property |
+| `enrich_source(source)` | Enrich all attributes across all collections |
 
 ### Create operations
-
-These call the live source's `create_*` method and then sync the registry.
 
 | Method | Description |
 |---|---|
 | `create_source_database(source, database, properties, overwrite, recursive)` | Create database and sync |
 | `create_source_database_collection(source, database, collection, properties, overwrite, recursive)` | Create collection and sync |
-| `create_source_database_collection_entity(source, database, collection, entity, properties, creation_properties, overwrite, recursive)` | Create entity (table), auto-register missing parents, sync |
+| `create_source_database_collection_entity(source, database, collection, entity, properties, creation_properties, overwrite, recursive)` | Create entity, auto-register missing parents, sync |
 | `create_source_database_collection_relation(source, database, collection, relation, properties, overwrite, recursive)` | Create relation and sync |
-
-`creation_properties` are passed to the source's `create_*` call. `properties` are written to the registry record after sync. Returns `None` if the item exists and `overwrite=False`.
-
-### Schema export
-
-| Method | Returns | Description |
-|---|---|---|
-| `get_data_source_schema(source, database, collection, format="dict")` | `dict \| str` | Export entity+relation schema. `format` can be `"dict"`, `"json"`, or `"yaml"` |
 
 ### Search
 
-| Method | Returns | Description |
+```python
+registry.search_records(
+    input_query: str,
+    type: str | None = None,
+    scope: str | None = None,
+    page: int = 0,
+    page_size: int = 5,
+    # score weights
+    bm25_weight: float | None = None,      # default 0.3
+    vector_weight: float | None = None,    # default 0.7
+    value_weight: float | None = None,     # default 0.15
+    # thresholds
+    bm25_threshold: float | None = None,   # default 0.0
+    vector_threshold: float | None = None, # default 0.5
+    combined_threshold: float | None = None, # default 0.36
+    # options
+    bm25_normalization: str | None = None, # "minmax" | "softmax"
+    enable_schema: bool | None = None,
+    hierarchical_enabled: bool | None = None,
+)
+```
+
+Returns `list[dict]` — records augmented with a `_score` field. When `type` is `"database"` or `"collection"` and `hierarchical_enabled=True`, automatically routes to `search_records_hierarchical` which propagates child relevance scores up to parent nodes.
+
+**Default search parameters** (override via `hybrid_config` in constructor or per-call kwargs):
+
+| Parameter | Default | Description |
 |---|---|---|
-| `search_records(query, record_type, scope, recursive)` | `list[dict]` | Full-text search across name, type, scope, description, and properties |
+| `bm25_weight` | `0.3` | Weight for BM25 keyword score |
+| `vector_weight` | `0.7` | Weight for vector cosine similarity |
+| `value_weight` | `0.15` | Weight for value-relevance score |
+| `bm25_threshold` | `0.0` | Min BM25 score to include a record |
+| `vector_threshold` | `0.5` | Min vector score to include a record |
+| `combined_threshold` | `0.36` | Min combined score to return a record |
+| `bm25_normalization` | `"minmax"` | BM25 normalisation method |
+| `hierarchical_enabled` | `True` | Enable child → parent score propagation |
 
 ---
 
-## `blue_data.core.schema.DataSchema`
+## `JSONSource`
 
-In-memory graph used by `DataSource` implementations to build their entity/relation structure during introspection.
+Abstract base for the registry's storage backend.
 
 ```python
-DataSchema()
+from source.json.json_source import JSONSource
+
+class JSONSource(ABC):
+    def get(self, path: str) -> Any: ...
+    def set(self, path: str, value: Any) -> None: ...
+    def delete(self, path: str) -> None: ...
+```
+
+### `MemoryJSONSource`
+
+In-memory implementation backed by a plain `dict`. Default when no store is passed to `Registry`.
+
+```python
+from source.json.memory_json_source import MemoryJSONSource
+```
+
+### `RedisJSONSource`
+
+Production backend. Stores each registry path as a separate Redis key prefixed by a configurable namespace.
+
+```python
+from source.json.redis.redis_json_source import RedisJSONSource
+
+# Auto-connect from properties
+store = RedisJSONSource(properties={
+    "namespace": "my_registry",
+    "connection": {"host": "localhost", "port": 6379, "db": 0},
+})
+
+# Pass an existing connection
+import redis
+conn = redis.Redis(host="localhost", port=6379, decode_responses=True)
+store = RedisJSONSource(connection=conn, properties={"namespace": "my_registry"})
+```
+
+> Requires **Redis Stack** (`redis-stack-server`) for `JSON.SET` / `JSON.GET`.
+
+---
+
+## `VectorSource`
+
+Base class for vector storage backends. Used by `RegistrySearch` to index and query record embeddings.
+
+```python
+from source.vector.vector_source import VectorSource
+```
+
+All backends share the same `execute_query` interface with four operations:
+
+```python
+# Create index
+source.execute_query({
+    "op": "VECTOR.CREATE_INDEX",
+    "index": "registry_index",
+    "collection": "registry_records",
+    "dim": 1536,
+    "distance_metric": "COSINE",
+})
+
+# Upsert a document with its embedding
+source.execute_query({
+    "op": "VECTOR.UPSERT",
+    "collection": "registry_records",
+    "id": "/source/mydb/database/prod/collection/public/entity/users",
+    "doc": {"embedding": [...], "name": "users", "type": "entity", ...},
+    "embedding_field": "embedding",
+})
+
+# Delete a document
+source.execute_query({
+    "op": "VECTOR.DELETE",
+    "collection": "registry_records",
+    "id": "...",
+})
+
+# KNN search
+results = source.execute_query({
+    "op": "VECTOR.KNN",
+    "index": "registry_index",
+    "vector": [...],      # query embedding
+    "k": 10,
+    "return_fields": ["name", "type", "scope", "description"],
+})
+# → [{"id": "...", "score": 0.12, "name": "users", ...}, ...]
+# score is cosine distance (lower = more similar)
+```
+
+### `MemoryVectorSource`
+
+In-memory implementation using a Python dict and numpy cosine distance. No Redis required.
+
+```python
+from source.vector.memory_vector_source import MemoryVectorSource
+
+vs = MemoryVectorSource()          # name defaults to "memory_vector"
+```
+
+### `RedisVectorSource`
+
+Production backend using RedisJSON + RediSearch KNN.
+
+```python
+from source.vector.redis.redis_vector_source import RedisVectorSource
+
+vs = RedisVectorSource(
+    name="my_vector_store",
+    properties={
+        "connection": {
+            "host": "localhost",
+            "port": 6379,
+            "scan_prefix": "myapp:",   # required — keys are stored as {scan_prefix}{collection}:{id}
+        }
+    },
+)
+```
+
+> Requires **Redis Stack** for `FT.CREATE` / `FT.SEARCH`.
+
+---
+
+## `DataSchema`
+
+In-memory graph used by `DataSource` implementations during schema introspection.
+
+```python
+from core.schema import DataSchema
+
+schema = DataSchema()
 ```
 
 **Entity methods**
@@ -286,62 +441,85 @@ DataSchema()
 | `add_relation_property(key, property, type)` | `None` | Add a property to a relation |
 | `get_relations()` | `dict` | All relation definitions |
 
-**Serialization**
+---
 
-| Method | Returns | Description |
-|---|---|---|
-| `to_json()` | `dict` | `{"entities": {...}, "relations": {...}}` |
-| `__str__()` | `str` | Human-readable schema dump |
+## `SemanticTypeInferencer`
 
-Relation keys are encoded as `source__relation__target`. Duplicate relations get `__N` suffixes.
+Deterministic semantic type inference from a list of sample values.
+
+```python
+from registry.enrichment.semantic_types import SemanticTypeInferencer
+
+inferencer = SemanticTypeInferencer()
+result = inferencer.infer(values)
+```
+
+**Return shape**:
+
+```python
+{
+    "semantic_type": "INTEGER",  # BOOLEAN | INTEGER | NUMERIC_GENERAL | STRING | UNKNOWN
+    "confidence": 0.7,
+    "rationale": "Inferred from simple Python value types.",
+    "examples": [1, 2, 3, 4, 5],
+}
+```
 
 ---
 
-## `blue_data.core.plan`
+## `SQLiteDBSource`
 
-DAG model for execution plans.
+Fully implemented `DataSource` for SQLite.
 
-### `NodeStatus` (str Enum)
+```python
+from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+
+SQLiteDBSource(name: str, properties: dict | None = None)
+```
+
+**Connection properties** (under `properties["connection"]`):
+
+| Key | Default | Description |
+|---|---|---|
+| `database_directory` | `"."` | Directory where `.db` files are stored |
+
+**Behaviour notes**
+
+- `fetch_database_collections` always returns `["public"]` — SQLite has no schema concept.
+- `fetch_database_collection_relations` always returns `{}`.
+- `execute_query` returns results as `list[dict]`. Pass `optional_properties={"commit": True}` for DML.
+- `create_database_collection_entity` accepts `cols_definition`, `primary_key`, `foreign_keys` in `properties`.
+
+**Property stats shape**:
+
+```python
+{
+    "count": 950,
+    "distinct_count": 43,
+    "null_count": 50,
+    "sample_values": ["alice", "bob", ...],
+    "min": None,
+    "max": None,
+}
+```
+
+---
+
+## `Plan` / `PlanNode` / `PlanEdge`
+
+```python
+from core.plan import Plan, PlanNode, PlanEdge, NodeType, NodeStatus
+```
+
+### `NodeStatus`
 
 `INITED` → `REFINING` → `REFINED` → `EXECUTING` → `EXECUTED`, plus `PLANNED` and `FAILED`.
 
-### `NodeType` (str Enum)
+### `NodeType`
 
 `INPUT`, `OUTPUT`, `OPERATOR`.
 
-### `PlanNode` (dataclass)
-
-| Field | Type | Default |
-|---|---|---|
-| `id` | `str` | required |
-| `type` | `NodeType` | required |
-| `label` | `str \| None` | `None` |
-| `value` | `Any` | `None` |
-| `status` | `NodeStatus` | `INITED` |
-| `properties` | `dict` | `{}` |
-| `metadata` | `dict` | `{}` |
-
-### `PlanEdge` (dataclass)
-
-| Field | Type |
-|---|---|
-| `source` | `str` (node id) |
-| `target` | `str` (node id) |
-| `properties` | `dict` |
-
-### `Plan` (dataclass)
-
-| Field | Type |
-|---|---|
-| `id` | `str \| None` |
-| `label` | `str \| None` |
-| `nodes` | `dict[str, PlanNode]` |
-| `edges` | `list[PlanEdge]` |
-| `input_node_id` | `str \| None` |
-| `output_node_id` | `str \| None` |
-| `provenance` | `str \| None` |
-
-**Methods**
+### `Plan`
 
 | Method | Returns | Description |
 |---|---|---|
@@ -354,128 +532,12 @@ DAG model for execution plans.
 
 ---
 
-## `blue_data.core.operator.Operator`
-
-Abstract base class for transformation operators.
+## Utilities
 
 ```python
-class Operator(ABC):
-    @abstractmethod
-    def execute(self, inputs) -> Any: ...
+from core.utils.utils import deep_merge
 ```
-
----
-
-## `blue_data.sources.sqlite_source.SQLiteDBSource`
-
-Fully implemented `DataSource` for SQLite.
-
-```python
-SQLiteDBSource(name: str, properties: dict | None = None)
-```
-
-**Connection properties** (under `properties["connection"]`):
-
-| Key | Default | Description |
-|---|---|---|
-| `database_directory` | `"."` | Directory where `.db` files are stored |
-| `host` | `"localhost"` | Unused by SQLite; present for interface parity |
-| `port` | `5432` | Unused |
-| `protocol` | `"sqlite"` | Unused |
-
-**Behaviour notes**
-
-- `fetch_database_collections` always returns `["public"]` — SQLite has no schema concept.
-- `fetch_database_collection_relations` always returns `{}` — foreign key parsing is not implemented.
-- `create_database_collection_relation` returns `{"status": "skipped"}` — SQLite cannot add FKs after table creation.
-- `execute_query` converts results to pandas `DataFrame`, then to `list[dict]` via `df.to_json(orient="records")`. Pass `optional_properties={"commit": True}` for DML statements.
-- `create_database_collection_entity` accepts `properties` with `cols_definition`, `primary_key`, and `foreign_keys`:
-
-```python
-properties = {
-    "cols_definition": [
-        {"name": "id",   "type": "INTEGER", "misc": "NOT NULL"},
-        {"name": "name", "type": "TEXT"},
-    ],
-    "primary_key": ["id"],
-    "foreign_keys": [
-        {
-            "foreign_keys_source_columns": ["order_id"],
-            "foreign_keys_target_table":   "orders",
-            "foreign_keys_target_columns": ["id"],
-        }
-    ],
-}
-```
-
-**Property stats shape** (`fetch_property_stats`):
-
-```python
-{
-    "count": 950,
-    "distinct_count": 43,
-    "null_count": 50,
-    "sample_values": ["alice", "bob", ...],
-    "min": None,   # populated only for INT/REAL/NUM/DATE/TIME columns
-    "max": None,
-    "most_common_vals": [],  # not supported by SQLite
-}
-```
-
----
-
-## `blue_data.sources.json_source.JSONSource`
-
-Abstract base for the registry's storage backend.
-
-```python
-class JSONSource(ABC):
-    def get(self, path: str) -> Any: ...
-    def set(self, path: str, value: Any) -> None: ...
-    def delete(self, path: str) -> None: ...
-```
-
-### `MemoryJSONSource`
-
-In-memory implementation backed by a plain `dict`. Default when no store is passed to `Registry`.
-
-### `RedisJSONSource`
-
-Stub. All methods raise `NotImplementedError`. Intended as the production backend.
-
----
-
-## `blue_data.enrichment.value_semantics.semantic_types.SemanticTypeInferencer`
-
-Deterministic semantic type inference from a list of sample values.
-
-```python
-inferencer = SemanticTypeInferencer()
-result = inferencer.infer(values)
-```
-
-**Return shape**:
-
-```python
-{
-    "semantic_type": "INTEGER",  # BOOLEAN | INTEGER | NUMERIC_GENERAL | STRING | UNKNOWN
-    "confidence": 0.7,           # 0.0 if UNKNOWN (no values), 0.7 otherwise
-    "rationale": "Inferred from simple Python value types.",
-    "examples": [1, 2, 3, 4, 5],
-}
-```
-
-Inference rules (evaluated in order):
-1. All `bool` → `BOOLEAN`
-2. All `int` (non-bool) → `INTEGER`
-3. All `int | float` (non-bool) → `NUMERIC_GENERAL`
-4. All `str` → `STRING`
-5. Otherwise → `UNKNOWN`
-
----
-
-## `blue_data.core.utils`
 
 | Function | Description |
 |---|---|
-| `deep_merge(base: dict, update: dict) → dict` | Recursively merge `update` into `base`. Nested dicts are merged; other values are overwritten. |
+| `deep_merge(base: dict, update: dict) → dict` | Recursively merge `update` into `base`. Nested dicts are merged; other values are overwritten. Does not mutate `base`. |
