@@ -234,16 +234,8 @@ class Registry:
 
     def _load_records(self, records):
         for record in records:
-            self.register_record_json(record)
-            #self.register_record(
-            #    name=record["name"],
-            #    type=record["type"],
-            #    scope=record.get("scope", "/"),
-            #    description=record.get("description", ""),
-            #    properties=record.get("properties", {}),
-            #    created_by=record.get("created_by"),
-            #    icon=record.get("icon"),
-            #)
+            self.register_record_json(record, rebuild=False)
+        self.build_index()
 
     def delete_record_property(self, name, type, scope, key, rebuild: bool | None = None):
         record = self.get_record(name, type, scope)
@@ -450,6 +442,11 @@ class Registry:
         )
 
 
+    def build_index(self) -> None:
+        """Bulk re-index all records. Override in subclasses that maintain a search index."""
+        for record in self.list_records():
+            self._on_record_changed(record, rebuild=True)
+
     # ---------- extension hooks ----------
 
     def _on_record_changed(self, record: dict, rebuild: bool | None = None) -> None:
@@ -462,32 +459,40 @@ class Registry:
     def _on_record_deleted(self, name: str, type: str, scope: str, rebuild: bool | None = None) -> None:
         """Called after every record delete. Override in subclasses."""
 
-    def get_record_data(self, name: str, type: str, scope: str = "/"):
-        return self.get_record(name, type, scope)
+    def get_record_data(self, name: str, type: str, scope: str = "/", key: str | None = None):
+        """Return a full record or a specific top-level key within it."""
+        record = self.get_record(name, type, scope)
+        if key is None or record is None:
+            return record
+        return record.get(key)
 
-
-    def set_record_data(self, name: str, type: str, scope: str = "/", data=None):
+    def set_record_data(self, name: str, type: str, scope: str = "/", key: str | None = None, value=None, rebuild: bool | None = None):
+        """Set an arbitrary top-level key on a record (or replace the whole record when key is None)."""
         record = self.get_record(name, type, scope)
 
         if record is None:
             raise KeyError(f"Record not found: {type}/{name} in {scope}")
 
-        if data is None:
-            data = {}
+        if key is None:
+            record["data"] = value or {}
+        else:
+            record[key] = value
 
-        record["data"] = data
+        self.store.set(self._record_key(name, type, scope), record)
+        self._on_record_changed(record, rebuild=rebuild)
+        return record
 
-        return self.store.set(self._record_key(name, type, scope), record)
-
-
-    def delete_record_data(self, name: str, type: str, scope: str = "/"):
+    def delete_record_data(self, name: str, type: str, scope: str = "/", key: str | None = None, rebuild: bool | None = None):
+        """Delete an arbitrary top-level key from a record (defaults to the 'data' key)."""
         record = self.get_record(name, type, scope)
 
         if record is None:
             raise KeyError(f"Record not found: {type}/{name} in {scope}")
 
-        record.pop("data", None)
+        record.pop(key or "data", None)
 
-        return self.store.set(self._record_key(name, type, scope), record)
+        self.store.set(self._record_key(name, type, scope), record)
+        self._on_record_changed(record, rebuild=rebuild)
+        return record
 
    

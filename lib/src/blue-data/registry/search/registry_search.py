@@ -16,6 +16,7 @@ class RegistrySearch(SearchEngine):
         vector_source=None,
         embedding_fn: Callable[[str], list[float]] | None = None,
         index_name: str = "registry_index",
+        vector_dim: int = 1536,
         hybrid_config: dict | None = None,
     ):
         self.registry = registry
@@ -33,6 +34,7 @@ class RegistrySearch(SearchEngine):
             vector_source=vector_source,
             embedding_fn=embedding_fn,
             index_name=index_name,
+            vector_dim=vector_dim,
         )
 
     # ---------- index maintenance ----------

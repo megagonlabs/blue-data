@@ -36,9 +36,8 @@ class RecordIndexer:
                 "op": "VECTOR.CREATE_INDEX",
                 "index": self.index_name,
                 "collection": self.collection,
-                "vector_dim": self.vector_dim,
+                "dim": self.vector_dim,
                 "distance_metric": "COSINE",
-                "fields": ["name", "type", "scope", "description"],
             })
         except Exception:
             pass
@@ -101,36 +100,35 @@ class RecordIndexer:
             name = record.get("name", "")
             rtype = record.get("type", "")
             scope = record.get("scope", "/")
+            description = record.get("description", "")
         else:
             name = getattr(record, "name", "")
             rtype = getattr(record, "type", "")
             scope = getattr(record, "scope", "/")
+            description = getattr(record, "description", "")
 
         doc_id = f"{scope}/{rtype}/{name}"
-
         embedding = self.embedding_fn(text)
-        payload: dict = {
-            "op": "VECTOR.UPSERT",
-            "index": self.index_name,
-            "id": doc_id,
-            "vector": embedding,
-            "fields": {
-                "name": name,
-                "type": rtype,
-                "scope": scope,
-                "description": (
-                    record.get("description", "")
-                    if isinstance(record, dict)
-                    else getattr(record, "description", "")
-                ),
-            },
+
+        doc = {
+            "embedding": embedding,
+            "name": name,
+            "type": rtype,
+            "scope": scope,
+            "description": description,
         }
 
         schema_text = self._schema_text(record)
         if schema_text:
-            payload["schema_vector"] = self.embedding_fn(schema_text)
+            doc["schema_embedding"] = self.embedding_fn(schema_text)
 
-        self.vector_source.execute_query(payload)
+        self.vector_source.execute_query({
+            "op": "VECTOR.UPSERT",
+            "collection": self.collection,
+            "id": doc_id,
+            "doc": doc,
+            "embedding_field": "embedding",
+        })
 
     def delete_record(self, name: str, type_: str, scope: str) -> None:
         if self.vector_source is None:
@@ -140,7 +138,7 @@ class RecordIndexer:
         try:
             self.vector_source.execute_query({
                 "op": "VECTOR.DELETE",
-                "index": self.index_name,
+                "collection": self.collection,
                 "id": doc_id,
             })
         except Exception:

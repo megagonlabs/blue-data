@@ -27,6 +27,7 @@ class DataRegistry(Registry):
         embedding_fn=None,
         rebuild: bool = False,
         index_name: str = "registry_index",
+        vector_dim: int = 1536,
         hybrid_config: dict | None = None,
     ):
         super().__init__(name=name, store=store)
@@ -38,6 +39,7 @@ class DataRegistry(Registry):
             vector_source=vector_source,
             embedding_fn=embedding_fn,
             index_name=index_name,
+            vector_dim=vector_dim,
             hybrid_config=hybrid_config,
         )
 
@@ -1836,39 +1838,6 @@ class DataRegistry(Registry):
 
         return str(schema)
 
-    def search_records(
-        self,
-        query: str,
-        record_type: str | None = None,
-        scope: str | None = None,
-    ):
-        query_lower = query.lower()
-
-        records = self.list_records(
-            record_type=record_type,
-            scope=scope,
-            recursive=True if scope else False,
-        )
-
-        results = []
-
-        for record in records:
-            text_parts = [
-                record.get("name", ""),
-                record.get("type", ""),
-                record.get("scope", ""),
-                record.get("description", ""),
-                str(record.get("properties", {})),
-            ]
-
-            haystack = " ".join(text_parts).lower()
-
-            if query_lower in haystack:
-                results.append(record)
-
-        return results
-    
-
     # ---------- source property / connection helpers ----------
 
     def get_source_properties(self, source: str):
@@ -2500,17 +2469,127 @@ class DataRegistry(Registry):
                 description,
             )
     
-    def search_records(self, *args, **kwargs):
-        return self.search_engine.keyword_search(
-            *args,
-            **kwargs,
+    def search_records(
+        self,
+        input_query: str,
+        type: str | None = None,
+        scope: str | None = None,
+        page: int = 0,
+        page_size: int = 5,
+        page_limit: int = 10,
+        bm25_weight: float | None = None,
+        vector_weight: float | None = None,
+        value_weight: float | None = None,
+        bm25_threshold: float | None = None,
+        vector_threshold: float | None = None,
+        value_threshold: float | None = None,
+        combined_threshold: float | None = None,
+        bm25_normalization: str | None = None,
+        enable_schema: bool | None = None,
+        enable_value_semantics: bool = True,
+        hierarchical_enabled: bool | None = None,
+        hierarchical_database_types: list | None = None,
+        hierarchical_collection_types: list | None = None,
+    ):
+        overrides = {k: v for k, v in {
+            "bm25_weight": bm25_weight,
+            "vector_weight": vector_weight,
+            "value_weight": value_weight,
+            "bm25_threshold": bm25_threshold,
+            "vector_threshold": vector_threshold,
+            "value_threshold": value_threshold,
+            "combined_threshold": combined_threshold,
+            "bm25_normalization": bm25_normalization,
+            "enable_schema": enable_schema,
+            "hierarchical_enabled": hierarchical_enabled,
+            "hierarchical_database_types": hierarchical_database_types,
+            "hierarchical_collection_types": hierarchical_collection_types,
+            "search_limit": page_limit * page_size,
+        }.items() if v is not None}
+
+        # database/collection types automatically go hierarchical
+        resolved_hierarchical = (
+            hierarchical_enabled
+            if hierarchical_enabled is not None
+            else self.search_engine.hybrid_engine.config.get("hierarchical_enabled", True)
+        )
+        if resolved_hierarchical and type in ("database", "collection"):
+            return self.search_records_hierarchical(
+                input_query=input_query,
+                type=type,
+                scope=scope,
+                page=page,
+                page_size=page_size,
+                page_limit=page_limit,
+                bm25_weight=bm25_weight,
+                vector_weight=vector_weight,
+                value_weight=value_weight,
+                bm25_threshold=bm25_threshold,
+                vector_threshold=vector_threshold,
+                value_threshold=value_threshold,
+                combined_threshold=combined_threshold,
+                bm25_normalization=bm25_normalization,
+                enable_schema=enable_schema,
+                enable_value_semantics=enable_value_semantics,
+                hierarchical_enabled=hierarchical_enabled,
+                hierarchical_database_types=hierarchical_database_types,
+                hierarchical_collection_types=hierarchical_collection_types,
+            )
+
+        return self.search_engine.hybrid_search(
+            query=input_query,
+            type=type,
+            scope=scope,
+            page=page,
+            page_size=page_size,
+            **overrides,
         )
 
+    def search_records_hierarchical(
+        self,
+        input_query: str,
+        type: str | None = None,
+        scope: str | None = None,
+        page: int = 0,
+        page_size: int = 5,
+        page_limit: int = 10,
+        bm25_weight: float | None = None,
+        vector_weight: float | None = None,
+        value_weight: float | None = None,
+        bm25_threshold: float | None = None,
+        vector_threshold: float | None = None,
+        value_threshold: float | None = None,
+        combined_threshold: float | None = None,
+        bm25_normalization: str | None = None,
+        enable_schema: bool | None = None,
+        enable_value_semantics: bool = True,
+        hierarchical_enabled: bool | None = None,
+        hierarchical_database_types: list | None = None,
+        hierarchical_collection_types: list | None = None,
+    ):
+        overrides = {k: v for k, v in {
+            "bm25_weight": bm25_weight,
+            "vector_weight": vector_weight,
+            "value_weight": value_weight,
+            "bm25_threshold": bm25_threshold,
+            "vector_threshold": vector_threshold,
+            "value_threshold": value_threshold,
+            "combined_threshold": combined_threshold,
+            "bm25_normalization": bm25_normalization,
+            "enable_schema": enable_schema,
+            "hierarchical_enabled": hierarchical_enabled,
+            "hierarchical_database_types": hierarchical_database_types,
+            "hierarchical_collection_types": hierarchical_collection_types,
+            "search_limit": page_limit * page_size,
+        }.items() if v is not None}
 
-    def search_records_hierarchical(self, *args, **kwargs):
         return self.search_engine.search_records_hierarchical(
-            *args,
-            **kwargs,
+            query=input_query,
+            type=type,
+            scope=scope,
+            page=page,
+            page_size=page_size,
+            **overrides,
         )
 
  

@@ -239,7 +239,7 @@ class RedisVectorSource(DataSource):
         collection = query.get("collection")
         dimension = query.get("dim")
 
-        if not index_name or not scan_prefix or dimension is None:
+        if not index_name or not scan_prefix or not collection or dimension is None:
             raise Exception(
                 "VECTOR.CREATE_INDEX requires index, scan_prefix, collection, dim"
             )
