@@ -464,3 +464,171 @@ def test_redis_collect_stats_after_sync(redis_registry):
         "mydb", "sales", "public", "orders", "stats"
     )
     assert stored["row_count"] == 2
+
+
+# ==================== additional e2e coverage ====================
+
+# ---------- attribute-level stats ----------
+
+def test_attribute_stats_stored_on_record(tmp_reg):
+    reg, tmp_path = tmp_reg
+    _create_db(tmp_path, "sales", ["CREATE TABLE orders (id INTEGER PRIMARY KEY, total REAL)"])
+    _insert_rows(tmp_path, "sales", "INSERT INTO orders VALUES (1, 50.0)")
+    _insert_rows(tmp_path, "sales", "INSERT INTO orders VALUES (2, 75.0)")
+
+    reg.sync_source("mydb", recursive=True)
+    reg.collect_source_database_collection_entity_attribute_stats("mydb", "sales", "public", "orders", "total")
+
+    stats = reg.get_source_database_collection_entity_attribute_property(
+        "mydb", "sales", "public", "orders", "total", "stats"
+    )
+    assert stats is not None
+    assert stats["count"] == 2
+    assert "sample_values" in stats
+    assert len(stats["sample_values"]) == 2
+
+
+def test_attribute_stats_min_max_numeric(tmp_reg):
+    reg, tmp_path = tmp_reg
+    _create_db(tmp_path, "sales", ["CREATE TABLE orders (id INTEGER PRIMARY KEY, total REAL)"])
+    _insert_rows(tmp_path, "sales", "INSERT INTO orders VALUES (1, 10.0)")
+    _insert_rows(tmp_path, "sales", "INSERT INTO orders VALUES (2, 90.0)")
+
+    reg.sync_source("mydb", recursive=True)
+    stats = reg.collect_source_database_collection_entity_attribute_stats("mydb", "sales", "public", "orders", "total")
+
+    assert stats["min"] == 10.0
+    assert stats["max"] == 90.0
+
+
+# ---------- collect_source_stats recursive ----------
+
+def test_collect_source_stats_recursive_populates_all_levels(tmp_reg):
+    reg, tmp_path = tmp_reg
+    _create_db(tmp_path, "sales", ["CREATE TABLE orders (id INTEGER PRIMARY KEY)"])
+    _insert_rows(tmp_path, "sales", "INSERT INTO orders VALUES (1)")
+
+    reg.sync_source("mydb", recursive=True)
+    reg.collect_source_stats("mydb", recursive=True)
+
+    db_stats = reg.get_source_database_property("mydb", "sales", "stats")
+    assert db_stats is not None
+    assert "table_count" in db_stats
+
+    entity_stats = reg.get_source_database_collection_entity_property(
+        "mydb", "sales", "public", "orders", "stats"
+    )
+    assert entity_stats is not None
+    assert entity_stats["row_count"] == 1
+
+
+# ---------- schema stored on collection ----------
+
+def test_sync_stores_schema_json_on_collection(tmp_reg):
+    reg, tmp_path = tmp_reg
+    _create_db(tmp_path, "sales", ["CREATE TABLE orders (id INTEGER PRIMARY KEY, amount REAL)"])
+
+    reg.sync_source("mydb", recursive=True)
+
+    schema = reg.get_source_database_collection_property("mydb", "sales", "public", "schema")
+    assert schema is not None
+    assert "orders" in schema
+
+
+# ---------- dumps / loads round-trip ----------
+
+def test_dumps_loads_preserves_records(tmp_reg):
+    reg, tmp_path = tmp_reg
+    _create_db(tmp_path, "sales", ["CREATE TABLE orders (id INTEGER PRIMARY KEY)"])
+    reg.sync_source("mydb", recursive=True)
+    reg.set_source_database_collection_entity_description(
+        "mydb", "sales", "public", "orders", "All purchase orders"
+    )
+
+    serialized = reg.dumps()
+
+    from registry.registry import Registry
+    new_reg = Registry(store=MemoryJSONSource())
+    new_reg.loads(serialized)
+
+    record = new_reg.get_record("orders", "entity", "/source/mydb/database/sales/collection/public")
+    assert record is not None
+    assert record["description"] == "All purchase orders"
+
+
+# ---------- create helpers ----------
+
+def test_create_database_no_overwrite_is_idempotent(tmp_reg):
+    reg, tmp_path = tmp_reg
+    reg.create_source_database("mydb", "testdb")
+    result = reg.create_source_database("mydb", "testdb")
+    assert result is None
+    dbs = [r["name"] for r in reg.list_source_databases("mydb")]
+    assert dbs.count("testdb") == 1
+
+
+def test_create_database_with_overwrite_succeeds(tmp_reg):
+    reg, tmp_path = tmp_reg
+    reg.create_source_database("mydb", "testdb")
+    result = reg.create_source_database("mydb", "testdb", overwrite=True)
+    assert result is not None
+    assert result.get("status") in {"success", "skipped"}
+
+
+def test_create_collection_returns_registry_only(tmp_reg):
+    reg, tmp_path = tmp_reg
+    # Create the .db file and manually register the database to avoid the
+    # implicit sync inside create_source_database, which would pre-register "public".
+    _create_db(tmp_path, "testdb", [])
+    reg.register_source_database("mydb", "testdb")
+
+    result = reg.create_source_database_collection("mydb", "testdb", "public")
+    assert result is not None
+    assert result.get("status") == "registry_only"
+    colls = [r["name"] for r in reg.list_database_collections("mydb", "testdb")]
+    assert "public" in colls
+
+
+def test_create_collection_no_overwrite_is_idempotent(tmp_reg):
+    reg, tmp_path = tmp_reg
+    _create_db(tmp_path, "testdb", [])
+    reg.register_source_database("mydb", "testdb")
+    reg.create_source_database_collection("mydb", "testdb", "public")
+    result = reg.create_source_database_collection("mydb", "testdb", "public")
+    assert result is None
+
+
+# ---------- search after metadata update ----------
+
+def test_search_after_entity_description_update(tmp_reg_with_search):
+    reg, tmp_path = tmp_reg_with_search
+    _create_db(tmp_path, "sales", ["CREATE TABLE transactions (id INTEGER PRIMARY KEY)"])
+    reg.sync_source("mydb", recursive=True)
+
+    # rebuild=True is the instance default on tmp_reg_with_search; no kwarg needed
+    reg.set_source_database_collection_entity_description(
+        "mydb", "sales", "public", "transactions",
+        "Financial ledger transactions",
+    )
+
+    results = reg.search_records("financial ledger")
+    names = [r["name"] for r in results]
+    assert "transactions" in names
+
+
+# ---------- multiple databases with distinct entities ----------
+
+def test_multiple_databases_isolated_entities(tmp_reg):
+    reg, tmp_path = tmp_reg
+    _create_db(tmp_path, "crm", ["CREATE TABLE customers (id INTEGER PRIMARY KEY)"])
+    _create_db(tmp_path, "erp", ["CREATE TABLE products (id INTEGER PRIMARY KEY)"])
+
+    reg.sync_source("mydb", recursive=True)
+
+    crm_entities = [r["name"] for r in reg.list_collection_entities("mydb", "crm", "public")]
+    erp_entities = [r["name"] for r in reg.list_collection_entities("mydb", "erp", "public")]
+
+    assert "customers" in crm_entities
+    assert "products" not in crm_entities
+    assert "products" in erp_entities
+    assert "customers" not in erp_entities

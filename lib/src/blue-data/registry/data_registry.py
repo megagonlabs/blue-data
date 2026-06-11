@@ -1812,18 +1812,26 @@ class DataRegistry(Registry):
         collection: str,
         format: str = "dict",
     ):
-        schema = {
-            "entities": self.list_collection_entities(
-                source,
-                database,
-                collection,
-            ),
-            "relations": self.list_collection_relations(
-                source,
-                database,
-                collection,
-            ),
-        }
+        source_props = self.get_source_properties(source) or {}
+        protocol = source_props.get("connection", {}).get("protocol")
+
+        if protocol == "bn":
+            collection_props = self.get_source_database_collection_properties(source, database, collection) or {}
+            graph_structure = collection_props.get("graph_structure", {})
+            schema = {
+                "entities": [],
+                "relations": [],
+                "graph_structure": graph_structure,
+                "node_count": collection_props.get("node_count", len(graph_structure.get("nodes", {}))),
+                "edge_count": collection_props.get("edge_count", sum(
+                    len(v) for v in graph_structure.get("edges", {}).values()
+                )),
+            }
+        else:
+            schema = {
+                "entities": self.list_collection_entities(source, database, collection),
+                "relations": self.list_collection_relations(source, database, collection),
+            }
 
         if format == "dict":
             return schema
@@ -1940,6 +1948,10 @@ class DataRegistry(Registry):
         elif protocol == "redis":
             from source.json.redis.redis_source import RedisSource
             source_obj = RedisSource(source, properties=properties)
+
+        elif protocol == "bn":
+            from source.network.bn.bayesian_network_source import BayesianNetworkSource
+            source_obj = BayesianNetworkSource(source, properties=properties)
 
         else:
             raise ValueError(f"Unsupported source protocol: {protocol}")
