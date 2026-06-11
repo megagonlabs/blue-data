@@ -1,26 +1,13 @@
-# os
-import os
-
-###### Parsers, Formats, Utils
-import pandas as pd
-import numpy as np
-import json
 import copy
-
-
-###### Source specific libs
-import sqlite3
 import logging
+import os
+import sqlite3
 
-###### Blue_Data Core 
-from source.source import DataSource
+from source.sql.sql_source import SQLSource
 from core.schema import DataSchema
 
 
-###############
-### SQLiteDBSource
-#
-class SQLiteDBSource(DataSource):
+class SQLiteDBSource(SQLSource):
     def __init__(self, name, properties=None):
         super().__init__(name, properties=properties)
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -29,8 +16,6 @@ class SQLiteDBSource(DataSource):
     def _initialize_connection_properties(self):
         connection = self.properties.get("connection", {})
 
-        connection.setdefault("host", "localhost")
-        connection.setdefault("port", 5432)
         connection.setdefault("protocol", "sqlite")
         connection.setdefault("database_directory", ".")
 
@@ -165,12 +150,7 @@ class SQLiteDBSource(DataSource):
         db_connection = self._connect(**c)
         return db_connection
 
-    def _db_disconnect(self, connection):
-        if connection:
-            connection.close()
-        return None
-
-    ######### database/collection
+ ######### database/collection
     def fetch_database_collections(self, database):
         """
         Fetch the list of logical 'collections' (schemas or namespaces) in the specified SQLite database.
@@ -337,58 +317,6 @@ class SQLiteDBSource(DataSource):
         """
         return {"status": "skipped"}
 
-    ######### execute query
-    def execute_query(self, query, database=None, collection=None, optional_properties={}):
-        """
-        Execute a SQL query against a SQLite database and return results as JSON-compatible records.
-
-        Parameters:
-            query (str): The SQL query string to execute.
-            database (str, optional): Name of the SQLite database to run the query against.
-                                    Must be provided, otherwise raises Exception.
-            collection (str, optional): Collection name. Ignored for SQLite but included for interface consistency.
-            optional_properties (dict, optional): Dictionary of optional execution properties:
-                - 'commit' (bool): If True, commits the transaction after executing the query.
-
-        Returns:
-            list[dict]: List of rows represented as dictionaries where keys are column names.
-                        Returns an empty list if the query does not return any rows or no cursor description.
-
-        Raises:
-            Exception: If `database` is not provided.
-
-        Notes:
-            - If the query modifies data and 'commit' is True, changes are committed.
-            - Automatically disconnects from the database after execution.
-            - Converts SQLite query results to a JSON-compatible format using pandas.
-        """
-        if database is None:
-            raise Exception("No database provided")
-
-        # create connection to db
-        db_connection = self._db_connect(database)
-
-        cursor = db_connection.cursor()
-        cursor.execute(query)
-        data = cursor.fetchall()
-
-        # transform to json
-        result = {}
-        if cursor.description:
-            columns = [desc[0] for desc in cursor.description]
-            df = pd.DataFrame(data, columns=columns)
-            df.fillna(value=np.nan, inplace=True)
-            result = json.loads(df.to_json(orient='records'))
-
-        # commit
-        if 'commit' in optional_properties and optional_properties['commit']:
-            db_connection.commit()
-
-        # disconnect
-        self._db_disconnect(db_connection)
-
-        return result
-
     ######### stats
 
     def fetch_source_stats(self):
@@ -437,32 +365,6 @@ class SQLiteDBSource(DataSource):
 
         except Exception as e:
             self.logger.warning(f"Error fetching SQLite database stats: {e}")
-
-        return stats
-
-    def fetch_collection_stats(self, database, collection_name, entities, relations):
-        """
-        Collect basic statistics for a database collection (schema grouping).
-
-        Computes counts of entities (tables) and relations within the given
-        collection for reporting or registry enrichment.
-
-        Parameters:
-            database (str): Name of the database the collection belongs to.
-            collection_name (str): Name of the collection.
-            entities (list): List of entity definitions (e.g., tables).
-            relations (list): List of relationships between entities.
-
-        Returns:
-            dict: Dictionary containing counts of entities and relations.
-        """
-
-        stats = {}
-        num_entities = len(entities)
-        num_relations = len(relations)
-
-        stats["num_entities"] = num_entities
-        stats["num_relations"] = num_relations
 
         return stats
 

@@ -1,17 +1,14 @@
 import copy
-import json
 import logging
 import re
 
 import mysql.connector as cpy
-import numpy as np
-import pandas as pd
 
-from source.source import DataSource
+from source.sql.sql_source import SQLSource
 from core.schema import DataSchema
 
 
-class MySQLDBSource(DataSource):
+class MySQLDBSource(SQLSource):
     """MySQL data source."""
 
     def __init__(self, name, properties=None):
@@ -49,11 +46,6 @@ class MySQLDBSource(DataSource):
         config.pop("protocol", None)
         config["database"] = database
         return cpy.connect(**config)
-
-    def _db_disconnect(self, connection):
-        if connection:
-            connection.close()
-        return None
 
     # ---------- source ----------
 
@@ -180,22 +172,6 @@ class MySQLDBSource(DataSource):
         overwrite=False,
     ):
         return {"status": "registry_only"}
-
-    def fetch_collection_stats(
-        self,
-        database,
-        collection,
-        entities=None,
-        relations=None,
-        sample_limit=None,
-    ):
-        entities = entities or []
-        relations = relations or []
-
-        return {
-            "num_entities": len(entities),
-            "num_relations": len(relations),
-        }
 
     # ---------- entities / relations ----------
 
@@ -465,40 +441,3 @@ class MySQLDBSource(DataSource):
             cur.close()
             self._db_disconnect(conn)
 
-    # ---------- query ----------
-
-    def execute_query(
-        self,
-        query,
-        database=None,
-        collection=None,
-        optional_properties=None,
-    ):
-        optional_properties = optional_properties or {}
-
-        if database is None:
-            raise Exception("No database provided")
-
-        conn = self._db_connect(database)
-        cur = conn.cursor()
-
-        try:
-            cur.execute(query)
-
-            result = []
-
-            if cur.description:
-                data = cur.fetchall()
-                columns = [desc[0] for desc in cur.description]
-                df = pd.DataFrame(data, columns=columns)
-                df.fillna(value=np.nan, inplace=True)
-                result = json.loads(df.to_json(orient="records"))
-
-            if optional_properties.get("commit"):
-                conn.commit()
-
-            return result
-
-        finally:
-            cur.close()
-            self._db_disconnect(conn)
