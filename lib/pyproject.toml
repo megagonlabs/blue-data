@@ -16,6 +16,7 @@ mongodb   = ["pymongo"]
 neo4j     = ["neo4j"]
 redis     = ["redis"]
 chromadb  = ["chromadb"]
+bn        = ["pgmpy", "networkx"]
 dev       = ["pytest"]
 all = [
     "psycopg2-binary",
