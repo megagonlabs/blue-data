@@ -2,7 +2,7 @@ import logging
 
 from neo4j import GraphDatabase
 
-from source.source import DataSource
+from source.graph.graph_source import GraphSource
 from core.schema import DataSchema
 
 
@@ -37,7 +37,7 @@ ORDER BY type
 """.strip()
 
 
-class NEO4JSource(DataSource):
+class NEO4JSource(GraphSource):
     """Neo4j graph database source."""
 
     def __init__(self, name, properties=None):
