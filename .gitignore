@@ -7,6 +7,9 @@ dist/
 build/
 *.egg-info/
 
+# Local-only legacy package
+blue_data/
+
 # Python generated files
 __pycache__/
 *.py[cod]
