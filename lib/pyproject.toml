@@ -17,6 +17,7 @@ neo4j     = ["neo4j"]
 redis     = ["redis"]
 chromadb  = ["chromadb"]
 bn        = ["pgmpy", "networkx"]
+llm       = ["anthropic"]
 dev       = ["pytest"]
 all = [
     "psycopg2-binary",
@@ -24,6 +25,7 @@ all = [
     "pymongo",
     "neo4j",
     "redis",
+    "anthropic",
 ]
 
 [build-system]

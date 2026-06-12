@@ -162,6 +162,7 @@ DataRegistry(
     index_name: str = "registry_index",
     vector_dim: int = 1536,
     hybrid_config: dict | None = None,
+    metadata_enricher: MetaData | None = None,
 )
 ```
 
@@ -174,6 +175,7 @@ DataRegistry(
 | `index_name` | Name of the vector index created in `VectorSource` |
 | `vector_dim` | Dimensionality of embedding vectors |
 | `hybrid_config` | Override any key from `DEFAULT_PARAMS` (see Search section below) |
+| `metadata_enricher` | `MetaData` instance to use for `enrich_source_metadata`. Pass `MetaData(llm_fn=None)` for deterministic-only enrichment or `MetaData(llm_fn=fn)` for LLM-augmented enrichment |
 
 **Attributes**
 
@@ -236,7 +238,16 @@ Sync is **idempotent**. After each collection sync, the collection's `schema` pr
 | Method | Description |
 |---|---|
 | `enrich_source_database_collection_entity_attribute(source, db, col, entity, attr)` | Infer semantic type from `stats.sample_values` and write to `"value_semantics"` property |
-| `enrich_source(source)` | Enrich all attributes across all collections |
+| `enrich_source(source)` | Run `SemanticTypeInferencer` on all attributes across all collections (deterministic, no LLM) |
+| `enrich_source_metadata(source, recursive=True, rebuild=False)` | Run the full `MetaData` pipeline — calls `enrich_source` first, then delegates to `self.metadata_enricher` if one was set at construction. With `rebuild=False`, existing enrichment properties are preserved (idempotent). |
+
+`enrich_source_metadata` requires `metadata_enricher` to be set at `DataRegistry` construction. The prerequisite order must be followed:
+
+```python
+registry.sync_all(recursive=True)            # 1. discover schema
+registry.collect_source_stats(recursive=True) # 2. gather sample_values
+registry.enrich_source_metadata(...)         # 3. enrich
+```
 
 ### connect_source
 
@@ -464,7 +475,7 @@ schema = DataSchema()
 
 ## `SemanticTypeInferencer`
 
-Deterministic semantic type inference from a list of sample values.
+Deterministic semantic type inference from a list of sample values. No LLM required.
 
 ```python
 from registry.enrichment.semantic_types import SemanticTypeInferencer
@@ -477,12 +488,92 @@ result = inferencer.infer(values)
 
 ```python
 {
-    "semantic_type": "INTEGER",  # BOOLEAN | INTEGER | NUMERIC_GENERAL | STRING | UNKNOWN
-    "confidence": 0.7,
-    "rationale": "Inferred from simple Python value types.",
-    "examples": [1, 2, 3, 4, 5],
+    "semantic_type": "DATE",
+    "confidence": 0.95,
+    "rationale": "All values match ISO-8601 date pattern.",
+    "examples": ["2024-01-15", "2024-02-01"],
 }
 ```
+
+**Detected types**:
+
+| Type | Detected when |
+|---|---|
+| `BOOLEAN` | All values are `True`/`False` or `"true"`/`"false"` |
+| `INTEGER` | All values are Python `int` |
+| `FLOAT` | All values are Python `float` |
+| `NUMERIC_GENERAL` | Mix of int and float values |
+| `DATE` | Values match `YYYY-MM-DD` pattern |
+| `DATETIME` | Values match ISO-8601 datetime pattern |
+| `TIME` | Values match `HH:MM` / `HH:MM:SS` pattern |
+| `EMAIL` | Values match `user@domain` pattern |
+| `URL` | Values match `http(s)://...` pattern |
+| `IP_ADDRESS` | Values match IPv4/IPv6 pattern |
+| `UUID` | Values match UUID pattern |
+| `ENUM_CATEGORY` | Low-cardinality string values (≤ max(5, 10% of n) unique values) |
+| `STRING` | Short, bounded strings that don't match any pattern |
+| `FREE_TEXT` | Long, high-cardinality text values |
+| `UNKNOWN` | Values are `None` / empty / unclassifiable |
+
+---
+
+## `MetaData`
+
+LLM-augmented enrichment pipeline. Adds rich semantic signals to entity and attribute records. Deterministic signals run without any LLM; LLM-dependent signals silently return `None` when `llm_fn` is not set.
+
+```python
+from registry.enrichment.metadata import MetaData
+
+# Deterministic only
+enricher = MetaData(llm_fn=None)
+
+# LLM-augmented (any callable str → str)
+enricher = MetaData(llm_fn=my_llm_callable)
+```
+
+**Constructor parameters**:
+
+| Parameter | Type | Description |
+|---|---|---|
+| `llm_fn` | `Callable[[str], str] \| None` | Function that sends a prompt and returns a text response. Provider-agnostic — pass Anthropic SDK, OpenAI, a local model, or a test stub. |
+| `properties` | `dict` | Override default pipeline feature flags (e.g. `{"enable_semantic_links_inference": False}`) |
+
+**Main entry point**:
+
+```python
+enricher.collect_source_metadata(
+    data_registry: DataRegistry,
+    source: str,
+    recursive: bool = True,
+    rebuild: bool = False,
+)
+```
+
+Called automatically by `DataRegistry.enrich_source_metadata`. Rarely called directly.
+
+**Enrichment properties written to attribute records**:
+
+| Property key | Layer | Description |
+|---|---|---|
+| `value_semantics` | Deterministic / LLM | Semantic type, flags (`is_identifier`, `is_categorical`, etc.), numeric and temporal sub-info |
+| `semantic_role` | Deterministic | Structural role: `IDENTIFIER`, `EVENT_TIME`, `SEGMENTATION_DRIVER`, `EVIDENCE`, `DESCRIPTIVE`, etc. |
+| `quantitative_vst` | Deterministic | Quantitative role: `MEASUREMENT`, `MAGNITUDE`, `COUNT`, `RATE`, `COMPUTATIONAL`, etc. |
+| `process_vst_role` | Deterministic | Role within a process/event log: `PROCESS_KEY`, `EVENT_TIME`, `EVENT_MEASURE`, `STATE_VARIABLE` |
+| `semantic_discovery` | LLM | Open-world subcategory and confidence score |
+| `domain_concept` | LLM | Canonical domain concept mapping |
+| `interpretive_semantics` | LLM | Human-readable value interpretation (ordinal order, severity tiers, etc.) |
+
+**Enrichment properties written to entity records**:
+
+| Property key | Layer | Description |
+|---|---|---|
+| `semantic_links` | Deterministic | Validated inter-attribute relationships (functional dependency, segmentation, temporal alignment) |
+| `process_semantics` | Deterministic | Whether rows represent events; which column is the event time axis |
+| `process_patterns` | Deterministic | Temporal cadence and periodicity signals |
+| `process_trends` | Deterministic | Trend direction per measure |
+| `conditional_value_distribution` | Deterministic | P(value \| group) per categorical × numeric pair |
+
+**`rebuild` behaviour**: when `rebuild=False` (default), LLM-dependent properties that already exist are not overwritten. When `rebuild=True`, all properties are recomputed even if they already exist. Deterministic properties always run regardless of `rebuild`.
 
 ---
 

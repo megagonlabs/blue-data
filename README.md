@@ -23,6 +23,7 @@ Optional extras (install with `pip install -e ".[redis]"` etc.):
 | `mysql` | `mysql-connector-python` | `MySQLDBSource` |
 | `mongodb` | `pymongo` | `MongoDBJSONSource` |
 | `neo4j` | `neo4j` | `Neo4jGraphSource` |
+| `llm` | `anthropic` | LLM-augmented enrichment via `MetaData(llm_fn=...)` |
 
 > **Redis Stack required:** `RedisJSONSource` and `RedisVectorSource` use `JSON.SET` and `FT.CREATE` commands that are not available in standard Redis. You need **Redis Stack** (`redis-stack-server`), not plain `redis`.
 
@@ -117,6 +118,55 @@ registry.collect_source_database_collection_entity_attribute_stats(
 )
 ```
 
+## Enrichment
+
+`blue-data` enriches registry records with two layers of intelligence.
+
+**Layer 1 — Deterministic** (`enrich_source`): runs `SemanticTypeInferencer` on every attribute's sample values and writes the detected semantic type to `attribute.properties["value_semantics"]`. No API key or LLM required.
+
+**Layer 2 — MetaData pipeline** (`enrich_source_metadata`): builds on Layer 1 and adds process semantics, semantic roles, value-axis detection, statistical relationship signals, and — when an `llm_fn` is provided — LLM-augmented enrichments (VSI, SDI, domain concept, entity descriptions).
+
+```python
+from registry.data_registry import DataRegistry
+from registry.enrichment.metadata import MetaData
+from source.json.memory_json_source import MemoryJSONSource
+
+# Deterministic-only (no API key needed)
+enricher = MetaData(llm_fn=None)
+registry = DataRegistry(store=MemoryJSONSource(), metadata_enricher=enricher)
+
+# Prerequisite order must be followed:
+registry.sync_all(recursive=True)
+registry.collect_source_stats("sqlite", recursive=True)
+registry.enrich_source_metadata("sqlite", recursive=True, rebuild=False)
+```
+
+To enable LLM-augmented enrichment, install `anthropic` (`pip install "blue-data[llm]"`) and pass an `llm_fn`:
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
+
+def llm_fn(prompt: str) -> str:
+    response = client.messages.create(
+        model="claude-opus-4-8",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    for block in response.content:
+        if block.type == "text":
+            return block.text
+    return ""
+
+enricher = MetaData(llm_fn=llm_fn)
+registry = DataRegistry(store=MemoryJSONSource(), metadata_enricher=enricher)
+```
+
+`llm_fn` is provider-agnostic — any callable `(str) -> str` works (OpenAI, local models, test stubs).
+
+`rebuild=False` is idempotent: existing enrichment properties are not overwritten on subsequent calls. Use `rebuild=True` to force re-enrichment.
+
 ## Implementing a new DataSource
 
 Subclass `DataSource` and override the methods your backend supports:
@@ -155,7 +205,8 @@ All examples run from the `lib/` directory with `PYTHONPATH=src/blue-data`.
 | File | Description |
 |---|---|
 | `examples/registry_memory_example.py` | Pure in-memory `Registry` and `DataRegistry` — CRUD, filter, search, dumps/loads. No external dependencies. |
-| `examples/sqlite_data_registry_demo.py` | Full pipeline with SQLite (Northwind schema) — sync, stats, enrich, relations, connect_source, search. No external dependencies. |
+| `examples/sqlite_data_registry_demo.py` | Full pipeline with SQLite — sync, stats, enrich, relations, connect_source, search, MetaData enrichment. No external dependencies. |
+| `examples/enrichment_demo.py` | Enrichment deep-dive — `SemanticTypeInferencer` standalone, Mode A (deterministic), Mode B (LLM-augmented with Anthropic SDK), idempotency and rebuild. |
 | `examples/redis_demo.py` | Redis Stack + PostgreSQL (falls back to SQLite) — Redis-backed registry and search index, namespace isolation, full hierarchy walk. Requires Redis Stack. |
 
 ```bash
@@ -165,6 +216,9 @@ PYTHONPATH=src/blue-data python3 ../examples/registry_memory_example.py
 
 # SQLite demo (no deps)
 PYTHONPATH=src/blue-data python3 ../examples/sqlite_data_registry_demo.py
+
+# Enrichment demo: Mode A runs without deps; Mode B requires ANTHROPIC_API_KEY
+PYTHONPATH=src/blue-data python3 ../examples/enrichment_demo.py
 
 # Redis + Postgres demo (requires Redis Stack; falls back to SQLite)
 PYTHONPATH=src/blue-data python3 ../examples/redis_demo.py

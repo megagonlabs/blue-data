@@ -11,6 +11,8 @@ Covers the full operational pipeline:
   7. dumps / loads — serialize and restore the full registry
   8. sync_all — multiple sources
   9. create_source_database_collection — registry-only collection creation
+  10. Search
+  11. enrich_source_metadata — deterministic MetaData enrichment (no LLM)
 
 Run from lib/:
     PYTHONPATH=src/blue-data python3 ../examples/sqlite_data_registry_demo.py
@@ -23,6 +25,7 @@ import sqlite3
 import tempfile
 
 from registry.data_registry import DataRegistry
+from registry.enrichment.metadata import MetaData
 from source.json.memory_json_source import MemoryJSONSource
 from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 from source.vector.memory_vector_source import MemoryVectorSource
@@ -358,6 +361,67 @@ for r in results[:3]:
 
 type_results = registry.search_records("orders", type="entity")
 print("search_records('orders', type='entity'):", [r["name"] for r in type_results])
+
+
+# ---------------------------------------------------------------------------
+# 12. enrich_source_metadata — deterministic MetaData enrichment (no LLM)
+# ---------------------------------------------------------------------------
+# enrich_source (step 4) runs SemanticTypeInferencer on each attribute.
+# enrich_source_metadata goes further: it runs the full MetaData pipeline,
+# which adds process semantics, semantic roles, value-axis detection, and
+# statistical relationship signals between attributes.
+#
+# Prerequisite order that must always be followed:
+#   sync_all  →  collect_source_stats  →  enrich_source_metadata
+#
+# Without an llm_fn, only the deterministic layer runs (no API calls needed).
+# Pass llm_fn=<callable> to enable VSI, SDI, DCM, IVS, and entity descriptions.
+# See examples/enrichment_demo.py for the full LLM-augmented walkthrough.
+# ---------------------------------------------------------------------------
+
+print()
+print(DIVIDER)
+print("12. enrich_source_metadata — deterministic MetaData enrichment")
+print(DIVIDER)
+
+enricher = MetaData(llm_fn=None)
+meta_registry = DataRegistry(store=MemoryJSONSource(), metadata_enricher=enricher)
+meta_source = SQLiteDBSource(
+    name="sqlite",
+    properties={"connection": {"database_directory": tmp}},
+)
+meta_registry.register_source(meta_source)
+meta_registry.sync_all(recursive=True)
+meta_registry.collect_source_stats("sqlite", recursive=True)
+
+# rebuild=False means: skip if property already exists (idempotent).
+# Set rebuild=True to force re-enrichment on every call.
+meta_registry.enrich_source_metadata("sqlite", recursive=True, rebuild=False)
+
+print("Enrichment results for 'customers' and 'orders':")
+for entity_name, attr_names in [("customers", ("age", "email")), ("orders", ("customer_id", "total"))]:
+    for attr_name in attr_names:
+        sem = meta_registry.get_source_database_collection_entity_attribute_property(
+            "sqlite", "shop", "public", entity_name, attr_name, "value_semantics"
+        )
+        role = meta_registry.get_source_database_collection_entity_attribute_property(
+            "sqlite", "shop", "public", entity_name, attr_name, "semantic_role"
+        )
+        qvst = meta_registry.get_source_database_collection_entity_attribute_property(
+            "sqlite", "shop", "public", entity_name, attr_name, "quantitative_vst"
+        )
+        print(
+            f"  {entity_name}.{attr_name:<18}"
+            f"  type={sem['semantic_type'] if sem else '—':<18}"
+            f"  role={role.get('primary_role', '—') if role else '—':<22}"
+            f"  qvst={qvst.get('role', '—') if qvst else '—'}"
+        )
+
+ps = meta_registry.get_source_database_collection_entity_property(
+    "sqlite", "shop", "public", "orders", "process_semantics"
+)
+if ps:
+    print(f"orders process_semantics: {ps}")
 
 print()
 print("Demo complete.")
