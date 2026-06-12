@@ -2,7 +2,12 @@
 
 ## Overview
 
-`blue-data` is a data intelligence layer built around two independent abstraction hierarchies that compose together in `DataRegistry`.
+`blue-data` is a data intelligence layer with two tiers:
+
+- **`lib/`** — the core Python library (`DataRegistry`, enrichment, search, source adapters)
+- **`platform/`** — deployable components built on top of `lib/` (MCP servers, REST API, CLI)
+
+### lib/ core
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -44,6 +49,28 @@
 **VectorSource hierarchy** — pluggable vector index used by the search engine. Separate from both `DataSource` and `JSONSource`.
 
 `DataRegistry` bridges all three: it holds live `DataSource` objects in `self.sources`, persists catalog records via `JSONSource`, and indexes them for search via `VectorSource`.
+
+### platform/ layer
+
+```
+  MCP client (Claude Desktop, Claude Code, …)
+        │  stdio / MCP protocol
+        ▼
+  ┌─────────────────────────────┐
+  │     registry-mcp            │  platform/registry-mcp/
+  │  (FastMCP server)           │
+  │  10 tools: search, explore, │
+  │  inspect, sync, enrich      │
+  └──────────────┬──────────────┘
+                 │  Python import
+                 ▼
+           DataRegistry          lib/src/blue-data/
+```
+
+The platform components are independent processes that import `lib` as a
+dependency. They do not share state with each other — each process holds its
+own `DataRegistry` singleton, backed by either `MemoryJSONSource` (ephemeral)
+or `RedisJSONSource` (shared, persistent).
 
 ---
 

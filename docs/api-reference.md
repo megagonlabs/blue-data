@@ -2,6 +2,8 @@
 
 > **Import note:** Until the top-level package name is finalised, add `lib/src/blue-data` to `PYTHONPATH` and import modules directly. Examples below use this style.
 
+> **Platform docs:** For the MCP server tool reference and configuration, see [`registry-mcp.md`](registry-mcp.md).
+
 ---
 
 ## `DataSource`

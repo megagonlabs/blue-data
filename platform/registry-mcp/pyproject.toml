@@ -1,0 +1,31 @@
+[project]
+name = "blue-data-registry-mcp"
+version = "0.1.0"
+description = "MCP server exposing DataRegistry operations to LLM clients"
+requires-python = ">=3.10"
+
+dependencies = [
+    "mcp[cli]>=1.0.0",
+]
+
+[project.optional-dependencies]
+redis   = ["redis"]
+llm     = ["anthropic"]
+dev     = ["pytest", "pytest-asyncio"]
+all     = ["redis", "anthropic"]
+
+[project.scripts]
+blue-data-registry-mcp = "registry_mcp.server:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+# Add lib to path so `from registry.data_registry import DataRegistry` resolves.
+# Run: cd platform/registry-mcp && pip install -e ../../lib && pip install -e . && pytest
+pythonpath = ["../../lib/src/blue-data", "src"]
+testpaths  = ["tests"]

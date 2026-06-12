@@ -233,11 +233,83 @@ The `data/` directory contains the **Northwind** sales schema — a 7-table data
 | `data/northwind_sqlite.sql` | Load into SQLite: `sqlite3 northwind.db < data/northwind_sqlite.sql` |
 | `data/northwind_postgres.sql` | Load into Postgres: `psql -U postgres -d northwind -f data/northwind_postgres.sql` |
 
+## Platform
+
+The `platform/` directory contains deployable components built on top of `lib/`.
+
+| Component | Description | Status |
+|---|---|---|
+| `platform/registry-mcp` | MCP server — exposes registry ops as tools for Claude and MCP clients | ✅ Done |
+| `platform/api` | REST API | Planned |
+| `platform/cli` | Command-line interface | Planned |
+| `platform/json-mcp` | MCP server for raw JSONSource operations | Planned |
+
+### registry-mcp quick start
+
+```bash
+# Install
+cd platform/registry-mcp
+pip install -e ../../lib
+pip install -e .
+
+# Run (stdio transport — for Claude Desktop / Claude Code)
+blue-data-registry-mcp
+
+# Pre-load sources from a config file
+BLUE_DATA_CONFIG=/path/to/sources.json blue-data-registry-mcp
+
+# Persistent registry backed by Redis
+BLUE_DATA_STORE=redis BLUE_DATA_REDIS_URL=redis://localhost:6379/0 \
+    blue-data-registry-mcp
+
+# LLM-augmented enrichment tools
+BLUE_DATA_LLM_PROVIDER=anthropic ANTHROPIC_API_KEY=sk-ant-... \
+    blue-data-registry-mcp
+```
+
+**Claude Desktop config** (`~/.config/claude-desktop/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "blue-data-registry": {
+      "command": "blue-data-registry-mcp",
+      "env": {
+        "BLUE_DATA_CONFIG": "/path/to/sources.json"
+      }
+    }
+  }
+}
+```
+
+Source config file format (`sources.json`):
+
+```json
+{
+  "sources": [
+    {
+      "type": "sqlite",
+      "name": "mydb",
+      "properties": { "connection": { "database_directory": "/data/dbs" } }
+    }
+  ]
+}
+```
+
+See [`docs/registry-mcp.md`](docs/registry-mcp.md) for the full tool reference and all configuration options.
+
+---
+
 ## Running tests
 
 ```bash
+# lib tests
 cd lib
 PYTHONPATH=src/blue-data python3 -m pytest tests/
+
+# registry-mcp tests
+cd platform/registry-mcp
+python3 -m pytest tests/
 ```
 
 Redis integration tests (`tests/integration/test_redis_registry.py`) auto-skip when Redis Stack is not running. To run them:
