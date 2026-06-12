@@ -235,8 +235,27 @@ Sync is **idempotent**. After each collection sync, the collection's `schema` pr
 
 | Method | Description |
 |---|---|
-| `enrich_source_database_collection_entity_attribute(source, db, col, entity, attr)` | Infer semantic type from `stats.sample_values` and write to `"semantic_type"` property |
+| `enrich_source_database_collection_entity_attribute(source, db, col, entity, attr)` | Infer semantic type from `stats.sample_values` and write to `"value_semantics"` property |
 | `enrich_source(source)` | Enrich all attributes across all collections |
+
+### connect_source
+
+```python
+registry.connect_source(source_name: str) -> DataSource | None
+```
+
+Lazily instantiate a `DataSource` from its stored registry record. Reads `properties.connection.protocol` to pick the right class, creates the live object, adds it to `registry.sources`, and returns it. Returns the already-registered live object if one exists. Returns `None` if the record has no connection properties.
+
+Supported protocols: `sqlite`, `postgres`, `mysql`, `mongodb`, `bolt` / `neo4j`, `bn`.
+
+```python
+# Restore a source from a previously serialised registry
+registry.loads(serialized_string)
+source = registry.connect_source("my_sqlite")
+dbs = source.fetch_databases()
+```
+
+---
 
 ### Create operations
 
@@ -502,6 +521,53 @@ SQLiteDBSource(name: str, properties: dict | None = None)
     "max": None,
 }
 ```
+
+---
+
+## `PostgresDBSource`
+
+Fully implemented `DataSource` for PostgreSQL.
+
+```python
+from source.sql.postgres.postgres_sql_source import PostgresDBSource
+
+PostgresDBSource(name: str, properties: dict | None = None)
+```
+
+**Connection properties** (under `properties["connection"]`):
+
+| Key | Default | Description |
+|---|---|---|
+| `host` | `"localhost"` | PostgreSQL host |
+| `port` | `5432` | PostgreSQL port |
+| `user` | `"postgres"` | Database user |
+| `password` | `""` | Database password |
+| `database` | `"postgres"` | Default database to connect to |
+
+**Behaviour notes**
+
+- `fetch_databases` lists all databases visible to the user (excluding system DBs).
+- `fetch_database_collections` returns schema names from `information_schema.schemata`.
+- `fetch_database_collection_entities` builds a `DataSchema` from `information_schema.columns`.
+- `fetch_database_collection_relations` reads FK constraints from `information_schema.key_column_usage`.
+- `fetch_entity_stats` returns `row_count` via `pg_class.reltuples`.
+- `fetch_property_stats` returns `count`, `distinct_count`, `null_count`, `sample_values`, `min`, `max`, and `most_common_vals` from `pg_stats`.
+
+**Property stats shape**:
+
+```python
+{
+    "count": 1000,
+    "distinct_count": 43,
+    "null_count": 0,
+    "sample_values": ["alice", "bob", ...],
+    "min": "alice",
+    "max": "zara",
+    "most_common_vals": ["alice", "bob"],
+}
+```
+
+> Requires `psycopg2-binary`: `pip install psycopg2-binary`
 
 ---
 

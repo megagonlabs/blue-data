@@ -135,14 +135,14 @@ Stats shape varies by level:
 
 ## Data flow: enrichment
 
-`enrich_source(source)` runs semantic type inference on every attribute's sample values and stores the result as `attribute.properties["semantic_type"]`.
+`enrich_source(source)` runs semantic type inference on every attribute's sample values and stores the result as `attribute.properties["value_semantics"]`.
 
 ```
 enrich_source
   └─ for each database → collection → entity → attribute:
        sample_values = attribute.properties["stats"]["sample_values"]
        result = SemanticTypeInferencer.infer(sample_values)
-       attribute.properties["semantic_type"] = result
+       attribute.properties["value_semantics"] = result
 ```
 
 Inference is deterministic and works on Python value types only (no LLM calls). Detected types: `BOOLEAN`, `INTEGER`, `NUMERIC_GENERAL`, `STRING`, `UNKNOWN`.

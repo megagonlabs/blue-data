@@ -148,6 +148,37 @@ class MySource(DataSource):
 }
 ```
 
+## Examples
+
+All examples run from the `lib/` directory with `PYTHONPATH=src/blue-data`.
+
+| File | Description |
+|---|---|
+| `examples/registry_memory_example.py` | Pure in-memory `Registry` and `DataRegistry` — CRUD, filter, search, dumps/loads. No external dependencies. |
+| `examples/sqlite_data_registry_demo.py` | Full pipeline with SQLite (Northwind schema) — sync, stats, enrich, relations, connect_source, search. No external dependencies. |
+| `examples/redis_demo.py` | Redis Stack + PostgreSQL (falls back to SQLite) — Redis-backed registry and search index, namespace isolation, full hierarchy walk. Requires Redis Stack. |
+
+```bash
+cd lib
+# In-memory demo (no deps)
+PYTHONPATH=src/blue-data python3 ../examples/registry_memory_example.py
+
+# SQLite demo (no deps)
+PYTHONPATH=src/blue-data python3 ../examples/sqlite_data_registry_demo.py
+
+# Redis + Postgres demo (requires Redis Stack; falls back to SQLite)
+PYTHONPATH=src/blue-data python3 ../examples/redis_demo.py
+```
+
+## Demo databases
+
+The `data/` directory contains the **Northwind** sales schema — a 7-table dataset (categories, customers, employees, orders, order\_details, products, suppliers) with FK relations and sample data.
+
+| File | Use |
+|---|---|
+| `data/northwind_sqlite.sql` | Load into SQLite: `sqlite3 northwind.db < data/northwind_sqlite.sql` |
+| `data/northwind_postgres.sql` | Load into Postgres: `psql -U postgres -d northwind -f data/northwind_postgres.sql` |
+
 ## Running tests
 
 ```bash
