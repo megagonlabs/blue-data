@@ -18,13 +18,15 @@ def test_boolean(inferencer):
     assert result["semantic_type"] == "BOOLEAN"
 
 
-def test_numeric_general(inferencer):
+def test_float(inferencer):
     result = inferencer.infer([1.5, 2.0, 3.7])
-    assert result["semantic_type"] == "NUMERIC_GENERAL"
+    assert result["semantic_type"] == "FLOAT"
 
 
 def test_string(inferencer):
-    result = inferencer.infer(["alice", "bob", "carol"])
+    # 20 distinct values well above the cardinality threshold — must stay STRING
+    values = [f"user_{i}" for i in range(20)]
+    result = inferencer.infer(values)
     assert result["semantic_type"] == "STRING"
 
 

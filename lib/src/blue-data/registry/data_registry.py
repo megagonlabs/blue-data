@@ -29,11 +29,13 @@ class DataRegistry(Registry):
         index_name: str = "registry_index",
         vector_dim: int = 1536,
         hybrid_config: dict | None = None,
+        metadata_enricher=None,
     ):
         super().__init__(name=name, store=store)
         self.sources: dict[str, DataSource] = {}
         self.semantic_type_inferencer = SemanticTypeInferencer()
         self._rebuild = rebuild
+        self.metadata_enricher = metadata_enricher
         self.search_engine = RegistrySearch(
             registry=self,
             vector_source=vector_source,
@@ -303,6 +305,7 @@ class DataRegistry(Registry):
         collection: str,
         key: str,
         value,
+        rebuild: bool | None = None,
     ):
         """Set property *key* to *value* on the given collection record."""
         return self.set_record_property(
@@ -311,6 +314,7 @@ class DataRegistry(Registry):
             f"/source/{source}/database/{database}",
             key,
             value,
+            rebuild=rebuild,
         )
 
     def get_source_database_collection_entity_property(
@@ -337,6 +341,7 @@ class DataRegistry(Registry):
         entity: str,
         key: str,
         value,
+        rebuild: bool | None = None,
     ):
         """Set property *key* to *value* on the given entity record."""
         return self.set_record_property(
@@ -345,6 +350,7 @@ class DataRegistry(Registry):
             f"/source/{source}/database/{database}/collection/{collection}",
             key,
             value,
+            rebuild=rebuild,
         )
 
     def get_source_database_collection_entity_attribute_property(
@@ -373,6 +379,7 @@ class DataRegistry(Registry):
         attribute: str,
         key: str,
         value,
+        rebuild: bool | None = None,
     ):
         """Set property *key* to *value* on the given entity attribute record."""
         return self.set_record_property(
@@ -381,6 +388,7 @@ class DataRegistry(Registry):
             f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
             key,
             value,
+            rebuild=rebuild,
         )
 
     # ---------- hierarchy description helpers ----------
@@ -402,6 +410,7 @@ class DataRegistry(Registry):
         source: str,
         database: str,
         description: str,
+        rebuild: bool | None = None,
     ):
         """Set the description of the given database record."""
         return self.set_record_description(
@@ -409,6 +418,7 @@ class DataRegistry(Registry):
             "database",
             f"/source/{source}",
             description,
+            rebuild=rebuild,
         )
 
     def get_source_database_collection_description(
@@ -430,6 +440,7 @@ class DataRegistry(Registry):
         database: str,
         collection: str,
         description: str,
+        rebuild: bool | None = None,
     ):
         """Set the description of the given collection record."""
         return self.set_record_description(
@@ -437,6 +448,7 @@ class DataRegistry(Registry):
             "collection",
             f"/source/{source}/database/{database}",
             description,
+            rebuild=rebuild,
         )
 
     def get_source_database_collection_entity_description(
@@ -460,6 +472,7 @@ class DataRegistry(Registry):
         collection: str,
         entity: str,
         description: str,
+        rebuild: bool | None = None,
     ):
         """Set the description of the given entity record."""
         return self.set_record_description(
@@ -467,6 +480,7 @@ class DataRegistry(Registry):
             "entity",
             f"/source/{source}/database/{database}/collection/{collection}",
             description,
+            rebuild=rebuild,
         )
 
     def get_source_database_collection_entity_attribute_description(
@@ -492,6 +506,7 @@ class DataRegistry(Registry):
         entity: str,
         attribute: str,
         description: str,
+        rebuild: bool | None = None,
     ):
         """Set the description of the given entity attribute record."""
         return self.set_record_description(
@@ -499,6 +514,7 @@ class DataRegistry(Registry):
             "attribute",
             f"/source/{source}/database/{database}/collection/{collection}/entity/{entity}",
             description,
+            rebuild=rebuild,
         )
 
 
@@ -1138,7 +1154,7 @@ class DataRegistry(Registry):
         return semantic_info
 
     def enrich_source(self, source: str):
-        """Run semantic enrichment on every attribute of every entity across all databases and collections."""
+        """Run deterministic semantic type enrichment on every attribute across all databases and collections."""
         for database_record in self.list_source_databases(source):
             database = database_record["name"]
 
@@ -1160,6 +1176,27 @@ class DataRegistry(Registry):
                             entity,
                             attribute,
                         )
+
+    def enrich_source_metadata(
+        self,
+        source: str,
+        recursive: bool = True,
+        rebuild: bool = False,
+    ):
+        """Run the full metadata enrichment pipeline via the injected ``metadata_enricher``.
+
+        Always runs ``enrich_source`` first as the deterministic base layer — this
+        ensures ``value_semantics`` is set on every attribute using
+        ``SemanticTypeInferencer`` (pattern-based, no LLM).  The ``metadata_enricher``
+        then builds on top: if an ``llm_fn`` is configured the LLM-based enrichments
+        (VSI, SDI, DCM, IVS, description generation, link validation) run and overwrite
+        the base-layer types with richer ones; if not, only the deterministic
+        enrichments (semantic-links, process-semantics, quantitative-VST, value-axis,
+        semantic-roles) run — they can now read the VSI set in the base layer.
+        """
+        self.enrich_source(source)
+        if self.metadata_enricher is not None:
+            self.metadata_enricher.collect_source_metadata(self, source, recursive=recursive, rebuild=rebuild)
 
     # ---------- source record helpers ----------
 

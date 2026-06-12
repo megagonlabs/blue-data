@@ -368,41 +368,36 @@ class SQLiteDBSource(SQLSource):
 
         return stats
 
-    def fetch_entity_stats(self, database, collection, entity):
-        """
-        Fetch basic statistics for a single SQLite table (entity).
-
-        Parameters:
-            database (str): Name of the SQLite database.
-            collection (str): Collection name (ignored for SQLite, included for interface consistency).
-            entity (str): Name of the table (entity) to analyze.
-
-        Returns:
-            dict: A dictionary containing:
-                - row_count (int or None): Number of rows in the table.
-                Returns None if the query fails or an error occurs.
-
-        Notes:
-            - The `collection` parameter is ignored since SQLite does not support schemas.
-            - Logs are not raised for SQLite errors; instead, `row_count` is set to None.
-        """
-
-        stats = {}
-        table_name = entity
+    def fetch_entity_stats(self, database, collection, entity, row_sample_size=100):
+        """Fetch row count and a sample of rows for *entity*."""
+        stats = {
+            "row_count": None,
+            "row_samples": [],
+            "row_sample_size": 0,
+            "row_samples_aligned": False,
+        }
         db_path = self._get_database_path(database)
-
         try:
             conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
 
-            query = f'SELECT COUNT(*) FROM "{table_name}";'
-            cursor.execute(query)
+            cursor.execute(f'SELECT COUNT(*) FROM "{entity}";')
             stats["row_count"] = cursor.fetchone()[0]
 
-            conn.close()
+            if stats["row_count"] and stats["row_count"] > 0:
+                cursor.execute(
+                    f'SELECT * FROM "{entity}" ORDER BY RANDOM() LIMIT {row_sample_size};'
+                )
+                rows = cursor.fetchall()
+                if rows:
+                    stats["row_samples"] = [dict(row) for row in rows]
+                    stats["row_sample_size"] = len(stats["row_samples"])
+                    stats["row_samples_aligned"] = len(stats["row_samples"]) >= 2
 
-        except sqlite3.Error as e:
-            stats["row_count"] = None
+            conn.close()
+        except sqlite3.Error:
+            pass
 
         return stats
 
