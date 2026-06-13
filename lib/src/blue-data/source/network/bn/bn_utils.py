@@ -3,7 +3,10 @@ import os
 from pathlib import Path
 
 import networkx as nx
-from pgmpy.models import DiscreteBayesianNetwork
+try:
+    from pgmpy.models import DiscreteBayesianNetwork
+except ImportError:
+    from pgmpy.models import BayesianNetwork as DiscreteBayesianNetwork
 from pgmpy.readwrite import BIFReader, BIFWriter
 
 
