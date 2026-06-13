@@ -53,24 +53,55 @@
 ### platform/ layer
 
 ```
-  MCP client (Claude Desktop, Claude Code, …)
-        │  stdio / MCP protocol
-        ▼
-  ┌─────────────────────────────┐
-  │     registry-mcp            │  platform/registry-mcp/
-  │  (FastMCP server)           │
-  │  10 tools: search, explore, │
-  │  inspect, sync, enrich      │
-  └──────────────┬──────────────┘
-                 │  Python import
-                 ▼
-           DataRegistry          lib/src/blue-data/
+  ┌───────────────────────────────────────────────────────────────────────────┐
+  │                          platform/ components                             │
+  │                                                                           │
+  │  ┌──────────────────────┐   ┌──────────────────────┐                     │
+  │  │    registry-mcp      │   │        api           │                     │
+  │  │  (FastMCP server)    │   │  (FastAPI REST)       │                     │
+  │  │  stdio/MCP protocol  │   │  POST /sources        │                     │
+  │  │  10 tools: search,   │   │  GET  /sources/:name  │                     │
+  │  │  explore, inspect,   │   │  GET  /search         │                     │
+  │  │  sync, enrich, query │   │  GET  /record/:path   │                     │
+  │  └──────────┬───────────┘   └──────────┬────────────┘                    │
+  │             │                          │                                  │
+  │  ┌──────────▼───────────┐   ┌──────────▼────────────┐                    │
+  │  │        cli           │   │      json-mcp          │                   │
+  │  │  (Click CLI)         │   │  (FastMCP server)      │                   │
+  │  │  sources add/remove  │   │  stdio/MCP protocol    │                   │
+  │  │  sync / stats        │   │  5 tools: json_get,    │                   │
+  │  │  enrich / search     │   │  json_set, json_delete,│                   │
+  │  │  inspect / query     │   │  json_list_keys,       │                   │
+  │  └──────────┬───────────┘   │  json_get_all          │                   │
+  │             │               │  (memory + file only)  │                   │
+  │             │               └──────────┬─────────────┘                   │
+  │             └─────────────┬────────────┘                                 │
+  │                           │  Python import                               │
+  └───────────────────────────┼──────────────────────────────────────────────┘
+                              ▼
+                        DataRegistry             lib/src/blue-data/
 ```
+
+| Component | Entry point | Transport | Backed by |
+|---|---|---|---|
+| `registry-mcp` | `platform/registry-mcp/` | stdio (MCP) | `DataRegistry` |
+| `api` | `platform/api/` | HTTP (FastAPI) | `DataRegistry` |
+| `cli` | `platform/cli/` | Terminal (Click) | `DataRegistry` |
+| `json-mcp` | `platform/json-mcp/` | stdio (MCP) | `JSONSource` only — memory or file |
 
 The platform components are independent processes that import `lib` as a
 dependency. They do not share state with each other — each process holds its
-own `DataRegistry` singleton, backed by either `MemoryJSONSource` (ephemeral)
-or `RedisJSONSource` (shared, persistent).
+own `DataRegistry` singleton (or `JSONSource` for `json-mcp`).
+
+**Registry-backed components** (`registry-mcp`, `api`, `cli`) each hold a
+`DataRegistry` singleton backed by either `MemoryJSONSource` (ephemeral) or
+`RedisJSONSource` (shared, persistent). The backend is selected via the
+`BLUE_DATA_STORE` environment variable.
+
+**`json-mcp`** is a lightweight JSON key/value MCP server that operates
+directly on a `JSONSource` — no `DataRegistry` overhead. It supports two
+backends only: `BLUE_DATA_STORE=memory` (default) or `BLUE_DATA_STORE=file`
+with `BLUE_DATA_FILE=<path>`. Redis is intentionally excluded.
 
 ---
 
