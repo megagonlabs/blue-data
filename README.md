@@ -240,8 +240,8 @@ The `platform/` directory contains deployable components built on top of `lib/`.
 | Component | Description | Status |
 |---|---|---|
 | `platform/registry-mcp` | MCP server — exposes registry ops as tools for Claude and MCP clients | ✅ Done |
-| `platform/api` | REST API | Planned |
-| `platform/cli` | Command-line interface | Planned |
+| `platform/api` | REST API | ✅ Done |
+| `platform/cli` | Command-line interface | ✅ Done |
 | `platform/json-mcp` | MCP server for raw JSONSource operations | Planned |
 
 ### registry-mcp quick start
@@ -298,6 +298,49 @@ Source config file format (`sources.json`):
 
 See [`docs/registry-mcp.md`](docs/registry-mcp.md) for the full tool reference and all configuration options.
 
+### api quick start
+
+```bash
+cd platform/api
+pip install -e ../../lib
+pip install -e .
+
+# dev server (auto-reload)
+uvicorn registry_api.main:app --reload --port 8000
+
+# or via the installed script
+blue-data-api
+```
+
+Interactive docs at `http://localhost:8000/docs`.  
+Pre-load sources with `BLUE_DATA_CONFIG=/path/to/sources.json` (same format as registry-mcp).  
+See [`docs/api.md`](docs/api.md) for the full endpoint reference.
+
+### cli quick start
+
+```bash
+cd platform/cli
+pip install -e ../../lib
+pip install -e .
+
+# Register a source and run the full pipeline
+blue-data sources add shop --type sqlite --database-dir /data/shop
+blue-data sync shop
+blue-data stats shop
+blue-data enrich shop
+blue-data metadata shop          # add BLUE_DATA_LLM_PROVIDER=anthropic for LLM enrichment
+
+# Search and inspect
+blue-data search "revenue"
+blue-data inspect entity shop prod public orders
+
+# Use --json for scripting
+blue-data --json search "orders" | jq '.[].name'
+```
+
+Pre-load sources with `BLUE_DATA_CONFIG=/path/to/sources.json` (same format as other platforms).  
+See [`docs/cli.md`](docs/cli.md) for the full command reference.
+
 ---
 
 ## Running tests
@@ -309,6 +352,14 @@ PYTHONPATH=src/blue-data python3 -m pytest tests/
 
 # registry-mcp tests
 cd platform/registry-mcp
+python3 -m pytest tests/
+
+# api tests
+cd platform/api
+python3 -m pytest tests/
+
+# cli tests
+cd platform/cli
 python3 -m pytest tests/
 ```
 

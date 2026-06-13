@@ -1,0 +1,29 @@
+[project]
+name = "blue-data-api"
+version = "0.1.0"
+description = "REST API exposing DataRegistry operations over HTTP"
+requires-python = ">=3.10"
+
+dependencies = [
+    "fastapi[standard]>=0.100.0",
+]
+
+[project.optional-dependencies]
+redis  = ["redis"]
+llm    = ["anthropic"]
+dev    = ["pytest", "httpx"]
+all    = ["redis", "anthropic"]
+
+[project.scripts]
+blue-data-api = "registry_api.main:run"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["../../lib/src/blue-data", "src"]
+testpaths  = ["tests"]
