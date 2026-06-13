@@ -242,7 +242,7 @@ The `platform/` directory contains deployable components built on top of `lib/`.
 | `platform/registry-mcp` | MCP server — exposes registry ops as tools for Claude and MCP clients | ✅ Done |
 | `platform/api` | REST API | ✅ Done |
 | `platform/cli` | Command-line interface | ✅ Done |
-| `platform/json-mcp` | MCP server for raw JSONSource operations | Planned |
+| `platform/json-mcp` | MCP server for raw JSONSource operations (memory + file) | ✅ Done |
 
 ### registry-mcp quick start
 
@@ -360,6 +360,10 @@ python3 -m pytest tests/
 
 # cli tests
 cd platform/cli
+python3 -m pytest tests/
+
+# json-mcp tests
+cd platform/json-mcp
 python3 -m pytest tests/
 ```
 
