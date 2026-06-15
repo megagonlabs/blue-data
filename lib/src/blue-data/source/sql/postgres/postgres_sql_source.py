@@ -97,6 +97,7 @@ class PostgresDBSource(SQLSource):
 
         if database in existing:
             if overwrite:
+                self.connection.commit()
                 self.connection.autocommit = True
                 with self.connection.cursor() as cur:
                     cur.execute(
@@ -111,6 +112,7 @@ class PostgresDBSource(SQLSource):
             else:
                 return {"status": "skipped"}
 
+        self.connection.commit()
         self.connection.autocommit = True
         with self.connection.cursor() as cur:
             cur.execute(f'CREATE DATABASE "{database}";')
@@ -156,9 +158,10 @@ class PostgresDBSource(SQLSource):
         try:
             cur.execute(
                 """
-                SELECT DISTINCT table_schema
-                FROM information_schema.tables
-                WHERE table_schema NOT IN ('pg_catalog', 'information_schema');
+                SELECT schema_name
+                FROM information_schema.schemata
+                WHERE schema_name NOT IN ('pg_catalog', 'information_schema',
+                                          'pg_toast', 'pg_temp_1', 'pg_toast_temp_1');
                 """
             )
             return [row[0] for row in cur.fetchall()]
