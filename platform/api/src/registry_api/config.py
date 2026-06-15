@@ -14,9 +14,9 @@ import json
 import os
 from typing import Optional
 
-from registry.data_registry import DataRegistry
-from registry.enrichment.metadata import MetaData
-from source.json.memory_json_source import MemoryJSONSource
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.registry.enrichment.metadata import MetaData
+from blue_data.source.json.memory_json_source import MemoryJSONSource
 
 _registry: Optional[DataRegistry] = None
 
@@ -24,7 +24,7 @@ _registry: Optional[DataRegistry] = None
 def _build_store():
     if os.environ.get("BLUE_DATA_STORE", "memory").lower() == "redis":
         import urllib.parse
-        from source.json.redis.redis_json_source import RedisJSONSource
+        from blue_data.source.json.redis.redis_json_source import RedisJSONSource
         url = os.environ.get("BLUE_DATA_REDIS_URL", "redis://localhost:6379/0")
         ns  = os.environ.get("BLUE_DATA_REDIS_NAMESPACE", "blue_data")
         p   = urllib.parse.urlparse(url)
@@ -73,16 +73,16 @@ def _load_sources(registry: DataRegistry) -> None:
     for src in cfg.get("sources", []):
         t, name, props = src.get("type", "").lower(), src.get("name"), src.get("properties", {})
         if t == "sqlite":
-            from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+            from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
             registry.register_source(SQLiteDBSource(name=name, properties=props))
         elif t == "postgres":
-            from source.sql.postgres.postgres_sql_source import PostgresDBSource
+            from blue_data.source.sql.postgres.postgres_sql_source import PostgresDBSource
             registry.register_source(PostgresDBSource(name=name, properties=props))
         elif t == "mysql":
-            from source.sql.mysql.mysql_sql_source import MySQLDBSource
+            from blue_data.source.sql.mysql.mysql_sql_source import MySQLDBSource
             registry.register_source(MySQLDBSource(name=name, properties=props))
         elif t == "mongodb":
-            from source.json.mongodb.mongodb_json_source import MongoDBJSONSource
+            from blue_data.source.json.mongodb.mongodb_json_source import MongoDBJSONSource
             registry.register_source(MongoDBJSONSource(name=name, properties=props))
 
 

@@ -66,8 +66,8 @@ print(DIVIDER)
 # --- Redis ---
 try:
     import redis as _redis_lib
-    from source.json.redis.redis_json_source import RedisJSONSource
-    from source.vector.redis.redis_vector_source import RedisVectorSource
+    from blue_data.source.json.redis.redis_json_source import RedisJSONSource
+    from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
     _redis_imports_ok = True
 except ImportError as e:
     print(f"  [SKIP] Redis imports unavailable: {e}")
@@ -102,7 +102,7 @@ PGDATABASE = os.environ.get("PGDATABASE", "northwind")
 
 _use_postgres = False
 try:
-    from source.sql.postgres.postgres_sql_source import PostgresDBSource
+    from blue_data.source.sql.postgres.postgres_sql_source import PostgresDBSource
     _pg_source = PostgresDBSource(
         name="northwind",
         properties={
@@ -128,7 +128,7 @@ except Exception as e:
     print("                   psql -U postgres -d northwind -f data/northwind_postgres.sql")
 
 if not _use_postgres:
-    from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+    from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
     _demo_dir = tempfile.mkdtemp(prefix="northwind-demo-")
     _db_path  = os.path.join(_demo_dir, "northwind.db")
@@ -206,7 +206,7 @@ print(DIVIDER)
 print("2. Setup — DataRegistry with Redis backends")
 print(DIVIDER)
 
-from registry.data_registry import DataRegistry
+from blue_data.registry.data_registry import DataRegistry
 
 json_store = RedisJSONSource(
     properties={
@@ -543,8 +543,8 @@ print(DIVIDER)
 print("10. dumps / loads — round-trip serialization")
 print(DIVIDER)
 
-from registry.registry import Registry
-from source.json.memory_json_source import MemoryJSONSource
+from blue_data.registry.registry import Registry
+from blue_data.source.json.memory_json_source import MemoryJSONSource
 
 serialized = registry.dumps()
 record_count = len(json.loads(serialized))

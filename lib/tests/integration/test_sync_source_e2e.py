@@ -15,10 +15,10 @@ import sqlite3
 
 import pytest
 
-from registry.data_registry import DataRegistry
-from source.json.memory_json_source import MemoryJSONSource
-from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
-from source.vector.memory_vector_source import MemoryVectorSource
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+from blue_data.source.vector.memory_vector_source import MemoryVectorSource
 
 # ---------- helpers ----------
 
@@ -359,8 +359,8 @@ def _flush_redis(r):
 @pytest.fixture
 def redis_registry(tmp_path, redis_conn, flush_redis):
     import redis as redis_lib
-    from source.json.redis.redis_json_source import RedisJSONSource
-    from source.vector.redis.redis_vector_source import RedisVectorSource
+    from blue_data.source.json.redis.redis_json_source import RedisJSONSource
+    from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
 
     json_conn = redis_lib.Redis(host="localhost", port=6379, db=TEST_DB, decode_responses=True)
     vec_conn = redis_lib.Redis(host="localhost", port=6379, db=TEST_DB, decode_responses=False)
@@ -547,7 +547,7 @@ def test_dumps_loads_preserves_records(tmp_reg):
 
     serialized = reg.dumps()
 
-    from registry.registry import Registry
+    from blue_data.registry.registry import Registry
     new_reg = Registry(store=MemoryJSONSource())
     new_reg.loads(serialized)
 

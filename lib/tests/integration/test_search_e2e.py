@@ -8,9 +8,9 @@ import math
 
 import pytest
 
-from registry.data_registry import DataRegistry
-from source.json.memory_json_source import MemoryJSONSource
-from source.vector.memory_vector_source import MemoryVectorSource
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.vector.memory_vector_source import MemoryVectorSource
 
 
 DIM = 64

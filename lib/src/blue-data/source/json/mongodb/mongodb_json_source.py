@@ -3,8 +3,8 @@ import logging
 
 from pymongo import MongoClient
 
-from source.source import DataSource
-from core.schema import DataSchema
+from blue_data.source.source import DataSource
+from blue_data.core.schema import DataSchema
 
 
 class MongoDBSource(DataSource):

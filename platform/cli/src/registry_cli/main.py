@@ -129,13 +129,13 @@ def sources_add(ctx: click.Context, name: str, src_type: str, database_dir: Opti
     reg = ctx.obj["registry"]
     try:
         if src_type == "sqlite":
-            from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+            from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
             src = SQLiteDBSource(
                 name=name,
                 properties={"connection": {"database_directory": database_dir or "."}},
             )
         elif src_type == "postgres":
-            from source.sql.postgres.postgres_sql_source import PostgresDBSource
+            from blue_data.source.sql.postgres.postgres_sql_source import PostgresDBSource
             src = PostgresDBSource(
                 name=name,
                 properties={"connection": {

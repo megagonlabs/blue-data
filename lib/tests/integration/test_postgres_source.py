@@ -59,7 +59,7 @@ skip_no_postgres = pytest.mark.skipif(
 @pytest.fixture(scope="module")
 def src():
     """A PostgresDBSource connected to the local server."""
-    from source.sql.postgres.postgres_sql_source import PostgresDBSource
+    from blue_data.source.sql.postgres.postgres_sql_source import PostgresDBSource
 
     kwargs = _pg_conn_kwargs()
     source = PostgresDBSource(
@@ -422,8 +422,8 @@ def test_fetch_property_stats_null_count(src, testdb):
 @skip_no_postgres
 def test_registry_sync_and_stats(src, populated_table):
     """Full round-trip: register → sync → collect stats → check attribute stats."""
-    from registry.data_registry import DataRegistry
-    from source.json.memory_json_source import MemoryJSONSource
+    from blue_data.registry.data_registry import DataRegistry
+    from blue_data.source.json.memory_json_source import MemoryJSONSource
 
     db, col, entity = populated_table
 

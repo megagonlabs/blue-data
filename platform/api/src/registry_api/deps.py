@@ -1,4 +1,4 @@
-from registry.data_registry import DataRegistry
+from blue_data.registry.data_registry import DataRegistry
 from registry_api.config import get_registry as _get_registry
 
 

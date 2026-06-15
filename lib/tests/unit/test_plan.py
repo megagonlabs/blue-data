@@ -1,5 +1,5 @@
 import pytest
-from core.plan import Plan, PlanNode, PlanEdge, NodeType, NodeStatus
+from blue_data.core.plan import Plan, PlanNode, PlanEdge, NodeType, NodeStatus
 
 
 # ---------------------------------------------------------------------------

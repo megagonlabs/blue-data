@@ -1,5 +1,5 @@
 import pytest
-from source.graph.memory_graph_source import MemoryGraphSource
+from blue_data.source.graph.memory_graph_source import MemoryGraphSource
 
 
 DB = "social"

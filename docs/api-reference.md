@@ -11,7 +11,7 @@
 Base class for all data source adapters. Subclasses override only the methods they support; the defaults return empty results without raising.
 
 ```python
-from source.source import DataSource
+from blue_data.source.source import DataSource
 
 DataSource(name: str, properties: dict | None = None)
 ```
@@ -91,7 +91,7 @@ DataSource(name: str, properties: dict | None = None)
 Generic key/value catalog backed by a `JSONSource`. All records are addressable by `(name, type, scope)`.
 
 ```python
-from registry.registry import Registry
+from blue_data.registry.registry import Registry
 
 Registry(name: str = "REGISTRY", store: JSONSource | None = None)
 ```
@@ -153,7 +153,7 @@ The `rebuild` parameter on write methods controls search index updates: `True` f
 Extends `Registry` with live-source operations and hybrid search. The central class for most use.
 
 ```python
-from registry.data_registry import DataRegistry
+from blue_data.registry.data_registry import DataRegistry
 
 DataRegistry(
     name: str = "DATA_REGISTRY",
@@ -325,7 +325,7 @@ Returns `list[dict]` — records augmented with a `_score` field. When `type` is
 Abstract base for the registry's storage backend.
 
 ```python
-from source.json.json_source import JSONSource
+from blue_data.source.json.json_source import JSONSource
 
 class JSONSource(ABC):
     def get(self, path: str) -> Any: ...
@@ -338,7 +338,7 @@ class JSONSource(ABC):
 In-memory implementation backed by a plain `dict`. Default when no store is passed to `Registry`.
 
 ```python
-from source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.json.memory_json_source import MemoryJSONSource
 ```
 
 ### `RedisJSONSource`
@@ -346,7 +346,7 @@ from source.json.memory_json_source import MemoryJSONSource
 Production backend. Stores each registry path as a separate Redis key prefixed by a configurable namespace.
 
 ```python
-from source.json.redis.redis_json_source import RedisJSONSource
+from blue_data.source.json.redis.redis_json_source import RedisJSONSource
 
 # Auto-connect from properties
 store = RedisJSONSource(properties={
@@ -369,7 +369,7 @@ store = RedisJSONSource(connection=conn, properties={"namespace": "my_registry"}
 Base class for vector storage backends. Used by `RegistrySearch` to index and query record embeddings.
 
 ```python
-from source.vector.vector_source import VectorSource
+from blue_data.source.vector.vector_source import VectorSource
 ```
 
 All backends share the same `execute_query` interface with four operations:
@@ -417,7 +417,7 @@ results = source.execute_query({
 In-memory implementation using a Python dict and numpy cosine distance. No Redis required.
 
 ```python
-from source.vector.memory_vector_source import MemoryVectorSource
+from blue_data.source.vector.memory_vector_source import MemoryVectorSource
 
 vs = MemoryVectorSource()          # name defaults to "memory_vector"
 ```
@@ -427,7 +427,7 @@ vs = MemoryVectorSource()          # name defaults to "memory_vector"
 Production backend using RedisJSON + RediSearch KNN.
 
 ```python
-from source.vector.redis.redis_vector_source import RedisVectorSource
+from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
 
 vs = RedisVectorSource(
     name="my_vector_store",
@@ -450,7 +450,7 @@ vs = RedisVectorSource(
 In-memory graph used by `DataSource` implementations during schema introspection.
 
 ```python
-from core.schema import DataSchema
+from blue_data.core.schema import DataSchema
 
 schema = DataSchema()
 ```
@@ -480,7 +480,7 @@ schema = DataSchema()
 Deterministic semantic type inference from a list of sample values. No LLM required.
 
 ```python
-from registry.enrichment.semantic_types import SemanticTypeInferencer
+from blue_data.registry.enrichment.semantic_types import SemanticTypeInferencer
 
 inferencer = SemanticTypeInferencer()
 result = inferencer.infer(values)
@@ -524,7 +524,7 @@ result = inferencer.infer(values)
 LLM-augmented enrichment pipeline. Adds rich semantic signals to entity and attribute records. Deterministic signals run without any LLM; LLM-dependent signals silently return `None` when `llm_fn` is not set.
 
 ```python
-from registry.enrichment.metadata import MetaData
+from blue_data.registry.enrichment.metadata import MetaData
 
 # Deterministic only
 enricher = MetaData(llm_fn=None)
@@ -584,7 +584,7 @@ Called automatically by `DataRegistry.enrich_source_metadata`. Rarely called dir
 Fully implemented `DataSource` for SQLite.
 
 ```python
-from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
 SQLiteDBSource(name: str, properties: dict | None = None)
 ```
@@ -622,7 +622,7 @@ SQLiteDBSource(name: str, properties: dict | None = None)
 Fully implemented `DataSource` for PostgreSQL.
 
 ```python
-from source.sql.postgres.postgres_sql_source import PostgresDBSource
+from blue_data.source.sql.postgres.postgres_sql_source import PostgresDBSource
 
 PostgresDBSource(name: str, properties: dict | None = None)
 ```
@@ -667,7 +667,7 @@ PostgresDBSource(name: str, properties: dict | None = None)
 ## `Plan` / `PlanNode` / `PlanEdge`
 
 ```python
-from core.plan import Plan, PlanNode, PlanEdge, NodeType, NodeStatus
+from blue_data.core.plan import Plan, PlanNode, PlanEdge, NodeType, NodeStatus
 ```
 
 ### `NodeStatus`
@@ -694,7 +694,7 @@ from core.plan import Plan, PlanNode, PlanEdge, NodeType, NodeStatus
 ## Utilities
 
 ```python
-from core.utils.utils import deep_merge
+from blue_data.core.utils.utils import deep_merge
 ```
 
 | Function | Description |

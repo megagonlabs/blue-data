@@ -17,10 +17,10 @@ import hashlib
 import json
 import math
 
-from registry.data_registry import DataRegistry
-from registry.registry import Registry
-from source.json.memory_json_source import MemoryJSONSource
-from source.vector.memory_vector_source import MemoryVectorSource
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.registry.registry import Registry
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.vector.memory_vector_source import MemoryVectorSource
 
 DIVIDER = "-" * 60
 

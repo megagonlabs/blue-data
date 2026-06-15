@@ -17,7 +17,7 @@ Operations:
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from registry.data_registry import DataRegistry
+from blue_data.registry.data_registry import DataRegistry
 from registry_api.deps import get_registry
 from registry_api.models import RecordSchema
 

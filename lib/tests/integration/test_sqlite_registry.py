@@ -1,8 +1,8 @@
 import pytest
-from registry.data_registry import DataRegistry
-from registry.enrichment.metadata import MetaData
-from source.json.memory_json_source import MemoryJSONSource
-from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.registry.enrichment.metadata import MetaData
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
 
 @pytest.fixture

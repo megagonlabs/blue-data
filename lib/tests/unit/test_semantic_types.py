@@ -1,5 +1,5 @@
 import pytest
-from registry.enrichment.semantic_types import SemanticTypeInferencer
+from blue_data.registry.enrichment.semantic_types import SemanticTypeInferencer
 
 
 @pytest.fixture

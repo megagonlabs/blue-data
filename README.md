@@ -8,7 +8,7 @@ Blue Data Intelligence Layer — a Python library for registering, introspecting
 pip install -e .
 ```
 
-> **Note:** The top-level import package name is pending confirmation. Until then, set `PYTHONPATH` to `lib/src/blue-data` and import modules directly (e.g. `from registry.data_registry import DataRegistry`).
+> **Note:** The top-level import package name is pending confirmation. Until then, set `PYTHONPATH` to `lib/src/blue-data` and import modules directly (e.g. `from blue_data.registry.data_registry import DataRegistry`).
 
 ## Runtime dependencies
 
@@ -42,8 +42,8 @@ Optional extras (install with `pip install -e ".[redis]"` etc.):
 ## Quick start
 
 ```python
-from registry.data_registry import DataRegistry
-from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
 registry = DataRegistry()
 
@@ -78,9 +78,9 @@ print(registry.list_collection_entities("sqlite", "mydb", "public"))
 `DataRegistry` supports hybrid search (BM25 keyword + vector similarity) over all registry records. Pass a `VectorSource` and an embedding function to enable vector search; omit them to fall back to keyword-only.
 
 ```python
-from registry.data_registry import DataRegistry
-from source.json.memory_json_source import MemoryJSONSource
-from source.vector.memory_vector_source import MemoryVectorSource
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.vector.memory_vector_source import MemoryVectorSource
 
 # In-memory search — no Redis required
 registry = DataRegistry(
@@ -127,9 +127,9 @@ registry.collect_source_database_collection_entity_attribute_stats(
 **Layer 2 — MetaData pipeline** (`enrich_source_metadata`): builds on Layer 1 and adds process semantics, semantic roles, value-axis detection, statistical relationship signals, and — when an `llm_fn` is provided — LLM-augmented enrichments (VSI, SDI, domain concept, entity descriptions).
 
 ```python
-from registry.data_registry import DataRegistry
-from registry.enrichment.metadata import MetaData
-from source.json.memory_json_source import MemoryJSONSource
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.registry.enrichment.metadata import MetaData
+from blue_data.source.json.memory_json_source import MemoryJSONSource
 
 # Deterministic-only (no API key needed)
 enricher = MetaData(llm_fn=None)
@@ -172,7 +172,7 @@ registry = DataRegistry(store=MemoryJSONSource(), metadata_enricher=enricher)
 Subclass `DataSource` and override the methods your backend supports:
 
 ```python
-from source.source import DataSource
+from blue_data.source.source import DataSource
 
 class MySource(DataSource):
     def fetch_databases(self) -> list[str]: ...

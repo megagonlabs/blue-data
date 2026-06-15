@@ -1,4 +1,4 @@
-from core.utils.utils import deep_merge
+from blue_data.core.utils.utils import deep_merge
 
 
 def test_flat_merge():

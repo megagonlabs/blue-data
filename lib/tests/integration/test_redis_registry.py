@@ -64,9 +64,9 @@ def _flush(r):
 @pytest.fixture
 def registry(redis_conn):
     import redis as redis_lib
-    from registry.data_registry import DataRegistry
-    from source.json.redis.redis_json_source import RedisJSONSource
-    from source.vector.redis.redis_vector_source import RedisVectorSource
+    from blue_data.registry.data_registry import DataRegistry
+    from blue_data.source.json.redis.redis_json_source import RedisJSONSource
+    from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
 
     json_conn = redis_lib.Redis(host="localhost", port=6379, db=TEST_DB, decode_responses=True)
     vec_conn = redis_lib.Redis(host="localhost", port=6379, db=TEST_DB, decode_responses=False)
@@ -103,7 +103,7 @@ def registry(redis_conn):
 # ---------- RedisJSONSource unit tests ----------
 
 def test_redis_json_source_set_and_get(redis_conn):
-    from source.json.redis.redis_json_source import RedisJSONSource
+    from blue_data.source.json.redis.redis_json_source import RedisJSONSource
     store = RedisJSONSource(connection=redis_conn, properties={"namespace": TEST_NAMESPACE})
 
     store.set("/source/mydb", {"name": "mydb", "type": "source"})
@@ -112,7 +112,7 @@ def test_redis_json_source_set_and_get(redis_conn):
 
 
 def test_redis_json_source_delete(redis_conn):
-    from source.json.redis.redis_json_source import RedisJSONSource
+    from blue_data.source.json.redis.redis_json_source import RedisJSONSource
     store = RedisJSONSource(connection=redis_conn, properties={"namespace": TEST_NAMESPACE})
 
     store.set("/source/mydb", {"name": "mydb"})
@@ -121,7 +121,7 @@ def test_redis_json_source_delete(redis_conn):
 
 
 def test_redis_json_source_root_key(redis_conn):
-    from source.json.redis.redis_json_source import RedisJSONSource
+    from blue_data.source.json.redis.redis_json_source import RedisJSONSource
     store = RedisJSONSource(connection=redis_conn, properties={"namespace": TEST_NAMESPACE})
 
     store.set("$", {"contents": {"meta": 1}})
@@ -130,7 +130,7 @@ def test_redis_json_source_root_key(redis_conn):
 
 
 def test_redis_json_source_data_property(redis_conn):
-    from source.json.redis.redis_json_source import RedisJSONSource
+    from blue_data.source.json.redis.redis_json_source import RedisJSONSource
     store = RedisJSONSource(connection=redis_conn, properties={"namespace": TEST_NAMESPACE})
 
     store.set("$", {"contents": {}})
@@ -231,8 +231,8 @@ def test_dump_and_load_round_trip(registry):
 
     # load into a fresh registry backed by a second namespace
     import redis as redis_lib
-    from registry.data_registry import DataRegistry
-    from source.json.redis.redis_json_source import RedisJSONSource
+    from blue_data.registry.data_registry import DataRegistry
+    from blue_data.source.json.redis.redis_json_source import RedisJSONSource
 
     conn2 = redis_lib.Redis(host="localhost", port=6379, db=TEST_DB, decode_responses=True)
     store2 = RedisJSONSource(connection=conn2, properties={"namespace": TEST_NAMESPACE + "_copy"})

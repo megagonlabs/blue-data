@@ -1,6 +1,6 @@
 import pytest
-from source.stream.memory_stream_source import MemoryStreamSource
-from source.stream.file_stream_source import FileStreamSource
+from blue_data.source.stream.memory_stream_source import MemoryStreamSource
+from blue_data.source.stream.file_stream_source import FileStreamSource
 
 
 # ===========================================================================

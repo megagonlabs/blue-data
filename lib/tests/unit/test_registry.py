@@ -1,5 +1,5 @@
 import pytest
-from registry.registry import Registry
+from blue_data.registry.registry import Registry
 
 
 @pytest.fixture

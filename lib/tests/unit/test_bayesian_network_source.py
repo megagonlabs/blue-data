@@ -11,8 +11,8 @@ import pytest
 from pgmpy.models import BayesianNetwork as DiscreteBayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
 
-from source.network.bn.bn_utils import save_pgmpy_model
-from source.network.bn.bayesian_network_source import BayesianNetworkSource
+from blue_data.source.network.bn.bn_utils import save_pgmpy_model
+from blue_data.source.network.bn.bayesian_network_source import BayesianNetworkSource
 
 
 # ---------------------------------------------------------------------------

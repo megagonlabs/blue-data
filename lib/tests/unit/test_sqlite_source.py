@@ -8,7 +8,7 @@ import sqlite3
 
 import pytest
 
-from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
 
 # ---------------------------------------------------------------------------

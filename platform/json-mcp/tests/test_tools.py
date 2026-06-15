@@ -2,8 +2,8 @@ import os
 import pytest
 
 import json_mcp.config as config_module
-from source.json.memory_json_source import MemoryJSONSource
-from source.json.file_json_source import FileJSONSource
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.json.file_json_source import FileJSONSource
 from json_mcp.server import json_get, json_set, json_delete, json_list_keys, json_get_all
 
 

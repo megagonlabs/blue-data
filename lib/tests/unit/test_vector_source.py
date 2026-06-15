@@ -9,8 +9,8 @@ Both backends share the same four-op execute_query interface:
 import pytest
 import numpy as np
 
-from source.vector.memory_vector_source import MemoryVectorSource
-from source.vector.file_vector_source import FileVectorSource
+from blue_data.source.vector.memory_vector_source import MemoryVectorSource
+from blue_data.source.vector.file_vector_source import FileVectorSource
 
 
 # ---------------------------------------------------------------------------

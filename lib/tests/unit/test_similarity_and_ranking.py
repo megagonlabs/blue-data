@@ -2,12 +2,12 @@ import math
 import numpy as np
 import pytest
 
-from core.utils.similarity_utils import (
+from blue_data.core.utils.similarity_utils import (
     compute_bm25_score,
     normalize_bm25_scores,
     compute_vector_score,
 )
-from registry.search.ranking import (
+from blue_data.registry.search.ranking import (
     combine_scores,
     normalize_weights,
     aggregate_value_scores,

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from registry.enrichment.metadata import MetaData
+from blue_data.registry.enrichment.metadata import MetaData
 
 
 @pytest.fixture

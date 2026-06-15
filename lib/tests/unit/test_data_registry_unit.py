@@ -5,10 +5,10 @@ import math
 
 import pytest
 
-from registry.data_registry import DataRegistry
-from source.json.memory_json_source import MemoryJSONSource
-from source.vector.memory_vector_source import MemoryVectorSource
-from source.source import DataSource
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.vector.memory_vector_source import MemoryVectorSource
+from blue_data.source.source import DataSource
 
 
 DIM = 4
@@ -442,7 +442,7 @@ def test_connect_source_sqlite_lazy(tmp_path):
     reg.register_record("mydb", "source", "/", properties={
         "connection": {"protocol": "sqlite", "database_directory": str(tmp_path)}
     })
-    from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+    from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
     result = reg.connect_source("mydb")
     assert isinstance(result, SQLiteDBSource)
     assert "mydb" in reg.sources
@@ -614,7 +614,7 @@ def test_sync_all_covers_multiple_sources(tmp_path):
         conn.commit()
         conn.close()
 
-    from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+    from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
     reg = DataRegistry(store=MemoryJSONSource())
     reg.register_source(SQLiteDBSource("src1", properties={"connection": {"database_directory": str(tmp_path)}}))

@@ -2,11 +2,11 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from registry.data_registry import DataRegistry
-from registry.enrichment.metadata import MetaData
-from source.json.memory_json_source import MemoryJSONSource
-from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
-from source.vector.memory_vector_source import MemoryVectorSource
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.registry.enrichment.metadata import MetaData
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+from blue_data.source.vector.memory_vector_source import MemoryVectorSource
 
 from registry_api.main import app
 from registry_api.deps import get_registry

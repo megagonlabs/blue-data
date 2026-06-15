@@ -1,7 +1,7 @@
 """Unit tests for FileJSONSource."""
 import json
 import pytest
-from source.json.file_json_source import FileJSONSource
+from blue_data.source.json.file_json_source import FileJSONSource
 
 
 @pytest.fixture

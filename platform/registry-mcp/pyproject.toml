@@ -25,7 +25,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.pytest.ini_options]
-# Add lib to path so `from registry.data_registry import DataRegistry` resolves.
+# Add lib to path so `from blue_data.registry.data_registry import DataRegistry` resolves.
 # Run: cd platform/registry-mcp && pip install -e ../../lib && pip install -e . && pytest
 pythonpath = ["../../lib/src/blue-data", "src"]
 testpaths  = ["tests"]

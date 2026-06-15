@@ -1,5 +1,5 @@
 import pytest
-from core.schema import DataSchema
+from blue_data.core.schema import DataSchema
 
 
 def test_add_and_get_entity():

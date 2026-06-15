@@ -24,11 +24,11 @@ import os
 import sqlite3
 import tempfile
 
-from registry.data_registry import DataRegistry
-from registry.enrichment.metadata import MetaData
-from source.json.memory_json_source import MemoryJSONSource
-from source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
-from source.vector.memory_vector_source import MemoryVectorSource
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.registry.enrichment.metadata import MetaData
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+from blue_data.source.vector.memory_vector_source import MemoryVectorSource
 
 DIVIDER = "-" * 60
 DIM = 64
@@ -279,7 +279,7 @@ print(DIVIDER)
 serialized = registry.dumps()
 print(f"Serialized registry: {len(json.loads(serialized))} records, {len(serialized)} chars")
 
-from registry.registry import Registry
+from blue_data.registry.registry import Registry
 restored = Registry(store=MemoryJSONSource())
 restored.loads(serialized)
 
