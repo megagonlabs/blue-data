@@ -1,9 +1,11 @@
 """Unit tests for ChromaDBVectorSource.
 
 Uses chromadb.EphemeralClient — fully in-memory, no server required.
+Skipped automatically when the chromadb package is not installed.
 """
 import pytest
 
+chromadb = pytest.importorskip("chromadb", reason="chromadb not installed")
 from source.vector.chromadb.chromadb_vector_source import ChromaDBVectorSource
 
 DIM = 4
