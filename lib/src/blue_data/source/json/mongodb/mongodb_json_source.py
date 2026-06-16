@@ -3,11 +3,11 @@ import logging
 
 from pymongo import MongoClient
 
-from blue_data.source.source import DataSource
+from blue_data.source.json.json_source import JSONSource
 from blue_data.core.schema import DataSchema
 
 
-class MongoDBSource(DataSource):
+class MongoDBSource(JSONSource):
     """MongoDB data source."""
 
     def __init__(self, name, properties=None):
@@ -191,6 +191,17 @@ class MongoDBSource(DataSource):
                     )
 
         return schema
+
+    # ---------- JSONSource interface ----------
+
+    def get(self, path: str | None = None):
+        raise NotImplementedError("MongoDBSource does not implement JSONSource.get")
+
+    def set(self, path: str | None, value) -> None:
+        raise NotImplementedError("MongoDBSource does not implement JSONSource.set")
+
+    def delete(self, path: str | None = None) -> None:
+        raise NotImplementedError("MongoDBSource does not implement JSONSource.delete")
 
     def execute_query(
         self,

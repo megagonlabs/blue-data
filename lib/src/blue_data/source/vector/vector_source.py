@@ -1,4 +1,4 @@
-from source.source import DataSource
+from blue_data.source.source import DataSource
 
 
 class VectorSource(DataSource):

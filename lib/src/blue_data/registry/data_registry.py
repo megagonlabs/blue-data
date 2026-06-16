@@ -1983,8 +1983,8 @@ class DataRegistry(Registry):
                 raise ValueError(f"Unsupported vector subprotocol: {subprotocol}")
 
         elif protocol == "redis":
-            from blue_data.source.json.redis.redis_source import RedisSource
-            source_obj = RedisSource(source, properties=properties)
+            from blue_data.source.json.redis.redis_json_source import RedisJSONSource
+            source_obj = RedisJSONSource(source, properties=properties)
 
         elif protocol == "bn":
             from blue_data.source.network.bn.bayesian_network_source import BayesianNetworkSource

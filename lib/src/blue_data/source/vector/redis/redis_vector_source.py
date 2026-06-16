@@ -5,11 +5,11 @@ import logging
 import numpy as np
 import redis
 
-from blue_data.source.source import DataSource
+from blue_data.source.vector.vector_source import VectorSource
 from blue_data.core.schema import DataSchema
 
 
-class RedisVectorSource(DataSource):
+class RedisVectorSource(VectorSource):
     """Redis Vector data source using RedisJSON + RediSearch."""
 
     def __init__(self, name: str, properties: dict | None = None):

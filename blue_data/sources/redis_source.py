@@ -3,7 +3,7 @@ import logging
 
 import redis
 
-from blue_data.source.source import DataSource
+from blue_data.core.source import DataSource
 from blue_data.core.schema import DataSchema
 
 
