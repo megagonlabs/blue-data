@@ -71,3 +71,32 @@ class RedisStreamSource(StreamSource):
     def delete_stream(self, stream: str) -> None:
         self.connection.delete(stream)
         self._cursors.pop(stream, None)
+
+    # ---------- DataSource interface ----------
+
+    def fetch_databases(self) -> list[str]:
+        return ["default"]
+
+    def fetch_database_collections(self, database: str) -> list[str]:
+        cursor = 0
+        streams = []
+        while True:
+            cursor, keys = self.connection.scan(cursor=cursor, count=500, _type="stream")
+            streams.extend(keys)
+            if cursor == 0:
+                break
+        return streams
+
+    def fetch_database_collection_metadata(self, database: str, collection: str) -> dict:
+        return {"message_count": self.connection.xlen(collection)}
+
+    def create_database_collection(self, database: str, collection: str, properties: dict | None = None) -> dict:
+        return self.create_stream(collection, properties)
+
+    def fetch_source_stats(self) -> dict:
+        streams = self.fetch_database_collections("default")
+        total = sum(self.connection.xlen(s) for s in streams)
+        return {"total_streams": len(streams), "total_messages": total}
+
+    def fetch_collection_stats(self, database: str, collection: str, entities=None, relations=None, sample_limit=None) -> dict:
+        return {"message_count": self.connection.xlen(collection)}

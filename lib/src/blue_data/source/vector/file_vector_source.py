@@ -128,3 +128,25 @@ class FileVectorSource(VectorSource):
             results.append(row)
 
         return results
+
+    # ---------- DataSource interface ----------
+
+    def fetch_databases(self) -> list[str]:
+        return ["default"]
+
+    def fetch_database_collections(self, database: str) -> list[str]:
+        return [
+            f[:-5] for f in os.listdir(self._directory)
+            if f.endswith(".json") and not f.startswith("_")
+        ]
+
+    def fetch_database_collection_metadata(self, database: str, collection: str) -> dict:
+        return {"doc_count": len(self._load_collection(collection))}
+
+    def fetch_source_stats(self) -> dict:
+        collections = self.fetch_database_collections("default")
+        total = sum(len(self._load_collection(c)) for c in collections)
+        return {"total_collections": len(collections), "total_docs": total}
+
+    def fetch_collection_stats(self, database: str, collection: str, entities=None, relations=None, sample_limit=None) -> dict:
+        return {"doc_count": len(self._load_collection(collection))}

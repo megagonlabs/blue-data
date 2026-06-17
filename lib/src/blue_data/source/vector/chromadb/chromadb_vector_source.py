@@ -88,3 +88,27 @@ class ChromaDBVectorSource(VectorSource):
             results.append(row)
 
         return results
+
+    # ---------- DataSource interface ----------
+
+    def fetch_databases(self) -> list[str]:
+        return ["default"]
+
+    def fetch_database_collections(self, database: str) -> list[str]:
+        return [c.name for c in self._client.list_collections()]
+
+    def fetch_database_collection_metadata(self, database: str, collection: str) -> dict:
+        chroma_coll = self._client.get_or_create_collection(collection)
+        return {"doc_count": chroma_coll.count()}
+
+    def fetch_source_stats(self) -> dict:
+        collections = self.fetch_database_collections("default")
+        total = sum(
+            self._client.get_or_create_collection(c).count()
+            for c in collections
+        )
+        return {"total_collections": len(collections), "total_docs": total}
+
+    def fetch_collection_stats(self, database: str, collection: str, entities=None, relations=None, sample_limit=None) -> dict:
+        chroma_coll = self._client.get_or_create_collection(collection)
+        return {"doc_count": chroma_coll.count()}

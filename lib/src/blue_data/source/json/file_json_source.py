@@ -45,3 +45,16 @@ class FileJSONSource(JSONSource):
         else:
             json_query_delete(data, path)
         self._write(data)
+
+    # ---------- DataSource interface ----------
+
+    def fetch_databases(self) -> list[str]:
+        return ["default"]
+
+    def fetch_database_collections(self, database: str) -> list[str]:
+        data = self._read()
+        return list(data.keys()) if isinstance(data, dict) else []
+
+    def fetch_source_stats(self) -> dict:
+        data = self._read()
+        return {"total_keys": len(data) if isinstance(data, dict) else 0}

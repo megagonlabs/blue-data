@@ -28,3 +28,14 @@ class MemoryJSONSource(JSONSource):
             self.data = {}
         else:
             json_query_delete(self.data, path)
+
+    # ---------- DataSource interface ----------
+
+    def fetch_databases(self) -> list[str]:
+        return ["default"]
+
+    def fetch_database_collections(self, database: str) -> list[str]:
+        return list(self.data.keys()) if isinstance(self.data, dict) else []
+
+    def fetch_source_stats(self) -> dict:
+        return {"total_keys": len(self.data) if isinstance(self.data, dict) else 0}

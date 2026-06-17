@@ -32,3 +32,26 @@ class MemoryStreamSource(StreamSource):
     def delete_stream(self, stream: str) -> None:
         self._streams.pop(stream, None)
         self._cursor.pop(stream, None)
+
+    # ---------- DataSource interface ----------
+
+    def fetch_databases(self) -> list[str]:
+        return ["default"]
+
+    def fetch_database_collections(self, database: str) -> list[str]:
+        return list(self._streams.keys())
+
+    def fetch_database_collection_metadata(self, database: str, collection: str) -> dict:
+        return {"message_count": len(self._streams.get(collection, []))}
+
+    def create_database_collection(self, database: str, collection: str, properties: dict | None = None) -> dict:
+        return self.create_stream(collection, properties)
+
+    def fetch_source_stats(self) -> dict:
+        return {
+            "total_streams": len(self._streams),
+            "total_messages": sum(len(m) for m in self._streams.values()),
+        }
+
+    def fetch_collection_stats(self, database: str, collection: str, entities=None, relations=None, sample_limit=None) -> dict:
+        return {"message_count": len(self._streams.get(collection, []))}

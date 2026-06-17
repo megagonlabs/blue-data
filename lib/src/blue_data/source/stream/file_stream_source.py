@@ -47,3 +47,37 @@ class FileStreamSource(StreamSource):
         if os.path.exists(path):
             os.remove(path)
         self._cursors.pop(stream, None)
+
+    # ---------- DataSource interface ----------
+
+    def _stream_names(self) -> list[str]:
+        return [f[:-6] for f in os.listdir(self._directory) if f.endswith(".jsonl")]
+
+    def _message_count(self, stream: str) -> int:
+        path = self._stream_path(stream)
+        if not os.path.exists(path):
+            return 0
+        with open(path) as f:
+            return sum(1 for _ in f)
+
+    def fetch_databases(self) -> list[str]:
+        return ["default"]
+
+    def fetch_database_collections(self, database: str) -> list[str]:
+        return self._stream_names()
+
+    def fetch_database_collection_metadata(self, database: str, collection: str) -> dict:
+        return {"message_count": self._message_count(collection)}
+
+    def create_database_collection(self, database: str, collection: str, properties: dict | None = None) -> dict:
+        return self.create_stream(collection, properties)
+
+    def fetch_source_stats(self) -> dict:
+        streams = self._stream_names()
+        return {
+            "total_streams": len(streams),
+            "total_messages": sum(self._message_count(s) for s in streams),
+        }
+
+    def fetch_collection_stats(self, database: str, collection: str, entities=None, relations=None, sample_limit=None) -> dict:
+        return {"message_count": self._message_count(collection)}

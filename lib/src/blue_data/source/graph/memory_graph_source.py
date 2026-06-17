@@ -125,12 +125,59 @@ class MemoryGraphSource(GraphSource):
                 }
         return relations
 
+    def fetch_metadata(self) -> dict:
+        return {"name": self.name, "type": "graph"}
+
+    def fetch_database_metadata(self, database) -> dict:
+        return {
+            "node_count": len(self._nodes.get(database, {})),
+            "edge_count": len(self._edges.get(database, {})),
+        }
+
+    def fetch_database_schema(self, database) -> dict:
+        labels = {n["label"] for n in self._nodes[database].values()}
+        edge_types = {e["edge_type"] for e in self._edges[database].values()}
+        return {"node_labels": sorted(labels), "edge_types": sorted(edge_types)}
+
+    def fetch_database_collection_metadata(self, database, collection) -> dict:
+        return self.fetch_database_metadata(database)
+
+    def create_database_collection(self, database, collection, properties=None) -> dict:
+        return {}
+
     def fetch_source_stats(self) -> dict:
         return {
             "total_nodes": sum(len(n) for n in self._nodes.values()),
             "total_edges": sum(len(e) for e in self._edges.values()),
         }
 
+    def fetch_database_stats(self, database) -> dict:
+        return self.fetch_database_metadata(database)
+
+    def fetch_collection_stats(self, database, collection, entities=None, relations=None, sample_limit=None) -> dict:
+        return {
+            "num_entities": len(entities or []),
+            "num_relations": len(relations or []),
+            "node_count": len(self._nodes.get(database, {})),
+            "edge_count": len(self._edges.get(database, {})),
+        }
+
     def fetch_entity_stats(self, database, collection, entity) -> dict:
         count = sum(1 for n in self._nodes[database].values() if n["label"] == entity)
         return {"row_count": count, "node_count": count}
+
+    def fetch_property_stats(self, database, collection, entity, property_name, sample_limit=None) -> dict:
+        from collections import Counter
+        values = [
+            node["properties"][property_name]
+            for node in self._nodes[database].values()
+            if node["label"] == entity and property_name in node["properties"]
+        ]
+        if sample_limit:
+            values = values[:sample_limit]
+        counts = Counter(str(v) for v in values)
+        return {
+            "count": len(values),
+            "unique_count": len(counts),
+            "most_common": [{"value": v, "count": c} for v, c in counts.most_common(10)],
+        }
