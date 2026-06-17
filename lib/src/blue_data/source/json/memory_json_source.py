@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-#from blue_data.core.registry.sources.json_source import JSONSource
 from blue_data.source.json.json_source import JSONSource
+from blue_data.core.utils.json_utils import json_query_get, json_query_set, json_query_delete
 
 
 class MemoryJSONSource(JSONSource):
@@ -15,16 +15,16 @@ class MemoryJSONSource(JSONSource):
     def get(self, path: str | None = None) -> Any:
         if path in (None, "", "$"):
             return self.data
-        return self.data.get(path)
+        return json_query_get(self.data, path)
 
     def set(self, path: str | None, value: Any) -> None:
         if path in (None, "", "$"):
             self.data = value
         else:
-            self.data[path] = value
+            json_query_set(self.data, path, value)
 
     def delete(self, path: str | None = None) -> None:
         if path in (None, "", "$"):
             self.data = {}
         else:
-            self.data.pop(path, None)
+            json_query_delete(self.data, path)

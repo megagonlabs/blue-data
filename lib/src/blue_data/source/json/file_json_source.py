@@ -5,6 +5,7 @@ import os
 from typing import Any
 
 from blue_data.source.json.json_source import JSONSource
+from blue_data.core.utils.json_utils import json_query_get, json_query_set, json_query_delete
 
 
 class FileJSONSource(JSONSource):
@@ -27,14 +28,14 @@ class FileJSONSource(JSONSource):
         data = self._read()
         if path in (None, "", "$"):
             return data
-        return data.get(path)
+        return json_query_get(data, path)
 
     def set(self, path: str | None, value: Any) -> None:
         data = self._read()
         if path in (None, "", "$"):
             data = value
         else:
-            data[path] = value
+            json_query_set(data, path, value)
         self._write(data)
 
     def delete(self, path: str | None = None) -> None:
@@ -42,5 +43,5 @@ class FileJSONSource(JSONSource):
         if path in (None, "", "$"):
             data = {}
         else:
-            data.pop(path, None)
+            json_query_delete(data, path)
         self._write(data)

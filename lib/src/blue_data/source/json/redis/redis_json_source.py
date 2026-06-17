@@ -70,14 +70,22 @@ class RedisJSONSource(JSONSource):
             sp += ":"
         return sp or f"{self._namespace}:"
 
+    def _split_path(self, path: str) -> tuple[str, str]:
+        """Split 'key.sub.path' into Redis key segment 'key' and JSON path '$.sub.path'."""
+        parts = path.split(".", 1)
+        key_part = parts[0]
+        json_part = f"$.{parts[1]}" if len(parts) > 1 else "$"
+        return key_part, json_part
+
     # ---------- JSONSource interface ----------
 
     def get(self, path: str | None = None) -> Any:
-        if path in (None, ""):
-            path = "$"
-        key = self._key(path)
+        if path in (None, "", "$"):
+            return self.data
+        key_part, json_part = self._split_path(path)
+        redis_key = self._key(key_part)
         try:
-            result = self.connection.json().get(key, "$")
+            result = self.connection.json().get(redis_key, json_part)
             if isinstance(result, list) and len(result) == 1:
                 return result[0]
             return result
@@ -85,16 +93,37 @@ class RedisJSONSource(JSONSource):
             return None
 
     def set(self, path: str | None, value: Any) -> None:
-        if path in (None, ""):
-            path = "$"
-        key = self._key(path)
-        self.connection.json().set(key, "$", value)
+        if path in (None, "", "$"):
+            return
+        key_part, json_part = self._split_path(path)
+        redis_key = self._key(key_part)
+        if json_part == "$":
+            self.connection.json().set(redis_key, "$", value)
+        else:
+            try:
+                self.connection.json().set(redis_key, json_part, value)
+            except Exception:
+                # Sub-path set fails if the document doesn't exist yet
+                self.connection.json().set(redis_key, "$", {})
+                self.connection.json().set(redis_key, json_part, value)
 
     def delete(self, path: str | None = None) -> None:
-        if path in (None, ""):
-            path = "$"
-        key = self._key(path)
-        self.connection.delete(key)
+        if path in (None, "", "$"):
+            pattern = f"{self._namespace}:*"
+            cursor = 0
+            while True:
+                cursor, keys = self.connection.scan(cursor=cursor, match=pattern, count=500)
+                if keys:
+                    self.connection.delete(*keys)
+                if cursor == 0:
+                    break
+            return
+        key_part, json_part = self._split_path(path)
+        redis_key = self._key(key_part)
+        if json_part == "$":
+            self.connection.delete(redis_key)
+        else:
+            self.connection.json().delete(redis_key, json_part)
 
     @property
     def data(self) -> dict[str, Any]:
