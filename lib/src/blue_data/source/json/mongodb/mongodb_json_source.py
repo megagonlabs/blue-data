@@ -1,4 +1,3 @@
-import json
 import logging
 
 from pymongo import MongoClient
@@ -210,23 +209,33 @@ class MongoDBSource(JSONSource):
         collection=None,
         optional_properties=None,
     ):
-        optional_properties = optional_properties or {}
+        """Execute a compound MongoDB operation.
 
+        query must be a dict with:
+            op         – "FIND", "INSERT_ONE", or "DELETE_MANY"
+            filter     – query filter document (FIND, DELETE_MANY)
+            document   – document to insert (INSERT_ONE)
+        """
         if database is None:
             raise Exception("No database provided")
 
         if collection is None:
             raise Exception("No collection provided")
 
+        if not isinstance(query, dict):
+            raise ValueError(
+                "MongoDBSource.execute_query expects query as a dict "
+                "with 'op' and 'filter' / 'document'"
+            )
+
         db = self.connection[database]
         col = db[collection]
 
-        q = json.loads(query) if isinstance(query, str) else query
+        op = (query.get("op") or "").upper()
 
-        operation = optional_properties.get("operation", "find")
-
-        if operation == "find":
-            cursor = col.find(q)
+        if op == "FIND":
+            filter_doc = query.get("filter") or {}
+            cursor = col.find(filter_doc)
             result = []
             for doc in cursor:
                 if "_id" in doc:
@@ -234,15 +243,17 @@ class MongoDBSource(JSONSource):
                 result.append(doc)
             return result
 
-        if operation == "insert_one":
-            res = col.insert_one(q)
+        if op == "INSERT_ONE":
+            document = query.get("document") or {}
+            res = col.insert_one(document)
             return [{"inserted_id": str(res.inserted_id)}]
 
-        if operation == "delete_many":
-            res = col.delete_many(q)
+        if op == "DELETE_MANY":
+            filter_doc = query.get("filter") or {}
+            res = col.delete_many(filter_doc)
             return [{"deleted_count": res.deleted_count}]
 
-        raise ValueError(f"Unsupported MongoDB operation: {operation}")
+        raise ValueError(f"Unsupported MongoDB operation: {op!r}. Supported: FIND, INSERT_ONE, DELETE_MANY")
 
     def fetch_source_stats(self):
         stats = {}
