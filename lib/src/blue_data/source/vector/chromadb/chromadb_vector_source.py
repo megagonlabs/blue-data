@@ -13,8 +13,9 @@ class ChromaDBVectorSource(VectorSource):
     def __init__(self, name: str, path: str | None = None, properties: dict | None = None):
         super().__init__(name, properties=properties or {})
         self.logger = logging.getLogger(self.__class__.__name__)
+        settings = chromadb.Settings(allow_reset=True)
         self._client = (
-            chromadb.PersistentClient(path=path) if path else chromadb.EphemeralClient()
+            chromadb.PersistentClient(path=path) if path else chromadb.EphemeralClient(settings=settings)
         )
         # index_name -> {"collection": str, "embedding_field": str}
         self._indices: dict[str, dict] = {}
@@ -41,7 +42,11 @@ class ChromaDBVectorSource(VectorSource):
             if k != embedding_field and isinstance(v, (str, int, float, bool))
         }
         chroma_coll = self._client.get_or_create_collection(collection)
-        chroma_coll.upsert(ids=[doc_id], embeddings=[embedding], metadatas=[metadata])
+        chroma_coll.upsert(
+            ids=[doc_id],
+            embeddings=[embedding],
+            metadatas=[metadata] if metadata else None,
+        )
         return "OK"
 
     def delete(self, collection: str, doc_id: str) -> int:
@@ -65,6 +70,9 @@ class ChromaDBVectorSource(VectorSource):
         return_fields = return_fields or []
         coll = self._indices[index_name]["collection"]
         chroma_coll = self._client.get_or_create_collection(coll)
+
+        if chroma_coll.count() == 0:
+            return []
 
         response = chroma_coll.query(
             query_embeddings=[query_vector],

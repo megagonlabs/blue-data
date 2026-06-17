@@ -6,7 +6,7 @@ Skipped automatically when the chromadb package is not installed.
 import pytest
 
 chromadb = pytest.importorskip("chromadb", reason="chromadb not installed")
-from source.vector.chromadb.chromadb_vector_source import ChromaDBVectorSource
+from blue_data.source.vector.chromadb.chromadb_vector_source import ChromaDBVectorSource
 
 DIM = 4
 
@@ -19,7 +19,9 @@ def _unit(i, dim=DIM):
 
 @pytest.fixture
 def src():
-    return ChromaDBVectorSource(name="test_chroma")
+    source = ChromaDBVectorSource(name="test_chroma")
+    yield source
+    source._client.reset()
 
 
 def _create(src, index="idx", collection="docs"):
