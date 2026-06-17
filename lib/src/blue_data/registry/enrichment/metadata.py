@@ -35,7 +35,7 @@ from typing import Any, Callable
 import numpy as np
 
 from blue_data.registry.enrichment.prompts import AGGREGATION_PROMPT
-from blue_data.registry.enrichment.utils import safe_json_parse
+from blue_data.core.utils.utils import safe_json_parse
 
 
 class MetaData:
