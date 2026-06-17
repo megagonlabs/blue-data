@@ -368,83 +368,67 @@ class RedisVectorSource(VectorSource):
 
         return rows
 
-    # ---------- query ----------
+    # ---------- primitive operations ----------
 
-    def execute_query(
-        self,
-        query,
-        database=None,
-        collection=None,
-        optional_properties=None,
-    ):
-        optional_properties = optional_properties or {}
-
-        if not isinstance(query, dict):
-            raise Exception("RedisVectorSource expects query as a dict")
-
-        op = query.get("op")
-        if not op:
-            raise Exception("Vector query must include 'op'")
-
-        op = op.upper()
-
+    def create_index(self, index_name: str, collection: str, dim: int, distance_metric: str = "COSINE") -> str:
+        conn = self.properties["connection"]
+        query = {
+            "index": index_name,
+            "collection": collection,
+            "dim": dim,
+            "distance_metric": distance_metric,
+            "path": conn.get("vector_path", "$.embedding"),
+            "field": conn.get("vector_field", "embedding"),
+            "algorithm": conn.get("algorithm", "HNSW"),
+        }
         try:
-            if op == "VECTOR.CREATE_INDEX":
-                return self.connection.execute_command(
-                    *self._build_create_index_command(query)
-                )
-
-            if op == "VECTOR.UPSERT":
-                scan_prefix = self.properties["connection"].get("scan_prefix")
-                collection = query.get("collection")
-                doc_id = query.get("id")
-                document = query.get("doc")
-
-                if not collection or not doc_id:
-                    raise Exception("VECTOR.UPSERT requires collection and id")
-
-                if document is None:
-                    raise Exception("VECTOR.UPSERT requires doc")
-
-                embedding_field = query.get("embedding_field", "embedding")
-                index_dimension = query.get("index_dimension")
-
-                if embedding_field not in document:
-                    raise Exception(
-                        f"Document must contain embedding field '{embedding_field}'"
-                    )
-
-                if (
-                    index_dimension is not None
-                    and len(document[embedding_field]) != index_dimension
-                ):
-                    raise Exception(
-                        f"Embedding dimension {len(document[embedding_field])} "
-                        f"does not match index dimension {index_dimension}"
-                    )
-
-                key = f"{scan_prefix}{collection}:{doc_id}"
-                return self.connection.json().set(key, "$", document)
-
-            if op == "VECTOR.DELETE":
-                scan_prefix = self.properties["connection"].get("scan_prefix")
-                collection = query.get("collection")
-                doc_id = query.get("id")
-
-                if not collection or not doc_id:
-                    raise Exception("VECTOR.DELETE requires collection and id")
-
-                key = f"{scan_prefix}{collection}:{doc_id}"
-                return self.connection.delete(key)
-
-            if op == "VECTOR.KNN":
-                response = self.connection.execute_command(
-                    *self._build_knn_command(query)
-                )
-                return self._parse_search_results(response)
-
-            raise Exception(f"Unsupported vector operation: {op}")
-
+            return self.connection.execute_command(*self._build_create_index_command(query))
         except Exception as e:
-            self.logger.error(f"RedisVector query failed: {e}")
+            self.logger.error(f"RedisVector create_index failed: {e}")
+            raise
+
+    def upsert(self, collection: str, doc_id: str, doc: dict, embedding_field: str = "embedding") -> str:
+        if embedding_field not in doc:
+            raise Exception(f"Document must contain embedding field '{embedding_field}'")
+        scan_prefix = self.properties["connection"].get("scan_prefix")
+        key = f"{scan_prefix}{collection}:{doc_id}"
+        try:
+            return self.connection.json().set(key, "$", doc)
+        except Exception as e:
+            self.logger.error(f"RedisVector upsert failed: {e}")
+            raise
+
+    def delete(self, collection: str, doc_id: str) -> int:
+        scan_prefix = self.properties["connection"].get("scan_prefix")
+        key = f"{scan_prefix}{collection}:{doc_id}"
+        try:
+            return self.connection.delete(key)
+        except Exception as e:
+            self.logger.error(f"RedisVector delete failed: {e}")
+            raise
+
+    def knn(
+        self,
+        index_name: str,
+        query_vector: list,
+        k: int = 5,
+        embedding_field: str = "embedding",
+        score_alias: str = "score",
+        return_fields: list[str] | None = None,
+        filter_expr: str = "*",
+    ) -> list[dict]:
+        query = {
+            "index": index_name,
+            "vector": query_vector,
+            "k": k,
+            "field": embedding_field,
+            "score_alias": score_alias,
+            "return_fields": return_fields or [],
+            "filter": filter_expr,
+        }
+        try:
+            response = self.connection.execute_command(*self._build_knn_command(query))
+            return self._parse_search_results(response)
+        except Exception as e:
+            self.logger.error(f"RedisVector knn failed: {e}")
             raise

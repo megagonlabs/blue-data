@@ -1,20 +1,26 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+
 from blue_data.source.source import DataSource
 
 
-class NetworkSource(DataSource):
+class NetworkSource(DataSource, ABC):
     """Base class for probabilistic / graph network data sources."""
 
+    @abstractmethod
     def fetch_nodes(self, network: str) -> list[str]:
         raise NotImplementedError
 
+    @abstractmethod
     def fetch_edges(self, network: str) -> list[dict]:
         raise NotImplementedError
 
+    @abstractmethod
     def infer(self, network: str, evidence: dict) -> dict:
         raise NotImplementedError
 
+    @abstractmethod
     def create_network(self, network: str, properties: dict | None = None) -> dict:
         raise NotImplementedError
 

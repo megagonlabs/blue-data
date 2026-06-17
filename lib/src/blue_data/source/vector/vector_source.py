@@ -1,22 +1,28 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+
 from blue_data.source.source import DataSource
 
 
-class VectorSource(DataSource):
+class VectorSource(DataSource, ABC):
     """Base class for vector data sources."""
 
     # ---------- primitive operations ----------
 
+    @abstractmethod
     def create_index(self, index_name: str, collection: str, dim: int, distance_metric: str = "COSINE") -> str:
         raise NotImplementedError
 
+    @abstractmethod
     def upsert(self, collection: str, doc_id: str, doc: dict, embedding_field: str = "embedding") -> str:
         raise NotImplementedError
 
+    @abstractmethod
     def delete(self, collection: str, doc_id: str) -> int:
         raise NotImplementedError
 
+    @abstractmethod
     def knn(
         self,
         index_name: str,

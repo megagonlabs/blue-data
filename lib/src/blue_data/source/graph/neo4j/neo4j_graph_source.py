@@ -535,6 +535,94 @@ class NEO4JSource(GraphSource):
 
         return stats
 
+    # ---------- graph primitives ----------
+
+    def add_node(self, database: str, label: str, properties: dict | None = None, node_id: str | None = None) -> str:
+        props = dict(properties or {})
+        if node_id is not None:
+            props["_id"] = node_id
+        lbl = self._clean_neo4j_identifier(label)
+        result = self._run_query(
+            f"CREATE (n:`{lbl}` $props) RETURN n._id AS cid, elementId(n) AS eid",
+            database=database, params={"props": props}, read=False,
+        )
+        if result:
+            row = result[0]
+            return str(row["cid"] if row.get("cid") is not None else row["eid"])
+        raise RuntimeError("add_node returned no result")
+
+    def get_node(self, database: str, node_id: str) -> dict | None:
+        result = self._run_query(
+            "MATCH (n) WHERE n._id = $nid OR elementId(n) = $nid "
+            "RETURN n, labels(n) AS labels LIMIT 1",
+            database=database, params={"nid": node_id}, read=True,
+        )
+        if not result:
+            return None
+        row = result[0]
+        node_obj = row["n"]
+        return {
+            "node_id": node_id,
+            "label": list(node_obj.labels)[0] if node_obj.labels else None,
+            "properties": dict(node_obj),
+        }
+
+    def delete_node(self, database: str, node_id: str) -> None:
+        self._run_query(
+            "MATCH (n) WHERE n._id = $nid OR elementId(n) = $nid DETACH DELETE n",
+            database=database, params={"nid": node_id}, read=False,
+        )
+
+    def add_edge(self, database: str, source_id: str, edge_type: str, target_id: str, properties: dict | None = None) -> str:
+        rel_type = self._clean_neo4j_identifier(edge_type)
+        result = self._run_query(
+            f"MATCH (a) WHERE a._id = $src OR elementId(a) = $src "
+            f"MATCH (b) WHERE b._id = $tgt OR elementId(b) = $tgt "
+            f"CREATE (a)-[r:`{rel_type}` $props]->(b) RETURN elementId(r) AS eid",
+            database=database,
+            params={"src": source_id, "tgt": target_id, "props": properties or {}},
+            read=False,
+        )
+        if result:
+            return str(result[0]["eid"])
+        raise RuntimeError("add_edge returned no result")
+
+    def delete_edge(self, database: str, source_id: str, edge_type: str, target_id: str) -> None:
+        rel_type = self._clean_neo4j_identifier(edge_type)
+        self._run_query(
+            f"MATCH (a)-[r:`{rel_type}`]->(b) "
+            f"WHERE (a._id = $src OR elementId(a) = $src) "
+            f"AND (b._id = $tgt OR elementId(b) = $tgt) DELETE r",
+            database=database, params={"src": source_id, "tgt": target_id}, read=False,
+        )
+
+    def get_neighbors(self, database: str, node_id: str, edge_type: str | None = None, direction: str = "both") -> list[dict]:
+        rel_spec = f":`{self._clean_neo4j_identifier(edge_type)}`" if edge_type else ""
+        if direction == "out":
+            pattern = f"-[r{rel_spec}]->"
+        elif direction == "in":
+            pattern = f"<-[r{rel_spec}]-"
+        else:
+            pattern = f"-[r{rel_spec}]-"
+        result = self._run_query(
+            f"MATCH (n){pattern}(m) WHERE n._id = $nid OR elementId(n) = $nid "
+            f"RETURN m, labels(m) AS labels, type(r) AS edge_type, r AS edge",
+            database=database, params={"nid": node_id}, read=True,
+        )
+        neighbors = []
+        for row in result:
+            node_obj = row["m"]
+            edge_obj = row.get("edge")
+            neighbors.append({
+                "node": {
+                    "label": list(node_obj.labels)[0] if node_obj.labels else None,
+                    "properties": dict(node_obj),
+                },
+                "edge_type": row.get("edge_type"),
+                "edge_properties": dict(edge_obj) if edge_obj else {},
+            })
+        return neighbors
+
     # ---------- query ----------
 
     def execute_query(

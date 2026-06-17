@@ -1,5 +1,5 @@
 import json
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 import numpy as np
 import pandas as pd
@@ -7,7 +7,7 @@ import pandas as pd
 from blue_data.source.source import DataSource
 
 
-class SQLSource(DataSource):
+class SQLSource(DataSource, ABC):
     """Base class for SQL data sources."""
 
     @abstractmethod

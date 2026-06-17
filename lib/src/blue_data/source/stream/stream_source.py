@@ -1,23 +1,30 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+
 from blue_data.source.source import DataSource
 
 
-class StreamSource(DataSource):
+class StreamSource(DataSource, ABC):
     """Base class for stream data sources."""
 
+    @abstractmethod
     def publish(self, stream: str, message: dict) -> None:
         raise NotImplementedError
 
+    @abstractmethod
     def consume(self, stream: str, count: int = 1) -> list[dict]:
         raise NotImplementedError
 
+    @abstractmethod
     def acknowledge(self, stream: str, message_id: str) -> None:
         raise NotImplementedError
 
+    @abstractmethod
     def create_stream(self, stream: str, properties: dict | None = None) -> dict:
         raise NotImplementedError
 
+    @abstractmethod
     def delete_stream(self, stream: str) -> None:
         raise NotImplementedError
 

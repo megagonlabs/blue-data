@@ -1,32 +1,40 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+
 from blue_data.source.source import DataSource
 
 
-class GraphSource(DataSource):
+class GraphSource(DataSource, ABC):
     """Base class for graph data sources."""
 
     # ---------- node operations ----------
 
+    @abstractmethod
     def add_node(self, database: str, label: str, properties: dict | None = None, node_id: str | None = None) -> str:
         raise NotImplementedError
 
+    @abstractmethod
     def get_node(self, database: str, node_id: str) -> dict | None:
         raise NotImplementedError
 
+    @abstractmethod
     def delete_node(self, database: str, node_id: str) -> None:
         raise NotImplementedError
 
     # ---------- edge operations ----------
 
+    @abstractmethod
     def add_edge(self, database: str, source_id: str, edge_type: str, target_id: str, properties: dict | None = None) -> str:
         raise NotImplementedError
 
+    @abstractmethod
     def delete_edge(self, database: str, source_id: str, edge_type: str, target_id: str) -> None:
         raise NotImplementedError
 
     # ---------- traversal ----------
 
+    @abstractmethod
     def get_neighbors(self, database: str, node_id: str, edge_type: str | None = None, direction: str = "both") -> list[dict]:
         raise NotImplementedError
 
