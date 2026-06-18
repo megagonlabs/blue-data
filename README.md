@@ -4,7 +4,14 @@ Blue Data Intelligence Layer — a Python library for registering, introspecting
 
 ## Installation
 
+**From the repo root** (standard install):
 ```bash
+pip install .
+```
+
+**For development** (editable install, run tests from `lib/`):
+```bash
+cd lib
 pip install -e .
 ```
 
