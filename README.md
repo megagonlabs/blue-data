@@ -8,8 +8,6 @@ Blue Data Intelligence Layer — a Python library for registering, introspecting
 pip install -e .
 ```
 
-> **Note:** The top-level import package name is pending confirmation. Until then, set `PYTHONPATH` to `lib/src/blue-data` and import modules directly (e.g. `from blue_data.registry.data_registry import DataRegistry`).
-
 ## Runtime dependencies
 
 - `pandas`, `numpy` — always required
@@ -200,7 +198,7 @@ class MySource(DataSource):
 
 ## Examples
 
-All examples run from the `lib/` directory with `PYTHONPATH=src/blue-data`.
+After installing with `pip install -e .`:
 
 | File | Description |
 |---|---|
@@ -210,18 +208,17 @@ All examples run from the `lib/` directory with `PYTHONPATH=src/blue-data`.
 | `examples/redis_demo.py` | Redis Stack + PostgreSQL (falls back to SQLite) — Redis-backed registry and search index, namespace isolation, full hierarchy walk. Requires Redis Stack. |
 
 ```bash
-cd lib
 # In-memory demo (no deps)
-PYTHONPATH=src/blue-data python3 ../examples/registry_memory_example.py
+python3 examples/registry_memory_example.py
 
 # SQLite demo (no deps)
-PYTHONPATH=src/blue-data python3 ../examples/sqlite_data_registry_demo.py
+python3 examples/sqlite_data_registry_demo.py
 
 # Enrichment demo: Mode A runs without deps; Mode B requires ANTHROPIC_API_KEY
-PYTHONPATH=src/blue-data python3 ../examples/enrichment_demo.py
+python3 examples/enrichment_demo.py
 
 # Redis + Postgres demo (requires Redis Stack; falls back to SQLite)
-PYTHONPATH=src/blue-data python3 ../examples/redis_demo.py
+python3 examples/redis_demo.py
 ```
 
 ## Demo databases
@@ -348,7 +345,7 @@ See [`docs/cli.md`](docs/cli.md) for the full command reference.
 ```bash
 # lib tests
 cd lib
-PYTHONPATH=src/blue-data python3 -m pytest tests/
+python3 -m pytest tests/
 
 # registry-mcp tests
 cd platform/registry-mcp
@@ -371,5 +368,5 @@ Redis integration tests (`tests/integration/test_redis_registry.py`) auto-skip w
 
 ```bash
 redis-stack-server --port 6379 --daemonize yes
-PYTHONPATH=src/blue-data python3 -m pytest tests/integration/test_redis_registry.py -v
+python3 -m pytest tests/integration/test_redis_registry.py -v
 ```

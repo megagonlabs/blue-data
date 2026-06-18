@@ -2,10 +2,31 @@
 name = "blue-data"
 version = "0.1.0"
 description = "Blue Data Intelligence Layer"
+requires-python = ">=3.10"
 
 dependencies = [
     "pandas",
-    "numpy"
+    "numpy",
+    "jsonpath-ng",
+]
+
+[project.optional-dependencies]
+postgres  = ["psycopg2-binary"]
+mysql     = ["mysql-connector-python"]
+mongodb   = ["pymongo"]
+neo4j     = ["neo4j"]
+redis     = ["redis"]
+chromadb  = ["chromadb"]
+bn        = ["pgmpy", "networkx"]
+llm       = ["anthropic"]
+dev       = ["pytest"]
+all = [
+    "psycopg2-binary",
+    "mysql-connector-python",
+    "pymongo",
+    "neo4j",
+    "redis",
+    "anthropic",
 ]
 
 [tool.setuptools.packages.find]
