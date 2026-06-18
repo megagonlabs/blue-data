@@ -10,8 +10,8 @@ dependencies = [
 
 [project.optional-dependencies]
 redis   = ["redis"]
-llm     = ["anthropic"]
-all     = ["redis", "anthropic"]
+llm     = ["anthropic", "openai"]
+all     = ["redis", "anthropic", "openai"]
 dev     = ["pytest"]
 
 [project.scripts]

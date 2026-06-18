@@ -10,9 +10,9 @@ dependencies = [
 
 [project.optional-dependencies]
 redis  = ["redis"]
-llm    = ["anthropic"]
+llm    = ["anthropic", "openai"]
 dev    = ["pytest", "httpx"]
-all    = ["redis", "anthropic"]
+all    = ["redis", "anthropic", "openai"]
 
 [project.scripts]
 blue-data-api = "registry_api.main:run"

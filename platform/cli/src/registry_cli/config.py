@@ -55,6 +55,25 @@ def _build_enricher() -> MetaData:
                 return MetaData(llm_fn=llm_fn)
             except ImportError:
                 pass
+    elif provider == "openai":
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key:
+            try:
+                import openai
+                model = os.environ.get("BLUE_DATA_LLM_MODEL", "gpt-4o")
+                client = openai.OpenAI(api_key=api_key)
+
+                def llm_fn(prompt: str) -> str:
+                    response = client.chat.completions.create(
+                        model=model,
+                        max_tokens=1024,
+                        messages=[{"role": "user", "content": prompt}],
+                    )
+                    return response.choices[0].message.content or ""
+
+                return MetaData(llm_fn=llm_fn)
+            except ImportError:
+                pass
     return MetaData(llm_fn=None)
 
 

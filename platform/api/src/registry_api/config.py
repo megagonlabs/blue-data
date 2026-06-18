@@ -3,9 +3,10 @@
     BLUE_DATA_STORE             memory (default) | redis
     BLUE_DATA_REDIS_URL         redis://localhost:6379/0
     BLUE_DATA_REDIS_NAMESPACE   blue_data (default)
-    BLUE_DATA_LLM_PROVIDER      anthropic
-    BLUE_DATA_LLM_MODEL         claude-opus-4-8 (default)
+    BLUE_DATA_LLM_PROVIDER      anthropic | openai
+    BLUE_DATA_LLM_MODEL         claude-opus-4-8 (default for anthropic) | gpt-4o (default for openai)
     ANTHROPIC_API_KEY           required when LLM_PROVIDER=anthropic
+    OPENAI_API_KEY              required when LLM_PROVIDER=openai
     BLUE_DATA_CONFIG            path to JSON source-config file
 """
 from __future__ import annotations
@@ -40,7 +41,8 @@ def _build_store():
 
 
 def _build_enricher() -> MetaData:
-    if os.environ.get("BLUE_DATA_LLM_PROVIDER", "").lower() == "anthropic":
+    provider = os.environ.get("BLUE_DATA_LLM_PROVIDER", "").lower()
+    if provider == "anthropic":
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if api_key:
             try:
@@ -57,6 +59,24 @@ def _build_enricher() -> MetaData:
                         if block.type == "text":
                             return block.text
                     return ""
+
+                return MetaData(llm_fn=llm_fn)
+            except ImportError:
+                pass
+    elif provider == "openai":
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key:
+            try:
+                import openai
+                model  = os.environ.get("BLUE_DATA_LLM_MODEL", "gpt-4o")
+                client = openai.OpenAI(api_key=api_key)
+
+                def llm_fn(prompt: str) -> str:
+                    response = client.chat.completions.create(
+                        model=model, max_tokens=1024,
+                        messages=[{"role": "user", "content": prompt}],
+                    )
+                    return response.choices[0].message.content or ""
 
                 return MetaData(llm_fn=llm_fn)
             except ImportError:

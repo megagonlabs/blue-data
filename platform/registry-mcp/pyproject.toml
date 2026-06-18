@@ -10,9 +10,9 @@ dependencies = [
 
 [project.optional-dependencies]
 redis   = ["redis"]
-llm     = ["anthropic"]
+llm     = ["anthropic", "openai"]
 dev     = ["pytest", "pytest-asyncio"]
-all     = ["redis", "anthropic"]
+all     = ["redis", "anthropic", "openai"]
 
 [project.scripts]
 blue-data-registry-mcp = "registry_mcp.server:main"
