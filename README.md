@@ -4,16 +4,33 @@ Blue Data Intelligence Layer — a Python library for registering, introspecting
 
 ## Installation
 
-**From the repo root** (standard install):
+**Install everything** (lib + all platform components, editable with dev extras):
 ```bash
-pip install .
+make install
 ```
 
-**For development** (editable install, run tests from `lib/`):
+**Install individual components:**
 ```bash
-cd lib
-pip install -e .
+make install-lib           # core lib only
+make install-api           # REST API
+make install-cli           # CLI
+make install-json-mcp      # JSON MCP server
+make install-registry-mcp  # registry MCP server
 ```
+
+Each platform component automatically installs the core lib as a dependency.
+
+**Build distributable packages** (wheel + sdist into each component's `dist/`):
+```bash
+make build                 # all components
+make build-lib             # core lib only
+make build-api             # REST API
+make build-cli             # CLI
+make build-json-mcp        # JSON MCP server
+make build-registry-mcp    # registry MCP server
+```
+
+Requires the `build` package (`pip install build`).
 
 ## Runtime dependencies
 
