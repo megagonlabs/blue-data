@@ -4,12 +4,6 @@ Blue Data Intelligence Layer — a Python library for registering, introspecting
 
 ## Installation
 
-**Configure** — copy `.env.example` to `.env` and fill in your values:
-```bash
-cp .env.example .env
-```
-`.env` is gitignored. See `.env.example` for the full list of supported variables (store, LLM provider, search weights, sources config path).
-
 **Install everything** (lib + all platform components, editable with dev extras):
 ```bash
 make install
@@ -259,6 +253,94 @@ The `data/` directory contains the **Northwind** sales schema — a 7-table data
 |---|---|
 | `data/northwind_sqlite.sql` | Load into SQLite: `sqlite3 northwind.db < data/northwind_sqlite.sql` |
 | `data/northwind_postgres.sql` | Load into Postgres: `psql -U postgres -d northwind -f data/northwind_postgres.sql` |
+
+## Configuration
+
+All platform components (API, CLI, MCP servers) are configured via environment variables. Copy `.env.example` to `.env` and fill in your values — `.env` is gitignored and never committed.
+
+```bash
+cp .env.example .env
+```
+
+Variables can also be set inline or exported in your shell. The sections below document every supported variable, its default, and when it is required.
+
+---
+
+### Store
+
+Controls where the registry state is persisted.
+
+| Variable | Default | Description |
+|---|---|---|
+| `BLUE_DATA_STORE` | `memory` | Persistence backend: `memory`, `redis`, or `file` (json-mcp only) |
+| `BLUE_DATA_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. Required when `BLUE_DATA_STORE=redis` |
+| `BLUE_DATA_REDIS_NAMESPACE` | `blue_data` | Key namespace prefix in Redis. Isolates multiple registry instances on the same server |
+| `BLUE_DATA_FILE` | `blue_data_store.json` | Path to JSON file. Required when `BLUE_DATA_STORE=file` (json-mcp only) |
+
+> **Redis Stack required**: `BLUE_DATA_STORE=redis` uses `JSON.SET` and `FT.CREATE` commands only available in Redis Stack (`redis-stack-server`), not plain Redis.
+
+---
+
+### LLM
+
+Enables AI-augmented metadata enrichment. Leave `BLUE_DATA_LLM_PROVIDER` blank to run in deterministic-only mode (no API key needed).
+
+| Variable | Default | Description |
+|---|---|---|
+| `BLUE_DATA_LLM_PROVIDER` | _(empty)_ | LLM provider: `anthropic` or `openai`. Leave blank to disable LLM enrichment |
+| `BLUE_DATA_LLM_MODEL` | `claude-opus-4-8` (anthropic) / `gpt-4o` (openai) | Model name passed to the provider API |
+| `ANTHROPIC_API_KEY` | _(empty)_ | Required when `BLUE_DATA_LLM_PROVIDER=anthropic` |
+| `OPENAI_API_KEY` | _(empty)_ | Required when `BLUE_DATA_LLM_PROVIDER=openai` |
+
+---
+
+### Search tuning
+
+Controls the hybrid search engine inside `DataRegistry`. Defaults are tuned for general use — adjust if your registry has specific recall/precision requirements.
+
+| Variable | Default | Description |
+|---|---|---|
+| `BLUE_DATA_REGISTRY_VECTOR_DIM` | `1536` | Embedding vector dimension. Must match your embedding model's output size |
+| `BLUE_DATA_REGISTRY_SEARCH_BM25_WEIGHT` | `0.3` | Weight of BM25 keyword score in the combined ranking |
+| `BLUE_DATA_REGISTRY_SEARCH_VECTOR_WEIGHT` | `0.7` | Weight of vector similarity score in the combined ranking |
+| `BLUE_DATA_REGISTRY_SEARCH_VALUE_WEIGHT` | `0.15` | Weight of value-relevance score in the combined ranking |
+| `BLUE_DATA_REGISTRY_SEARCH_BM25_THRESHOLD` | `0.0` | Minimum BM25 score for a record to be considered |
+| `BLUE_DATA_REGISTRY_SEARCH_VECTOR_THRESHOLD` | `0.5` | Minimum vector similarity score for a record to be considered |
+| `BLUE_DATA_REGISTRY_SEARCH_COMBINED_THRESHOLD` | `0.36` | Minimum combined score for a record to appear in results |
+| `BLUE_DATA_REGISTRY_SEARCH_HIERARCHICAL` | `true` | Enable hierarchical search — propagates child scores to parent records when searching by `database` or `collection` type |
+
+Search weights do not need to sum to 1 — they are normalized automatically.
+
+---
+
+### Sources
+
+| Variable | Default | Description |
+|---|---|---|
+| `BLUE_DATA_CONFIG` | _(empty)_ | Path to a JSON file that pre-loads data sources into the registry at startup |
+
+Source config file format:
+
+```json
+{
+  "sources": [
+    {
+      "type": "sqlite",
+      "name": "mydb",
+      "properties": { "connection": { "database_directory": "/data/dbs" } }
+    },
+    {
+      "type": "postgres",
+      "name": "prod",
+      "properties": { "connection": { "host": "localhost", "port": 5432, "database": "myapp", "user": "postgres", "password": "" } }
+    }
+  ]
+}
+```
+
+Supported source types: `sqlite`, `postgres`, `mysql`, `mongodb`.
+
+---
 
 ## Platform
 
