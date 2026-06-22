@@ -349,31 +349,31 @@ See [`docs/cli.md`](docs/cli.md) for the full command reference.
 
 ## Running tests
 
+From the repo root:
+
 ```bash
-# lib tests
-cd lib
-python3 -m pytest tests/
-
-# registry-mcp tests
-cd platform/registry-mcp
-python3 -m pytest tests/
-
-# api tests
-cd platform/api
-python3 -m pytest tests/
-
-# cli tests
-cd platform/cli
-python3 -m pytest tests/
-
-# json-mcp tests
-cd platform/json-mcp
-python3 -m pytest tests/
+make test                  # all unit tests (lib + all platform components)
+make test-lib              # lib unit tests only
+make test-platform         # all platform component tests
+make test-api              # REST API tests
+make test-cli              # CLI tests
+make test-json-mcp         # JSON MCP tests
+make test-registry-mcp     # registry MCP tests
+make test-lib-integration  # lib integration tests (requires Redis, Postgres, MySQL, Neo4j)
 ```
 
-Redis integration tests (`tests/integration/test_redis_registry.py`) auto-skip when Redis Stack is not running. To run them:
+Run `make help` to see all available targets.
+
+If packages are not yet installed, run `make install` first:
+
+```bash
+make install   # installs all packages with dev extras
+make test
+```
+
+Redis integration tests auto-skip when Redis Stack is not running. To run them:
 
 ```bash
 redis-stack-server --port 6379 --daemonize yes
-python3 -m pytest tests/integration/test_redis_registry.py -v
+make test-lib-integration
 ```
