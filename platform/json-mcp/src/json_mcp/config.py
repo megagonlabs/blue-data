@@ -1,18 +1,13 @@
-"""JSONSource singleton factory.
+"""JSONSource singleton factory — reads all config from environment variables.
 
-Supports memory and file-based stores only (no Redis).
-
-Environment variables:
-    BLUE_DATA_STORE     memory (default) | file
-    BLUE_DATA_FILE      path to JSON file (required when store=file)
+See .env.example at the repo root for the full list of supported variables.
 """
 from __future__ import annotations
 
-import os
 from typing import Optional
 
+from blue_data.config import build_store
 from blue_data.source.json.json_source import JSONSource
-from blue_data.source.json.memory_json_source import MemoryJSONSource
 
 _store: Optional[JSONSource] = None
 
@@ -20,16 +15,11 @@ _store: Optional[JSONSource] = None
 def get_store() -> JSONSource:
     global _store
     if _store is None:
-        store_type = os.environ.get("BLUE_DATA_STORE", "memory").lower()
-        if store_type == "file":
-            from blue_data.source.json.file_json_source import FileJSONSource
-            path = os.environ.get("BLUE_DATA_FILE", "blue_data_store.json")
-            _store = FileJSONSource(path)
-        else:
-            _store = MemoryJSONSource()
+        _store = build_store()
     return _store
 
 
 def reset_store() -> None:
+    """Replace the singleton with a fresh instance — for tests."""
     global _store
     _store = None

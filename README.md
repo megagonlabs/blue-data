@@ -4,6 +4,12 @@ Blue Data Intelligence Layer — a Python library for registering, introspecting
 
 ## Installation
 
+**Configure** — copy `.env.example` to `.env` and fill in your values:
+```bash
+cp .env.example .env
+```
+`.env` is gitignored. See `.env.example` for the full list of supported variables (store, LLM provider, search weights, sources config path).
+
 **Install everything** (lib + all platform components, editable with dev extras):
 ```bash
 make install
