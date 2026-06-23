@@ -87,6 +87,33 @@ class DataSource:
     ) -> list[dict]:
         return []
 
+    def execute_query_nl(
+        self,
+        query: str,
+        database: str | None = None,
+        collection: str | None = None,
+        schema: dict | None = None,
+        llm_fn=None,
+        optional_properties: dict | None = None,
+    ) -> list[dict]:
+        """Translate *query* from natural language and execute it.
+
+        Subclasses override this to provide dialect-specific NL translation
+        (e.g. NL→SQL, NL→Cypher, NL→MongoDB filter). The base implementation
+        is a no-op that returns an empty list.
+
+        Parameters:
+            query: Natural language query string.
+            database: Target database name.
+            collection: Target collection/schema name.
+            schema: Schema dict with ``entities`` and ``relations`` keys,
+                used to ground the LLM translation prompt.
+            llm_fn: Callable ``(prompt: str) -> str`` backed by an LLM.
+                Required by concrete implementations; base ignores it.
+            optional_properties: Extra driver-specific options.
+        """
+        return []
+
     # ---------- stats ----------
     def fetch_source_stats(self) -> dict | None:
         return None

@@ -87,7 +87,7 @@ class DataRegistry(Registry):
         optional_properties: dict | None = None,
     ):
         """Execute *query* against the named source, raising ValueError if it is not registered."""
-      
+
         source_obj = self.connect_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered or connectable: {source}")
@@ -98,7 +98,72 @@ class DataRegistry(Registry):
             collection=collection,
             optional_properties=optional_properties or {},
         )
-    
+
+    def execute_query_nl(
+        self,
+        source: str,
+        query: str,
+        database: str | None = None,
+        collection: str | None = None,
+        optional_properties: dict | None = None,
+    ) -> list[dict]:
+        """Translate *query* from natural language and execute it against *source*.
+
+        Pulls schema context from the registry and the LLM callable from the
+        metadata enricher, then delegates to the source's ``execute_query_nl``.
+        Raises ``ValueError`` if the source is not registered or no LLM is
+        configured.
+        """
+        source_obj = self.connect_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered or connectable: {source}")
+
+        llm_fn = (
+            self.metadata_enricher._llm_fn
+            if self.metadata_enricher is not None
+            else None
+        )
+
+        schema = None
+        if database and collection:
+            schema = self._build_schema_for_nl(source, database, collection)
+
+        return source_obj.execute_query_nl(
+            query=query,
+            database=database,
+            collection=collection,
+            schema=schema,
+            llm_fn=llm_fn,
+            optional_properties=optional_properties,
+        )
+
+    def _build_schema_for_nl(self, source: str, database: str, collection: str) -> dict:
+        entity_records = self.list_collection_entities(source, database, collection)
+        entities = []
+        for record in entity_records:
+            entity_name = record["name"]
+            attr_records = self.list_entity_attributes(source, database, collection, entity_name)
+            attributes = {}
+            for attr in attr_records:
+                attr_name = attr["name"]
+                info = attr.get("properties", {}).get("info", {})
+                col_type = info.get("type", "TEXT") if isinstance(info, dict) else str(info)
+                attributes[attr_name] = {"type": col_type}
+            entities.append({"name": entity_name, "attributes": attributes})
+
+        relation_records = self.list_collection_relations(source, database, collection)
+        relations = []
+        for record in relation_records:
+            props = record.get("properties", {})
+            relations.append({
+                "name": props.get("name", record["name"]),
+                "source": props.get("source", ""),
+                "target": props.get("target", ""),
+                "properties": props.get("properties", {}),
+            })
+
+        return {"entities": entities, "relations": relations}
+
     # ---------- hierarchy helpers ----------
 
     def register_source_database(
