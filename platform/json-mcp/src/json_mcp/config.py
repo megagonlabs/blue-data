@@ -1,6 +1,6 @@
 """JSONSource singleton factory — reads all config from environment variables.
 
-See .env.example at the repo root for the full list of supported variables.
+See example.envrc at the repo root for the full list of supported variables.
 """
 from __future__ import annotations
 

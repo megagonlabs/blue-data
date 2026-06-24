@@ -258,10 +258,11 @@ The `data/` directory contains the **Northwind** sales schema — a 7-table data
 
 ## Configuration
 
-All platform components (API, CLI, MCP servers) are configured via environment variables. Copy `.env.example` to `.env` and fill in your values — `.env` is gitignored and never committed.
+All platform components (API, CLI, MCP servers) are configured via environment variables. Copy `example.envrc` to `.envrc` and fill in your values — `.envrc` is gitignored and never committed.
 
 ```bash
-cp .env.example .env
+cp example.envrc .envrc
+source .envrc
 ```
 
 Variables can also be set inline or exported in your shell. The sections below document every supported variable, its default, and when it is required.

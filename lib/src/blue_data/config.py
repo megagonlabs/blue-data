@@ -1,6 +1,6 @@
 """Shared environment-variable reader for all platform components.
 
-All configuration is read from environment variables documented in .env.example.
+All configuration is read from environment variables documented in example.envrc.
 Each platform component's config.py imports from here rather than duplicating
 this logic.
 """
