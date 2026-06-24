@@ -4,30 +4,32 @@ Blue Data Intelligence Layer — a Python library for registering, introspecting
 
 ## Installation
 
-**Install everything** (lib + all platform components, editable with dev extras):
+Each component has a `scripts/` directory. Run scripts from the component's root directory.
+
+| Script | Components | Purpose |
+|---|---|---|
+| `build.sh` | all | Build wheel + sdist into `dist/` |
+| `install.sh` | all | Editable install (`pip install -e .`) |
+| `publish.sh` | lib only | Publish to package registry via twine |
+
+**Install a component (editable):**
 ```bash
-make install
+cd lib && ./scripts/install.sh
+cd platform/api && ./scripts/install.sh
+cd platform/cli && ./scripts/install.sh
+cd platform/json-mcp && ./scripts/install.sh
+cd platform/registry-mcp && ./scripts/install.sh
 ```
 
-**Install individual components:**
-```bash
-make install-lib           # core lib only
-make install-api           # REST API
-make install-cli           # CLI
-make install-json-mcp      # JSON MCP server
-make install-registry-mcp  # registry MCP server
-```
+Install `lib` first — all platform components depend on it.
 
-Each platform component automatically installs the core lib as a dependency.
-
-**Build distributable packages** (wheel + sdist into each component's `dist/`):
+**Build distributable packages:**
 ```bash
-make build                 # all components
-make build-lib             # core lib only
-make build-api             # REST API
-make build-cli             # CLI
-make build-json-mcp        # JSON MCP server
-make build-registry-mcp    # registry MCP server
+cd lib && ./scripts/build.sh
+cd platform/api && ./scripts/build.sh
+cd platform/cli && ./scripts/build.sh
+cd platform/json-mcp && ./scripts/build.sh
+cd platform/registry-mcp && ./scripts/build.sh
 ```
 
 Requires the `build` package (`pip install build`).
@@ -454,31 +456,25 @@ See [`docs/cli.md`](docs/cli.md) for the full command reference.
 
 ## Running tests
 
-From the repo root:
+Run from each component's root directory:
 
 ```bash
-make test                  # all unit tests (lib + all platform components)
-make test-lib              # lib unit tests only
-make test-platform         # all platform component tests
-make test-api              # REST API tests
-make test-cli              # CLI tests
-make test-json-mcp         # JSON MCP tests
-make test-registry-mcp     # registry MCP tests
-make test-lib-integration  # lib integration tests (requires Redis, Postgres, MySQL, Neo4j)
+cd lib && pytest tests/unit -v           # lib unit tests
+cd platform/api && pytest -v             # REST API tests
+cd platform/cli && pytest -v             # CLI tests
+cd platform/json-mcp && pytest -v        # JSON MCP tests
+cd platform/registry-mcp && pytest -v   # registry MCP tests
 ```
 
-Run `make help` to see all available targets.
-
-If packages are not yet installed, run `make install` first:
+Install packages with dev extras before running tests:
 
 ```bash
-make install   # installs all packages with dev extras
-make test
+cd lib && ./scripts/install.sh
 ```
 
 Redis integration tests auto-skip when Redis Stack is not running. To run them:
 
 ```bash
 redis-stack-server --port 6379 --daemonize yes
-make test-lib-integration
+cd lib && pytest tests/integration -v
 ```
