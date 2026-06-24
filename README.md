@@ -275,12 +275,12 @@ Controls where the registry state is persisted.
 
 | Variable | Default | Description |
 |---|---|---|
-| `BLUE_DATA_STORE` | `memory` | Persistence backend: `memory`, `redis`, or `file` (json-mcp only) |
-| `BLUE_DATA_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. Required when `BLUE_DATA_STORE=redis` |
-| `BLUE_DATA_REDIS_NAMESPACE` | `blue_data` | Key namespace prefix in Redis. Isolates multiple registry instances on the same server |
-| `BLUE_DATA_FILE` | `blue_data_store.json` | Path to JSON file. Required when `BLUE_DATA_STORE=file` (json-mcp only) |
+| `BLUE_DATA_REGISTRY_STORE` | `memory` | Persistence backend: `memory`, `redis`, or `file` (json-mcp only) |
+| `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. Required when `BLUE_DATA_REGISTRY_STORE=redis` |
+| `BLUE_DATA_REGISTRY_REDIS_NAMESPACE` | `blue_data` | Key namespace prefix in Redis. Isolates multiple registry instances on the same server |
+| `BLUE_DATA_REGISTRY_FILE` | `blue_data_store.json` | Path to JSON file. Required when `BLUE_DATA_REGISTRY_STORE=file` (json-mcp only) |
 
-> **Redis Stack required**: `BLUE_DATA_STORE=redis` uses `JSON.SET` and `FT.CREATE` commands only available in Redis Stack (`redis-stack-server`), not plain Redis.
+> **Redis Stack required**: `BLUE_DATA_REGISTRY_STORE=redis` uses `JSON.SET` and `FT.CREATE` commands only available in Redis Stack (`redis-stack-server`), not plain Redis.
 
 ---
 
@@ -320,7 +320,7 @@ Search weights do not need to sum to 1 — they are normalized automatically.
 
 | Variable | Default | Description |
 |---|---|---|
-| `BLUE_DATA_CONFIG` | _(empty)_ | Path to a JSON file that pre-loads data sources into the registry at startup |
+| `BLUE_DATA_SOURCES_CONFIG` | _(empty)_ | Path to a JSON file that pre-loads data sources into the registry at startup |
 
 Source config file format:
 
@@ -368,10 +368,10 @@ pip install -e .
 blue-data-registry-mcp
 
 # Pre-load sources from a config file
-BLUE_DATA_CONFIG=/path/to/sources.json blue-data-registry-mcp
+BLUE_DATA_SOURCES_CONFIG=/path/to/sources.json blue-data-registry-mcp
 
 # Persistent registry backed by Redis
-BLUE_DATA_STORE=redis BLUE_DATA_REDIS_URL=redis://localhost:6379/0 \
+BLUE_DATA_REGISTRY_STORE=redis BLUE_DATA_REGISTRY_REDIS_URL=redis://localhost:6379/0 \
     blue-data-registry-mcp
 
 # LLM-augmented enrichment tools
@@ -387,7 +387,7 @@ BLUE_DATA_LLM_PROVIDER=anthropic ANTHROPIC_API_KEY=sk-ant-... \
     "blue-data-registry": {
       "command": "blue-data-registry-mcp",
       "env": {
-        "BLUE_DATA_CONFIG": "/path/to/sources.json"
+        "BLUE_DATA_SOURCES_CONFIG": "/path/to/sources.json"
       }
     }
   }
@@ -425,7 +425,7 @@ blue-data-api
 ```
 
 Interactive docs at `http://localhost:8000/docs`.  
-Pre-load sources with `BLUE_DATA_CONFIG=/path/to/sources.json` (same format as registry-mcp).  
+Pre-load sources with `BLUE_DATA_SOURCES_CONFIG=/path/to/sources.json` (same format as registry-mcp).  
 See [`docs/api.md`](docs/api.md) for the full endpoint reference.
 
 ### cli quick start
@@ -450,7 +450,7 @@ blue-data inspect entity shop prod public orders
 blue-data --json search "orders" | jq '.[].name'
 ```
 
-Pre-load sources with `BLUE_DATA_CONFIG=/path/to/sources.json` (same format as other platforms).  
+Pre-load sources with `BLUE_DATA_SOURCES_CONFIG=/path/to/sources.json` (same format as other platforms).  
 See [`docs/cli.md`](docs/cli.md) for the full command reference.
 
 ---

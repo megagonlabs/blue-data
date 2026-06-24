@@ -35,13 +35,13 @@ def _getenv_bool(key: str, default: bool) -> bool:
 
 def build_store():
     """Build a JSONSource from env vars."""
-    store_type = os.environ.get("BLUE_DATA_STORE", "memory").lower()
+    store_type = os.environ.get("BLUE_DATA_REGISTRY_STORE", "memory").lower()
 
     if store_type == "redis":
         import urllib.parse
         from blue_data.source.json.redis.redis_json_source import RedisJSONSource
-        url = os.environ.get("BLUE_DATA_REDIS_URL", "redis://localhost:6379/0")
-        namespace = os.environ.get("BLUE_DATA_REDIS_NAMESPACE", "blue_data")
+        url = os.environ.get("BLUE_DATA_REGISTRY_REDIS_URL", "redis://localhost:6379/0")
+        namespace = os.environ.get("BLUE_DATA_REGISTRY_REDIS_NAMESPACE", "blue_data")
         parsed = urllib.parse.urlparse(url)
         return RedisJSONSource(properties={
             "namespace": namespace,
@@ -54,7 +54,7 @@ def build_store():
 
     if store_type == "file":
         from blue_data.source.json.file_json_source import FileJSONSource
-        path = os.environ.get("BLUE_DATA_FILE", "blue_data_store.json")
+        path = os.environ.get("BLUE_DATA_REGISTRY_FILE", "blue_data_store.json")
         return FileJSONSource(path)
 
     from blue_data.source.json.memory_json_source import MemoryJSONSource
@@ -161,7 +161,7 @@ def build_enricher():
 
 def load_sources(registry) -> None:
     """Pre-load data sources from BLUE_DATA_CONFIG JSON file into registry."""
-    path = os.environ.get("BLUE_DATA_CONFIG")
+    path = os.environ.get("BLUE_DATA_SOURCES_CONFIG")
     if not path or not os.path.exists(path):
         return
 
