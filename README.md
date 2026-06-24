@@ -9,7 +9,7 @@ Each component has a `scripts/` directory. Run scripts from the component's root
 | Script | Components | Purpose |
 |---|---|---|
 | `build.sh` | all | Build wheel + sdist into `dist/` |
-| `install.sh` | all | Editable install (`pip install -e .`) |
+| `install.sh` | all | Editable install (`python3 -m pip install -e .`) |
 | `publish.sh` | lib only | Publish to package registry via twine |
 
 **Install a component (editable):**

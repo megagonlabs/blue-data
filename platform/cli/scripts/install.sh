@@ -2,4 +2,4 @@
 echo 'Installing blue-data cli...'
 
 # install
-pip install -e .
+python3 -m pip install -e .
