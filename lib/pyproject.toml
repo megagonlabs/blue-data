@@ -22,7 +22,7 @@ redis     = ["redis"]
 chromadb  = ["chromadb"]
 bn        = ["pgmpy", "networkx"]
 llm       = ["anthropic"]
-dev       = ["pytest"]
+dev       = ["pytest", "pytest-cov"]
 all = [
     "psycopg2-binary",
     "mysql-connector-python",

@@ -181,7 +181,7 @@ def test_file_list_keys(file_store):
 
 def test_get_store_memory(monkeypatch):
     config_module._store = None
-    monkeypatch.setenv("BLUE_DATA_STORE", "memory")
+    monkeypatch.setenv("BLUE_DATA_REGISTRY_STORE", "memory")
     store = config_module.get_store()
     assert isinstance(store, MemoryJSONSource)
     config_module._store = None
@@ -190,8 +190,8 @@ def test_get_store_memory(monkeypatch):
 def test_get_store_file(monkeypatch, tmp_path):
     config_module._store = None
     path = str(tmp_path / "test.json")
-    monkeypatch.setenv("BLUE_DATA_STORE", "file")
-    monkeypatch.setenv("BLUE_DATA_FILE", path)
+    monkeypatch.setenv("BLUE_DATA_REGISTRY_STORE", "file")
+    monkeypatch.setenv("BLUE_DATA_REGISTRY_FILE", path)
     store = config_module.get_store()
     assert isinstance(store, FileJSONSource)
     config_module._store = None
