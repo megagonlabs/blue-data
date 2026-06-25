@@ -50,7 +50,7 @@ venv = ".venv"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-addopts = "--cov=src --cov-report=term-missing"
+addopts = ""
 pythonpath = ["src", "."]
 testpaths = ["tests/unit"]
 
