@@ -8,6 +8,7 @@ import json
 import os
 import pytest
 
+pgmpy = pytest.importorskip("pgmpy", reason="pgmpy not installed (pip install 'blue-data[bn]')")
 from pgmpy.models import BayesianNetwork as DiscreteBayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
 
