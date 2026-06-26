@@ -228,11 +228,14 @@ class DataSchema:
             for key, entity_obj in self.entities.items():
                 attrs = entity_obj['contents'].get('attributes', {})
                 attr_parts = [f"{a}: {o['info']}" for a, o in attrs.items()]
-                attr_str = f"({', '.join(attr_parts)})" if attr_parts else ""
+                attr_str = f"{{{', '.join(attr_parts)}}}" if attr_parts else ""
                 lines.append(f"  {entity_obj['name']}{' ' + attr_str if attr_str else ''}")
             lines.append("Relations:")
             for key, rel_obj in self.relations.items():
-                lines.append(f"  ({rel_obj['source']}) -[{rel_obj['name']}]-> ({rel_obj['target']})")
+                attrs = rel_obj['contents'].get('attributes', {})
+                attr_parts = [f"{a}: {o['info']}" for a, o in attrs.items()]
+                attr_str = f"{{{', '.join(attr_parts)}}}" if attr_parts else ""
+                lines.append(f"  ({rel_obj['source']}) -[{rel_obj['name']}{attr_str}]-> ({rel_obj['target']})")
             if self.metadata:
                 lines.append("Metadata:")
                 for k, v in self.metadata.items():
