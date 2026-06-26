@@ -65,6 +65,17 @@ class FileGraphSource(GraphSource):
             node["properties"].update(properties)
             self._save(database, data)
 
+    def match_nodes(self, database, label=None, properties=None) -> list[dict]:
+        nodes = self._load(database)["nodes"].values()
+        results = []
+        for node in nodes:
+            if label is not None and node["label"] != label:
+                continue
+            if properties and not all(node["properties"].get(k) == v for k, v in properties.items()):
+                continue
+            results.append(node)
+        return results
+
     # ---------- edge operations ----------
 
     def add_edge(self, database, source_id, edge_type, target_id, properties=None) -> str:
@@ -105,6 +116,21 @@ class FileGraphSource(GraphSource):
                 changed = True
         if changed:
             self._save(database, data)
+
+    def match_edges(self, database, edge_type=None, source_id=None, target_id=None, properties=None) -> list[dict]:
+        edges = self._load(database)["edges"].values()
+        results = []
+        for edge in edges:
+            if edge_type is not None and edge["edge_type"] != edge_type:
+                continue
+            if source_id is not None and edge["source_id"] != source_id:
+                continue
+            if target_id is not None and edge["target_id"] != target_id:
+                continue
+            if properties and not all(edge["properties"].get(k) == v for k, v in properties.items()):
+                continue
+            results.append(edge)
+        return results
 
     # ---------- traversal ----------
 

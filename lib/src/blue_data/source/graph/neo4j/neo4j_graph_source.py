@@ -580,6 +580,25 @@ class NEO4JSource(GraphSource):
             database=database, params={"nid": node_id, "props": properties}, read=False,
         )
 
+    def match_nodes(self, database: str, label: str | None = None, properties: dict | None = None) -> list[dict]:
+        label_clause = f":`{self._clean_neo4j_identifier(label)}`" if label else ""
+        conditions = " AND ".join(f"n.`{k}` = $p_{i}" for i, k in enumerate(properties or {}))
+        where_clause = f" WHERE {conditions}" if conditions else ""
+        params = {f"p_{i}": v for i, v in enumerate((properties or {}).values())}
+        result = self._run_query(
+            f"MATCH (n{label_clause}){where_clause} RETURN n, labels(n) AS labels",
+            database=database, params=params, read=True,
+        )
+        nodes = []
+        for row in result:
+            node_obj = row["n"]
+            nodes.append({
+                "id": dict(node_obj).get("_id") or row.get("elementId(n)"),
+                "label": list(node_obj.labels)[0] if node_obj.labels else None,
+                "properties": dict(node_obj),
+            })
+        return nodes
+
     def add_edge(self, database: str, source_id: str, edge_type: str, target_id: str, properties: dict | None = None) -> str:
         rel_type = self._clean_neo4j_identifier(edge_type)
         result = self._run_query(
@@ -611,6 +630,37 @@ class NEO4JSource(GraphSource):
             f"AND (b._id = $tgt OR elementId(b) = $tgt) SET r += $props",
             database=database, params={"src": source_id, "tgt": target_id, "props": properties}, read=False,
         )
+
+    def match_edges(self, database: str, edge_type: str | None = None, source_id: str | None = None, target_id: str | None = None, properties: dict | None = None) -> list[dict]:
+        rel_clause = f":`{self._clean_neo4j_identifier(edge_type)}`" if edge_type else ""
+        conditions = []
+        params: dict = {}
+        if source_id is not None:
+            conditions.append("(a._id = $src OR elementId(a) = $src)")
+            params["src"] = source_id
+        if target_id is not None:
+            conditions.append("(b._id = $tgt OR elementId(b) = $tgt)")
+            params["tgt"] = target_id
+        for i, (k, v) in enumerate(( properties or {}).items()):
+            conditions.append(f"r.`{k}` = $p_{i}")
+            params[f"p_{i}"] = v
+        where_clause = f" WHERE {' AND '.join(conditions)}" if conditions else ""
+        result = self._run_query(
+            f"MATCH (a)-[r{rel_clause}]->(b){where_clause} "
+            "RETURN r, type(r) AS edge_type, a._id AS source_id, b._id AS target_id, "
+            "elementId(a) AS src_eid, elementId(b) AS tgt_eid",
+            database=database, params=params, read=True,
+        )
+        edges = []
+        for row in result:
+            edge_obj = row["r"]
+            edges.append({
+                "edge_type": row["edge_type"],
+                "source_id": row["source_id"] or row["src_eid"],
+                "target_id": row["target_id"] or row["tgt_eid"],
+                "properties": dict(edge_obj),
+            })
+        return edges
 
     def get_neighbors(self, database: str, node_id: str, edge_type: str | None = None, direction: str = "both") -> list[dict]:
         rel_spec = f":`{self._clean_neo4j_identifier(edge_type)}`" if edge_type else ""

@@ -26,6 +26,10 @@ class GraphSource(DataSource, ABC):
     def update_node(self, database: str, node_id: str, properties: dict) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def match_nodes(self, database: str, label: str | None = None, properties: dict | None = None) -> list[dict]:
+        raise NotImplementedError
+
     # ---------- edge operations ----------
 
     @abstractmethod
@@ -38,6 +42,10 @@ class GraphSource(DataSource, ABC):
 
     @abstractmethod
     def update_edge(self, database: str, source_id: str, edge_type: str, target_id: str, properties: dict) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def match_edges(self, database: str, edge_type: str | None = None, source_id: str | None = None, target_id: str | None = None, properties: dict | None = None) -> list[dict]:
         raise NotImplementedError
 
     # ---------- traversal ----------
@@ -57,9 +65,11 @@ class GraphSource(DataSource, ABC):
                 "GRAPH.GET_NODE"      node_id
                 "GRAPH.DELETE_NODE"   node_id
                 "GRAPH.UPDATE_NODE"   node_id, properties
+                "GRAPH.MATCH_NODE"    label (opt), properties (opt)
                 "GRAPH.ADD_EDGE"      source_id, edge_type, target_id, properties (opt)
                 "GRAPH.DELETE_EDGE"   source_id, edge_type, target_id
                 "GRAPH.UPDATE_EDGE"   source_id, edge_type, target_id, properties
+                "GRAPH.MATCH_EDGE"    source_id (opt), edge_type (opt), target_id (opt), properties (opt)
                 "GRAPH.GET_NEIGHBORS" node_id, edge_type (opt), direction (opt, default "both")
         """
         if not isinstance(query, dict):
@@ -87,6 +97,13 @@ class GraphSource(DataSource, ABC):
         if op == "GRAPH.UPDATE_NODE":
             self.update_node(database, node_id=query["node_id"], properties=query["properties"])
             return None
+
+        if op == "GRAPH.MATCH_NODE":
+            return self.match_nodes(
+                database,
+                label=query.get("label"),
+                properties=query.get("properties"),
+            )
 
         if op == "GRAPH.ADD_EDGE":
             return self.add_edge(
@@ -116,6 +133,15 @@ class GraphSource(DataSource, ABC):
             )
             return None
 
+        if op == "GRAPH.MATCH_EDGE":
+            return self.match_edges(
+                database,
+                edge_type=query.get("edge_type"),
+                source_id=query.get("source_id"),
+                target_id=query.get("target_id"),
+                properties=query.get("properties"),
+            )
+
         if op == "GRAPH.GET_NEIGHBORS":
             return self.get_neighbors(
                 database,
@@ -126,6 +152,6 @@ class GraphSource(DataSource, ABC):
 
         raise ValueError(
             f"Unsupported GraphSource operation: {op!r}. "
-            "Supported: GRAPH.ADD_NODE, GRAPH.GET_NODE, GRAPH.DELETE_NODE, GRAPH.UPDATE_NODE, "
-            "GRAPH.ADD_EDGE, GRAPH.DELETE_EDGE, GRAPH.UPDATE_EDGE, GRAPH.GET_NEIGHBORS"
+            "Supported: GRAPH.ADD_NODE, GRAPH.GET_NODE, GRAPH.DELETE_NODE, GRAPH.UPDATE_NODE, GRAPH.MATCH_NODE, "
+            "GRAPH.ADD_EDGE, GRAPH.DELETE_EDGE, GRAPH.UPDATE_EDGE, GRAPH.MATCH_EDGE, GRAPH.GET_NEIGHBORS"
         )

@@ -40,6 +40,16 @@ class MemoryGraphSource(GraphSource):
         if node is not None:
             node["properties"].update(properties)
 
+    def match_nodes(self, database, label=None, properties=None) -> list[dict]:
+        results = []
+        for node in self._nodes[database].values():
+            if label is not None and node["label"] != label:
+                continue
+            if properties and not all(node["properties"].get(k) == v for k, v in properties.items()):
+                continue
+            results.append(node)
+        return results
+
     # ---------- edge operations ----------
 
     def add_edge(self, database, source_id, edge_type, target_id, properties=None) -> str:
@@ -71,6 +81,20 @@ class MemoryGraphSource(GraphSource):
                 and edge["target_id"] == target_id
             ):
                 edge["properties"].update(properties)
+
+    def match_edges(self, database, edge_type=None, source_id=None, target_id=None, properties=None) -> list[dict]:
+        results = []
+        for edge in self._edges[database].values():
+            if edge_type is not None and edge["edge_type"] != edge_type:
+                continue
+            if source_id is not None and edge["source_id"] != source_id:
+                continue
+            if target_id is not None and edge["target_id"] != target_id:
+                continue
+            if properties and not all(edge["properties"].get(k) == v for k, v in properties.items()):
+                continue
+            results.append(edge)
+        return results
 
     # ---------- traversal ----------
 
