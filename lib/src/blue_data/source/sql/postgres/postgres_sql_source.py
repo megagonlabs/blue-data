@@ -323,7 +323,7 @@ class PostgresDBSource(SQLSource):
                             f"{collection}.{table_name}.{column_name}: {e}"
                         )
 
-                schema.add_entity_property(table_name, column_name, property_def)
+                schema.add_entity_attribute(table_name, column_name, property_def)
 
             return schema.get_entities()
 

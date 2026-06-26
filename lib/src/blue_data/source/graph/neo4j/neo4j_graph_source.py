@@ -775,7 +775,7 @@ class NEO4JSource(GraphSource):
             for prop in node.get("properties", []):
                 prop_name = prop.get("property")
                 if prop_name:
-                    schema.add_entity_property(
+                    schema.add_entity_attribute(
                         label,
                         prop_name,
                         {"type": prop.get("type", "STRING"), "values": []},
@@ -809,7 +809,7 @@ class NEO4JSource(GraphSource):
             for prop in rel_properties.get(rel_type, []):
                 prop_name = prop.get("property")
                 if prop_name:
-                    schema.add_relation_property(
+                    schema.add_relation_attribute(
                         key,
                         prop_name,
                         {"type": prop.get("type", "STRING"), "values": []},

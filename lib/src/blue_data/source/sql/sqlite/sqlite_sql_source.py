@@ -233,7 +233,7 @@ class SQLiteDBSource(SQLSource):
 
                 # TODO: add enum, values to property_def
                 property_def["values"] = []
-                schema.add_entity_property(table, column_name, property_def)
+                schema.add_entity_attribute(table, column_name, property_def)
 
         self._db_disconnect(db_connection)
         return schema.get_entities()

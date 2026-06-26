@@ -60,9 +60,9 @@ class DataSchema:
 
         return key
 
-    def add_entity_property(self, key, attribute, type, description=None):
+    def add_entity_attribute(self, key, attribute, type, description=None):
         """
-        Add a property (attribute) to an existing entity.
+        Add an attribute to an existing entity.
 
         Parameters:
             key (str): The entity key.
@@ -142,6 +142,7 @@ class DataSchema:
 
         if description is None:
             description = ""
+
         relation_obj = {}
         relation_obj['name'] = relation
         relation_obj['index'] = index
@@ -149,27 +150,34 @@ class DataSchema:
         relation_obj['target'] = target
         relation_obj['description'] = description
         relation_obj['properties'] = {}
+        relation_obj['contents'] = {'attributes': {}}
 
         self.relations[unique_key] = relation_obj
 
         return unique_key
 
-    def add_relation_property(self, key, property, type, description=None):
+    def add_relation_attribute(self, key, attribute, type, description=None):
         """
-        Add a property to an existing relation.
+        Add an attribute to an existing relation.
 
         Parameters:
             key (str): Relation key.
-            property (str): Property name.
-            type (str): Property type or description.
-            description (str, optional): A description for the property.
+            attribute (str): Attribute name.
+            type (str): Attribute type or description.
+            description (str, optional): A description for the attribute.
         """
+        if key not in self.relations:
+            return
+        relation_obj = self.relations[key]
+
         if description is None:
             description = ""
-        if key in self.relations:
-            relation_obj = self.relations[key]
-            properties_obj = relation_obj['properties']
-            properties_obj[property] = {'type': type, 'description': description}  
+
+        relation_obj['contents']['attributes'][attribute] = {
+            'name': attribute,
+            'info': type,
+            'description': description,
+        }
 
     def get_entities(self):
         """
@@ -214,12 +222,21 @@ class DataSchema:
             properties = entity_obj['properties']
             s += "key: " + key + '\n'
             s += "  name: " + name + '\n'
+            s += "  description: " + entity_obj['description'] + '\n'
             s += "  index: " + str(index) + '\n'
             s += "  properties: " + '\n'
             for property in properties:
                 prop_obj = properties[property]
                 s += "    " + property + ": " + prop_obj['type'] + '\n'
                 s += "      description: " + prop_obj['description'] + '\n'
+            contents = entity_obj['contents'] if 'contents' in entity_obj else {}
+            if 'attributes' in contents:
+                attributes = contents['attributes']
+                s += "  attributes: " + '\n'
+                for attribute in attributes:
+                    attr_obj = attributes[attribute]
+                    s += "    " + attribute + ": " + attr_obj['info'] + '\n'
+                    s += "      description: " + attr_obj['description'] + '\n'
 
         s += 'Relations: ' + '\n'
         for key in self.relations:
@@ -231,6 +248,7 @@ class DataSchema:
             properties = relation_obj['properties']
             s += "key: " + key + '\n'
             s += "  name: " + name + '\n'
+            s += "  description: " + relation_obj['description'] + '\n'
             s += "  index: " + str(index) + '\n'
             s += "  source: " + source + '\n'
             s += "  target: " + target + '\n'
@@ -239,6 +257,15 @@ class DataSchema:
                 prop_obj = properties[property]
                 s += "    " + property + ": " + prop_obj['type'] + '\n'
                 s += "      description: " + prop_obj['description'] + '\n'
+
+            contents = relation_obj['contents'] if 'contents' in relation_obj else {}
+            if 'attributes' in contents:
+                attributes = contents['attributes']
+                s += "  attributes: " + '\n'
+                for attribute in attributes:
+                    attr_obj = attributes[attribute]
+                    s += "    " + attribute + ": " + attr_obj['info'] + '\n'
+                    s += "      description: " + attr_obj['description'] + '\n'
 
         if self.metadata:
             s += 'Metadata: ' + '\n'

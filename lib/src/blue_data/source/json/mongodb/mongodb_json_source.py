@@ -185,7 +185,7 @@ class MongoDBSource(JSONSource):
                     self.extract_schema(value, schema=schema, source=target)
 
                 else:
-                    schema.add_entity_property(
+                    schema.add_entity_attribute(
                         source,
                         key,
                         {"type": value.__class__.__name__, "values": []},

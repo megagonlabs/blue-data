@@ -461,7 +461,7 @@ schema = DataSchema()
 |---|---|---|
 | `has_entity(key)` | `bool` | Check if entity exists |
 | `add_entity(key)` | `str` | Add entity; appends `__N` suffix on duplicate |
-| `add_entity_property(key, attribute, type)` | `None` | Add a column/attribute to an entity |
+| `add_entity_attribute(key, attribute, type)` | `None` | Add a column/attribute to an entity |
 | `get_entities()` | `dict` | All entity definitions |
 
 **Relation methods**
@@ -470,7 +470,7 @@ schema = DataSchema()
 |---|---|---|
 | `has_relation(source, relation, target)` | `bool` | Check if relation exists |
 | `add_relation(source, relation, target)` | `str` | Add relation; returns unique key |
-| `add_relation_property(key, property, type)` | `None` | Add a property to a relation |
+| `add_relation_attribute(key, property, type)` | `None` | Add a property to a relation |
 | `get_relations()` | `dict` | All relation definitions |
 
 ---

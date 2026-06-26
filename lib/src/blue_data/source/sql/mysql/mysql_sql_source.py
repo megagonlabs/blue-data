@@ -207,7 +207,7 @@ class MySQLDBSource(SQLSource):
                     property_def["enum"] = enum_values
                     property_def["values"] = enum_values
 
-                schema.add_entity_property(
+                schema.add_entity_attribute(
                     table_name,
                     column_name,
                     property_def,

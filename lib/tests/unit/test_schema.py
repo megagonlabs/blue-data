@@ -9,10 +9,10 @@ def test_add_and_get_entity():
     assert "users" in entities
 
 
-def test_add_entity_property():
+def test_add_entity_attribute():
     schema = DataSchema()
     schema.add_entity("users")
-    schema.add_entity_property("users", "age", {"type": "INTEGER"})
+    schema.add_entity_attribute("users", "age", {"type": "INTEGER"})
     attrs = schema.get_entities()["users"]["contents"]["attributes"]
     assert "age" in attrs
     assert attrs["age"]["info"] == {"type": "INTEGER"}
@@ -34,12 +34,12 @@ def test_add_relation():
     assert key in schema.get_relations()
 
 
-def test_add_relation_property():
+def test_add_relation_attribute():
     schema = DataSchema()
     schema.add_entity("users")
     schema.add_entity("orders")
     key = schema.add_relation("users", "PLACED", "orders")
-    schema.add_relation_property(key, "since", "DATE")
+    schema.add_relation_attribute(key, "since", "DATE")
     assert schema.get_relations()[key]["properties"]["since"] == "DATE"
 
 

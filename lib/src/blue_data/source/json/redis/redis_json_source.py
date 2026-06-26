@@ -251,7 +251,7 @@ class RedisJSONSource(JSONSource):
                 schema.add_relation(source, f"{source}:{target}", target)
                 self._extract_schema_from_sample(sample=value, schema=schema, source=target)
             else:
-                schema.add_entity_property(source, key, {"type": value.__class__.__name__, "values": []})
+                schema.add_entity_attribute(source, key, {"type": value.__class__.__name__, "values": []})
 
     def fetch_database_collection_entities(self, database, collection, sample_limit=25):
         schema = DataSchema()
