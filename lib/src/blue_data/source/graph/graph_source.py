@@ -22,6 +22,10 @@ class GraphSource(DataSource, ABC):
     def delete_node(self, database: str, node_id: str) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def update_node(self, database: str, node_id: str, properties: dict) -> None:
+        raise NotImplementedError
+
     # ---------- edge operations ----------
 
     @abstractmethod
@@ -30,6 +34,10 @@ class GraphSource(DataSource, ABC):
 
     @abstractmethod
     def delete_edge(self, database: str, source_id: str, edge_type: str, target_id: str) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def update_edge(self, database: str, source_id: str, edge_type: str, target_id: str, properties: dict) -> None:
         raise NotImplementedError
 
     # ---------- traversal ----------
@@ -48,8 +56,10 @@ class GraphSource(DataSource, ABC):
                 "GRAPH.ADD_NODE"      label, properties (opt), node_id (opt)
                 "GRAPH.GET_NODE"      node_id
                 "GRAPH.DELETE_NODE"   node_id
+                "GRAPH.UPDATE_NODE"   node_id, properties
                 "GRAPH.ADD_EDGE"      source_id, edge_type, target_id, properties (opt)
                 "GRAPH.DELETE_EDGE"   source_id, edge_type, target_id
+                "GRAPH.UPDATE_EDGE"   source_id, edge_type, target_id, properties
                 "GRAPH.GET_NEIGHBORS" node_id, edge_type (opt), direction (opt, default "both")
         """
         if not isinstance(query, dict):
@@ -74,6 +84,10 @@ class GraphSource(DataSource, ABC):
             self.delete_node(database, node_id=query["node_id"])
             return None
 
+        if op == "GRAPH.UPDATE_NODE":
+            self.update_node(database, node_id=query["node_id"], properties=query["properties"])
+            return None
+
         if op == "GRAPH.ADD_EDGE":
             return self.add_edge(
                 database,
@@ -92,6 +106,16 @@ class GraphSource(DataSource, ABC):
             )
             return None
 
+        if op == "GRAPH.UPDATE_EDGE":
+            self.update_edge(
+                database,
+                source_id=query["source_id"],
+                edge_type=query["edge_type"],
+                target_id=query["target_id"],
+                properties=query["properties"],
+            )
+            return None
+
         if op == "GRAPH.GET_NEIGHBORS":
             return self.get_neighbors(
                 database,
@@ -102,6 +126,6 @@ class GraphSource(DataSource, ABC):
 
         raise ValueError(
             f"Unsupported GraphSource operation: {op!r}. "
-            "Supported: GRAPH.ADD_NODE, GRAPH.GET_NODE, GRAPH.DELETE_NODE, "
-            "GRAPH.ADD_EDGE, GRAPH.DELETE_EDGE, GRAPH.GET_NEIGHBORS"
+            "Supported: GRAPH.ADD_NODE, GRAPH.GET_NODE, GRAPH.DELETE_NODE, GRAPH.UPDATE_NODE, "
+            "GRAPH.ADD_EDGE, GRAPH.DELETE_EDGE, GRAPH.UPDATE_EDGE, GRAPH.GET_NEIGHBORS"
         )

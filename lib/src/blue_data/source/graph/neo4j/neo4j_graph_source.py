@@ -574,6 +574,12 @@ class NEO4JSource(GraphSource):
             database=database, params={"nid": node_id}, read=False,
         )
 
+    def update_node(self, database: str, node_id: str, properties: dict) -> None:
+        self._run_query(
+            "MATCH (n) WHERE n._id = $nid OR elementId(n) = $nid SET n += $props",
+            database=database, params={"nid": node_id, "props": properties}, read=False,
+        )
+
     def add_edge(self, database: str, source_id: str, edge_type: str, target_id: str, properties: dict | None = None) -> str:
         rel_type = self._clean_neo4j_identifier(edge_type)
         result = self._run_query(
@@ -595,6 +601,15 @@ class NEO4JSource(GraphSource):
             f"WHERE (a._id = $src OR elementId(a) = $src) "
             f"AND (b._id = $tgt OR elementId(b) = $tgt) DELETE r",
             database=database, params={"src": source_id, "tgt": target_id}, read=False,
+        )
+
+    def update_edge(self, database: str, source_id: str, edge_type: str, target_id: str, properties: dict) -> None:
+        rel_type = self._clean_neo4j_identifier(edge_type)
+        self._run_query(
+            f"MATCH (a)-[r:`{rel_type}`]->(b) "
+            f"WHERE (a._id = $src OR elementId(a) = $src) "
+            f"AND (b._id = $tgt OR elementId(b) = $tgt) SET r += $props",
+            database=database, params={"src": source_id, "tgt": target_id, "props": properties}, read=False,
         )
 
     def get_neighbors(self, database: str, node_id: str, edge_type: str | None = None, direction: str = "both") -> list[dict]:

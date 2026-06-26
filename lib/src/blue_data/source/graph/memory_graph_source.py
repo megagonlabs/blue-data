@@ -35,6 +35,11 @@ class MemoryGraphSource(GraphSource):
             if e["source_id"] != node_id and e["target_id"] != node_id
         }
 
+    def update_node(self, database, node_id, properties) -> None:
+        node = self._nodes[database].get(node_id)
+        if node is not None:
+            node["properties"].update(properties)
+
     # ---------- edge operations ----------
 
     def add_edge(self, database, source_id, edge_type, target_id, properties=None) -> str:
@@ -57,6 +62,15 @@ class MemoryGraphSource(GraphSource):
                 and e["target_id"] == target_id
             )
         }
+
+    def update_edge(self, database, source_id, edge_type, target_id, properties) -> None:
+        for edge in self._edges[database].values():
+            if (
+                edge["source_id"] == source_id
+                and edge["edge_type"] == edge_type
+                and edge["target_id"] == target_id
+            ):
+                edge["properties"].update(properties)
 
     # ---------- traversal ----------
 

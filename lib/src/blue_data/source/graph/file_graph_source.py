@@ -58,6 +58,13 @@ class FileGraphSource(GraphSource):
         }
         self._save(database, data)
 
+    def update_node(self, database, node_id, properties) -> None:
+        data = self._load(database)
+        node = data["nodes"].get(node_id)
+        if node is not None:
+            node["properties"].update(properties)
+            self._save(database, data)
+
     # ---------- edge operations ----------
 
     def add_edge(self, database, source_id, edge_type, target_id, properties=None) -> str:
@@ -84,6 +91,20 @@ class FileGraphSource(GraphSource):
             )
         }
         self._save(database, data)
+
+    def update_edge(self, database, source_id, edge_type, target_id, properties) -> None:
+        data = self._load(database)
+        changed = False
+        for edge in data["edges"].values():
+            if (
+                edge["source_id"] == source_id
+                and edge["edge_type"] == edge_type
+                and edge["target_id"] == target_id
+            ):
+                edge["properties"].update(properties)
+                changed = True
+        if changed:
+            self._save(database, data)
 
     # ---------- traversal ----------
 
