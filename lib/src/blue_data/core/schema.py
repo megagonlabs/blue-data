@@ -20,7 +20,7 @@ class DataSchema:
         """
         return key in self.entities
 
-    def add_entity(self, key):
+    def add_entity(self, key, description=None):
         """
         Add a new entity to the schema.
 
@@ -28,6 +28,7 @@ class DataSchema:
 
         Parameters:
             key (str): The name of the entity.
+            description (str, optional): A description for the entity.
 
         Returns:
             str: The original entity key.
@@ -42,10 +43,13 @@ class DataSchema:
         if index > 0:
             unique_key = key + "__" + str(index)
 
+        if description is None:
+            description = ""
+
         entity_obj = {
             'name': key,
             'index': index,
-            'description': '',
+            'description': description,
             'created_by': None,
             'properties': {},  # type info only
             'contents': {'attributes': {}},  # hierarchical child info  # attributes
@@ -56,7 +60,7 @@ class DataSchema:
 
         return key
 
-    def add_entity_property(self, key, attribute, type):
+    def add_entity_property(self, key, attribute, type, description=None):
         """
         Add a property (attribute) to an existing entity.
 
@@ -64,15 +68,19 @@ class DataSchema:
             key (str): The entity key.
             attribute (str): The name of the attribute.
             type (str): The type or description of the attribute.
+            description (str, optional): A description for the attribute.
         """
         if key not in self.entities:
             return
         entity_obj = self.entities[key]
 
+        if description is None:
+            description = ""
+
         entity_obj['contents']['attributes'][attribute] = {
             'name': attribute,
             'info': type,
-            'description': None,
+            'description': description,
         }
 
     def _relation_encoding(self, source, relation, target):
@@ -106,7 +114,7 @@ class DataSchema:
         relation_encoding = self._relation_encoding(source, relation, target)
         return relation_encoding in self.relations
 
-    def add_relation(self, source, relation, target):
+    def add_relation(self, source, relation, target, description=None):
         """
         Add a relation between two entities in the schema.
 
@@ -116,6 +124,7 @@ class DataSchema:
             source (str): Source entity name.
             relation (str): Relation name.
             target (str): Target entity name.
+            description (str, optional): A description for the relation.
 
         Returns:
             str: Unique key of the created relation.
@@ -131,18 +140,21 @@ class DataSchema:
         if index > 0:
             unique_key = key + "__" + str(index)
 
+        if description is None:
+            description = ""
         relation_obj = {}
         relation_obj['name'] = relation
         relation_obj['index'] = index
         relation_obj['source'] = source
         relation_obj['target'] = target
+        relation_obj['description'] = description
         relation_obj['properties'] = {}
 
         self.relations[unique_key] = relation_obj
 
         return unique_key
 
-    def add_relation_property(self, key, property, type):
+    def add_relation_property(self, key, property, type, description=None):
         """
         Add a property to an existing relation.
 
@@ -150,11 +162,14 @@ class DataSchema:
             key (str): Relation key.
             property (str): Property name.
             type (str): Property type or description.
+            description (str, optional): A description for the property.
         """
+        if description is None:
+            description = ""
         if key in self.relations:
             relation_obj = self.relations[key]
             properties_obj = relation_obj['properties']
-            properties_obj[property] = type
+            properties_obj[property] = {'type': type, 'description': description}  
 
     def get_entities(self):
         """
@@ -202,7 +217,9 @@ class DataSchema:
             s += "  index: " + str(index) + '\n'
             s += "  properties: " + '\n'
             for property in properties:
-                s += "    " + property + ": " + properties[property] + '\n'
+                prop_obj = properties[property]
+                s += "    " + property + ": " + prop_obj['type'] + '\n'
+                s += "      description: " + prop_obj['description'] + '\n'
 
         s += 'Relations: ' + '\n'
         for key in self.relations:
@@ -219,7 +236,9 @@ class DataSchema:
             s += "  target: " + target + '\n'
             s += "  properties: " + '\n'
             for property in properties:
-                s += "    " + property + ": " + properties[property] + '\n'
+                prop_obj = properties[property]
+                s += "    " + property + ": " + prop_obj['type'] + '\n'
+                s += "      description: " + prop_obj['description'] + '\n'
 
         if self.metadata:
             s += 'Metadata: ' + '\n'
