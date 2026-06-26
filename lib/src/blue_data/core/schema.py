@@ -209,6 +209,96 @@ class DataSchema:
         s['relations'] = self.relations.copy()
         return s
 
+    def to_str(self, include_key=True, include_properties=True, include_index=True, simplified=False):
+        """
+        Convert the schema to a human-readable string with configurable verbosity.
+
+        Parameters:
+            include_key (bool): Include entity/relation keys. Ignored when simplified=True.
+            include_properties (bool): Include properties block. Ignored when simplified=True.
+            include_index (bool): Include index numbers. Ignored when simplified=True.
+            simplified (bool): Compact one-line-per-item format that overrides other flags.
+
+        Returns:
+            str: Formatted schema string.
+        """
+        if simplified:
+            lines = ["Schema:"]
+            lines.append("Entities:")
+            for key, entity_obj in self.entities.items():
+                attrs = entity_obj['contents'].get('attributes', {})
+                attr_parts = [f"{a}: {o['info']}" for a, o in attrs.items()]
+                attr_str = f"({', '.join(attr_parts)})" if attr_parts else ""
+                lines.append(f"  {entity_obj['name']}{' ' + attr_str if attr_str else ''}")
+            lines.append("Relations:")
+            for key, rel_obj in self.relations.items():
+                lines.append(f"  ({rel_obj['source']}) -[{rel_obj['name']}]-> ({rel_obj['target']})")
+            if self.metadata:
+                lines.append("Metadata:")
+                for k, v in self.metadata.items():
+                    lines.append(f"  {k}: {v}")
+            return "\n".join(lines) + "\n"
+
+        s = "Schema:\n"
+        s += "Entities:\n"
+        for key, entity_obj in self.entities.items():
+            name = entity_obj['name']
+            if include_key:
+                s += f"key: {key}\n"
+                s += f"  name: {name}\n"
+                s += f"  description: {entity_obj['description']}\n"
+            else:
+                s += f"{name}:\n"
+                s += f"  description: {entity_obj['description']}\n"
+            if include_index:
+                s += f"  index: {entity_obj['index']}\n"
+            if include_properties:
+                properties = entity_obj['properties']
+                s += "  properties:\n"
+                for prop, prop_obj in properties.items():
+                    s += f"    {prop}: {prop_obj['type']}\n"
+                    s += f"      description: {prop_obj['description']}\n"
+            attributes = entity_obj['contents'].get('attributes', {})
+            if attributes:
+                s += "  attributes:\n"
+                for attr, attr_obj in attributes.items():
+                    s += f"    {attr}: {attr_obj['info']}\n"
+                    s += f"      description: {attr_obj['description']}\n"
+
+        s += "Relations:\n"
+        for key, rel_obj in self.relations.items():
+            name = rel_obj['name']
+            if include_key:
+                s += f"key: {key}\n"
+                s += f"  name: {name}\n"
+                s += f"  description: {rel_obj['description']}\n"
+            else:
+                s += f"{name}:\n"
+                s += f"  description: {rel_obj['description']}\n"
+            if include_index:
+                s += f"  index: {rel_obj['index']}\n"
+            s += f"  source: {rel_obj['source']}\n"
+            s += f"  target: {rel_obj['target']}\n"
+            if include_properties:
+                properties = rel_obj['properties']
+                s += "  properties:\n"
+                for prop, prop_obj in properties.items():
+                    s += f"    {prop}: {prop_obj['type']}\n"
+                    s += f"      description: {prop_obj['description']}\n"
+            attributes = rel_obj['contents'].get('attributes', {})
+            if attributes:
+                s += "  attributes:\n"
+                for attr, attr_obj in attributes.items():
+                    s += f"    {attr}: {attr_obj['info']}\n"
+                    s += f"      description: {attr_obj['description']}\n"
+
+        if self.metadata:
+            s += "Metadata:\n"
+            for k, v in self.metadata.items():
+                s += f"  {k}: {v}\n"
+
+        return s
+
     def __repr__(self):
         return "DataSchema()"
 
