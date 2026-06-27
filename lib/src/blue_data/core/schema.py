@@ -20,7 +20,14 @@ class DataSchema:
         """
         return key in self.entities
 
-    def add_entity(self, key, description=None):
+    def _max_entity_name_index(self, name):
+        max_index = -1
+        for entity_obj in self.entities.values():
+            if entity_obj['name'] == name:
+                max_index = max(max_index, entity_obj['index'])
+        return max_index
+
+    def add_entity(self, key, description=None, index=None):
         """
         Add a new entity to the schema.
 
@@ -29,19 +36,14 @@ class DataSchema:
         Parameters:
             key (str): The name of the entity.
             description (str, optional): A description for the entity.
+            index (int, optional): Explicit index to use; auto-computed if not provided.
 
         Returns:
             str: The original entity key.
         """
-        index = 0
-        if key in self.entities:
-            entity_obj = self.entities[key]
-            index = entity_obj["index"] + 1
-            entity_obj["index"] = index
-
-        unique_key = key
-        if index > 0:
-            unique_key = key + "__" + str(index)
+        if index is None:
+            index = self._max_entity_name_index(key) + 1
+        unique_key = key if index == 0 else key + '__' + str(index)
 
         if description is None:
             description = ""
@@ -114,7 +116,14 @@ class DataSchema:
         relation_encoding = self._relation_encoding(source, relation, target)
         return relation_encoding in self.relations
 
-    def add_relation(self, source, relation, target, description=None):
+    def _max_relation_name_index(self, source, relation, target):
+        max_index = -1
+        for rel_obj in self.relations.values():
+            if rel_obj['source'] == source and rel_obj['name'] == relation and rel_obj['target'] == target:
+                max_index = max(max_index, rel_obj['index'])
+        return max_index
+
+    def add_relation(self, source, relation, target, description=None, index=None):
         """
         Add a relation between two entities in the schema.
 
@@ -125,20 +134,15 @@ class DataSchema:
             relation (str): Relation name.
             target (str): Target entity name.
             description (str, optional): A description for the relation.
+            index (int, optional): Explicit index to use; auto-computed if not provided.
 
         Returns:
             str: Unique key of the created relation.
         """
         key = self._relation_encoding(source, relation, target)
-        index = 0
-        if key in self.relations:
-            relation_obj = self.relations[key]
-            index = relation_obj["index"] + 1
-            relation_obj["index"] = index
-
-        unique_key = key
-        if index > 0:
-            unique_key = key + "__" + str(index)
+        if index is None:
+            index = self._max_relation_name_index(source, relation, target) + 1
+        unique_key = key if index == 0 else key + '__' + str(index)
 
         if description is None:
             description = ""
@@ -208,6 +212,38 @@ class DataSchema:
         s['entities'] = self.entities.copy()
         s['relations'] = self.relations.copy()
         return s
+
+    @classmethod
+    def from_json(cls, data):
+        schema = cls()
+
+        for entity_data in data.get('entities', {}).values():
+            name = entity_data['name']
+            index = entity_data.get('index')
+            key = schema.add_entity(name, description=entity_data.get('description'), index=index)
+
+            entity = schema.entities[key]
+            if 'created_by' in entity_data:
+                entity['created_by'] = entity_data['created_by']
+
+            for attr_name, attr_obj in entity_data.get('contents', {}).get('attributes', {}).items():
+                schema.add_entity_attribute(key, attr_name, attr_obj['info'], description=attr_obj.get('description'))
+
+        for rel_data in data.get('relations', {}).values():
+            index = rel_data.get('index')
+            key = schema.add_relation(
+                rel_data['source'], rel_data['name'], rel_data['target'],
+                description=rel_data.get('description'),
+                index=index,
+            )
+            rel = schema.relations[key]
+            if 'created_by' in rel_data:
+                rel['created_by'] = rel_data['created_by']
+
+            for attr_name, attr_obj in rel_data.get('contents', {}).get('attributes', {}).items():
+                schema.add_relation_attribute(key, attr_name, attr_obj['info'], description=attr_obj.get('description'))
+
+        return schema
 
     def to_str(self, include_key=True, include_properties=True, include_index=True, simplified=False):
         """
