@@ -710,50 +710,12 @@ class NEO4JSource(GraphSource):
             read=read,
         )
 
-    def execute_query_nl(
-        self,
-        query: str,
-        database: str | None = None,
-        collection: str | None = None,
-        schema: dict | None = None,
-        llm_fn=None,
-        optional_properties: dict | None = None,
-    ) -> list[dict]:
-        """Translate *query* from natural language to Cypher and execute it.
-
-        Uses *llm_fn* to produce a MATCH/RETURN statement grounded by *schema*
-        (node labels and relationship types), then runs it via ``execute_query``.
-        Raises ``ValueError`` if *llm_fn* is not provided.
-        """
+    def execute_query_nl(self, query, database=None, collection=None, schema=None, llm_fn=None, optional_properties=None):
         if llm_fn is None:
             raise ValueError("execute_query_nl requires an llm_fn")
-        cypher = self._translate_nl_to_cypher(query, schema, llm_fn)
-        if not cypher:
-            return []
-        return self.execute_query(
-            cypher,
-            database=database,
-            collection=collection,
-            optional_properties=optional_properties,
-        )
+        return super().execute_query_nl(query, database=database, collection=collection, schema=schema, llm_fn=llm_fn, optional_properties=optional_properties)
 
-    def _translate_nl_to_cypher(self, query: str, schema: dict | None, llm_fn) -> str | None:
-        schema_text = self._format_schema_for_cypher_prompt(schema)
-        prompt = (
-            "You are a Neo4j Cypher expert. Convert the natural language query to a valid Cypher READ query.\n\n"
-            f"Graph schema:\n{schema_text}\n\n"
-            f"Natural language query: {query}\n\n"
-            "Rules:\n"
-            "- Return ONLY the Cypher query, no explanation or markdown\n"
-            "- Use only node labels and relationship types that exist in the schema above\n"
-            "- Use MATCH and RETURN clauses\n\n"
-            "Cypher:"
-        )
-        raw = llm_fn(prompt)
-        return self._extract_cypher(raw) if raw else None
-
-    @staticmethod
-    def _format_schema_for_cypher_prompt(schema: dict | None) -> str:
+    def _format_schema_for_nl(self, schema: dict | None) -> str:
         if not schema:
             return "(no schema available)"
         lines = []
@@ -790,8 +752,19 @@ class NEO4JSource(GraphSource):
                     lines.append(f"  {connectivity}")
         return "\n".join(lines) or "(no schema available)"
 
-    @staticmethod
-    def _extract_cypher(raw: str) -> str | None:
+    def _build_nl_prompt(self, query: str, schema_text: str) -> str:
+        return (
+            "You are a Neo4j Cypher expert. Convert the natural language query to a valid Cypher READ query.\n\n"
+            f"Graph schema:\n{schema_text}\n\n"
+            f"Natural language query: {query}\n\n"
+            "Rules:\n"
+            "- Return ONLY the Cypher query, no explanation or markdown\n"
+            "- Use only node labels and relationship types that exist in the schema above\n"
+            "- Use MATCH and RETURN clauses\n\n"
+            "Cypher:"
+        )
+
+    def _extract_native_query(self, raw: str) -> str | None:
         raw = re.sub(r"```(?:cypher)?\s*", "", raw, flags=re.IGNORECASE).strip().rstrip("`").strip()
         match = re.search(r"(MATCH\b.+|CALL\b.+|WITH\b.+)", raw, re.IGNORECASE | re.DOTALL)
         if match:

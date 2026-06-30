@@ -87,6 +87,33 @@ class DataSource:
     ) -> list[dict]:
         return []
 
+    def _format_schema_for_nl(self, schema: dict | None) -> str:
+        """Format *schema* as text for an LLM prompt. Override per dialect."""
+        return "(no schema available)"
+
+    def _build_nl_prompt(self, query: str, schema_text: str) -> str:
+        """Build the full LLM prompt from *query* and formatted *schema_text*. Override per dialect."""
+        return query
+
+    def _extract_native_query(self, raw: str):
+        """Extract the native query from raw LLM output. Override per dialect."""
+        return raw or None
+
+    def translate_nl_to_native_query(self, query: str, schema: dict | None, llm_fn):
+        """Translate a natural language *query* to the source's native query language.
+
+        Calls ``_format_schema_for_nl``, ``_build_nl_prompt``, ``llm_fn``, and
+        ``_extract_native_query`` in sequence. Subclasses override the hook methods
+        rather than this method.
+
+        Returns the native query (str or dict depending on dialect), or ``None``
+        if the LLM returns an empty response.
+        """
+        schema_text = self._format_schema_for_nl(schema)
+        prompt = self._build_nl_prompt(query, schema_text)
+        raw = llm_fn(prompt)
+        return self._extract_native_query(raw) if raw else None
+
     def execute_query_nl(
         self,
         query: str,
@@ -98,9 +125,9 @@ class DataSource:
     ) -> list[dict]:
         """Translate *query* from natural language and execute it.
 
-        Subclasses override this to provide dialect-specific NL translation
-        (e.g. NL→SQL, NL→Cypher, NL→MongoDB filter). The base implementation
-        is a no-op that returns an empty list.
+        Uses ``translate_nl_to_native_query`` to produce the dialect-specific query,
+        then passes it to ``execute_query``. Subclasses that need a different
+        execution shape (e.g. wrapping a filter in an op dict) override this method.
 
         Parameters:
             query: Natural language query string.
@@ -108,11 +135,20 @@ class DataSource:
             collection: Target collection/schema name.
             schema: Schema dict with ``entities`` and ``relations`` keys,
                 used to ground the LLM translation prompt.
-            llm_fn: Callable ``(prompt: str) -> str`` backed by an LLM.
-                Required by concrete implementations; base ignores it.
+            llm_fn: Callable ``(prompt: str) -> str`` backed by an LLM. Required.
             optional_properties: Extra driver-specific options.
         """
-        return []
+        if llm_fn is None:
+            return []
+        native_query = self.translate_nl_to_native_query(query, schema, llm_fn)
+        if not native_query:
+            return []
+        return self.execute_query(
+            native_query,
+            database=database,
+            collection=collection,
+            optional_properties=optional_properties,
+        )
 
     # ---------- stats ----------
     def fetch_source_stats(self) -> dict | None:

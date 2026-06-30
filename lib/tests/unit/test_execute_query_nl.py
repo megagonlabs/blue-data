@@ -74,11 +74,13 @@ class TestSQLSourceNL:
         assert src.last_query is not None
         assert "```" not in src.last_query
 
-    def test_format_schema_for_sql_prompt_empty(self):
-        text = SQLSource._format_schema_for_sql_prompt(None)
+    def test_format_schema_for_nl_empty(self):
+        src = StubSQLSource()
+        text = src._format_schema_for_nl(None)
         assert "no schema" in text
 
-    def test_format_schema_for_sql_prompt_with_entities(self):
+    def test_format_schema_for_nl_with_entities(self):
+        src = StubSQLSource()
         schema = {
             "entities": [
                 {
@@ -91,19 +93,21 @@ class TestSQLSourceNL:
             ],
             "relations": [],
         }
-        text = SQLSource._format_schema_for_sql_prompt(schema)
+        text = src._format_schema_for_nl(schema)
         assert "Table: orders" in text
         assert "id (INTEGER)" in text
         assert "total (REAL)" in text
 
-    def test_extract_sql_strips_markdown(self):
+    def test_extract_native_query_strips_markdown(self):
+        src = StubSQLSource()
         raw = "```sql\nSELECT * FROM foo\n```"
-        result = SQLSource._extract_sql(raw)
+        result = src._extract_native_query(raw)
         assert result == "SELECT * FROM foo"
 
-    def test_extract_sql_plain(self):
+    def test_extract_native_query_plain(self):
+        src = StubSQLSource()
         raw = "SELECT id, name FROM customers WHERE active = 1"
-        assert SQLSource._extract_sql(raw) == raw
+        assert src._extract_native_query(raw) == raw
 
 
 # ---------- MongoDBSource ----------
@@ -172,11 +176,13 @@ class TestMongoDBSourceNL:
         result = src.execute_query_nl("something", database="mydb", collection="users", llm_fn=llm_fn)
         assert result == []
 
-    def test_format_schema_for_mongo_prompt_empty(self):
-        text = MongoDBSource._format_schema_for_mongo_prompt(None)
+    def test_format_schema_for_nl_empty(self):
+        src = StubMongoDBSource()
+        text = src._format_schema_for_nl(None)
         assert "no schema" in text
 
-    def test_format_schema_for_mongo_prompt_with_entities(self):
+    def test_format_schema_for_nl_with_entities(self):
+        src = StubMongoDBSource()
         schema = {
             "entities": [
                 {
@@ -188,19 +194,21 @@ class TestMongoDBSourceNL:
                 }
             ]
         }
-        text = MongoDBSource._format_schema_for_mongo_prompt(schema)
+        text = src._format_schema_for_nl(schema)
         assert "Collection: users" in text
         assert "name (string)" in text
         assert "age (int)" in text
 
-    def test_extract_json_object_plain(self):
+    def test_extract_native_query_plain(self):
+        src = StubMongoDBSource()
         raw = '{"status": "active", "age": {"$gt": 18}}'
-        result = MongoDBSource._extract_json_object(raw)
+        result = src._extract_native_query(raw)
         assert result == {"status": "active", "age": {"$gt": 18}}
 
-    def test_extract_json_object_with_preamble(self):
+    def test_extract_native_query_with_preamble(self):
+        src = StubMongoDBSource()
         raw = 'Here is the filter: {"name": "Alice"}'
-        result = MongoDBSource._extract_json_object(raw)
+        result = src._extract_native_query(raw)
         assert result == {"name": "Alice"}
 
 

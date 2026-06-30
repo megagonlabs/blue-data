@@ -268,14 +268,14 @@ class MongoDBSource(JSONSource):
     ) -> list[dict]:
         """Translate *query* from natural language to a MongoDB filter and execute a FIND.
 
-        Uses *llm_fn* to produce a JSON filter document grounded by *schema*,
-        then runs it as a ``FIND`` operation via ``execute_query``. Returns an
+        Uses ``translate_nl_to_native_query`` to produce a JSON filter document,
+        then wraps it as a ``FIND`` operation via ``execute_query``. Returns an
         empty list if the LLM response cannot be parsed as valid JSON.
         Raises ``ValueError`` if *llm_fn* is not provided.
         """
         if llm_fn is None:
             raise ValueError("execute_query_nl requires an llm_fn")
-        filter_doc = self._translate_nl_to_mongo_filter(query, schema, llm_fn)
+        filter_doc = self.translate_nl_to_native_query(query, schema, llm_fn)
         if filter_doc is None:
             return []
         return self.execute_query(
@@ -285,23 +285,7 @@ class MongoDBSource(JSONSource):
             optional_properties=optional_properties,
         )
 
-    def _translate_nl_to_mongo_filter(self, query: str, schema: dict | None, llm_fn) -> dict | None:
-        schema_text = self._format_schema_for_mongo_prompt(schema)
-        prompt = (
-            "You are a MongoDB expert. Convert the natural language query to a MongoDB filter document (JSON).\n\n"
-            f"Collection schema:\n{schema_text}\n\n"
-            f"Natural language query: {query}\n\n"
-            "Rules:\n"
-            "- Return ONLY a valid JSON object representing the filter, no explanation or markdown\n"
-            "- Use only fields that exist in the schema above\n"
-            "- For 'all documents' or no filter, return {}\n\n"
-            "Filter:"
-        )
-        raw = llm_fn(prompt)
-        return self._extract_json_object(raw) if raw else None
-
-    @staticmethod
-    def _format_schema_for_mongo_prompt(schema: dict | None) -> str:
+    def _format_schema_for_nl(self, schema: dict | None) -> str:
         if not schema:
             return "(no schema available)"
         lines = []
@@ -313,8 +297,19 @@ class MongoDBSource(JSONSource):
                 lines.append(f"  - {field_name} ({field_type})")
         return "\n".join(lines) or "(no schema available)"
 
-    @staticmethod
-    def _extract_json_object(raw: str) -> dict | None:
+    def _build_nl_prompt(self, query: str, schema_text: str) -> str:
+        return (
+            "You are a MongoDB expert. Convert the natural language query to a MongoDB filter document (JSON).\n\n"
+            f"Collection schema:\n{schema_text}\n\n"
+            f"Natural language query: {query}\n\n"
+            "Rules:\n"
+            "- Return ONLY a valid JSON object representing the filter, no explanation or markdown\n"
+            "- Use only fields that exist in the schema above\n"
+            "- For 'all documents' or no filter, return {}\n\n"
+            "Filter:"
+        )
+
+    def _extract_native_query(self, raw: str) -> dict | None:
         raw = re.sub(r"```(?:json)?\s*", "", raw, flags=re.IGNORECASE).strip().rstrip("`").strip()
         match = re.search(r"\{.*\}", raw, re.DOTALL)
         if match:
