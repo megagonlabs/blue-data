@@ -7,21 +7,28 @@ LLM-dependent method silently returns ``None`` so deterministic enrichments
 
 Property taxonomy stored on attribute records after enrichment:
 
-    value_semantics      — VSI: rich semantic type + flags
-    semantic_discovery   — SDI: open-world concept discovery
-    domain_concept       — DCM: taxonomy concept mapping
-    interpretive_sem.    — IVS: ordinal/severity/tier ordering
-    value_axis           — magnitude / ordinal axis
-    quantitative_vst     — quantitative role (MEASUREMENT / COUNT / …)
-    semantic_role        — IDENTIFIER / EVENT_TIME / SEGMENTATION_DRIVER / …
-    process_vst_role     — PROCESS_KEY / EVENT_TIME / EVENT_MEASURE / STATE_VAR
+    value_semantics           — VSI: rich semantic type + flags
+    semantic_discovery        — SDI: open-world concept discovery
+    domain_concept            — DCM: taxonomy concept mapping
+    interpretive_sem.         — IVS: ordinal/severity/tier ordering
+    value_axis                — magnitude / ordinal axis
+    quantitative_vst          — quantitative role (MEASUREMENT / COUNT / …)
+    safe_aggregation          — aggregation safety rules (can_sum, can_avg, forbidden_combinations)
+    semantic_role             — IDENTIFIER / EVENT_TIME / SEGMENTATION_DRIVER / …
+    role_query_constraints    — per-attribute query planning constraints (can_group_by, should_not_sum, …)
+    process_vst_role          — PROCESS_KEY / EVENT_TIME / EVENT_MEASURE / STATE_VAR
+    time_grain_candidates     — inferred time bucketing granularities (on event-time attributes)
 
 Property taxonomy stored on entity records:
 
-    semantic_links       — validated inter-attribute relationships
-    process_semantics    — EVENT row semantics
-    process_patterns     — temporal cadence
-    process_trends       — trend direction per measure
+    semantic_links            — validated inter-attribute relationships
+    total_component_measures  — TOTAL/COMPONENT numeric relationships (prevents double-counting)
+    derived_metric_candidates — rate/ratio candidates for NL2SQL (e.g. injuries_per_event)
+    process_semantics         — EVENT row semantics
+    process_patterns          — temporal cadence
+    process_trends            — trend direction per measure
+    process_operators         — NL2SQL operators (AGGREGATE_OVER_TIME, CHANGE_DETECTION, …)
+    process_query_constraints — query planner constraints from process operators
     conditional_value_distribution — P(value | group)
 """
 from __future__ import annotations
@@ -30,6 +37,7 @@ import json
 import logging
 import math
 import os
+from itertools import combinations
 from typing import Any, Callable
 
 import numpy as np
@@ -145,6 +153,11 @@ class MetaData:
             "enable_interpretive_semantics": True,
             "enable_process_semantics_inference": True,
             "enable_quantitative_semantics_inference": True,
+            "enable_total_component_detection": True,
+            "enable_safe_aggregation_inference": True,
+            "enable_derived_metric_candidates": True,
+            "enable_process_operator_semantics": True,
+            "enable_role_query_constraints": True,
         }
         if properties:
             self.properties.update(properties)
@@ -750,6 +763,45 @@ Return JSON ONLY:
         return safe_json_parse(raw)
 
     # ------------------------------------------------------------------
+    # Statistical link pre-validation (deterministic, runs before LLM)
+    # ------------------------------------------------------------------
+
+    def validate_segments_signal(self, a: dict, b: dict, row_samples: list) -> bool:
+        """Return True if *a* has bounded cardinality and meaningfully segments *b*."""
+        if not self.has_row_cooccurrence(a, b, row_samples, min_rows=5):
+            return False
+        a_vals = [row.get(a["name"]) for row in row_samples if row.get(a["name"]) is not None]
+        distinct_groups = len(set(str(v) for v in a_vals))
+        if distinct_groups < 2 or distinct_groups > 20:
+            return False
+        return self.grouped_distribution_signal_row_aligned(a, b, row_samples)
+
+    def validate_temporal_alignment_signal(self, a: dict, b: dict, row_samples: list) -> bool:
+        """Return True if *a* is temporal, *b* is not, and they co-occur in rows."""
+        if not self.temporal_alignment_signal(a, b):
+            return False
+        return self.has_row_cooccurrence(a, b, row_samples, min_rows=5)
+
+    def validate_cooccurrence_signal(self, a: dict, b: dict, row_samples: list) -> bool:
+        """Return True if *a* and *b* appear together in enough rows."""
+        return self.has_row_cooccurrence(a, b, row_samples, min_rows=5)
+
+    def validate_relational_link_signal(self, a: dict, b: dict, signal: Any, row_samples: list) -> bool:
+        """Pre-validate a candidate semantic link against row samples before calling the LLM.
+
+        Returns False to reject links with insufficient statistical support,
+        saving LLM calls for clearly weak signals.
+        """
+        signal_type = signal.get("type") if isinstance(signal, dict) else signal
+        if signal_type == "grouped_distribution":
+            return self.validate_segments_signal(a, b, row_samples)
+        if signal_type == "temporal_alignment":
+            return self.validate_temporal_alignment_signal(a, b, row_samples)
+        if signal_type == "functional_dependency":
+            return self.validate_cooccurrence_signal(a, b, row_samples)
+        return True  # unknown signal type — let LLM decide
+
+    # ------------------------------------------------------------------
     # Deterministic enrichers
     # ------------------------------------------------------------------
 
@@ -958,6 +1010,163 @@ Return JSON ONLY:
             return {"role": "MEASUREMENT", "subtype": "monetary", "confidence": 0.75, "rationale": "Name suggests monetary measurement"}
 
         return None
+
+    # --- total / component detection ---
+
+    def infer_total_component_measures(self, attributes: list) -> dict:
+        """Detect TOTAL/COMPONENT numeric relationships.
+
+        Looks for columns whose name implies a total (e.g. ``total_injuries``) and
+        whose sample mean ≈ the sum of sibling column means.  Returns a dict with
+        ``totals`` (total_name → [component_names]) and ``components``
+        (component_name → total_name).
+        """
+        numeric_types = {"INTEGER", "FLOAT", "NUMERIC_GENERAL", "CURRENCY_AMOUNT"}
+        total_hints = {"total", "sum", "all", "combined", "overall"}
+
+        numeric_attrs: list[tuple[str, list[float]]] = []
+        for attr in attributes:
+            vsi = attr.get("properties", {}).get("value_semantics", {}) or {}
+            qvst = attr.get("properties", {}).get("quantitative_vst", {}) or {}
+            if (
+                vsi.get("semantic_type") in numeric_types
+                and qvst.get("role") in {"COUNT", "MEASUREMENT", "MAGNITUDE"}
+            ):
+                nums = self.get_numeric_samples(attr)
+                if nums:
+                    numeric_attrs.append((attr["name"], nums))
+
+        if len(numeric_attrs) < 3:
+            return {"totals": {}, "components": {}}
+
+        means = {name: sum(nums) / len(nums) for name, nums in numeric_attrs}
+        totals: dict[str, list[str]] = {}
+        components: dict[str, str] = {}
+
+        for name, _ in numeric_attrs:
+            if not any(h in name.lower() for h in total_hints):
+                continue
+            mean_val = means[name]
+            if mean_val <= 0:
+                continue
+
+            candidates = [(n, ns) for n, ns in numeric_attrs if n != name]
+            found = False
+            for size in range(2, min(6, len(candidates) + 1)):
+                for combo in combinations(candidates, size):
+                    combo_mean = sum(means[n] for n, _ in combo)
+                    if abs(combo_mean - mean_val) / (mean_val + 1e-9) < 0.12:
+                        comp_names = [n for n, _ in combo]
+                        totals[name] = comp_names
+                        for cn in comp_names:
+                            if cn not in components:
+                                components[cn] = name
+                        found = True
+                        break
+                if found:
+                    break
+
+        return {"totals": totals, "components": components}
+
+    def infer_safe_aggregation_for_quantitative_vst(self, attr: dict, total_component_info: dict) -> dict | None:
+        """Return aggregation safety rules for *attr* given total/component relationships."""
+        qvst = attr.get("properties", {}).get("quantitative_vst", {})
+        if not qvst:
+            return None
+
+        role = qvst.get("role")
+        name = attr["name"]
+        totals = total_component_info.get("totals", {})
+        components = total_component_info.get("components", {})
+
+        result: dict[str, Any] = {
+            "can_sum": False,
+            "can_avg": False,
+            "forbidden_combinations": [],
+            "notes": [],
+        }
+
+        if name in components:
+            total_name = components[name]
+            siblings = [c for c in totals.get(total_name, []) if c != name]
+            result["can_sum"] = True
+            result["can_avg"] = True
+            result["forbidden_combinations"] = [total_name] + siblings
+            result["notes"].append(f"Component of {total_name} — do not aggregate alongside {total_name} or its siblings")
+        elif name in totals:
+            result["can_sum"] = True
+            result["can_avg"] = False
+            result["forbidden_combinations"] = totals[name]
+            result["notes"].append(f"Total measure — do not aggregate with components: {totals[name]}")
+        elif role == "COUNT":
+            result["can_sum"] = True
+            result["can_avg"] = False
+            result["notes"].append("Count column — SUM is meaningful, AVG is usually misleading")
+        elif role == "MEASUREMENT":
+            result["can_sum"] = True
+            result["can_avg"] = True
+        elif role == "COMPUTATIONAL":
+            result["can_sum"] = False
+            result["can_avg"] = True
+            result["notes"].append("Derived/normalized metric — AVG is preferred, do not SUM")
+        elif role == "MAGNITUDE":
+            result["can_sum"] = True
+            result["can_avg"] = True
+        else:
+            return None
+
+        return result
+
+    def infer_derived_metric_candidates(
+        self, attributes: list, process_semantics: dict | None, total_component_info: dict
+    ) -> list[dict]:
+        """Infer rate / ratio derived metrics suitable for NL2SQL query planning."""
+        candidates = []
+        entity_keys = (process_semantics or {}).get("entity_keys", [])
+        if not entity_keys:
+            entity_keys = [
+                a["name"] for a in attributes
+                if a.get("properties", {}).get("value_semantics", {}).get("is_identifier")
+            ]
+
+        components = total_component_info.get("components", {})
+        totals = total_component_info.get("totals", {})
+
+        measure_attrs = [
+            a for a in attributes
+            if a.get("properties", {}).get("quantitative_vst", {}).get("role") in {"MEASUREMENT", "MAGNITUDE"}
+        ]
+
+        # Rate candidates: SUM(measure) / COUNT(DISTINCT entity_key)
+        if entity_keys and measure_attrs:
+            key = entity_keys[0]
+            for attr in measure_attrs:
+                m = attr["name"]
+                if m in components:
+                    continue  # use the total instead
+                candidates.append({
+                    "name": f"{m}_per_event",
+                    "type": "RATE",
+                    "numerator": m,
+                    "denominator": key,
+                    "denominator_type": "COUNT_DISTINCT",
+                    "formula": f"SUM({m}) / COUNT(DISTINCT {key})",
+                    "confidence": 0.7,
+                })
+
+        # Share candidates: SUM(component) / SUM(total)
+        for total_name, comp_names in totals.items():
+            for comp in comp_names:
+                candidates.append({
+                    "name": f"{comp}_share",
+                    "type": "RATIO",
+                    "numerator": comp,
+                    "denominator": total_name,
+                    "formula": f"SUM({comp}) / NULLIF(SUM({total_name}), 0)",
+                    "confidence": 0.75,
+                })
+
+        return candidates
 
     # --- process semantics ---
 
@@ -1219,6 +1428,204 @@ Return JSON ONLY:
             "rationale": "Conditional distributions from row-aligned numeric behavior",
         }
 
+    # --- process operator semantics ---
+
+    def get_process_numeric_measures(self, attributes: list, process_semantics: dict) -> list[dict]:
+        """Return numeric measure attributes that are not entity keys or the event time."""
+        event_time = process_semantics.get("event_time")
+        entity_keys = process_semantics.get("entity_keys", [])
+        measure_types = {"INTEGER", "FLOAT", "NUMERIC_GENERAL", "CURRENCY_AMOUNT", "PERCENTAGE", "RATIO"}
+        return [
+            a for a in attributes
+            if a["name"] not in entity_keys
+            and a["name"] != event_time
+            and a.get("properties", {}).get("value_semantics", {}).get("semantic_type") in measure_types
+        ]
+
+    def get_state_variable_candidates(self, attributes: list, process_semantics: dict) -> list[dict]:
+        """Return attributes classified as STATE_VARIABLE in process VST roles."""
+        event_time = process_semantics.get("event_time")
+        entity_keys = process_semantics.get("entity_keys", [])
+        return [
+            a for a in attributes
+            if a["name"] not in entity_keys
+            and a["name"] != event_time
+            and a.get("properties", {}).get("process_vst_role", {}).get("process_vst_role") == "STATE_VARIABLE"
+        ]
+
+    def infer_process_mode(self, process_semantics: dict | None) -> str | None:
+        """Classify event mode from computed process_semantics signals."""
+        if not process_semantics:
+            return None
+        signals = process_semantics.get("signals", {})
+        repetition = signals.get("identifier_repetition", 0.0)
+        temporal = signals.get("temporal_density", 0.0)
+        if repetition >= 0.4:
+            return "SEQUENCE_EVENT"
+        if temporal >= 0.4:
+            return "REPEATED_EVENT"
+        return "ATOMIC_EVENT"
+
+    def infer_time_grain_candidates(self, event_time_attr: str, row_samples: list) -> list[str]:
+        """Infer appropriate time bucketing granularities from timestamp distribution."""
+        times = []
+        for row in row_samples:
+            v = row.get(event_time_attr)
+            if v is None:
+                continue
+            try:
+                times.append(np.datetime64(v))
+            except Exception:
+                pass
+
+        if len(times) < 10:
+            return []
+
+        times_sorted = sorted(times)
+        deltas = []
+        for i in range(1, len(times_sorted)):
+            delta = float((times_sorted[i] - times_sorted[i - 1]) / np.timedelta64(1, "D"))
+            if delta > 0:
+                deltas.append(delta)
+
+        if not deltas:
+            return []
+
+        mean_delta = float(np.mean(deltas))
+        if mean_delta <= 1.5:
+            return ["hourly", "daily"]
+        if mean_delta <= 7.5:
+            return ["daily", "weekly"]
+        if mean_delta <= 35:
+            return ["weekly", "monthly"]
+        return ["monthly", "quarterly"]
+
+    def infer_process_operator_semantics(self, attributes: list, process_semantics: dict) -> list[dict]:
+        """Derive NL2SQL operators from process semantics (AGGREGATE_OVER_TIME, CHANGE_DETECTION, etc.)."""
+        operators = []
+        event_time = process_semantics.get("event_time")
+        entity_keys = process_semantics.get("entity_keys", [])
+        event_mode = process_semantics.get("event_mode", "ATOMIC_EVENT")
+
+        numeric_measures = self.get_process_numeric_measures(attributes, process_semantics)
+        state_vars = self.get_state_variable_candidates(attributes, process_semantics)
+
+        if event_time and numeric_measures:
+            operators.append({
+                "operator": "AGGREGATE_OVER_TIME",
+                "event_time": event_time,
+                "measures": [a["name"] for a in numeric_measures],
+                "confidence": 0.8,
+                "rationale": "Temporal event with numeric measures enables time-series aggregation",
+            })
+
+        if event_mode in ("REPEATED_EVENT", "SEQUENCE_EVENT") and entity_keys and numeric_measures:
+            operators.append({
+                "operator": "CHANGE_DETECTION",
+                "entity_keys": entity_keys,
+                "event_time": event_time,
+                "measures": [a["name"] for a in numeric_measures],
+                "confidence": 0.7,
+                "rationale": "Repeated events per entity enable change-over-time queries",
+            })
+
+        if state_vars and entity_keys:
+            operators.append({
+                "operator": "CURRENT_STATE",
+                "entity_keys": entity_keys,
+                "state_variables": [a["name"] for a in state_vars],
+                "event_time": event_time,
+                "confidence": 0.75,
+                "rationale": "State variables imply latest-state-per-entity queries",
+            })
+
+        count_measures = [
+            a for a in numeric_measures
+            if a.get("properties", {}).get("quantitative_vst", {}).get("role") == "COUNT"
+        ]
+        raw_measures = [
+            a for a in numeric_measures
+            if a.get("properties", {}).get("quantitative_vst", {}).get("role") in {"MEASUREMENT", "MAGNITUDE"}
+        ]
+        if count_measures and raw_measures:
+            operators.append({
+                "operator": "NORMALIZED_RATE",
+                "numerator_measures": [a["name"] for a in raw_measures],
+                "denominator_counts": [a["name"] for a in count_measures],
+                "confidence": 0.65,
+                "rationale": "Mixed count and measurement columns suggest rate normalization",
+            })
+
+        return operators
+
+    def infer_process_query_constraints(self, operators: list, process_semantics: dict) -> dict:
+        """Generate query planner constraints from process operators and semantics."""
+        constraints: dict[str, Any] = {}
+        event_time = process_semantics.get("event_time")
+        entity_keys = process_semantics.get("entity_keys", [])
+        op_types = {op["operator"] for op in operators}
+
+        if "AGGREGATE_OVER_TIME" in op_types and event_time:
+            constraints["requires_time_filter"] = {
+                "field": event_time,
+                "reason": "Time-series queries should be bounded to avoid full scans",
+            }
+
+        if "CHANGE_DETECTION" in op_types and entity_keys:
+            constraints["requires_entity_key_filter"] = {
+                "fields": entity_keys,
+                "reason": "Change detection queries need to scope to specific entities",
+            }
+
+        if "CURRENT_STATE" in op_types and event_time and entity_keys:
+            constraints["latest_record_only"] = {
+                "order_by": event_time,
+                "partition_by": entity_keys,
+                "reason": "State queries should return the most recent record per entity",
+            }
+
+        if process_semantics.get("constraints", {}).get("requires_aggregation"):
+            constraints["no_row_local_substitution"] = True
+
+        return constraints
+
+    def infer_role_query_constraints(self, attributes: list, semantic_links: list) -> dict[str, dict]:
+        """Derive per-attribute query planning constraints from semantic roles and safe aggregation."""
+        constraints: dict[str, dict] = {}
+
+        for attr in attributes:
+            name = attr["name"]
+            role = (attr.get("properties", {}).get("semantic_role") or {})
+            safe_agg = (attr.get("properties", {}).get("safe_aggregation") or {})
+            primary_role = role.get("primary_role")
+
+            con: dict[str, Any] = {}
+
+            if primary_role == "IDENTIFIER":
+                con["can_group_by"] = True
+                con["can_filter"] = True
+                con["should_not_aggregate"] = True
+            elif primary_role == "SEGMENTATION_DRIVER":
+                con["can_group_by"] = True
+                con["can_filter"] = True
+            elif primary_role == "EVENT_TIME":
+                con["can_order_by"] = True
+                con["can_filter"] = True
+                con["can_group_by"] = True
+            elif primary_role == "EVIDENCE":
+                con["can_aggregate"] = True
+
+            if safe_agg:
+                if not safe_agg.get("can_sum", True):
+                    con["should_not_sum"] = True
+                if safe_agg.get("forbidden_combinations"):
+                    con["forbidden_combinations"] = safe_agg["forbidden_combinations"]
+
+            if con:
+                constraints[name] = con
+
+        return constraints
+
     # ------------------------------------------------------------------
     # Top-level collection enrichment methods
     # ------------------------------------------------------------------
@@ -1307,6 +1714,32 @@ Return JSON ONLY:
                 if qvst:
                     data_registry.set_source_database_collection_entity_attribute_property(source, database, collection, entity_name, attr["name"], "quantitative_vst", qvst, rebuild=rebuild)
 
+        # Total/Component detection + Safe Aggregation
+        if (
+            self.properties.get("enable_total_component_detection", True)
+            or self.properties.get("enable_safe_aggregation_inference", True)
+        ):
+            # refresh so quantitative_vst is visible
+            attributes = data_registry.list_entity_attributes(source, database, collection, entity_name)
+            tc_info: dict = {"totals": {}, "components": {}}
+
+            if self.properties.get("enable_total_component_detection", True):
+                tc_info = self.infer_total_component_measures(attributes)
+                if tc_info["totals"] or tc_info["components"]:
+                    data_registry.set_source_database_collection_entity_property(
+                        source, database, collection, entity_name,
+                        "total_component_measures", tc_info, rebuild=rebuild,
+                    )
+
+            if self.properties.get("enable_safe_aggregation_inference", True):
+                for attr in attributes:
+                    safe_agg = self.infer_safe_aggregation_for_quantitative_vst(attr, tc_info)
+                    if safe_agg:
+                        data_registry.set_source_database_collection_entity_attribute_property(
+                            source, database, collection, entity_name,
+                            attr["name"], "safe_aggregation", safe_agg, rebuild=rebuild,
+                        )
+
         return attributes
 
     def enrich_relations(self, data_registry, source, database, collection, entity_name, attributes, row_samples, rebuild):
@@ -1330,6 +1763,10 @@ Return JSON ONLY:
                     src = next(a for a in attributes if a["name"] == link["source"])
                     tgt = next(a for a in attributes if a["name"] == link["target"])
                 except StopIteration:
+                    continue
+
+                # pre-filter: statistical signal must pass before calling LLM
+                if not self.validate_relational_link_signal(src, tgt, link["signal"], row_samples):
                     continue
 
                 result = self.validate_semantic_link(src, tgt, link["signal"])
@@ -1364,6 +1801,16 @@ Return JSON ONLY:
                 role = self.infer_semantic_role(attr, attributes, validated_links)
                 if role:
                     data_registry.set_source_database_collection_entity_attribute_property(source, database, collection, entity_name, attr["name"], "semantic_role", role, rebuild=rebuild)
+
+            # Role-based query constraints
+            if self.properties.get("enable_role_query_constraints", True):
+                refreshed = data_registry.list_entity_attributes(source, database, collection, entity_name)
+                role_constraints = self.infer_role_query_constraints(refreshed, validated_links)
+                for attr_name, con in role_constraints.items():
+                    data_registry.set_source_database_collection_entity_attribute_property(
+                        source, database, collection, entity_name,
+                        attr_name, "role_query_constraints", con, rebuild=rebuild,
+                    )
 
             # Conditional distributions (SEGMENTS links only)
             if validated_links and row_samples:
@@ -1412,6 +1859,51 @@ Return JSON ONLY:
         trends = self.infer_temporal_trends(attributes, row_samples, ps)
         if trends:
             data_registry.set_source_database_collection_entity_property(source, database, collection, entity_name, "process_trends", trends, rebuild=rebuild)
+
+        if not self.properties.get("enable_process_operator_semantics", True):
+            return
+
+        # Refine event_mode using dedicated signal analysis
+        refined_mode = self.infer_process_mode(ps)
+        if refined_mode and refined_mode != ps.get("event_mode"):
+            ps["event_mode"] = refined_mode
+            data_registry.set_source_database_collection_entity_property(
+                source, database, collection, entity_name, "process_semantics", ps, rebuild=rebuild,
+            )
+
+        # refresh attributes so safe_aggregation / quantitative_vst are populated
+        attributes = data_registry.list_entity_attributes(source, database, collection, entity_name)
+
+        operators = self.infer_process_operator_semantics(attributes, ps)
+        if operators:
+            data_registry.set_source_database_collection_entity_property(
+                source, database, collection, entity_name, "process_operators", operators, rebuild=rebuild,
+            )
+
+        event_time = ps.get("event_time")
+        if event_time and row_samples:
+            grains = self.infer_time_grain_candidates(event_time, row_samples)
+            if grains:
+                data_registry.set_source_database_collection_entity_attribute_property(
+                    source, database, collection, entity_name,
+                    event_time, "time_grain_candidates", grains, rebuild=rebuild,
+                )
+
+        constraints = self.infer_process_query_constraints(operators, ps)
+        if constraints:
+            data_registry.set_source_database_collection_entity_property(
+                source, database, collection, entity_name, "process_query_constraints", constraints, rebuild=rebuild,
+            )
+
+        if self.properties.get("enable_derived_metric_candidates", True):
+            tc_info = data_registry.get_source_database_collection_entity_property(
+                source, database, collection, entity_name, "total_component_measures",
+            ) or {"totals": {}, "components": {}}
+            derived = self.infer_derived_metric_candidates(attributes, ps, tc_info)
+            if derived:
+                data_registry.set_source_database_collection_entity_property(
+                    source, database, collection, entity_name, "derived_metric_candidates", derived, rebuild=rebuild,
+                )
 
     def enrich_entity_full(self, data_registry, source, database, collection, entity, attributes, rebuild=False):
         """Run the full enrichment pipeline for a single entity."""
