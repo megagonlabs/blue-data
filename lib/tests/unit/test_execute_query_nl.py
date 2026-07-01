@@ -1,8 +1,9 @@
-"""Unit tests for execute_query_nl across DataSource, SQLSource, NEO4JSource, MongoDBSource, and DataRegistry."""
+"""Unit tests for execute_query_nl across DataSource, SQLSource, Neo4jGraphSource, MongoDBSource, and DataRegistry."""
 import pytest
 
 from blue_data.source.source import DataSource
 from blue_data.source.sql.sql_source import SQLSource
+from blue_data.source.graph.neo4j.neo4j_graph_source import NEO4JSource
 from blue_data.source.json.mongodb.mongodb_json_source import MongoDBSource
 from blue_data.registry.data_registry import DataRegistry
 from blue_data.source.json.memory_json_source import MemoryJSONSource
@@ -210,6 +211,194 @@ class TestMongoDBSourceNL:
         raw = 'Here is the filter: {"name": "Alice"}'
         result = src._extract_native_query(raw)
         assert result == {"name": "Alice"}
+
+
+# ---------- Neo4jGraphSource ----------
+
+class StubNeo4jSource(NEO4JSource):
+    """Neo4jGraphSource with all IO bypassed — never touches a real Neo4j instance."""
+
+    def __init__(self):
+        self.name = "neo4jstub"
+        self.properties = {}
+        self.logger = __import__("logging").getLogger(self.__class__.__name__)
+        self._schema_cache = {}
+        self.last_query = None
+
+    # GraphSource abstract methods
+    def add_node(self, database, label, properties=None, node_id=None): return ""
+    def get_node(self, database, node_id): return None
+    def delete_node(self, database, node_id): pass
+    def update_node(self, database, node_id, properties): pass
+    def match_nodes(self, database, label=None, properties=None): return []
+    def add_edge(self, database, source_id, edge_type, target_id, properties=None): return ""
+    def delete_edge(self, database, source_id, edge_type, target_id): pass
+    def update_edge(self, database, source_id, edge_type, target_id, properties): pass
+    def match_edges(self, database, edge_type=None, source_id=None, target_id=None, properties=None): return []
+    def get_neighbors(self, database, node_id, edge_type=None, direction="both"): return []
+
+    def execute_query(self, query, database=None, collection=None, optional_properties=None):
+        self.last_query = query
+        return [{"n": "result"}]
+
+
+class TestNeo4jSourceNL:
+    def test_raises_without_llm_fn(self):
+        src = StubNeo4jSource()
+        with pytest.raises(ValueError, match="llm_fn"):
+            src.execute_query_nl("find all users", database="neo4j")
+
+    def test_translates_and_executes(self):
+        src = StubNeo4jSource()
+        result = src.execute_query_nl(
+            "find all users",
+            database="neo4j",
+            llm_fn=lambda p: "MATCH (n:User) RETURN n",
+        )
+        assert result == [{"n": "result"}]
+        assert src.last_query is not None
+        assert "MATCH" in src.last_query.upper()
+
+    def test_strips_markdown_code_block(self):
+        src = StubNeo4jSource()
+        src.execute_query_nl(
+            "find users",
+            database="neo4j",
+            llm_fn=lambda p: "```cypher\nMATCH (n:User) RETURN n\n```",
+        )
+        assert "```" not in src.last_query
+
+    def test_returns_empty_when_llm_returns_empty(self):
+        src = StubNeo4jSource()
+        result = src.execute_query_nl(
+            "find users",
+            database="neo4j",
+            llm_fn=lambda p: "",
+        )
+        assert result == []
+
+    def test_format_schema_for_nl_entities_only(self):
+        src = StubNeo4jSource()
+        schema = {
+            "entities": [
+                {"name": "User", "attributes": {"name": {"type": "STRING"}, "age": {"type": "INTEGER"}}},
+                {"name": "Post", "attributes": {}},
+            ],
+            "relations": [],
+        }
+        text = src._format_schema_for_nl(schema)
+        assert "Node labels:" in text
+        assert "User" in text
+        assert "name (STRING)" in text
+        assert "Post" in text
+
+    def test_format_schema_for_nl_with_relations(self):
+        src = StubNeo4jSource()
+        schema = {
+            "entities": [
+                {"name": "User", "attributes": {}},
+                {"name": "Post", "attributes": {}},
+            ],
+            "relations": [
+                {"name": "WROTE", "source": "User", "target": "Post", "properties": {}},
+            ],
+        }
+        text = src._format_schema_for_nl(schema)
+        assert "Relationship types:" in text
+        assert "(User)-[:WROTE]->(Post)" in text
+
+    def test_format_schema_for_nl_relation_with_props(self):
+        src = StubNeo4jSource()
+        schema = {
+            "entities": [],
+            "relations": [
+                {"name": "KNOWS", "source": "Person", "target": "Person", "properties": {"since": {"type": "DATE"}}},
+            ],
+        }
+        text = src._format_schema_for_nl(schema)
+        assert "since (DATE)" in text
+
+    def test_format_schema_for_nl_empty(self):
+        src = StubNeo4jSource()
+        assert "no schema" in src._format_schema_for_nl(None)
+
+    def test_extract_native_query_match(self):
+        src = StubNeo4jSource()
+        raw = "MATCH (n:User) RETURN n"
+        assert src._extract_native_query(raw) == raw
+
+    def test_extract_native_query_strips_markdown(self):
+        src = StubNeo4jSource()
+        raw = "```cypher\nMATCH (n:User) RETURN n\n```"
+        result = src._extract_native_query(raw)
+        assert result == "MATCH (n:User) RETURN n"
+
+    def test_extract_native_query_call(self):
+        src = StubNeo4jSource()
+        raw = "CALL db.labels()"
+        assert src._extract_native_query(raw).startswith("CALL")
+
+    def test_build_nl_prompt_contains_dialect_and_query(self):
+        src = StubNeo4jSource()
+        prompt = src._build_nl_prompt("find all users", "Node labels:\n  User")
+        assert "Cypher" in prompt
+        assert "find all users" in prompt
+        assert "Node labels:" in prompt
+
+
+# ---------- _build_nl_prompt ----------
+
+class TestBuildNlPrompt:
+    def test_sql_prompt_contains_dialect_and_query(self):
+        src = StubSQLSource()
+        prompt = src._build_nl_prompt("list all orders", "Table: orders\n  - id (INTEGER)")
+        assert "SQL" in prompt
+        assert "list all orders" in prompt
+        assert "Table: orders" in prompt
+
+    def test_mongo_prompt_contains_dialect_and_query(self):
+        src = StubMongoDBSource()
+        prompt = src._build_nl_prompt("find active users", "Collection: users\n  - status (string)")
+        assert "MongoDB" in prompt
+        assert "find active users" in prompt
+        assert "Collection: users" in prompt
+
+
+# ---------- translate_nl_to_native_query ----------
+
+class TestTranslateNlToNativeQuery:
+    def test_returns_none_when_llm_returns_empty_string(self):
+        src = StubSQLSource()
+        result = src.translate_nl_to_native_query("query", None, lambda p: "")
+        assert result is None
+
+    def test_calls_hooks_in_order(self):
+        """Verify format_schema → build_prompt → llm_fn → extract chain."""
+        src = StubSQLSource()
+        calls = []
+
+        original_format = src._format_schema_for_nl
+        original_build = src._build_nl_prompt
+        original_extract = src._extract_native_query
+
+        src._format_schema_for_nl = lambda s: (calls.append("format"), original_format(s))[1]
+        src._build_nl_prompt = lambda q, st: (calls.append("build"), original_build(q, st))[1]
+        src._extract_native_query = lambda r: (calls.append("extract"), original_extract(r))[1]
+
+        src.translate_nl_to_native_query("q", None, lambda p: "SELECT 1")
+        assert calls == ["format", "build", "extract"]
+
+    def test_passes_schema_text_into_prompt(self):
+        src = StubSQLSource()
+        received_prompt = {}
+
+        def llm_fn(prompt):
+            received_prompt["value"] = prompt
+            return "SELECT 1"
+
+        schema = {"entities": [{"name": "orders", "attributes": {}}], "relations": []}
+        src.translate_nl_to_native_query("get orders", schema, llm_fn)
+        assert "Table: orders" in received_prompt["value"]
 
 
 # ---------- DataRegistry ----------
