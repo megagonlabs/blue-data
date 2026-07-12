@@ -150,6 +150,17 @@ class DataSource:
             optional_properties=optional_properties,
         )
 
+    # ---------- import ----------
+    def import_data(
+        self,
+        source: "DataSource",
+        collection: str,
+        database: str = "default",
+        mode: str = "append",
+        options: dict | None = None,
+    ) -> dict:
+        return {}
+
     # ---------- stats ----------
     def fetch_source_stats(self) -> dict | None:
         return None
