@@ -8,6 +8,8 @@ from blue_data.source.source import DataSource
 class GraphSource(DataSource, ABC):
     """Base class for graph data sources."""
 
+    content_type: str = "graph"
+
     # ---------- node operations ----------
 
     @abstractmethod

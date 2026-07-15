@@ -8,6 +8,8 @@ from blue_data.source.source import DataSource
 class VectorSource(DataSource, ABC):
     """Base class for vector data sources."""
 
+    content_type: str = "vector"
+
     # ---------- primitive operations ----------
 
     @abstractmethod

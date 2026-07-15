@@ -1,6 +1,8 @@
 class DataSource:
     """Base abstraction for all Blue data sources."""
 
+    content_type: str = "tabular"
+
     def __init__(self, name: str, properties: dict | None = None):
         self.name = name
         self.properties = properties or {}

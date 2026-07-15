@@ -8,6 +8,8 @@ from blue_data.source.source import DataSource
 class NetworkSource(DataSource, ABC):
     """Base class for probabilistic / graph network data sources."""
 
+    content_type: str = "network"
+
     @abstractmethod
     def fetch_nodes(self, network: str) -> list[str]:
         raise NotImplementedError
