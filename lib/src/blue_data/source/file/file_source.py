@@ -8,7 +8,7 @@ import pandas as pd
 from blue_data.core.schema import DataSchema
 from blue_data.source.source import DataSource
 
-_FORMATS = ("csv", "json", "jsonl")
+_FORMATS = ("csv", "json", "jsonl", "parquet")
 
 
 class FileSource(DataSource):
@@ -51,6 +51,8 @@ class FileSource(DataSource):
         if fmt == "jsonl":
             with open(path) as f:
                 return [json.loads(line) for line in f if line.strip()]
+        if fmt == "parquet":
+            return pd.read_parquet(path).to_dict(orient="records")
         return []
 
     def _infer_python_type(self, value) -> str:
@@ -205,6 +207,8 @@ class FileSource(DataSource):
             with open(path, "w") as f:
                 for record in df_new.to_dict(orient="records"):
                     f.write(json.dumps(record) + "\n")
+        elif fmt == "parquet":
+            df_new.to_parquet(path, index=False)
 
         return {
             "status": "success",
