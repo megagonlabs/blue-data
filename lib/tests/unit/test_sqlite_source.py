@@ -6,9 +6,11 @@ All I/O is in tmp_path so nothing is left on disk after the suite.
 import os
 import sqlite3
 
+import pandas as pd
 import pytest
 
 from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+from blue_data.source.file.file_source import FileSource
 
 
 # ---------------------------------------------------------------------------
@@ -487,3 +489,82 @@ def test_fetch_property_stats_most_common_vals_empty(src):
     _create_table(src, "testdb", "t", rows=["INSERT INTO t VALUES (1, 'x', 1.0);"])
     stats = src.fetch_property_stats("testdb", "public", "t", "id")
     assert stats["most_common_vals"] == []
+
+
+# ===========================================================================
+# import_data
+# ===========================================================================
+
+@pytest.fixture
+def file_src(tmp_path):
+    src = FileSource("files", directory=str(tmp_path / "files"))
+    pd.DataFrame([{"id": 1, "name": "alice"}, {"id": 2, "name": "bob"}]).to_csv(
+        tmp_path / "files" / "users.csv", index=False
+    )
+    return src
+
+
+def test_import_data_requires_entity(src, file_src):
+    src.create_database("db")
+    with pytest.raises(ValueError, match="entity"):
+        src.import_data(file_src, collection="users", database="db")
+
+
+def test_import_data_creates_table_and_inserts(src, file_src, tmp_path):
+    src.create_database("db")
+    result = src.import_data(file_src, collection="users", database="db", entity="users")
+    assert result["status"] == "success"
+    assert result["rows_imported"] == 2
+    rows = src.execute_query('SELECT * FROM "users"', database="db")
+    assert len(rows) == 2
+
+
+def test_import_data_append_adds_rows(src, file_src, tmp_path):
+    src.create_database("db")
+    src.import_data(file_src, collection="users", database="db", entity="users")
+    src.import_data(file_src, collection="users", database="db", entity="users", mode="append")
+    rows = src.execute_query('SELECT * FROM "users"', database="db")
+    assert len(rows) == 4
+
+
+def test_import_data_overwrite_truncates(src, file_src, tmp_path):
+    src.create_database("db")
+    src.import_data(file_src, collection="users", database="db", entity="users")
+    src.import_data(file_src, collection="users", database="db", entity="users", mode="overwrite")
+    rows = src.execute_query('SELECT * FROM "users"', database="db")
+    assert len(rows) == 2
+
+
+def test_import_data_overwrite_new_table(src, file_src, tmp_path):
+    src.create_database("db")
+    result = src.import_data(file_src, collection="users", database="db", entity="users", mode="overwrite")
+    assert result["rows_imported"] == 2
+
+
+def test_import_data_empty_source_returns_zero(src, tmp_path):
+    src.create_database("db")
+    empty_src = FileSource("empty", directory=str(tmp_path / "empty"))
+    result = src.import_data(empty_src, collection="users", database="db", entity="users")
+    assert result["rows_imported"] == 0
+
+
+def test_import_data_e2e_filesource_to_sqlite(tmp_path):
+    """CSV file → FileSource → SQLiteDBSource round-trip."""
+    files_dir = tmp_path / "files"
+    files_dir.mkdir()
+    pd.DataFrame([
+        {"product": "apple", "price": 1.2},
+        {"product": "banana", "price": 0.5},
+        {"product": "cherry", "price": 3.0},
+    ]).to_csv(files_dir / "products.csv", index=False)
+
+    file_src = FileSource("files", directory=str(files_dir))
+    db_src = SQLiteDBSource("db", properties={"connection": {"database_directory": str(tmp_path / "db")}})
+    db_src.create_database("shop")
+
+    result = db_src.import_data(file_src, collection="products", database="shop", entity="products")
+    assert result["rows_imported"] == 3
+
+    rows = db_src.execute_query('SELECT * FROM "products" ORDER BY price', database="shop")
+    assert rows[0]["product"] == "banana"
+    assert rows[2]["price"] == 3.0

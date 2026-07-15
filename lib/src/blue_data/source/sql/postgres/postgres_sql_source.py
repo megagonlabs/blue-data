@@ -481,6 +481,43 @@ class PostgresDBSource(SQLSource):
     ):
         return {"status": "registry_only"}
 
+    def import_data(self, source, collection, database="default", entity=None, mode="append", options=None):
+        if entity is None:
+            raise ValueError("entity (table name) is required for PostgresDBSource.import_data")
+
+        rows = source.execute_query(None, collection=collection)
+        if not rows:
+            return {"status": "success", "rows_imported": 0}
+
+        import pandas as pd
+        df = pd.DataFrame(rows)
+        conn = self._db_connect(database)
+        cur = conn.cursor()
+        try:
+            if mode == "overwrite":
+                cur.execute(
+                    """
+                    SELECT table_name FROM information_schema.tables
+                    WHERE table_schema = %s AND table_name = %s
+                    """,
+                    (collection, entity),
+                )
+                if cur.fetchone():
+                    cur.execute(f'DELETE FROM "{collection}"."{entity}"')
+
+            columns = list(df.columns)
+            col_sql = ", ".join([f'"{c}"' for c in columns])
+            placeholders = ", ".join(["%s"] * len(columns))
+            insert_sql = (
+                f'INSERT INTO "{collection}"."{entity}" ({col_sql}) VALUES ({placeholders})'
+            )
+            cur.executemany(insert_sql, [tuple(r) for r in df.itertuples(index=False, name=None)])
+            conn.commit()
+            return {"status": "success", "rows_imported": len(df)}
+        finally:
+            cur.close()
+            self._db_disconnect(conn)
+
     def fetch_entity_stats(
         self,
         database,

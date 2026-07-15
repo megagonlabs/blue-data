@@ -158,6 +158,7 @@ class DataSource:
         source: "DataSource",
         collection: str,
         database: str = "default",
+        entity: str | None = None,
         mode: str = "append",
         options: dict | None = None,
     ) -> dict:

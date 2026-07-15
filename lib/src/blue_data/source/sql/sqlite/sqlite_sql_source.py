@@ -3,6 +3,8 @@ import logging
 import os
 import sqlite3
 
+import pandas as pd
+
 from blue_data.source.sql.sql_source import SQLSource
 from blue_data.core.schema import DataSchema
 
@@ -316,6 +318,34 @@ class SQLiteDBSource(SQLSource):
         We only support adding foreign keys when creating tables (see create_database_collection_entity).
         """
         return {"status": "skipped"}
+
+    ######### import
+
+    def import_data(self, source, collection, database="default", entity=None, mode="append", options=None):
+        if entity is None:
+            raise ValueError("entity (table name) is required for SQLiteDBSource.import_data")
+
+        rows = source.execute_query(None, collection=collection)
+        if not rows:
+            return {"status": "success", "rows_imported": 0}
+
+        df = pd.DataFrame(rows)
+        conn = self._db_connect(database)
+        try:
+            if mode == "overwrite":
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (entity,)
+                )
+                if cur.fetchone():
+                    cur.execute(f'DELETE FROM "{entity}"')
+                conn.commit()
+
+            df.to_sql(entity, conn, if_exists="append", index=False)
+            conn.commit()
+            return {"status": "success", "rows_imported": len(df)}
+        finally:
+            self._db_disconnect(conn)
 
     ######### stats
 
