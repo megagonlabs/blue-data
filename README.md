@@ -232,6 +232,8 @@ After installing with `pip install -e .`:
 | `examples/sqlite_data_registry_demo.py` | Full pipeline with SQLite — sync, stats, enrich, relations, connect_source, search, MetaData enrichment. No external dependencies. |
 | `examples/enrichment_demo.py` | Enrichment deep-dive — `SemanticTypeInferencer` standalone, Mode A (deterministic), Mode B (LLM-augmented with Anthropic SDK), idempotency and rebuild. |
 | `examples/redis_demo.py` | Redis Stack + PostgreSQL (falls back to SQLite) — Redis-backed registry and search index, namespace isolation, full hierarchy walk. Requires Redis Stack. |
+| `examples/langgraph_direct_demo.py` | LangGraph 3-node pipeline (discover → translate → execute) calling blue-data Python API directly. Requires `langgraph`, `langchain-openai`, and `OPENAI_API_KEY`. |
+| `examples/langgraph_mcp_demo.py` | LangGraph ReAct agent using blue-data's `registry-mcp` server as tools via `langchain-mcp-adapters`. No blue-data imports on the agent side. Requires `registry-mcp` running and `OPENAI_API_KEY`. |
 
 ```bash
 # In-memory demo (no deps)
@@ -245,6 +247,15 @@ python3 examples/enrichment_demo.py
 
 # Redis + Postgres demo (requires Redis Stack; falls back to SQLite)
 python3 examples/redis_demo.py
+
+# LangGraph direct API demo (requires langgraph, langchain-openai, OPENAI_API_KEY)
+pip install langgraph langchain-core langchain-openai
+python3 examples/langgraph_direct_demo.py
+
+# LangGraph MCP demo (requires langchain-mcp-adapters, registry-mcp running, OPENAI_API_KEY)
+pip install langgraph langchain-mcp-adapters
+blue-data-registry-mcp  # start in a separate terminal
+python3 examples/langgraph_mcp_demo.py
 ```
 
 ## Demo databases

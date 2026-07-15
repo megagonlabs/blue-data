@@ -126,7 +126,7 @@ class DataRegistry(Registry):
 
         schema = None
         if database and collection:
-            schema = self._build_schema_for_nl(source, database, collection)
+            schema = self.build_schema_for_nl(source, database, collection)
 
         return source_obj.execute_query_nl(
             query=query,
@@ -137,7 +137,7 @@ class DataRegistry(Registry):
             optional_properties=optional_properties,
         )
 
-    def _build_schema_for_nl(self, source: str, database: str, collection: str) -> dict:
+    def build_schema_for_nl(self, source: str, database: str, collection: str) -> dict:
         entity_records = self.list_collection_entities(source, database, collection)
         entities = []
         for record in entity_records:
