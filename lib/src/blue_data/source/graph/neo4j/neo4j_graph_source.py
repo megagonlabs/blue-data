@@ -37,6 +37,11 @@ RETURN
 ORDER BY type
 """.strip()
 
+import logging
+
+# Suppress all standard and warning notifications from Neo4j
+logging.getLogger("neo4j.notifications").setLevel(logging.ERROR)
+
 
 class NEO4JSource(GraphSource):
     """Neo4j graph database source."""
@@ -44,6 +49,7 @@ class NEO4JSource(GraphSource):
     def __init__(self, name, properties=None):
         super().__init__(name, properties=properties)
         self.logger = logging.getLogger(self.__class__.__name__)
+        self._edition = None
         self._apoc_available = None
         self._schema_cache = {}
         self._initialize_connection_properties()
@@ -77,16 +83,57 @@ class NEO4JSource(GraphSource):
             self.connection.close()
         return None
 
+    def _get_edition(self):
+        if self._edition is not None:
+            return self._edition
+        try:
+            result = self._run_query(
+                """
+                CALL dbms.components()
+                YIELD edition
+                RETURN edition
+                """,
+                read=True,
+                override=False
+            )
+            if result:
+                self._edition = result[0].get("edition", "")
+                return self._edition
+        except Exception as e:
+            self.logger.warning(f"Failed to get Neo4j edition: {e}")
+        return ""
+    
+    def _support_multiple_databases(self):
+        edition = self._get_edition().lower()
+        return edition in ("enterprise", "commercial")
+
+    def _override_database(self, database):
+        if not self._support_multiple_databases():
+            # self.logger.warning(
+            #     "Neo4j edition does not support multiple databases. "
+            #     "Using the default database."
+            # )
+            return "neo4j"
+        return database
+    
     def _run_query(
         self,
         query,
         database=None,
         params=None,
         read=True,
+        override=True
     ):
+        # override database if the Neo4j edition does not support multiple databases
+        if override:
+            database = self._override_database(database)
+
+        print(f"Running query: {query} with params: {params} on database: {database}")
         params = params or {}
 
         access_mode = "READ" if read else "WRITE"
+
+
 
         with self.connection.session(
             database=database,
@@ -213,6 +260,9 @@ class NEO4JSource(GraphSource):
         return {}
 
     def create_database(self, database, properties=None, overwrite=False):
+        # override database if the Neo4j edition does not support multiple databases
+        database = self._override_database(database)
+
         databases = self.fetch_databases()
 
         if database in databases:
@@ -232,6 +282,7 @@ class NEO4JSource(GraphSource):
         return {"status": "success"}
 
     def fetch_database_stats(self, database):
+
         metadata = self.fetch_database_metadata(database)
         return {
             "node_count": metadata.get("node_count"),
@@ -241,9 +292,13 @@ class NEO4JSource(GraphSource):
     # ---------- collection ----------
 
     def fetch_database_collections(self, database):
+        # override database if the Neo4j edition does not support multiple databases
+        database = self._override_database(database)
+
         return [database]
 
     def fetch_database_collection_metadata(self, database, collection):
+
         schema = self._fetch_and_extract_schema(database, collection)
         entities = schema.get_entities()
         relations = schema.get_relations()
@@ -390,6 +445,7 @@ class NEO4JSource(GraphSource):
         properties=None,
         overwrite=False,
     ):
+
         return {"status": "registry_only"}
 
     def fetch_collection_stats(
@@ -400,6 +456,7 @@ class NEO4JSource(GraphSource):
         relations=None,
         sample_limit=None,
     ):
+
         metadata = self.fetch_database_collection_metadata(database, collection)
         statistics = metadata.get("statistics", {})
 
@@ -412,10 +469,12 @@ class NEO4JSource(GraphSource):
     # ---------- entities / relations ----------
 
     def fetch_database_collection_entities(self, database, collection):
+
         schema = self._fetch_and_extract_schema(database, collection)
         return schema.get_entities()
 
     def fetch_database_collection_relations(self, database, collection):
+
         schema = self._fetch_and_extract_schema(database, collection)
         return schema.get_relations()
 
@@ -456,9 +515,11 @@ class NEO4JSource(GraphSource):
         properties=None,
         overwrite=False,
     ):
+
         return {"status": "registry_only"}
 
     def fetch_entity_stats(self, database, collection, entity):
+
         stats = {}
 
         try:
@@ -485,6 +546,7 @@ class NEO4JSource(GraphSource):
         property_name,
         sample_limit=10,
     ):
+        
         stats = {}
 
         try:
