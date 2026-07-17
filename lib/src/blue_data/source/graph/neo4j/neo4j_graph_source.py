@@ -128,7 +128,7 @@ class NEO4JSource(GraphSource):
         if override:
             database = self._override_database(database)
 
-        print(f"Running query: {query} with params: {params} on database: {database}")
+        # print(f"Running query: {query} with params: {params} on database: {database}")
         params = params or {}
 
         access_mode = "READ" if read else "WRITE"
