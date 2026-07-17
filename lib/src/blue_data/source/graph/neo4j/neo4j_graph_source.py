@@ -648,14 +648,14 @@ class NEO4JSource(GraphSource):
         where_clause = f" WHERE {conditions}" if conditions else ""
         params = {f"p_{i}": v for i, v in enumerate((properties or {}).values())}
         result = self._run_query(
-            f"MATCH (n{label_clause}){where_clause} RETURN n, labels(n) AS labels",
+            f"MATCH (n{label_clause}){where_clause} RETURN n, labels(n) AS labels, elementId(n) AS eid",
             database=database, params=params, read=True,
         )
         nodes = []
         for row in result:
             node_obj = row["n"]
             nodes.append({
-                "id": dict(node_obj).get("_id") or row.get("elementId(n)"),
+                "id": dict(node_obj).get("_id") or row.get("eid"),
                 "label": list(node_obj.labels)[0] if node_obj.labels else None,
                 "properties": dict(node_obj),
             })
@@ -734,7 +734,7 @@ class NEO4JSource(GraphSource):
             pattern = f"-[r{rel_spec}]-"
         result = self._run_query(
             f"MATCH (n){pattern}(m) WHERE n._id = $nid OR elementId(n) = $nid "
-            f"RETURN m, labels(m) AS labels, type(r) AS edge_type, r AS edge",
+            f"RETURN m, labels(m) AS labels, type(r) AS edge_type, r AS edge, elementId(m) AS eid",
             database=database, params={"nid": node_id}, read=True,
         )
         neighbors = []
@@ -743,6 +743,7 @@ class NEO4JSource(GraphSource):
             edge_obj = row.get("edge")
             neighbors.append({
                 "node": {
+                    "id": dict(node_obj).get("_id") or row.get("eid"),
                     "label": list(node_obj.labels)[0] if node_obj.labels else None,
                     "properties": dict(node_obj),
                 },
