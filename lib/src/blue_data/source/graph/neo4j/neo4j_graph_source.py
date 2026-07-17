@@ -673,7 +673,9 @@ class NEO4JSource(GraphSource):
         )
         if result:
             return str(result[0]["eid"])
-        raise RuntimeError("add_edge returned no result")
+        raise RuntimeError(
+            f"add_edge failed: source node {source_id!r} or target node {target_id!r} not found"
+        )
 
     def delete_edge(self, database: str, source_id: str, edge_type: str, target_id: str) -> None:
         rel_type = self._clean_neo4j_identifier(edge_type)
