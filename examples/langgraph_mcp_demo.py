@@ -21,46 +21,92 @@ Run:
     python3 examples/langgraph_mcp_demo.py
 
 The registry-mcp server is launched automatically as a subprocess (stdio transport).
-No separate terminal needed.
+No separate terminal needed. A temporary SQLite database is created and passed to
+the server via BLUE_DATA_SOURCES_CONFIG so the registry starts with real data.
 """
 
 import asyncio
+import json
+import os
+import sqlite3
+import tempfile
 
 from langchain_openai import ChatOpenAI
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
 
 
+def _setup_demo_db(tmp: str) -> str:
+    """Create a sample SQLite database and return the sources config path."""
+    db_path = os.path.join(tmp, "shop.db")
+    conn = sqlite3.connect(db_path)
+    conn.executescript("""
+        CREATE TABLE customers (id INTEGER PRIMARY KEY, email TEXT, age INTEGER);
+        CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, total REAL);
+        INSERT INTO customers VALUES (1, 'alice@example.com', 30);
+        INSERT INTO customers VALUES (2, 'bob@example.com', 25);
+        INSERT INTO orders VALUES (1, 1, 99.9);
+        INSERT INTO orders VALUES (2, 1, 149.0);
+        INSERT INTO orders VALUES (3, 2, 49.5);
+    """)
+    conn.commit()
+    conn.close()
+
+    # Sources config the MCP server reads via BLUE_DATA_SOURCES_CONFIG
+    config = {
+        "sources": [
+            {
+                "type": "sqlite",
+                "name": "shop",
+                "properties": {"connection": {"database_directory": tmp}},
+            }
+        ]
+    }
+    config_path = os.path.join(tmp, "sources.json")
+    with open(config_path, "w") as f:
+        json.dump(config, f)
+    return config_path
+
+
 async def main():
+    tmp = tempfile.mkdtemp(prefix="blue-mcp-demo-")
+    config_path = _setup_demo_db(tmp)
+    print(f"Demo SQLite DB + sources config written to {tmp}\n")
+
     model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-    # Launch registry-mcp as a subprocess (stdio transport — default for MCP servers).
-    # The agent receives all MCP tools automatically — no blue-data imports needed.
-    async with MultiServerMCPClient({
+    # Launch registry-mcp as a subprocess with the demo sources pre-loaded.
+    # BLUE_DATA_SOURCES_CONFIG tells the server which sources to register on startup.
+    client = MultiServerMCPClient({
         "registry": {
             "command": "blue-data-registry-mcp",
+            "args": [],
             "transport": "stdio",
+            "env": {
+                **os.environ,
+                "BLUE_DATA_SOURCES_CONFIG": config_path,
+            },
         }
-    }) as client:
-        # blue-data MCP tools are now available as LangChain tools
-        tools = client.get_tools()
-        print(f"Loaded {len(tools)} tools from registry-mcp: {[t.name for t in tools]}\n")
+    })
 
-        agent = create_react_agent(model, tools)
+    tools = await client.get_tools()
+    print(f"Loaded {len(tools)} tools from registry-mcp: {[t.name for t in tools]}\n")
 
-        queries = [
-            "What data sources are registered?",
-            "Find all tables related to customers or orders.",
-            "What are the attributes of the orders entity?",
-        ]
+    agent = create_react_agent(model, tools)
 
-        for query in queries:
-            print(f"Query: {query}")
-            result = await agent.ainvoke({
-                "messages": [{"role": "user", "content": query}]
-            })
-            answer = result["messages"][-1].content
-            print(f"Answer: {answer}\n")
+    queries = [
+        "What data sources are registered? Then sync the 'shop' source so its tables are in the registry.",
+        "Find all tables related to customers or orders.",
+        "What are the attributes of the orders entity?",
+    ]
+
+    for query in queries:
+        print(f"Query: {query}")
+        result = await agent.ainvoke({
+            "messages": [{"role": "user", "content": query}]
+        })
+        answer = result["messages"][-1].content
+        print(f"Answer: {answer}\n")
 
 
 if __name__ == "__main__":
