@@ -332,6 +332,37 @@ def enrich_source_metadata(
 
 
 # ---------------------------------------------------------------------------
+# Query tools
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+def execute_query(
+    source: str,
+    query: str,
+    database: Optional[str] = None,
+    collection: Optional[str] = None,
+) -> str:
+    """Execute a native query against a registered data source and return rows.
+
+    For SQL sources (SQLite, Postgres, MySQL) pass a SQL SELECT statement.
+    Results are returned as a JSON array of row objects.
+
+    Args:
+        source:     Name of the registered data source.
+        query:      Native query string (e.g. SQL SELECT statement).
+        database:   Database name (required for SQL sources).
+        collection: Collection / schema name (optional).
+    """
+    try:
+        rows = get_registry().execute_query(
+            source, query, database=database, collection=collection
+        )
+        return _ok(rows)
+    except Exception as e:
+        return _err(e)
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 

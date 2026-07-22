@@ -13,6 +13,7 @@ Available registry-mcp tools (auto-discovered):
   get_entity             — get full entity record with attributes
   sync_source            — sync a source into the registry
   enrich_source          — run semantic enrichment on a source
+  execute_query          — run a native query and return rows
 
 Run:
     pip install langgraph langchain-core langchain-openai langchain-mcp-adapters
@@ -98,6 +99,7 @@ async def main():
         "What data sources are registered? Then sync the 'shop' source so its tables are in the registry.",
         "Find all tables related to customers or orders.",
         "What are the attributes of the orders entity?",
+        "Show me all customer orders with their totals from the shop source.",
     ]
 
     for query in queries:
