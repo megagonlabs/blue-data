@@ -160,13 +160,15 @@ def build_enricher():
 
 
 def load_sources(registry) -> None:
-    """Pre-load data sources from BLUE_DATA_CONFIG JSON file into registry."""
+    """Pre-load data sources from BLUE_DATA_SOURCES_CONFIG JSON file into registry."""
     path = os.environ.get("BLUE_DATA_SOURCES_CONFIG")
     if not path or not os.path.exists(path):
         return
 
     with open(path) as f:
         cfg = json.load(f)
+
+    sync = _getenv_bool("BLUE_DATA_SOURCES_SYNC", True)
 
     for src in cfg.get("sources", []):
         src_type = src.get("type", "").lower()
@@ -185,3 +187,8 @@ def load_sources(registry) -> None:
         elif src_type == "mongodb":
             from blue_data.source.json.mongodb.mongodb_json_source import MongoDBJSONSource
             registry.register_source(MongoDBJSONSource(name=name, properties=props))
+        else:
+            continue
+
+        if sync and name:
+            registry.sync_source(name, recursive=True)
