@@ -146,6 +146,10 @@ class HybridSearch:
         candidates = self._filter_records(records, type, scope)[: params["search_limit"]]
 
         query_vector = self.vector_searcher.compute_embedding(input_query)
+        if query_vector is None:
+            params["vector_threshold"] = 0.0
+            bw, _, vaw = normalize_weights(params["bm25_weight"] + params["vector_weight"], 0.0, params["value_weight"])
+            params["bm25_weight"], params["vector_weight"], params["value_weight"] = bw, 0.0, vaw
 
         # --- BM25 pass ---
         raw_bm25: list[float] = []
@@ -210,6 +214,10 @@ class HybridSearch:
             return self.search(records, input_query, type, scope, page, page_size, **overrides)
 
         query_vector = self.vector_searcher.compute_embedding(input_query)
+        if query_vector is None:
+            params["vector_threshold"] = 0.0
+            bw, _, vaw = normalize_weights(params["bm25_weight"] + params["vector_weight"], 0.0, params["value_weight"])
+            params["bm25_weight"], params["vector_weight"], params["value_weight"] = bw, 0.0, vaw
         all_candidates = records[: params["search_limit"]]
 
         # BM25 over everything
