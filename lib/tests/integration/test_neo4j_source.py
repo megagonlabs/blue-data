@@ -60,7 +60,7 @@ skip_no_neo4j = pytest.mark.skipif(
 
 @pytest.fixture(scope="module")
 def src():
-    from source.graph.neo4j.neo4j_graph_source import NEO4JSource
+    from blue_data.source.graph.neo4j.neo4j_graph_source import NEO4JSource
     user, pw = _neo4j_auth()
     source = NEO4JSource(
         name="test_neo4j",

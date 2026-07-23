@@ -1,5 +1,6 @@
 import logging
 import re
+import uuid
 
 from neo4j import GraphDatabase
 
@@ -52,6 +53,7 @@ class NEO4JSource(GraphSource):
         self._edition = None
         self._apoc_available = None
         self._schema_cache = {}
+        self._transactions: dict[str, dict] = {}
         self._initialize_connection_properties()
         self.connection = self._connect(**self.properties["connection"])
 
@@ -122,18 +124,30 @@ class NEO4JSource(GraphSource):
         database=None,
         params=None,
         read=True,
-        override=True
+        override=True,
+        transaction_id=None,
     ):
+        params = params or {}
+
+        if transaction_id is not None:
+            entry = self._require_transaction(transaction_id)
+            if database is not None:
+                requested = self._override_database(database) if override else database
+                if requested != entry["database"]:
+                    raise ValueError(
+                        f"transaction {transaction_id!r} belongs to database {entry['database']!r}, "
+                        f"not {requested!r}"
+                    )
+            result = entry["tx"].run(query, params)
+            return [dict(record) for record in result]
+
         # override database if the Neo4j edition does not support multiple databases
         if override:
             database = self._override_database(database)
 
         # print(f"Running query: {query} with params: {params} on database: {database}")
-        params = params or {}
 
         access_mode = "READ" if read else "WRITE"
-
-
 
         with self.connection.session(
             database=database,
@@ -141,6 +155,57 @@ class NEO4JSource(GraphSource):
         ) as session:
             result = session.run(query, params)
             return [dict(record) for record in result]
+
+    # ---------- transactions ----------
+    # Native Neo4j transactions: each transaction_id maps to one open driver
+    # Session + Transaction pair, held in-process for the life of the
+    # transaction. Unlike MemoryGraphSource/FileGraphSource, this is not
+    # resumable from another process — a Neo4j transaction is bound to the
+    # single Bolt connection that opened it. The driver also doesn't expose
+    # a way to list what ran inside a transaction after the fact, so
+    # "operations" is tracked here ourselves, same as the other two backends.
+
+    def _require_transaction(self, transaction_id: str) -> dict:
+        entry = self._transactions.get(transaction_id)
+        if entry is None:
+            raise KeyError(f"No active transaction with id {transaction_id!r}")
+        return entry
+
+    def begin_transaction(self, database: str) -> str:
+        database = self._override_database(database)
+        session = self.connection.session(database=database, default_access_mode="WRITE")
+        tx = session.begin_transaction()
+        transaction_id = str(uuid.uuid4())
+        self._transactions[transaction_id] = {
+            "session": session,
+            "tx": tx,
+            "database": database,
+            "operations": [],
+        }
+        return transaction_id
+
+    def commit_transaction(self, transaction_id: str) -> None:
+        entry = self._require_transaction(transaction_id)
+        entry["tx"].commit()
+        entry["session"].close()
+        del self._transactions[transaction_id]
+
+    def rollback_transaction(self, transaction_id: str) -> None:
+        entry = self._require_transaction(transaction_id)
+        entry["tx"].rollback()
+        entry["session"].close()
+        del self._transactions[transaction_id]
+
+    def get_transaction_operations(self, transaction_id: str) -> list[dict]:
+        return list(self._require_transaction(transaction_id)["operations"])
+
+    def list_transactions(self, database: str | None = None) -> list[str]:
+        if database is not None:
+            database = self._override_database(database)
+        return [
+            tid for tid, entry in self._transactions.items()
+            if database is None or entry["database"] == database
+        ]
 
     # ---------- source ----------
 
@@ -223,7 +288,7 @@ class NEO4JSource(GraphSource):
         result = self._run_query("SHOW DATABASES;", read=True)
         return [record["name"] for record in result if "name" in record]
 
-    def fetch_database_metadata(self, database):
+    def fetch_database_metadata(self, database, transaction_id=None):
         total_nodes = 0
         total_rels = 0
 
@@ -232,6 +297,7 @@ class NEO4JSource(GraphSource):
                 "MATCH (n) RETURN count(n) AS cnt",
                 database=database,
                 read=True,
+                transaction_id=transaction_id,
             )
             total_nodes = result[0]["cnt"] if result else 0
 
@@ -239,6 +305,7 @@ class NEO4JSource(GraphSource):
                 "MATCH ()-[r]->() RETURN count(r) AS cnt",
                 database=database,
                 read=True,
+                transaction_id=transaction_id,
             )
             total_rels = result[0]["cnt"] if result else 0
 
@@ -281,9 +348,9 @@ class NEO4JSource(GraphSource):
 
         return {"status": "success"}
 
-    def fetch_database_stats(self, database):
+    def fetch_database_stats(self, database, transaction_id=None):
 
-        metadata = self.fetch_database_metadata(database)
+        metadata = self.fetch_database_metadata(database, transaction_id=transaction_id)
         return {
             "node_count": metadata.get("node_count"),
             "relationship_count": metadata.get("relationship_count"),
@@ -518,7 +585,7 @@ class NEO4JSource(GraphSource):
 
         return {"status": "registry_only"}
 
-    def fetch_entity_stats(self, database, collection, entity):
+    def fetch_entity_stats(self, database, collection, entity, transaction_id=None):
 
         stats = {}
 
@@ -527,6 +594,7 @@ class NEO4JSource(GraphSource):
                 f"MATCH (n:`{entity}`) RETURN count(n) AS cnt",
                 database=database,
                 read=True,
+                transaction_id=transaction_id,
             )
             stats["row_count"] = result[0]["cnt"] if result else 0
             stats["node_count"] = stats["row_count"]
@@ -545,8 +613,9 @@ class NEO4JSource(GraphSource):
         entity,
         property_name,
         sample_limit=10,
+        transaction_id=None,
     ):
-        
+
         stats = {}
 
         try:
@@ -564,6 +633,7 @@ class NEO4JSource(GraphSource):
                 database=database,
                 params={"sample_limit": sample_limit},
                 read=True,
+                transaction_id=transaction_id,
             )
 
             if result:
@@ -584,6 +654,7 @@ class NEO4JSource(GraphSource):
                 """,
                 database=database,
                 read=True,
+                transaction_id=transaction_id,
             )
 
             stats["most_common_vals"] = [row["value"] for row in result]
@@ -600,25 +671,30 @@ class NEO4JSource(GraphSource):
 
     # ---------- graph primitives ----------
 
-    def add_node(self, database: str, label: str, properties: dict | None = None, node_id: str | None = None) -> str:
+    def add_node(self, database: str, label: str, properties: dict | None = None, node_id: str | None = None, transaction_id: str | None = None) -> str:
         props = dict(properties or {})
         if node_id is not None:
             props["_id"] = node_id
         lbl = self._clean_neo4j_identifier(label)
         result = self._run_query(
             f"CREATE (n:`{lbl}` $props) RETURN n._id AS cid, elementId(n) AS eid",
-            database=database, params={"props": props}, read=False,
+            database=database, params={"props": props}, read=False, transaction_id=transaction_id,
         )
         if result:
             row = result[0]
-            return str(row["cid"] if row.get("cid") is not None else row["eid"])
+            new_id = str(row["cid"] if row.get("cid") is not None else row["eid"])
+            if transaction_id is not None:
+                self._transactions[transaction_id]["operations"].append(
+                    {"op": "add_node", "label": label, "properties": properties, "node_id": new_id}
+                )
+            return new_id
         raise RuntimeError("add_node returned no result")
 
-    def get_node(self, database: str, node_id: str) -> dict | None:
+    def get_node(self, database: str, node_id: str, transaction_id: str | None = None) -> dict | None:
         result = self._run_query(
             "MATCH (n) WHERE n._id = $nid OR elementId(n) = $nid "
             "RETURN n, labels(n) AS labels LIMIT 1",
-            database=database, params={"nid": node_id}, read=True,
+            database=database, params={"nid": node_id}, read=True, transaction_id=transaction_id,
         )
         if not result:
             return None
@@ -630,26 +706,32 @@ class NEO4JSource(GraphSource):
             "properties": dict(node_obj),
         }
 
-    def delete_node(self, database: str, node_id: str) -> None:
+    def delete_node(self, database: str, node_id: str, transaction_id: str | None = None) -> None:
         self._run_query(
             "MATCH (n) WHERE n._id = $nid OR elementId(n) = $nid DETACH DELETE n",
-            database=database, params={"nid": node_id}, read=False,
+            database=database, params={"nid": node_id}, read=False, transaction_id=transaction_id,
         )
+        if transaction_id is not None:
+            self._transactions[transaction_id]["operations"].append({"op": "delete_node", "node_id": node_id})
 
-    def update_node(self, database: str, node_id: str, properties: dict) -> None:
+    def update_node(self, database: str, node_id: str, properties: dict, transaction_id: str | None = None) -> None:
         self._run_query(
             "MATCH (n) WHERE n._id = $nid OR elementId(n) = $nid SET n += $props",
-            database=database, params={"nid": node_id, "props": properties}, read=False,
+            database=database, params={"nid": node_id, "props": properties}, read=False, transaction_id=transaction_id,
         )
+        if transaction_id is not None:
+            self._transactions[transaction_id]["operations"].append(
+                {"op": "update_node", "node_id": node_id, "properties": properties}
+            )
 
-    def match_nodes(self, database: str, label: str | None = None, properties: dict | None = None) -> list[dict]:
+    def match_nodes(self, database: str, label: str | None = None, properties: dict | None = None, transaction_id: str | None = None) -> list[dict]:
         label_clause = f":`{self._clean_neo4j_identifier(label)}`" if label else ""
         conditions = " AND ".join(f"n.`{k}` = $p_{i}" for i, k in enumerate(properties or {}))
         where_clause = f" WHERE {conditions}" if conditions else ""
         params = {f"p_{i}": v for i, v in enumerate((properties or {}).values())}
         result = self._run_query(
             f"MATCH (n{label_clause}){where_clause} RETURN n, labels(n) AS labels, elementId(n) AS eid",
-            database=database, params=params, read=True,
+            database=database, params=params, read=True, transaction_id=transaction_id,
         )
         nodes = []
         for row in result:
@@ -661,7 +743,7 @@ class NEO4JSource(GraphSource):
             })
         return nodes
 
-    def add_edge(self, database: str, source_id: str, edge_type: str, target_id: str, properties: dict | None = None) -> str:
+    def add_edge(self, database: str, source_id: str, edge_type: str, target_id: str, properties: dict | None = None, transaction_id: str | None = None) -> str:
         rel_type = self._clean_neo4j_identifier(edge_type)
         result = self._run_query(
             f"MATCH (a) WHERE a._id = $src OR elementId(a) = $src "
@@ -670,32 +752,49 @@ class NEO4JSource(GraphSource):
             database=database,
             params={"src": source_id, "tgt": target_id, "props": properties or {}},
             read=False,
+            transaction_id=transaction_id,
         )
         if result:
-            return str(result[0]["eid"])
+            edge_id = str(result[0]["eid"])
+            if transaction_id is not None:
+                self._transactions[transaction_id]["operations"].append({
+                    "op": "add_edge", "source_id": source_id, "edge_type": edge_type,
+                    "target_id": target_id, "properties": properties, "edge_id": edge_id,
+                })
+            return edge_id
         raise RuntimeError(
             f"add_edge failed: source node {source_id!r} or target node {target_id!r} not found"
         )
 
-    def delete_edge(self, database: str, source_id: str, edge_type: str, target_id: str) -> None:
+    def delete_edge(self, database: str, source_id: str, edge_type: str, target_id: str, transaction_id: str | None = None) -> None:
         rel_type = self._clean_neo4j_identifier(edge_type)
         self._run_query(
             f"MATCH (a)-[r:`{rel_type}`]->(b) "
             f"WHERE (a._id = $src OR elementId(a) = $src) "
             f"AND (b._id = $tgt OR elementId(b) = $tgt) DELETE r",
-            database=database, params={"src": source_id, "tgt": target_id}, read=False,
+            database=database, params={"src": source_id, "tgt": target_id}, read=False, transaction_id=transaction_id,
         )
+        if transaction_id is not None:
+            self._transactions[transaction_id]["operations"].append({
+                "op": "delete_edge", "source_id": source_id, "edge_type": edge_type, "target_id": target_id,
+            })
 
-    def update_edge(self, database: str, source_id: str, edge_type: str, target_id: str, properties: dict) -> None:
+    def update_edge(self, database: str, source_id: str, edge_type: str, target_id: str, properties: dict, transaction_id: str | None = None) -> None:
         rel_type = self._clean_neo4j_identifier(edge_type)
         self._run_query(
             f"MATCH (a)-[r:`{rel_type}`]->(b) "
             f"WHERE (a._id = $src OR elementId(a) = $src) "
             f"AND (b._id = $tgt OR elementId(b) = $tgt) SET r += $props",
             database=database, params={"src": source_id, "tgt": target_id, "props": properties}, read=False,
+            transaction_id=transaction_id,
         )
+        if transaction_id is not None:
+            self._transactions[transaction_id]["operations"].append({
+                "op": "update_edge", "source_id": source_id, "edge_type": edge_type,
+                "target_id": target_id, "properties": properties,
+            })
 
-    def match_edges(self, database: str, edge_type: str | None = None, source_id: str | None = None, target_id: str | None = None, properties: dict | None = None) -> list[dict]:
+    def match_edges(self, database: str, edge_type: str | None = None, source_id: str | None = None, target_id: str | None = None, properties: dict | None = None, transaction_id: str | None = None) -> list[dict]:
         rel_clause = f":`{self._clean_neo4j_identifier(edge_type)}`" if edge_type else ""
         conditions = []
         params: dict = {}
@@ -713,7 +812,7 @@ class NEO4JSource(GraphSource):
             f"MATCH (a)-[r{rel_clause}]->(b){where_clause} "
             "RETURN r, type(r) AS edge_type, a._id AS source_id, b._id AS target_id, "
             "elementId(a) AS src_eid, elementId(b) AS tgt_eid",
-            database=database, params=params, read=True,
+            database=database, params=params, read=True, transaction_id=transaction_id,
         )
         edges = []
         for row in result:
@@ -726,7 +825,7 @@ class NEO4JSource(GraphSource):
             })
         return edges
 
-    def get_neighbors(self, database: str, node_id: str, edge_type: str | None = None, direction: str = "both") -> list[dict]:
+    def get_neighbors(self, database: str, node_id: str, edge_type: str | None = None, direction: str = "both", transaction_id: str | None = None) -> list[dict]:
         rel_spec = f":`{self._clean_neo4j_identifier(edge_type)}`" if edge_type else ""
         if direction == "out":
             pattern = f"-[r{rel_spec}]->"
@@ -737,7 +836,7 @@ class NEO4JSource(GraphSource):
         result = self._run_query(
             f"MATCH (n){pattern}(m) WHERE n._id = $nid OR elementId(n) = $nid "
             f"RETURN m, labels(m) AS labels, type(r) AS edge_type, r AS edge, elementId(m) AS eid",
-            database=database, params={"nid": node_id}, read=True,
+            database=database, params={"nid": node_id}, read=True, transaction_id=transaction_id,
         )
         neighbors = []
         for row in result:
@@ -767,12 +866,14 @@ class NEO4JSource(GraphSource):
 
         params = optional_properties.get("params")
         read = optional_properties.get("read", True)
+        transaction_id = optional_properties.get("transaction_id")
 
         return self._run_query(
             query,
             database=database,
             params=params,
             read=read,
+            transaction_id=transaction_id,
         )
 
     def execute_query_nl(self, query, database=None, collection=None, schema=None, llm_fn=None, optional_properties=None):
