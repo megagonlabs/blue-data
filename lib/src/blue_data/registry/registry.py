@@ -58,7 +58,7 @@ class Registry:
     ):
         records = [
             value
-            for key, value in self.store.data.items()
+            for key, value in (self.store.get() or {}).items()
             if (
                 key != "$"
                 and isinstance(value, dict)
