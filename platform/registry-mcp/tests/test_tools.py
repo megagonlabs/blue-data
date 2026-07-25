@@ -27,6 +27,8 @@ from registry_mcp.server import (
     collect_source_stats,
     enrich_source,
     enrich_source_metadata,
+    execute_query,
+    import_data,
 )
 
 
@@ -287,3 +289,89 @@ def test_manage_tools_unknown_source_return_error():
     # enrich_source silently no-ops on an unknown source (iterates empty list)
     result = json.loads(enrich_source("no_such_source"))
     assert result["status"] == "ok"
+
+
+# ---------------------------------------------------------------------------
+# Query tools
+# ---------------------------------------------------------------------------
+
+def test_execute_query_returns_rows():
+    result = json.loads(execute_query("testdb", "SELECT * FROM orders", database="sales"))
+    assert isinstance(result, list)
+    assert len(result) == 3
+    assert "total" in result[0]
+
+
+def test_execute_query_unknown_source_returns_error():
+    result = json.loads(execute_query("no_such_source", "SELECT 1"))
+    assert "error" in result
+
+
+def test_import_data_copies_rows(registry, tmp_path):
+    """Import rows from a FileSource CSV into the existing testdb SQLite source."""
+    from blue_data.source.file.file_source import FileSource
+    import pandas as pd
+
+    d = tmp_path / "files"
+    d.mkdir()
+    pd.DataFrame([
+        {"id": 10, "customer_id": 1, "total": 9.99,  "status": "new"},
+        {"id": 11, "customer_id": 2, "total": 19.99, "status": "new"},
+    ]).to_csv(d / "new_orders.csv", index=False)
+
+    file_src = FileSource("filesrc", directory=str(d))
+    registry.register_source(file_src)
+
+    result = json.loads(import_data(
+        source="filesrc",
+        target="testdb",
+        collection="new_orders",
+        database="sales",
+        entity="orders",
+        mode="append",
+    ))
+    assert result["status"] == "success"
+    assert result["rows_imported"] == 2
+
+    rows = json.loads(execute_query("testdb", "SELECT * FROM orders", database="sales"))
+    assert len(rows) == 5  # 3 original + 2 imported
+
+
+def test_import_data_unknown_source_returns_error():
+    result = json.loads(import_data(
+        source="no_such_source",
+        target="testdb",
+        collection="orders",
+    ))
+    assert "error" in result
+
+
+def test_import_data_unknown_target_returns_error():
+    result = json.loads(import_data(
+        source="testdb",
+        target="no_such_target",
+        collection="orders",
+    ))
+    assert "error" in result
+
+
+def test_import_data_missing_entity_returns_error(registry, tmp_path):
+    """SQL targets require entity; omitting it should return an error."""
+    from blue_data.source.file.file_source import FileSource
+    import pandas as pd
+
+    d = tmp_path / "files2"
+    d.mkdir()
+    pd.DataFrame([{"id": 1, "val": "x"}]).to_csv(d / "data.csv", index=False)
+
+    file_src = FileSource("filesrc2", directory=str(d))
+    registry.register_source(file_src)
+
+    result = json.loads(import_data(
+        source="filesrc2",
+        target="testdb",
+        collection="data",
+        database="sales",
+        entity=None,
+    ))
+    assert "error" in result
