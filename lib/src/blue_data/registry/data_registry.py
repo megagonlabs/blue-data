@@ -99,6 +99,37 @@ class DataRegistry(Registry):
             optional_properties=optional_properties or {},
         )
 
+    def import_data(
+        self,
+        source: str,
+        target: str,
+        collection: str,
+        database: str = "default",
+        entity: str | None = None,
+        mode: str = "append",
+        options: dict | None = None,
+    ) -> dict:
+        """Import rows from *source* into *target* via their registered DataSource objects.
+
+        Raises ``ValueError`` if either source is not registered or connectable.
+        """
+        source_obj = self.connect_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered or connectable: {source}")
+
+        target_obj = self.connect_source(target)
+        if target_obj is None:
+            raise ValueError(f"Target not registered or connectable: {target}")
+
+        return target_obj.import_data(
+            source=source_obj,
+            collection=collection,
+            database=database,
+            entity=entity,
+            mode=mode,
+            options=options,
+        )
+
     def execute_query_nl(
         self,
         source: str,
