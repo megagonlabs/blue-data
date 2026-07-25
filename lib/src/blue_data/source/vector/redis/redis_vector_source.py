@@ -12,8 +12,8 @@ from blue_data.core.schema import DataSchema
 class RedisVectorSource(VectorSource):
     """Redis Vector data source using RedisJSON + RediSearch."""
 
-    def __init__(self, name: str, properties: dict | None = None):
-        super().__init__(name, properties=properties)
+    def __init__(self, name: str, embedding_fn=None, properties: dict | None = None):
+        super().__init__(name, embedding_fn=embedding_fn, properties=properties)
         self.logger = logging.getLogger(self.__class__.__name__)
         self._initialize_connection_properties()
         self.connection = self._connect(**self.properties["connection"])

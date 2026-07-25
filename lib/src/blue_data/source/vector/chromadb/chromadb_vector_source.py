@@ -10,8 +10,8 @@ from blue_data.source.vector.vector_source import VectorSource
 class ChromaDBVectorSource(VectorSource):
     """ChromaDB vector source — persistent or ephemeral via chromadb client."""
 
-    def __init__(self, name: str, path: str | None = None, properties: dict | None = None):
-        super().__init__(name, properties=properties or {})
+    def __init__(self, name: str, path: str | None = None, embedding_fn=None, properties: dict | None = None):
+        super().__init__(name, embedding_fn=embedding_fn, properties=properties or {})
         self.logger = logging.getLogger(self.__class__.__name__)
         settings = chromadb.Settings(allow_reset=True)
         self._client = (

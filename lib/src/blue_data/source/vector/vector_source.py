@@ -10,6 +10,10 @@ class VectorSource(DataSource, ABC):
 
     content_type: str = "vector"
 
+    def __init__(self, name: str, embedding_fn=None, properties: dict | None = None):
+        super().__init__(name, properties=properties)
+        self._embedding_fn = embedding_fn
+
     # ---------- primitive operations ----------
 
     @abstractmethod
@@ -104,4 +108,44 @@ class VectorSource(DataSource, ABC):
         raise ValueError(
             f"Unsupported VectorSource operation: {op!r}. "
             "Supported: VECTOR.CREATE_INDEX, VECTOR.UPSERT, VECTOR.DELETE, VECTOR.KNN"
+        )
+
+    # ---------- NL query ----------
+
+    def execute_query_nl(
+        self,
+        query: str,
+        database: str | None = None,
+        collection: str | None = None,
+        schema: dict | None = None,
+        llm_fn=None,
+        optional_properties: dict | None = None,
+    ) -> list[dict]:
+        """Embed *query* and run KNN — no LLM required.
+
+        Embedding function priority: ``optional_properties["embedding_fn"]`` >
+        ``self._embedding_fn`` (set at construction or injected by DataRegistry).
+        The index to search defaults to *collection*; override via
+        ``optional_properties["index"]``.
+
+        Returns ``[]`` when no embedding function is available.
+        """
+        props = optional_properties or {}
+        embedding_fn = props.get("embedding_fn") or self._embedding_fn
+        if embedding_fn is None:
+            return []
+
+        index = props.get("index") or collection
+        if index is None:
+            return []
+
+        query_vector = embedding_fn(query)
+        return self.knn(
+            index_name=index,
+            query_vector=query_vector,
+            k=int(props.get("k", 5)),
+            embedding_field=props.get("embedding_field", "embedding"),
+            score_alias=props.get("score_alias", "score"),
+            return_fields=list(props.get("return_fields") or []),
+            filter_expr=props.get("filter", "*"),
         )

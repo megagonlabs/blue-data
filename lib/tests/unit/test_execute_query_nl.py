@@ -491,3 +491,85 @@ class TestDataRegistryNL:
         reg, src = reg_with_source
         result = reg.execute_query_nl("nlsrc", "show me all orders")
         assert result == [{"row": 1}]
+
+
+# ---------- DataRegistry + VectorSource ----------
+
+import math
+
+from blue_data.source.vector.memory_vector_source import MemoryVectorSource
+from blue_data.source.vector.vector_source import VectorSource
+
+
+def _embed(text: str, dim: int = 4) -> list[float]:
+    seed = abs(hash(text)) % 1000 + 1
+    base = [seed * (i + 1) for i in range(dim)]
+    norm = math.sqrt(sum(x * x for x in base))
+    return [x / norm for x in base]
+
+
+@pytest.fixture
+def vec_registry(tmp_path):
+    """DataRegistry with a MemoryVectorSource pre-loaded with two docs."""
+    vec_src = MemoryVectorSource("vecdb")
+    vec_src.execute_query({"op": "VECTOR.CREATE_INDEX", "index": "vecdb", "collection": "vecdb", "dim": 4})
+    for label in ("apple", "banana"):
+        vec_src.execute_query({
+            "op": "VECTOR.UPSERT",
+            "collection": "vecdb",
+            "id": label,
+            "doc": {"text": label, "embedding": _embed(label)},
+        })
+
+    reg = DataRegistry(
+        store=MemoryJSONSource(),
+        vector_source=MemoryVectorSource(),
+        embedding_fn=_embed,
+        vector_dim=4,
+    )
+    reg.register_source(vec_src)
+    return reg
+
+
+class TestDataRegistryNLVector:
+    def test_vector_source_is_detected(self, vec_registry):
+        reg = vec_registry
+        src = reg.connect_source("vecdb")
+        assert isinstance(src, VectorSource)
+
+    def test_nl_query_returns_results(self, vec_registry):
+        results = vec_registry.execute_query_nl("vecdb", "apple", collection="vecdb")
+        assert len(results) > 0
+        ids = [r["id"] for r in results]
+        assert "apple" in ids
+
+    def test_nearest_neighbour_is_self(self, vec_registry):
+        results = vec_registry.execute_query_nl(
+            "vecdb", "apple", collection="vecdb", optional_properties={"k": 1}
+        )
+        assert results[0]["id"] == "apple"
+
+    def test_no_embedding_fn_returns_empty(self, tmp_path):
+        vec_src = MemoryVectorSource("vecdb2")
+        vec_src.execute_query({"op": "VECTOR.CREATE_INDEX", "index": "vecdb2", "collection": "vecdb2", "dim": 4})
+        reg = DataRegistry(store=MemoryJSONSource())
+        reg.register_source(vec_src)
+        result = reg.execute_query_nl("vecdb2", "apple", collection="vecdb2")
+        assert result == []
+
+    def test_llm_fn_not_passed_to_vector_source(self, vec_registry):
+        """Registry should not pass llm_fn to a VectorSource — embedding handles translation."""
+        reg = vec_registry
+        from unittest.mock import patch
+        original_nl = MemoryVectorSource.execute_query_nl
+        calls = []
+
+        def recording_nl(self, query, database=None, collection=None, schema=None, llm_fn=None, optional_properties=None):
+            calls.append({"llm_fn": llm_fn, "optional_properties": optional_properties})
+            return original_nl(self, query, database=database, collection=collection, schema=schema, llm_fn=llm_fn, optional_properties=optional_properties)
+
+        with patch.object(MemoryVectorSource, "execute_query_nl", recording_nl):
+            reg.execute_query_nl("vecdb", "apple", collection="vecdb")
+
+        assert calls[0]["llm_fn"] is None
+        assert "embedding_fn" in calls[0]["optional_properties"]

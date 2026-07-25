@@ -140,14 +140,30 @@ class DataRegistry(Registry):
     ) -> list[dict]:
         """Translate *query* from natural language and execute it against *source*.
 
-        Pulls schema context from the registry and the LLM callable from the
-        metadata enricher, then delegates to the source's ``execute_query_nl``.
-        Raises ``ValueError`` if the source is not registered or no LLM is
-        configured.
+        For SQL/graph sources, pulls schema context and the LLM callable from the
+        metadata enricher and delegates to the source's ``execute_query_nl``.
+        For vector sources, injects the registry's embedding function so the query
+        is embedded and run as KNN — no LLM required.
+        Raises ``ValueError`` if the source is not registered or connectable.
         """
+        from blue_data.source.vector.vector_source import VectorSource
+
         source_obj = self.connect_source(source)
         if source_obj is None:
             raise ValueError(f"Source not registered or connectable: {source}")
+
+        props = dict(optional_properties or {})
+
+        if isinstance(source_obj, VectorSource):
+            embedding_fn = self.search_engine.embedding_fn
+            if embedding_fn is not None:
+                props.setdefault("embedding_fn", embedding_fn)
+            return source_obj.execute_query_nl(
+                query=query,
+                database=database,
+                collection=collection,
+                optional_properties=props,
+            )
 
         llm_fn = (
             self.metadata_enricher._llm_fn
@@ -165,7 +181,7 @@ class DataRegistry(Registry):
             collection=collection,
             schema=schema,
             llm_fn=llm_fn,
-            optional_properties=optional_properties,
+            optional_properties=props,
         )
 
     def build_schema_for_nl(self, source: str, database: str, collection: str) -> dict:

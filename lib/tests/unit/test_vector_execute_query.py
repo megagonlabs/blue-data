@@ -138,3 +138,90 @@ class TestErrors:
         src = MemoryVectorSource("mem")
         with pytest.raises(ValueError, match="Unsupported"):
             src.execute_query({"op": "VECTOR.SEARCH", "index": "idx"})
+
+
+# ---------------------------------------------------------------------------
+# execute_query_nl
+# ---------------------------------------------------------------------------
+
+def _embed(text: str, dim: int = 4) -> list[float]:
+    """Deterministic embedding: hash the text into a unit vector."""
+    import math
+    seed = abs(hash(text)) % 1000 + 1
+    base = [seed * (i + 1) for i in range(dim)]
+    norm = math.sqrt(sum(x * x for x in base))
+    return [x / norm for x in base]
+
+
+def _populated_src(embedding_fn=None) -> MemoryVectorSource:
+    """MemoryVectorSource pre-loaded with two docs."""
+    src = MemoryVectorSource("mem", embedding_fn=embedding_fn)
+    src.execute_query({"op": "VECTOR.CREATE_INDEX", "index": "docs", "collection": "docs", "dim": 4})
+    for label in ("apple", "banana"):
+        src.execute_query({
+            "op": "VECTOR.UPSERT",
+            "collection": "docs",
+            "id": label,
+            "doc": {"text": label, "embedding": _embed(label)},
+        })
+    return src
+
+
+class TestExecuteQueryNL:
+    def test_returns_empty_without_embedding_fn(self):
+        src = _populated_src(embedding_fn=None)
+        result = src.execute_query_nl("apple", collection="docs")
+        assert result == []
+
+    def test_returns_empty_without_collection_or_index(self):
+        src = _populated_src(embedding_fn=_embed)
+        result = src.execute_query_nl("apple")
+        assert result == []
+
+    def test_embedding_fn_from_constructor(self):
+        src = _populated_src(embedding_fn=_embed)
+        results = src.execute_query_nl("apple", collection="docs")
+        assert len(results) > 0
+        ids = [r["id"] for r in results]
+        assert "apple" in ids
+
+    def test_embedding_fn_from_optional_properties(self):
+        src = _populated_src(embedding_fn=None)
+        results = src.execute_query_nl(
+            "apple",
+            collection="docs",
+            optional_properties={"embedding_fn": _embed},
+        )
+        assert len(results) > 0
+
+    def test_optional_properties_embedding_fn_takes_precedence(self):
+        wrong_embed = lambda text: [0.0, 0.0, 0.0, 1.0]
+        src = _populated_src(embedding_fn=wrong_embed)
+        results = src.execute_query_nl(
+            "apple",
+            collection="docs",
+            optional_properties={"embedding_fn": _embed},
+        )
+        ids = [r["id"] for r in results]
+        assert "apple" in ids
+
+    def test_index_from_optional_properties_overrides_collection(self):
+        src = _populated_src(embedding_fn=_embed)
+        results = src.execute_query_nl(
+            "apple",
+            collection="wrong_collection",
+            optional_properties={"index": "docs"},
+        )
+        assert len(results) > 0
+
+    def test_k_limits_results(self):
+        src = _populated_src(embedding_fn=_embed)
+        results = src.execute_query_nl(
+            "apple", collection="docs", optional_properties={"k": 1}
+        )
+        assert len(results) == 1
+
+    def test_nearest_neighbour_is_self(self):
+        src = _populated_src(embedding_fn=_embed)
+        results = src.execute_query_nl("apple", collection="docs", optional_properties={"k": 1})
+        assert results[0]["id"] == "apple"

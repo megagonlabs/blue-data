@@ -12,8 +12,8 @@ from blue_data.source.vector.vector_source import VectorSource
 class FileVectorSource(VectorSource):
     """File-backed vector storage — persists docs as JSON files per collection."""
 
-    def __init__(self, name: str, directory: str = ".", properties: dict | None = None):
-        super().__init__(name, properties=properties or {})
+    def __init__(self, name: str, directory: str = ".", embedding_fn=None, properties: dict | None = None):
+        super().__init__(name, embedding_fn=embedding_fn, properties=properties or {})
         self.logger = logging.getLogger(self.__class__.__name__)
         self._directory = os.path.abspath(directory)
         os.makedirs(self._directory, exist_ok=True)

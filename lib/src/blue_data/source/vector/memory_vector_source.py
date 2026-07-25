@@ -15,8 +15,8 @@ class MemoryVectorSource(VectorSource):
     No Redis required.
     """
 
-    def __init__(self, name: str = "memory_vector", properties: dict | None = None):
-        super().__init__(name, properties=properties or {})
+    def __init__(self, name: str = "memory_vector", embedding_fn=None, properties: dict | None = None):
+        super().__init__(name, embedding_fn=embedding_fn, properties=properties or {})
         self.logger = logging.getLogger(self.__class__.__name__)
         # index_name -> {"collection": str, "dim": int, "metric": str}
         self._indices: dict[str, dict] = {}
