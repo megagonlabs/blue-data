@@ -362,6 +362,43 @@ def execute_query(
         return _err(e)
 
 
+@mcp.tool()
+def import_data(
+    source: str,
+    target: str,
+    collection: str,
+    database: str = "default",
+    entity: Optional[str] = None,
+    mode: str = "append",
+) -> str:
+    """Import rows from one registered data source into another.
+
+    Reads data from *source* (using *collection* as the table/file name) and
+    writes it to *target*.  SQL targets (SQLite, Postgres, MySQL) require
+    *entity* (destination table name).
+
+    Args:
+        source:     Name of the registered source data source (data origin).
+        target:     Name of the registered target data source (data destination).
+        collection: Collection / table / file name to read from the source.
+        database:   Database name on the target (default 'default').
+        entity:     Destination table name on the target (required for SQL targets).
+        mode:       'append' (default) adds rows; 'overwrite' clears the target first.
+    """
+    try:
+        result = get_registry().import_data(
+            source=source,
+            target=target,
+            collection=collection,
+            database=database,
+            entity=entity,
+            mode=mode,
+        )
+        return _ok(result)
+    except Exception as e:
+        return _err(e)
+
+
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
