@@ -191,6 +191,112 @@ registry = DataRegistry(store=MemoryJSONSource(), metadata_enricher=enricher)
 
 `rebuild=False` is idempotent: existing enrichment properties are not overwritten on subsequent calls. Use `rebuild=True` to force re-enrichment.
 
+## Natural language queries
+
+`DataRegistry.execute_query_nl` lets you query a registered source in plain English. The translation strategy depends on the source type.
+
+### SQL / graph sources — LLM pipeline
+
+For SQL (SQLite, Postgres, MySQL) and graph (Neo4j) sources the pipeline is:
+
+```
+NL query
+  → _format_schema_for_nl()    # renders entity/attribute list as text
+  → _build_nl_prompt()         # adds dialect-specific instructions ("write a SQL SELECT…")
+  → llm_fn(prompt)             # LLM produces the native query
+  → _extract_native_query()    # strips markdown fences, cleans output
+  → execute_query()            # runs the native query and returns rows
+```
+
+The `llm_fn` comes from the `metadata_enricher` configured on the registry. Schema context is pulled from the registry records (entities and attributes) to ground the LLM prompt.
+
+```python
+import anthropic
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.registry.enrichment.metadata import MetaData
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+
+client = anthropic.Anthropic()
+
+def llm_fn(prompt: str) -> str:
+    msg = client.messages.create(
+        model="claude-opus-4-8", max_tokens=512,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return msg.content[0].text
+
+registry = DataRegistry(
+    store=MemoryJSONSource(),
+    metadata_enricher=MetaData(llm_fn=llm_fn),
+)
+registry.sync_all(recursive=True)
+registry.collect_source_stats("mydb", recursive=True)
+
+rows = registry.execute_query_nl(
+    "mydb",
+    "show me all orders over $100",
+    database="sales",
+    collection="public",
+)
+```
+
+Returns `[]` when no `llm_fn` is configured.
+
+### Vector sources — embedding pipeline
+
+For `VectorSource` backends (MemoryVectorSource, ChromaDBVectorSource, RedisVectorSource, FileVectorSource) **no LLM is needed**. The NL query is embedded into a vector and run as a KNN search:
+
+```
+NL query
+  → embedding_fn(query)   # registry's embedding function produces a query vector
+  → knn(index, vector)    # nearest neighbours by cosine similarity
+  → rows
+```
+
+The registry automatically injects its `embedding_fn` when the target source is a VectorSource.
+
+```python
+from blue_data.registry.data_registry import DataRegistry
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.vector.memory_vector_source import MemoryVectorSource
+
+def embed(text: str) -> list[float]:
+    ...  # your embedding function
+
+vec_src = MemoryVectorSource("docs")
+# ... create index and upsert docs with embeddings ...
+
+registry = DataRegistry(
+    store=MemoryJSONSource(),
+    vector_source=MemoryVectorSource(),   # registry search index
+    embedding_fn=embed,
+    vector_dim=1536,
+)
+registry.register_source(vec_src)
+
+results = registry.execute_query_nl(
+    "docs",
+    "documents about machine learning",
+    collection="docs",              # index name to search
+    optional_properties={"k": 10}, # number of nearest neighbours
+)
+```
+
+Returns `[]` when no embedding function is configured on the registry.
+
+### Extending NL translation
+
+To add custom (rule-based or DSL) translation to a new source, override `translate_nl_to_native_query` — the single hook point for translation strategy:
+
+```python
+class MySource(DataSource):
+    def translate_nl_to_native_query(self, query, schema, llm_fn):
+        # llm_fn is available but can be ignored for rule-based translation
+        return my_dsl_parser(query)
+```
+
+Override `execute_query_nl` instead only when the *execution shape* differs from a plain `execute_query` call (e.g. MongoDB wraps the filter in a `FIND` op dict).
+
 ## Implementing a new DataSource
 
 Subclass `DataSource` and override the methods your backend supports:
