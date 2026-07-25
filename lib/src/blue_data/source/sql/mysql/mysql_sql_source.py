@@ -299,6 +299,37 @@ class MySQLDBSource(SQLSource):
     ):
         return {"status": "registry_only"}
 
+    # ---------- import ----------
+
+    def import_data(self, source, collection, database="default", entity=None, mode="append", options=None):
+        if entity is None:
+            raise ValueError("entity (table name) is required for MySQLDBSource.import_data")
+
+        rows = source.execute_query(None, collection=collection)
+        if not rows:
+            return {"status": "success", "rows_imported": 0}
+
+        import pandas as pd
+        df = pd.DataFrame(rows)
+        conn = self._db_connect(database)
+        cur = conn.cursor()
+        try:
+            if mode == "overwrite":
+                cur.execute(f"SHOW TABLES LIKE %s;", (entity,))
+                if cur.fetchone():
+                    cur.execute(f"DELETE FROM `{entity}`")
+
+            columns = list(df.columns)
+            col_sql = ", ".join([f"`{c}`" for c in columns])
+            placeholders = ", ".join(["%s"] * len(columns))
+            insert_sql = f"INSERT INTO `{entity}` ({col_sql}) VALUES ({placeholders})"
+            cur.executemany(insert_sql, [tuple(r) for r in df.itertuples(index=False, name=None)])
+            conn.commit()
+            return {"status": "success", "rows_imported": len(df)}
+        finally:
+            cur.close()
+            self._db_disconnect(conn)
+
     # ---------- stats ----------
 
     def fetch_entity_stats(self, database, collection, entity):

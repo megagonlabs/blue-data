@@ -346,3 +346,119 @@ def test_fetch_property_stats_most_common_vals(src, populated_table):
     db, col, entity = populated_table
     stats = src.fetch_property_stats(db, col, entity, "id")
     assert isinstance(stats["most_common_vals"], list)
+
+
+# ---------------------------------------------------------------------------
+# import_data
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def import_table(src, testdb):
+    """Create a simple items table for import_data tests."""
+    src.create_database_collection_entity(
+        testdb, "public", "items",
+        properties={
+            "cols_definition": [
+                {"name": "id",   "type": "INTEGER"},
+                {"name": "name", "type": "TEXT"},
+            ],
+            "primary_key": ["id"],
+        },
+        overwrite=True,
+    )
+    return testdb, "public", "items"
+
+
+@pytest.fixture
+def file_src(tmp_path):
+    """FileSource with a two-row items.csv."""
+    from blue_data.source.file.file_source import FileSource
+    import pandas as pd
+
+    d = tmp_path / "files"
+    d.mkdir()
+    pd.DataFrame([{"id": 1, "name": "alpha"}, {"id": 2, "name": "beta"}]).to_csv(
+        d / "items.csv", index=False
+    )
+    return FileSource("files", directory=str(d))
+
+
+@skip_no_mysql
+def test_import_data_requires_entity(src, testdb, file_src):
+    with pytest.raises(ValueError, match="entity"):
+        src.import_data(file_src, collection="items", database=testdb)
+
+
+@skip_no_mysql
+def test_import_data_inserts_rows(src, import_table, file_src):
+    db, col, entity = import_table
+    result = src.import_data(file_src, collection=entity, database=db, entity=entity)
+    assert result["status"] == "success"
+    assert result["rows_imported"] == 2
+    rows = src.execute_query(f"SELECT * FROM `{entity}`", database=db)
+    assert len(rows) == 2
+
+
+@skip_no_mysql
+def test_import_data_append_adds_rows(src, import_table, file_src):
+    db, col, entity = import_table
+    src.import_data(file_src, collection=entity, database=db, entity=entity)
+    src.import_data(file_src, collection=entity, database=db, entity=entity, mode="append")
+    rows = src.execute_query(f"SELECT * FROM `{entity}`", database=db)
+    assert len(rows) == 4
+
+
+@skip_no_mysql
+def test_import_data_overwrite_truncates(src, import_table, file_src):
+    db, col, entity = import_table
+    src.import_data(file_src, collection=entity, database=db, entity=entity)
+    src.import_data(file_src, collection=entity, database=db, entity=entity, mode="overwrite")
+    rows = src.execute_query(f"SELECT * FROM `{entity}`", database=db)
+    assert len(rows) == 2
+
+
+@skip_no_mysql
+def test_import_data_empty_source_returns_zero(src, import_table, tmp_path):
+    from blue_data.source.file.file_source import FileSource
+
+    db, col, entity = import_table
+    empty_src = FileSource("empty", directory=str(tmp_path / "empty"))
+    result = src.import_data(empty_src, collection=entity, database=db, entity=entity)
+    assert result["status"] == "success"
+    assert result["rows_imported"] == 0
+
+
+@skip_no_mysql
+def test_import_data_e2e_filesource_to_mysql(src, testdb, tmp_path):
+    """CSV file → FileSource → MySQLDBSource round-trip."""
+    from blue_data.source.file.file_source import FileSource
+    import pandas as pd
+
+    d = tmp_path / "files"
+    d.mkdir()
+    pd.DataFrame([
+        {"id": 1, "product": "apple",  "price": 1.2},
+        {"id": 2, "product": "banana", "price": 0.5},
+        {"id": 3, "product": "cherry", "price": 3.0},
+    ]).to_csv(d / "products.csv", index=False)
+
+    src.create_database_collection_entity(
+        testdb, "public", "products",
+        properties={
+            "cols_definition": [
+                {"name": "id",      "type": "INTEGER"},
+                {"name": "product", "type": "TEXT"},
+                {"name": "price",   "type": "FLOAT"},
+            ],
+            "primary_key": ["id"],
+        },
+        overwrite=True,
+    )
+
+    file_src = FileSource("files", directory=str(d))
+    result = src.import_data(file_src, collection="products", database=testdb, entity="products")
+    assert result["rows_imported"] == 3
+
+    rows = src.execute_query("SELECT * FROM `products` ORDER BY price", database=testdb)
+    assert rows[0]["product"] == "banana"
+    assert float(rows[2]["price"]) == 3.0
