@@ -90,27 +90,46 @@ class DataSource:
         return []
 
     def _format_schema_for_nl(self, schema: dict | None) -> str:
-        """Format *schema* as text for an LLM prompt. Override per dialect."""
+        """Render *schema* as plain text for inclusion in an LLM prompt.
+
+        Override per dialect — SQL renders table/column lists, Neo4j renders
+        node/relationship lists. The base implementation returns a placeholder.
+        """
         return "(no schema available)"
 
     def _build_nl_prompt(self, query: str, schema_text: str) -> str:
-        """Build the full LLM prompt from *query* and formatted *schema_text*. Override per dialect."""
+        """Compose the full LLM prompt from *query* and the formatted *schema_text*.
+
+        Override per dialect to add dialect-specific instructions (e.g. "write a
+        SQL SELECT", "write a Cypher MATCH"). The base implementation returns
+        *query* unchanged (useful for testing).
+        """
         return query
 
     def _extract_native_query(self, raw: str):
-        """Extract the native query from raw LLM output. Override per dialect."""
+        """Clean raw LLM output into a runnable native query string or dict.
+
+        Override per dialect to strip markdown fences (` ```sql ... ``` `),
+        extract JSON objects, etc. Returns ``None`` for empty/unparseable input.
+        """
         return raw or None
 
     def translate_nl_to_native_query(self, query: str, schema: dict | None, llm_fn):
-        """Translate a natural language *query* to the source's native query language.
+        """Translate a natural language *query* to this source's native query language.
 
-        Calls ``_format_schema_for_nl``, ``_build_nl_prompt``, ``llm_fn``, and
-        ``_extract_native_query`` in sequence. Subclasses override the hook methods
-        rather than this method.
+        Default LLM-backed pipeline (all steps are overridable per dialect)::
 
-        Returns the native query (str or dict depending on dialect), or ``None``
-        if the LLM returns an empty response.
+            _format_schema_for_nl(schema)   → schema_text
+            _build_nl_prompt(query, schema_text) → prompt
+            llm_fn(prompt)                  → raw LLM output
+            _extract_native_query(raw)      → native query (str or dict)
+
+        To plug in rule-based or DSL translation, override this method directly
+        and ignore *llm_fn*. Returns ``None`` when *llm_fn* is absent or the LLM
+        returns an empty response.
         """
+        if llm_fn is None:
+            return None
         schema_text = self._format_schema_for_nl(schema)
         prompt = self._build_nl_prompt(query, schema_text)
         raw = llm_fn(prompt)
@@ -127,18 +146,26 @@ class DataSource:
     ) -> list[dict]:
         """Translate *query* from natural language and execute it.
 
-        Uses ``translate_nl_to_native_query`` to produce the dialect-specific query,
-        then passes it to ``execute_query``. Subclasses that need a different
-        execution shape (e.g. wrapping a filter in an op dict) override this method.
+        Calls ``translate_nl_to_native_query`` to produce the dialect-specific
+        query, then passes it to ``execute_query``.  Returns ``[]`` when
+        *llm_fn* is absent or translation yields nothing.
+
+        Override this method (not ``translate_nl_to_native_query``) only when
+        the execution shape differs from a plain ``execute_query`` call — for
+        example, MongoDB wraps the filter in a ``FIND`` op dict.  Sources that
+        only need a different *translation* strategy should override
+        ``translate_nl_to_native_query`` instead.
 
         Parameters:
-            query: Natural language query string.
-            database: Target database name.
-            collection: Target collection/schema name.
-            schema: Schema dict with ``entities`` and ``relations`` keys,
-                used to ground the LLM translation prompt.
-            llm_fn: Callable ``(prompt: str) -> str`` backed by an LLM. Required.
-            optional_properties: Extra driver-specific options.
+            query:              Natural language query string.
+            database:           Target database name.
+            collection:         Target collection / schema name.
+            schema:             Schema dict (``entities``, ``relations``) used to
+                                ground the LLM prompt.  Built by DataRegistry.
+            llm_fn:             ``(prompt: str) -> str`` backed by an LLM.
+                                Optional — returns ``[]`` when absent.
+            optional_properties: Extra driver-specific options passed through to
+                                ``execute_query``.
         """
         if llm_fn is None:
             return []

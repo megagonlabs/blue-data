@@ -877,6 +877,13 @@ class NEO4JSource(GraphSource):
         )
 
     def execute_query_nl(self, query, database=None, collection=None, schema=None, llm_fn=None, optional_properties=None):
+        """Translate *query* from natural language to Cypher and execute it.
+
+        Requires *llm_fn* — raises ``ValueError`` when absent, because Cypher
+        generation needs an LLM; there is no rule-based fallback.
+        The schema prompt describes node labels and relationship types so the
+        LLM can produce correct ``MATCH`` statements for this graph.
+        """
         if llm_fn is None:
             raise ValueError("execute_query_nl requires an llm_fn")
         return super().execute_query_nl(query, database=database, collection=collection, schema=schema, llm_fn=llm_fn, optional_properties=optional_properties)

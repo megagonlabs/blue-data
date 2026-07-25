@@ -268,10 +268,11 @@ class MongoDBSource(JSONSource):
     ) -> list[dict]:
         """Translate *query* from natural language to a MongoDB filter and execute a FIND.
 
-        Uses ``translate_nl_to_native_query`` to produce a JSON filter document,
-        then wraps it as a ``FIND`` operation via ``execute_query``. Returns an
-        empty list if the LLM response cannot be parsed as valid JSON.
-        Raises ``ValueError`` if *llm_fn* is not provided.
+        Requires *llm_fn* — raises ``ValueError`` when absent.
+        Calls ``translate_nl_to_native_query`` which asks the LLM to produce a
+        JSON filter document (e.g. ``{"status": "active"}``), then wraps it as a
+        ``{"op": "FIND", "filter": ...}`` call to ``execute_query``.
+        Returns ``[]`` if the LLM response cannot be parsed as valid JSON.
         """
         if llm_fn is None:
             raise ValueError("execute_query_nl requires an llm_fn")
