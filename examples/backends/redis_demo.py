@@ -133,7 +133,7 @@ if not _use_postgres:
     _demo_dir = tempfile.mkdtemp(prefix="northwind-demo-")
     _db_path  = os.path.join(_demo_dir, "northwind.db")
     _sql_file = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         "data", "northwind_sqlite.sql",
     )
     if not os.path.exists(_sql_file):

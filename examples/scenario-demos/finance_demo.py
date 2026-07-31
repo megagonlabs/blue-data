@@ -41,7 +41,7 @@ from blue_data.source.json.memory_json_source import MemoryJSONSource
 from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
 DIVIDER = "=" * 64
-SQL_FILE = Path(__file__).parent.parent / "data" / "finance_sqlite.sql"
+SQL_FILE = Path(__file__).parent.parent.parent / "data" / "finance_sqlite.sql"
 
 TABLES   = ["district", "client", "account", "loan", "trans"]
 DATABASE = "finance"

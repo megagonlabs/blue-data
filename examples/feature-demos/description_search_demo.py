@@ -32,8 +32,8 @@ from blue_data.registry.enrichment.metadata import MetaData
 from blue_data.source.json.memory_json_source import MemoryJSONSource
 from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
-SQL_FILE  = Path(__file__).parent.parent / "data" / "northwind_sqlite.sql"
-DESC_FILE = Path(__file__).parent.parent / "data" / "northwind_descriptions.json"
+SQL_FILE  = Path(__file__).parent.parent.parent / "data" / "northwind_sqlite.sql"
+DESC_FILE = Path(__file__).parent.parent.parent / "data" / "northwind_descriptions.json"
 DATABASE  = "northwind"
 TABLES    = ["categories", "customers", "employees", "products",
              "orders", "order_details", "suppliers"]

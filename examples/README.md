@@ -12,7 +12,7 @@ pip install -e lib/
 
 ---
 
-## Demos — value proposition
+## feature-demos/ — value proposition
 
 Self-contained demos that each tell one clean story about what blue-data
 enrichment does and why it matters. Designed for presentations.
@@ -28,7 +28,7 @@ zero LLM enrichment cost.
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
-python3 examples/coded_value_demo.py
+python3 examples/feature-demos/coded_value_demo.py
 ```
 
 **Dataset:** Czech banking (`data/finance_sqlite.sql`)
@@ -47,11 +47,11 @@ finds columns by semantic meaning.
 
 ```bash
 # Descriptions are pre-generated and committed — no API key needed:
-python3 examples/description_search_demo.py
+python3 examples/feature-demos/description_search_demo.py
 
 # Regenerate descriptions (one-time, saves to data/northwind_descriptions.json):
 export ANTHROPIC_API_KEY=sk-ant-...
-python3 examples/description_search_demo.py --generate
+python3 examples/feature-demos/description_search_demo.py --generate
 ```
 
 **Dataset:** Northwind (`data/northwind_sqlite.sql`)
@@ -70,11 +70,11 @@ temporal reasoning constraints — zero LLM cost, zero annotation.
 
 ```bash
 # Default: pre-built SQL examples, no API key needed:
-python3 examples/process_reasoning_demo.py
+python3 examples/feature-demos/process_reasoning_demo.py
 
 # Live mode: generate SQL in real-time to verify enrichment changes output:
 export ANTHROPIC_API_KEY=sk-ant-...
-python3 examples/process_reasoning_demo.py --live
+python3 examples/feature-demos/process_reasoning_demo.py --live
 ```
 
 **Dataset:** Czech banking (`data/finance_sqlite.sql`)
@@ -82,7 +82,7 @@ python3 examples/process_reasoning_demo.py --live
 
 ---
 
-## Benchmarks — quantitative before/after
+## benchmarks/ — quantitative before/after
 
 ### NL2SQL Enrichment Benchmark (`enrichment_benchmark.py`)
 
@@ -92,7 +92,7 @@ names, process reasoning, and schema discovery.
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
-python3 examples/enrichment_benchmark.py
+python3 examples/benchmarks/enrichment_benchmark.py
 ```
 
 **Dataset:** Czech banking (`data/finance_sqlite.sql` + `data/finance_benchmark_queries.json`)
@@ -109,11 +109,11 @@ NL2SQL comparison.
 
 ```bash
 # Layer 1 only (no API key):
-python3 examples/finance_demo.py
+python3 examples/scenario-demos/finance_demo.py
 
 # Layer 1 + Layer 2:
 export ANTHROPIC_API_KEY=sk-ant-...
-python3 examples/finance_demo.py
+python3 examples/scenario-demos/finance_demo.py
 ```
 
 **Dataset:** Czech banking (`data/finance_sqlite.sql`)
@@ -121,7 +121,7 @@ python3 examples/finance_demo.py
 
 ---
 
-## Pipelines — full end-to-end walkthroughs
+## scenario-demos/ — full end-to-end walkthroughs
 
 ### Northwind Pipeline (`northwind_demo.py`)
 
@@ -134,7 +134,7 @@ multi-table SQL queries.
 > with an `embedding_fn` to enable full hybrid BM25 + vector search.
 
 ```bash
-python3 examples/northwind_demo.py
+python3 examples/scenario-demos/northwind_demo.py
 ```
 
 **Dataset:** Northwind (`data/northwind_sqlite.sql`)
@@ -151,11 +151,11 @@ idempotency: second pass with `rebuild=False` skips existing properties.
 
 ```bash
 # Layer 1 only:
-python3 examples/enrichment_demo.py
+python3 examples/scenario-demos/enrichment_demo.py
 
 # Layer 1 + Layer 2:
 export ANTHROPIC_API_KEY=sk-ant-...
-python3 examples/enrichment_demo.py
+python3 examples/scenario-demos/enrichment_demo.py
 ```
 
 **API key:** optional (Layer 2 skips gracefully when absent)
@@ -180,7 +180,7 @@ python3 examples/enrichment_demo.py
 
 ---
 
-## Integrations — framework integrations
+## integration-demos/ — framework integrations
 
 ### LangGraph — Direct Python API (`langgraph_direct_demo.py`)
 
@@ -197,7 +197,7 @@ discover → translate → execute
 ```bash
 pip install langgraph langchain-core langchain-openai
 export OPENAI_API_KEY=sk-...
-python3 examples/langgraph_direct_demo.py
+python3 examples/integration-demos/langgraph_direct_demo.py
 ```
 
 **API key:** OpenAI key required
@@ -217,14 +217,14 @@ terminal needed.
 pip install langgraph langchain-core langchain-openai langchain-mcp-adapters
 pip install -e lib/ -e platform/registry-mcp/
 export OPENAI_API_KEY=sk-...
-python3 examples/langgraph_mcp_demo.py
+python3 examples/integration-demos/langgraph_mcp_demo.py
 ```
 
 **API key:** OpenAI key required
 
 ---
 
-## Backends — infrastructure and API surface
+## backends/ — infrastructure and API surface
 
 These examples cover the full `DataRegistry` API and backend options. Start
 here if you are integrating blue-data into a new application.
@@ -234,7 +234,7 @@ here if you are integrating blue-data into a new application.
 10-line example: register a SQLite source, sync it, run a query.
 
 ```bash
-python3 examples/sqlite_example.py
+python3 examples/backends/sqlite_example.py
 ```
 
 ---
@@ -246,7 +246,7 @@ register → sync → stats → enrich → relations → reconnect → serialize
 multi-source → search. The reference example for new integrations.
 
 ```bash
-python3 examples/sqlite_data_registry_demo.py
+python3 examples/backends/sqlite_data_registry_demo.py
 ```
 
 ---
@@ -259,7 +259,7 @@ serialization round-trips, the `rebuild` flag, hybrid search, and
 keyword-only search fallback.
 
 ```bash
-python3 examples/registry_memory_example.py
+python3 examples/backends/registry_memory_example.py
 ```
 
 ---
@@ -274,7 +274,7 @@ and cleanup. Falls back to SQLite if Postgres is unavailable.
 
 ```bash
 redis-stack-server &   # or: docker run -p 6379:6379 redis/redis-stack
-python3 examples/redis_demo.py
+python3 examples/backends/redis_demo.py
 ```
 
 ---

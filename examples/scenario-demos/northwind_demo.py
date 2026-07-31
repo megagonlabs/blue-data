@@ -36,7 +36,7 @@ from blue_data.source.json.memory_json_source import MemoryJSONSource
 from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
 DIVIDER  = "=" * 64
-SQL_FILE = Path(__file__).parent.parent / "data" / "northwind_sqlite.sql"
+SQL_FILE = Path(__file__).parent.parent.parent / "data" / "northwind_sqlite.sql"
 DATABASE = "northwind"
 
 

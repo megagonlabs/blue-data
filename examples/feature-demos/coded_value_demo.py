@@ -23,7 +23,7 @@ from blue_data.registry.enrichment.metadata import MetaData
 from blue_data.source.json.memory_json_source import MemoryJSONSource
 from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
-SQL_FILE = Path(__file__).parent.parent / "data" / "finance_sqlite.sql"
+SQL_FILE = Path(__file__).parent.parent.parent / "data" / "finance_sqlite.sql"
 DATABASE = "finance"
 TABLES   = ["district", "client", "account", "loan", "trans"]
 DIV      = "=" * 68
