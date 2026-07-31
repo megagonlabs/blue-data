@@ -1,0 +1,137 @@
+[
+  {
+    "id": "fin_b_001",
+    "intent": "How many credit transactions occurred in 1997?",
+    "category": "coded_value",
+    "target_columns": ["trans.type"],
+    "failure_type": "Baseline guesses type='credit' or type='CREDIT' instead of type='PRIJEM'",
+    "expected_behavior": "Filter trans WHERE type = 'PRIJEM' (Czech for credit/incoming) AND date LIKE '1997%'",
+    "difficulty": "easy"
+  },
+  {
+    "id": "fin_b_002",
+    "intent": "Find all loan payment transactions",
+    "category": "coded_value",
+    "target_columns": ["trans.k_symbol"],
+    "failure_type": "Baseline joins to loan table or guesses k_symbol values",
+    "expected_behavior": "Filter trans WHERE k_symbol = 'UVER' (Czech abbreviation for loan/credit payment)",
+    "difficulty": "easy"
+  },
+  {
+    "id": "fin_b_003",
+    "intent": "Which clients have finished loans that were repaid successfully?",
+    "category": "coded_value",
+    "target_columns": ["loan.status"],
+    "failure_type": "Baseline uses status='finished' or status='paid' or omits status filter entirely",
+    "expected_behavior": "Filter loan WHERE status = 'C' (finished and OK, no debt)",
+    "difficulty": "easy"
+  },
+  {
+    "id": "fin_b_004",
+    "intent": "What is the total amount of cash deposits made by each account?",
+    "category": "coded_value",
+    "target_columns": ["trans.operation"],
+    "failure_type": "Baseline sums all transactions or filters on wrong operation code",
+    "expected_behavior": "Filter trans WHERE operation = 'VKLAD' (cash credit/deposit) and group by account_id",
+    "difficulty": "medium"
+  },
+  {
+    "id": "fin_b_005",
+    "intent": "Find accounts that have loans currently running with no issues",
+    "category": "coded_value",
+    "target_columns": ["loan.status"],
+    "failure_type": "Baseline uses status='running' or status='active' or status='good'",
+    "expected_behavior": "Filter loan WHERE status = 'A' (contract finished, no problems — 'running, OK')",
+    "difficulty": "easy"
+  },
+  {
+    "id": "fin_b_006",
+    "intent": "What is the average salary in Prague districts?",
+    "category": "opaque_column",
+    "target_columns": ["district.a2", "district.a11"],
+    "failure_type": "Baseline cannot identify which column is district name or which is salary",
+    "expected_behavior": "Filter district WHERE a2 = 'Prague' or similar, aggregate AVG(a11) where a11 is average salary",
+    "difficulty": "medium"
+  },
+  {
+    "id": "fin_b_007",
+    "intent": "Which regions have the highest unemployment rate in 1996?",
+    "category": "opaque_column",
+    "target_columns": ["district.a3", "district.a13"],
+    "failure_type": "Baseline cannot identify which column is region name or 1996 unemployment rate",
+    "expected_behavior": "Group by a3 (region name), rank by a13 (unemployment rate 1996), return top results",
+    "difficulty": "medium"
+  },
+  {
+    "id": "fin_b_008",
+    "intent": "Find districts with more than 10 cities",
+    "category": "opaque_column",
+    "target_columns": ["district.a9"],
+    "failure_type": "Baseline counts a different column or applies filter to wrong numeric field",
+    "expected_behavior": "Filter district WHERE a9 > 10 where a9 is number of cities",
+    "difficulty": "easy"
+  },
+  {
+    "id": "fin_b_009",
+    "intent": "What is the average salary in each region?",
+    "category": "opaque_column",
+    "target_columns": ["district.a3", "district.a11"],
+    "failure_type": "Baseline cannot identify region column or salary column",
+    "expected_behavior": "GROUP BY a3 (region), AVG(a11) (average salary in CZK)",
+    "difficulty": "easy"
+  },
+  {
+    "id": "fin_b_010",
+    "intent": "Find districts where the unemployment rate increased from 1995 to 1996",
+    "category": "opaque_column",
+    "target_columns": ["district.a12", "district.a13"],
+    "failure_type": "Baseline cannot identify the two unemployment columns or their years",
+    "expected_behavior": "Filter district WHERE a13 > a12 where a12=unemployment_1995 and a13=unemployment_1996",
+    "difficulty": "medium"
+  },
+  {
+    "id": "fin_b_011",
+    "intent": "Show the monthly transaction volume trend for account 1 in 1998",
+    "category": "process_semantics",
+    "target_columns": ["trans.date", "trans.account_id"],
+    "failure_type": "Baseline aggregates without temporal grouping or misidentifies the time column",
+    "expected_behavior": "GROUP BY strftime month of trans.date WHERE account_id=1 AND date LIKE '1998%', COUNT or SUM amount",
+    "difficulty": "medium"
+  },
+  {
+    "id": "fin_b_012",
+    "intent": "For each account, show the balance trend across their last 5 transactions",
+    "category": "process_semantics",
+    "target_columns": ["trans.balance", "trans.date", "trans.account_id"],
+    "failure_type": "Baseline ignores temporal ordering or doesn't use balance as a running state",
+    "expected_behavior": "Use ROW_NUMBER or LIMIT ordered by date DESC per account_id to get last 5 rows, return balance",
+    "difficulty": "hard"
+  },
+  {
+    "id": "fin_b_013",
+    "intent": "Find clients who have made insurance payments",
+    "category": "coded_value",
+    "target_columns": ["trans.k_symbol"],
+    "failure_type": "Baseline joins on a non-existent insurance table or guesses k_symbol value",
+    "expected_behavior": "Filter trans WHERE k_symbol = 'POJISTNE' (insurance payment code), join to client via account",
+    "difficulty": "medium"
+  },
+  {
+    "id": "fin_b_014",
+    "intent": "How many accounts have active loans that are in financial difficulty?",
+    "category": "coded_value",
+    "target_columns": ["loan.status"],
+    "failure_type": "Baseline uses status='difficulty' or status='bad' or selects all running loans",
+    "expected_behavior": "Filter loan WHERE status = 'B' (running contract, client in debt)",
+    "difficulty": "easy"
+  },
+  {
+    "id": "fin_b_015",
+    "intent": "What is the total outgoing transfer amount per account?",
+    "category": "coded_value",
+    "target_columns": ["trans.type", "trans.operation"],
+    "failure_type": "Baseline confuses type and operation or picks wrong code for outgoing transfers",
+    "expected_behavior": "Filter WHERE type='VYDAJ' (debit/outgoing) AND operation='PREVOD_NA_UCET' (remittance to another bank), SUM amount per account_id",
+    "difficulty": "hard"
+  }
+]

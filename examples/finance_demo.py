@@ -30,6 +30,7 @@ For LLM enrichment:
 """
 
 import os
+import re
 import sqlite3
 import tempfile
 from pathlib import Path
@@ -278,6 +279,205 @@ for query in [
     names = [f"{h.get('scope','').split('/')[-1]}.{h['name']}" for h in hits[:4]]
     print(f"\n  search: '{query}'")
     print(f"  top hits: {names}")
+
+# ---------------------------------------------------------------------------
+# NL2SQL impact — before / after enrichment (3 example queries)
+# ---------------------------------------------------------------------------
+#
+# Shows concretely how enrichment context changes the SQL a model generates.
+# Run enrichment_benchmark.py for the full 15-question quantitative results.
+# ---------------------------------------------------------------------------
+
+_NL2SQL_QUERIES = [
+    {
+        "id":       "credit_count",
+        "question": "How many credit transactions occurred in 1997?",
+        "why":      "baseline doesn't know PRIJEM=credit; it guesses type='credit' → 0 rows",
+    },
+    {
+        "id":       "prague_salary",
+        "question": "What is the average salary in Prague districts?",
+        "why":      "baseline can't map a2→district name or a11→avg salary",
+    },
+    {
+        "id":       "loan_status_good",
+        "question": "Which accounts have finished loans that were repaid successfully?",
+        "why":      "baseline guesses status='finished' or status='paid'; correct code is 'C'",
+    },
+    {
+        "id":       "monthly_volume",
+        "question": "Show monthly transaction count for account 1 in 1998",
+        "why":      "baseline may miss that trans is an event log with date as event_time",
+    },
+]
+
+_NL2SQL_SYSTEM = """\
+You are an expert SQL assistant. Convert the question into a correct SQLite query.
+Output ONLY a ```sql code block. Use exact column/table names from the schema.
+SQLite: use strftime('%Y-%m', date_col) for month grouping."""
+
+
+def _build_baseline_ddl(registry: DataRegistry) -> str:
+    lines = ["-- Schema (raw DDL, no enrichment)", ""]
+    for table in TABLES:
+        attrs = registry.list_entity_attributes("finance", DATABASE, "public", table)
+        lines.append(f"CREATE TABLE {table} (")
+        lines.append(",\n".join(f"    {a['name']}" for a in attrs))
+        lines.append(");\n")
+    return "\n".join(lines)
+
+
+def _build_enriched_ddl(registry: DataRegistry) -> str:
+    """Enriched context: semantic types, sample values, roles, process semantics — from the live registry."""
+    lines = ["-- Schema with blue-data enrichment", ""]
+    for table in TABLES:
+        attrs = registry.list_entity_attributes("finance", DATABASE, "public", table)
+        lines.append(f"CREATE TABLE {table} (")
+        col_lines = []
+        for attr in attrs:
+            name  = attr["name"]
+            annots: list[str] = []
+
+            vsi = registry.get_source_database_collection_entity_attribute_property(
+                      "finance", DATABASE, "public", table, name, "value_semantics") or {}
+            st  = vsi.get("semantic_type")
+            if st:
+                annots.append(f"type={st}")
+            samples = (vsi.get("examples") or
+                       attr.get("properties", {}).get("stats", {}).get("sample_values", []))
+            if samples:
+                annots.append(f"values=[{', '.join(str(v) for v in samples[:8])}]")
+
+            sdi = registry.get_source_database_collection_entity_attribute_property(
+                      "finance", DATABASE, "public", table, name, "semantic_discovery") or {}
+            if sdi.get("subcategory"):
+                annots.append(f"concept={sdi['subcategory']}")
+
+            role = registry.get_source_database_collection_entity_attribute_property(
+                       "finance", DATABASE, "public", table, name, "semantic_role") or {}
+            if role.get("primary_role"):
+                annots.append(f"role={role['primary_role']}")
+
+            pvr = registry.get_source_database_collection_entity_attribute_property(
+                      "finance", DATABASE, "public", table, name, "process_vst_role") or {}
+            if pvr.get("process_vst_role"):
+                annots.append(f"process_role={pvr['process_vst_role']}")
+
+            tgc = registry.get_source_database_collection_entity_attribute_property(
+                      "finance", DATABASE, "public", table, name, "time_grain_candidates")
+            if tgc:
+                annots.append(f"time_grains={tgc}")
+
+            adesc = registry.get_source_database_collection_entity_attribute_description(
+                        "finance", DATABASE, "public", table, name)
+            if adesc:
+                annots.append(f"desc={adesc[:80]}")
+
+            col_lines.append(f"    {name}" + (f"  -- {' | '.join(annots)}" if annots else ""))
+        lines.append(",\n".join(col_lines))
+        lines.append(");\n")
+
+        # entity-level: process_semantics and semantic_links
+        ps = registry.get_source_database_collection_entity_property(
+                 "finance", DATABASE, "public", table, "process_semantics")
+        if ps:
+            lines.append(f"-- [process_semantics]  row_semantics={ps.get('row_semantics')}  "
+                         f"event_time={ps.get('event_time')}  entity_keys={ps.get('entity_keys')}")
+            c = ps.get("constraints", {})
+            if c.get("requires_aggregation"):
+                lines.append("--   requires_aggregation — no row-local answers")
+
+        links = registry.get_source_database_collection_entity_property(
+                    "finance", DATABASE, "public", table, "semantic_links") or []
+        for lnk in links[:6]:
+            lines.append(f"-- [link]  {lnk['source']} --[{lnk['relationship']}]→ "
+                         f"{lnk['target']}  conf={lnk.get('confidence', 0):.2f}")
+        if ps or links:
+            lines.append("")
+
+    return "\n".join(lines)
+
+
+def _extract_sql(text: str) -> str | None:
+    m = re.search(r"```sql\s*(.*?)```", text, re.DOTALL | re.IGNORECASE)
+    return m.group(1).strip() if m else None
+
+
+def _run_nl2sql(llm_fn, schema_ctx: str, question: str) -> tuple[str | None, list, str | None]:
+    prompt = (
+        f"Schema:\n```\n{schema_ctx}\n```\n\n"
+        f"Question: {question}\n\nWrite a SQLite query."
+    )
+    raw     = llm_fn(prompt)
+    sql     = _extract_sql(raw)
+    if not sql:
+        return None, [], "no SQL extracted"
+    try:
+        conn = sqlite3.connect(db_path_a)
+        conn.row_factory = sqlite3.Row
+        rows = [dict(r) for r in conn.execute(sql).fetchall()]
+        conn.close()
+        return sql, rows, None
+    except Exception as e:
+        return sql, [], str(e)
+
+
+print()
+print(DIVIDER)
+print("NL2SQL impact — before / after enrichment")
+print(DIVIDER)
+
+if llm_fn is None:
+    print("\n  SKIPPED — set ANTHROPIC_API_KEY or OPENAI_API_KEY to run NL2SQL demo.")
+    print("  Run enrichment_benchmark.py for the full quantitative benchmark.")
+else:
+    # We need the db path; tmp_a was created during Layer 1 setup above
+    db_path_a = os.path.join(tmp_a, f"{DATABASE}.db")
+    if not os.path.exists(db_path_a):
+        _build_db(tmp_a)
+
+    baseline_ddl  = _build_baseline_ddl(registry_a)
+    enriched_ddl  = _build_enriched_ddl(registry_a)
+
+    correct_base = 0
+    correct_enr  = 0
+
+    for q in _NL2SQL_QUERIES:
+        print(f"\n  [{q['id']}]  {q['question']}")
+        print(f"  Why hard for baseline: {q['why']}")
+
+        b_sql, b_rows, b_err = _run_nl2sql(llm_fn, baseline_ddl, q["question"])
+        e_sql, e_rows, e_err = _run_nl2sql(llm_fn, enriched_ddl,  q["question"])
+
+        b_ok = b_err is None and len(b_rows) > 0
+        e_ok = e_err is None and len(e_rows) > 0
+        if b_ok: correct_base += 1
+        if e_ok: correct_enr  += 1
+
+        print(f"\n  baseline SQL  : {(b_sql or '(none)')[:100]}")
+        if b_err:
+            print(f"  baseline error: {b_err[:80]}")
+        else:
+            print(f"  baseline rows : {len(b_rows)}  {'✓' if b_ok else '✗ (empty result)'}")
+            if b_rows:
+                print(f"  baseline data : {b_rows[:2]}")
+
+        print(f"\n  enriched SQL  : {(e_sql or '(none)')[:100]}")
+        if e_err:
+            print(f"  enriched error: {e_err[:80]}")
+        else:
+            print(f"  enriched rows : {len(e_rows)}  {'✓' if e_ok else '✗ (empty result)'}")
+            if e_rows:
+                print(f"  enriched data : {e_rows[:2]}")
+
+    n = len(_NL2SQL_QUERIES)
+    print()
+    print(f"  {'─' * 50}")
+    print(f"  NL2SQL result  baseline {correct_base}/{n}  enriched {correct_enr}/{n}")
+    print(f"  Enrichment fixed {correct_enr - correct_base} additional queries.")
+    print()
+    print(f"  Run examples/enrichment_benchmark.py for the full 15-question")
+    print(f"  quantitative benchmark (baseline vs Layer 1 vs Layer 2).")
 
 print()
 print("Demo complete.")
