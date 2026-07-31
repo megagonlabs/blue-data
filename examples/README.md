@@ -59,7 +59,7 @@ python3 examples/description_search_demo.py --generate
 
 ---
 
-### Demo 4 — Process Reasoning (`process_reasoning_demo.py`)
+### Demo 3 — Process Reasoning (`process_reasoning_demo.py`)
 
 **Story:** LLMs treat event-log tables as static snapshots. "Current balance"
 becomes AVG(balance). "Monthly trend" becomes a flat COUNT(*). blue-data
