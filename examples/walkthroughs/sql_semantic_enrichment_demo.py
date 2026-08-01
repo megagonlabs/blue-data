@@ -1,5 +1,5 @@
 """
-Northwind dataset pipeline demo.
+Semantic Enrichment on a Multi-Table SQL Source.
 
 Shows the full blue-data pipeline against a realistic multi-table retail
 database — register a source, sync the schema, enrich, search the registry
@@ -22,7 +22,7 @@ The Northwind schema:
 
 Run:
     pip install -e lib/
-    python3 examples/northwind_demo.py
+    python3 examples/walkthroughs/sql_semantic_enrichment_demo.py
 """
 
 import os
