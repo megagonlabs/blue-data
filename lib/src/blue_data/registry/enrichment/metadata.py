@@ -840,12 +840,27 @@ Return JSON ONLY:
         attr_name = target_attr["name"]
         vsi = target_attr.get("properties", {}).get("value_semantics", {})
         primary_type = vsi.get("semantic_type", "UNKNOWN")
+        stats = target_attr.get("properties", {}).get("stats", {}) or {}
 
+        # 1. Explicit identifier flag (set by LLM in Layer 2 VSI)
         if vsi.get("is_identifier"):
             return {"primary_role": "IDENTIFIER", "confidence": 0.95, "role_arguments": {}, "justification": {"rule": "identifier_flag"}}
 
+        # 2. Name-based identifier heuristic (Layer 1): columns named "id" or ending
+        #    in "_id" with an integer/string type are almost always PKs or FKs.
+        name_lower = attr_name.lower()
+        is_id_name = (name_lower == "id" or name_lower.endswith("_id"))
+        if is_id_name and primary_type in ("INTEGER", "ID_NUMERIC", "STRING", "UUID", "HASH"):
+            return {"primary_role": "IDENTIFIER", "confidence": 0.85, "role_arguments": {}, "justification": {"rule": "id_name_heuristic"}}
+
+        # 3. DATE/DATETIME → EVENT_TIME before link-based checks so that a date
+        #    column with incidental co-variation is not mis-classified as EVIDENCE.
+        if primary_type in ("DATE", "DATETIME"):
+            return {"primary_role": "EVENT_TIME", "confidence": 0.75, "role_arguments": {}, "justification": {"type_prior": primary_type}}
+
         outgoing = [l for l in semantic_links if l["source"] == attr_name]
 
+        # 4. SEGMENTS links → SEGMENTATION_DRIVER
         segment_links = [
             l for l in outgoing
             if l.get("relationship") == "SEGMENTS"
@@ -859,6 +874,7 @@ Return JSON ONLY:
                 "justification": {"signals": ["SEGMENTS"], "link_count": len(segment_links)},
             }
 
+        # 5. SUPPORTS links → EVIDENCE
         supports = [l for l in outgoing if l.get("relationship") == "SUPPORTS"]
         if supports:
             return {
@@ -868,8 +884,10 @@ Return JSON ONLY:
                 "justification": {"signals": ["SUPPORTS"]},
             }
 
-        if primary_type in ("DATE", "DATETIME"):
-            return {"primary_role": "EVENT_TIME", "confidence": 0.55, "role_arguments": {}, "justification": {"type_prior": primary_type}}
+        # 6. Numeric measure fallback: continuous numeric columns with no links are
+        #    almost always quantitative measures, not decorative descriptors.
+        if primary_type in ("FLOAT", "INTEGER", "CURRENCY_AMOUNT", "PERCENTAGE", "RATIO"):
+            return {"primary_role": "EVIDENCE", "confidence": 0.55, "role_arguments": {}, "justification": {"rule": "numeric_measure_fallback"}}
 
         return {"primary_role": "DESCRIPTIVE", "confidence": 0.4, "role_arguments": {}, "justification": {"reason": "no causal or statistical signals detected"}}
 
@@ -1751,50 +1769,60 @@ Return JSON ONLY:
 
         # Semantic Links + Roles + CDS
         if self.properties.get("enable_semantic_links_inference", True):
-            semantic_links = self.infer_semantic_links(attributes)
-            row_links = self.infer_row_based_links(attributes, row_samples)
-            for l in row_links:
-                l["row_support"] = True
-            semantic_links += row_links
+            # Re-use stored links when rebuild=False — validate_semantic_link calls
+            # the LLM for every candidate pair, so skipping it on subsequent passes
+            # is critical for idempotency.
+            cached_links = None if rebuild else data_registry.get_source_database_collection_entity_property(
+                source, database, collection, entity_name, "semantic_links"
+            )
 
-            validated_links = []
-            for link in semantic_links:
-                try:
-                    src = next(a for a in attributes if a["name"] == link["source"])
-                    tgt = next(a for a in attributes if a["name"] == link["target"])
-                except StopIteration:
-                    continue
+            if cached_links is not None:
+                validated_links = cached_links
+            else:
+                semantic_links = self.infer_semantic_links(attributes)
+                row_links = self.infer_row_based_links(attributes, row_samples)
+                for l in row_links:
+                    l["row_support"] = True
+                semantic_links += row_links
 
-                # pre-filter: statistical signal must pass before calling LLM
-                if not self.validate_relational_link_signal(src, tgt, link["signal"], row_samples):
-                    continue
+                validated_links = []
+                for link in semantic_links:
+                    try:
+                        src = next(a for a in attributes if a["name"] == link["source"])
+                        tgt = next(a for a in attributes if a["name"] == link["target"])
+                    except StopIteration:
+                        continue
 
-                result = self.validate_semantic_link(src, tgt, link["signal"])
-                relationship = result.get("relationship") if result else None
+                    # pre-filter: statistical signal must pass before calling LLM
+                    if not self.validate_relational_link_signal(src, tgt, link["signal"], row_samples):
+                        continue
 
-                # fall back to deterministic assignment when LLM is absent
-                if relationship is None:
-                    signal_type = link["signal"].get("type") if isinstance(link["signal"], dict) else link["signal"]
-                    relationship = {
-                        "grouped_distribution": "SEGMENTS",
-                        "functional_dependency": "DERIVES",
-                        "temporal_alignment": "SUPPORTS",
-                    }.get(signal_type)
+                    result = self.validate_semantic_link(src, tgt, link["signal"])
+                    relationship = result.get("relationship") if result else None
 
-                if relationship and relationship != "UNRELATED":
-                    confidence = result.get("confidence", 0.6) if result else 0.6
-                    if link.get("row_support"):
-                        confidence = max(0.7, confidence)
-                    validated_links.append({
-                        "source": link["source"],
-                        "target": link["target"],
-                        "relationship": relationship,
-                        "confidence": confidence,
-                        "rationale": result.get("rationale") if result else "Structure-backed semantic signal",
-                    })
+                    # fall back to deterministic assignment when LLM is absent
+                    if relationship is None:
+                        signal_type = link["signal"].get("type") if isinstance(link["signal"], dict) else link["signal"]
+                        relationship = {
+                            "grouped_distribution": "SEGMENTS",
+                            "functional_dependency": "DERIVES",
+                            "temporal_alignment": "SUPPORTS",
+                        }.get(signal_type)
 
-            if validated_links:
-                data_registry.set_source_database_collection_entity_property(source, database, collection, entity_name, "semantic_links", validated_links, rebuild=rebuild)
+                    if relationship and relationship != "UNRELATED":
+                        confidence = result.get("confidence", 0.6) if result else 0.6
+                        if link.get("row_support"):
+                            confidence = max(0.7, confidence)
+                        validated_links.append({
+                            "source": link["source"],
+                            "target": link["target"],
+                            "relationship": relationship,
+                            "confidence": confidence,
+                            "rationale": result.get("rationale") if result else "Structure-backed semantic signal",
+                        })
+
+                if validated_links:
+                    data_registry.set_source_database_collection_entity_property(source, database, collection, entity_name, "semantic_links", validated_links, rebuild=rebuild)
 
             # Semantic roles
             for attr in attributes:

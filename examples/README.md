@@ -76,40 +76,6 @@ python3 examples/scenario-demos/process_reasoning_demo.py --live
 
 ---
 
-### Enrichment Pipeline Reference (`enrichment_demo.py`)
-
-Developer-facing reference showing every enrichment property blue-data writes
-to the registry, using a synthetic `purchases` table. Covers Layer 1
-(deterministic) and Layer 2 (LLM-augmented), the `llm_fn` wiring contract,
-and idempotency behaviour (`rebuild=False` vs `rebuild=True`).
-
-```bash
-# Layer 1 only:
-python3 examples/scenario-demos/enrichment_demo.py
-
-# Layer 1 + Layer 2:
-export ANTHROPIC_API_KEY=sk-ant-...
-python3 examples/scenario-demos/enrichment_demo.py
-```
-
-**API key:** optional (Layer 2 skips gracefully when absent)
-
-| Property | What it captures |
-|----------|-----------------|
-| `value_semantics` | Semantic type: INTEGER, DATE, ENUM_CATEGORY, EMAIL, … |
-| `semantic_discovery` | LLM-inferred domain subcategory and confidence |
-| `domain_concept` | Canonical domain concept this attribute maps to |
-| `interpretive_semantics` | Human-readable meaning of coded values |
-| `value_axis` | Whether this attribute can serve as a quantitative axis |
-| `quantitative_vst` | Role in quantitative analysis: MEASUREMENT, MAGNITUDE, … |
-| `semantic_role` | Structural role: IDENTIFIER, EVENT_TIME, EVIDENCE, … |
-| `process_vst_role` | Role in an event log: EVENT_MEASURE, EVENT_TIME, … |
-| `semantic_links` | Detected statistical relationships between attribute pairs |
-| `process_semantics` | EVENT table detection; which column is the time axis |
-| `process_patterns` | Recurring patterns in the event sequence |
-| `process_trends` | Trend signals over time |
-| `conditional_value_distribution` | Value distribution conditioned on other attributes |
-
 ---
 
 ## walkthroughs/ — full pipeline walkthroughs
@@ -199,6 +165,35 @@ the `rebuild` flag, hybrid search, and keyword-only fallback.
 python3 examples/backends/registry_memory_example.py
 ```
 
+### Enrichment Pipeline Reference (`enrichment_demo.py`)
+
+Developer reference for wiring up and running the enrichment pipeline. Uses a
+synthetic `purchases` table to show what each layer infers and where the results
+land in the registry.
+
+**Layer 1 (no API key):** runs `SemanticTypeInferencer` on sample values, then
+infers semantic roles (`id` → IDENTIFIER, `purchase_date` → EVENT_TIME,
+`amount` → EVIDENCE, `category` → SEGMENTATION_DRIVER), detects the table as an
+EVENT log, and finds cross-column links (`category` SEGMENTS `amount`).
+
+**Layer 2 (API key optional):** calls an LLM per column for VSI (richer semantic
+type) and SDI (domain subcategory label such as `TRANSACTION_AMOUNT`). Shows the
+`llm_fn` wiring contract and demonstrates that `rebuild=False` makes the second
+pass a no-op (0 additional LLM calls).
+
+```bash
+# Layer 1 only:
+python3 examples/backends/enrichment_demo.py
+
+# Layer 1 + Layer 2:
+export ANTHROPIC_API_KEY=sk-ant-...
+python3 examples/backends/enrichment_demo.py
+```
+
+**API key:** optional (Layer 2 skips gracefully when absent)
+
+---
+
 ### Redis-backed Registry (`redis_demo.py`)
 
 Production backend: `RedisJSONSource` + `RedisVectorSource`. Covers namespace
@@ -234,7 +229,7 @@ python3 examples/benchmarks/enrichment_benchmark.py
 | `coded_value_demo.py` | scenario-demos | Anthropic (SQL gen) | — |
 | `description_search_demo.py` | scenario-demos | none at runtime | — |
 | `process_reasoning_demo.py` | scenario-demos | none (default) | — |
-| `enrichment_demo.py` | scenario-demos | Anthropic (optional) | — |
+| `enrichment_demo.py` | backends | Anthropic (optional) | — |
 | `sql_semantic_enrichment_demo.py` | walkthroughs | none | — |
 | `langgraph_direct_demo.py` | integration-demos | OpenAI | — |
 | `langgraph_mcp_demo.py` | integration-demos | OpenAI | MCP server |
