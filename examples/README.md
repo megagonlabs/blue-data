@@ -117,7 +117,7 @@ python3 examples/scenario-demos/enrichment_demo.py
 End-to-end pipeline examples on real datasets. No before/after story — shows
 how to wire up the full blue-data pipeline from scratch.
 
-### Northwind Pipeline (`northwind_demo.py`)
+### Semantic Enrichment on a Multi-Table SQL Source (`sql_semantic_enrichment_demo.py`)
 
 register → sync → enrich → search → query on the Northwind retail database.
 Shows process semantics detection on `orders` (EVENT, event_time=order_date)
@@ -127,7 +127,7 @@ and executes multi-table SQL queries.
 > full hybrid search.
 
 ```bash
-python3 examples/walkthroughs/northwind_demo.py
+python3 examples/walkthroughs/sql_semantic_enrichment_demo.py
 ```
 
 **Dataset:** Northwind (`data/northwind_sqlite.sql`) | **API key:** not required
@@ -235,7 +235,7 @@ python3 examples/benchmarks/enrichment_benchmark.py
 | `description_search_demo.py` | scenario-demos | none at runtime | — |
 | `process_reasoning_demo.py` | scenario-demos | none (default) | — |
 | `enrichment_demo.py` | scenario-demos | Anthropic (optional) | — |
-| `northwind_demo.py` | walkthroughs | none | — |
+| `sql_semantic_enrichment_demo.py` | walkthroughs | none | — |
 | `langgraph_direct_demo.py` | integration-demos | OpenAI | — |
 | `langgraph_mcp_demo.py` | integration-demos | OpenAI | MCP server |
 | `sqlite_example.py` | backends | none | — |
