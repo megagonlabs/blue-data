@@ -4,52 +4,11 @@ Blue Data Intelligence Layer — a Python library for registering, introspecting
 
 ## Installation
 
-Each component has a `scripts/` directory. Run scripts from the component's root directory.
-
-| Script | Components | Purpose |
-|---|---|---|
-| `build.sh` | all | Build wheel + sdist into `dist/` |
-| `install.sh` | all | Editable install (`python3 -m pip install -e .`) |
-| `publish.sh` | lib only | Publish to package registry via twine |
-
-**Install a component (editable):**
 ```bash
 cd lib && ./scripts/install.sh
-cd platform/api && ./scripts/install.sh
-cd platform/cli && ./scripts/install.sh
-cd platform/json-mcp && ./scripts/install.sh
-cd platform/registry-mcp && ./scripts/install.sh
 ```
 
-Install `lib` first — all platform components depend on it.
-
-**Build distributable packages:**
-```bash
-cd lib && ./scripts/build.sh
-cd platform/api && ./scripts/build.sh
-cd platform/cli && ./scripts/build.sh
-cd platform/json-mcp && ./scripts/build.sh
-cd platform/registry-mcp && ./scripts/build.sh
-```
-
-Requires the `build` package (`pip install build`).
-
-## Runtime dependencies
-
-- `pandas`, `numpy` — always required
-
-Optional extras (install with `pip install -e ".[redis]"` etc.):
-
-| Extra | Packages | Required for |
-|---|---|---|
-| `redis` | `redis` | `RedisJSONSource`, `RedisVectorSource`, `RedisStreamSource` |
-| `postgres` | `psycopg2-binary` | `PostgresDBSource` |
-| `mysql` | `mysql-connector-python` | `MySQLDBSource` |
-| `mongodb` | `pymongo` | `MongoDBJSONSource` |
-| `neo4j` | `neo4j` | `Neo4jGraphSource` |
-| `llm` | `anthropic` | LLM-augmented enrichment via `MetaData(llm_fn=...)` |
-
-> **Redis Stack required:** `RedisJSONSource` and `RedisVectorSource` use `JSON.SET` and `FT.CREATE` commands that are not available in standard Redis. You need **Redis Stack** (`redis-stack-server`), not plain `redis`.
+Install `lib` first — all platform components depend on it. For full setup instructions (all components, optional extras, Redis Stack requirement, build/publish scripts) see **[docs/installation.md](docs/installation.md)**.
 
 ## Concepts
 
@@ -332,36 +291,62 @@ class MySource(DataSource):
 
 After installing with `pip install -e .`:
 
+**Backends**
+
 | File | Description |
 |---|---|
-| `examples/registry_memory_example.py` | Pure in-memory `Registry` and `DataRegistry` — CRUD, filter, search, dumps/loads. No external dependencies. |
-| `examples/sqlite_data_registry_demo.py` | Full pipeline with SQLite — sync, stats, enrich, relations, connect_source, search, MetaData enrichment. No external dependencies. |
-| `examples/enrichment_demo.py` | Enrichment deep-dive — `SemanticTypeInferencer` standalone, Mode A (deterministic), Mode B (LLM-augmented with Anthropic SDK), idempotency and rebuild. |
-| `examples/redis_demo.py` | Redis Stack + PostgreSQL (falls back to SQLite) — Redis-backed registry and search index, namespace isolation, full hierarchy walk. Requires Redis Stack. |
-| `examples/langgraph_direct_demo.py` | LangGraph 3-node pipeline (discover → translate → execute) calling blue-data Python API directly. Requires `langgraph`, `langchain-openai`, and `OPENAI_API_KEY`. |
-| `examples/langgraph_mcp_demo.py` | LangGraph ReAct agent using blue-data's `registry-mcp` server as tools via `langchain-mcp-adapters`. No blue-data imports on the agent side. Requires `registry-mcp` running and `OPENAI_API_KEY`. |
+| `examples/backends/registry_memory_example.py` | Pure in-memory `Registry` and `DataRegistry` — CRUD, filter, search, dumps/loads. No external dependencies. |
+| `examples/backends/sqlite_data_registry_demo.py` | Full pipeline with SQLite — sync, stats, enrich, relations, connect_source, search, MetaData enrichment. No external dependencies. |
+| `examples/backends/redis_demo.py` | Redis Stack + PostgreSQL (falls back to SQLite) — Redis-backed registry and search index, namespace isolation, full hierarchy walk. Requires Redis Stack. |
+
+**Feature demos**
+
+| File | Description |
+|---|---|
+| `examples/feature-demos/enrichment_demo.py` | Enrichment deep-dive — `SemanticTypeInferencer` standalone, Mode A (deterministic), Mode B (LLM-augmented with Anthropic SDK), idempotency and rebuild. |
+
+**Pipeline demos**
+
+| File | Description |
+|---|---|
+| `examples/pipeline-demos/sql_semantic_enrichment_demo.py` | Full pipeline against the Northwind multi-table schema — register, sync, enrich, search the registry, execute SQL. No external dependencies for enrichment. |
+
+**Scenario demos**
+
+| File | Description |
+|---|---|
+| `examples/scenario-demos/coded_value_demo.py` | Coded value disambiguation — auto-detects ENUM columns and captures actual coded values so NL queries find the right rows. |
+| `examples/scenario-demos/description_search_demo.py` | Description-enriched discovery — Layer 2 generates attribute descriptions; registry search finds columns by semantic meaning. |
+| `examples/scenario-demos/process_reasoning_demo.py` | Process reasoning — Layer 1 detects EVENT tables and process operators, grounding SQL generation in temporal semantics. |
+
+**Integration demos**
+
+| File | Description |
+|---|---|
+| `examples/integration-demos/langgraph_direct_demo.py` | LangGraph 3-node pipeline (discover → translate → execute) calling blue-data Python API directly. Requires `langgraph`, `langchain-openai`, and `OPENAI_API_KEY`. |
+| `examples/integration-demos/langgraph_mcp_demo.py` | LangGraph ReAct agent using blue-data's `registry-mcp` server as tools via `langchain-mcp-adapters`. No blue-data imports on the agent side. Requires `registry-mcp` running and `OPENAI_API_KEY`. |
 
 ```bash
 # In-memory demo (no deps)
-python3 examples/registry_memory_example.py
+python3 examples/backends/registry_memory_example.py
 
 # SQLite demo (no deps)
-python3 examples/sqlite_data_registry_demo.py
+python3 examples/backends/sqlite_data_registry_demo.py
 
 # Enrichment demo: Mode A runs without deps; Mode B requires ANTHROPIC_API_KEY
-python3 examples/enrichment_demo.py
+python3 examples/feature-demos/enrichment_demo.py
 
 # Redis + Postgres demo (requires Redis Stack; falls back to SQLite)
-python3 examples/redis_demo.py
+python3 examples/backends/redis_demo.py
 
 # LangGraph direct API demo (requires langgraph, langchain-openai, OPENAI_API_KEY)
 pip install langgraph langchain-core langchain-openai
-python3 examples/langgraph_direct_demo.py
+python3 examples/integration-demos/langgraph_direct_demo.py
 
 # LangGraph MCP demo (requires langchain-mcp-adapters, registry-mcp running, OPENAI_API_KEY)
 pip install langgraph langchain-mcp-adapters
 blue-data-registry-mcp  # start in a separate terminal
-python3 examples/langgraph_mcp_demo.py
+python3 examples/integration-demos/langgraph_mcp_demo.py
 ```
 
 ## Demo databases
@@ -574,25 +559,4 @@ See [`docs/cli.md`](docs/cli.md) for the full command reference.
 
 ## Running tests
 
-Run from each component's root directory:
-
-```bash
-cd lib && pytest tests/unit -v           # lib unit tests
-cd platform/api && pytest -v             # REST API tests
-cd platform/cli && pytest -v             # CLI tests
-cd platform/json-mcp && pytest -v        # JSON MCP tests
-cd platform/registry-mcp && pytest -v   # registry MCP tests
-```
-
-Install packages with dev extras before running tests:
-
-```bash
-cd lib && ./scripts/install.sh
-```
-
-Redis integration tests auto-skip when Redis Stack is not running. To run them:
-
-```bash
-redis-stack-server --port 6379 --daemonize yes
-cd lib && pytest tests/integration -v
-```
+See **[docs/installation.md](docs/installation.md)** for the full test setup.
