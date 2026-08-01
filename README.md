@@ -2,7 +2,17 @@
 
 blue-data is a data intelligence layer for AI applications. It provides a unified interface to register, introspect, and query heterogeneous data sources such as SQL databases, document stores, and graph databases — and enriches them with semantic metadata that makes data understandable to AI agents and language models. It sits between raw data and the AI layer, answering questions like: what data exists, what it means, how it relates, and how it can safely be queried.
 
-→ **[Features](docs/features.md)** · **[Installation](docs/installation.md)**
+- **Unified data source interface** — consistent API across SQL (SQLite, PostgreSQL, MySQL), document (MongoDB), and graph (Neo4j) backends
+- **Data registry** — live catalog that mirrors source structure as hierarchical, searchable records (databases → collections → entities → attributes)
+- **Semantic enrichment** — automatically infers semantic types, attribute roles, process semantics, and quantitative rules from data — no LLM required
+- **LLM-augmented metadata** — generates descriptions, domain concept mappings, and interpretive semantics with any LLM provider
+- **Hybrid search** — BM25 keyword + vector similarity search over all registry records, with hierarchical score propagation
+- **Natural language querying** — translates plain-English questions into SQL, Cypher, MongoDB filters, or vector KNN queries
+- **Data import** — source-to-source import across SQLite, Postgres, MySQL, and FileSource
+- **MCP server** — exposes registry operations as tools for Claude and other MCP clients
+- **REST API and CLI** — full platform layer for production deployments and scripting
+
+→ **[Full feature list](docs/features.md)** · **[Installation](docs/installation.md)**
 
 ## Installation
 
