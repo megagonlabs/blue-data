@@ -1,6 +1,8 @@
 # blue-data
 
-Blue Data Intelligence Layer — a Python library for registering, introspecting, and querying heterogeneous data sources through a unified interface.
+blue-data is a data intelligence layer for AI applications. It provides a unified interface to register, introspect, and query heterogeneous data sources such as SQL databases, document stores, and graph databases — and enriches them with semantic metadata that makes data understandable to AI agents and language models. It sits between raw data and the AI layer, answering questions like: what data exists, what it means, how it relates, and how it can safely be queried.
+
+→ **[Features](docs/features.md)** · **[Installation](docs/installation.md)**
 
 ## Installation
 
