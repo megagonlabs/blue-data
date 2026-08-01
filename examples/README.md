@@ -10,7 +10,7 @@ pip install -e lib/
 
 ---
 
-## scenario-demos/ — before/after value demonstrations
+## scenario-demos/ — value proposition demos
 
 Each demo tells one clean story with a quantitative before/after result.
 Designed for presentations. Start here.
@@ -76,12 +76,44 @@ python3 examples/scenario-demos/process_reasoning_demo.py --live
 
 ---
 
+## feature-demos/ — how specific features work
+
+Deep-dives into individual blue-data features. No before/after story — shows
+what a feature does, what it produces, and how to wire it up.
+
+### Enrichment Pipeline Reference (`enrichment_demo.py`)
+
+Developer reference for wiring up and running the enrichment pipeline. Uses a
+synthetic `purchases` table to show what each layer infers and where the results
+land in the registry.
+
+**Layer 1 (no API key):** runs `SemanticTypeInferencer` on sample values, then
+infers semantic roles (`id` → IDENTIFIER, `purchase_date` → EVENT_TIME,
+`amount` → EVIDENCE, `category` → SEGMENTATION_DRIVER), detects the table as an
+EVENT log, and finds cross-column links (`category` SEGMENTS `amount`).
+
+**Layer 2 (API key optional):** calls an LLM per column for VSI (richer semantic
+type) and SDI (domain subcategory label such as `TRANSACTION_AMOUNT`). Shows the
+`llm_fn` wiring contract and demonstrates that `rebuild=False` makes the second
+pass a no-op (0 additional LLM calls).
+
+```bash
+# Layer 1 only:
+python3 examples/feature-demos/enrichment_demo.py
+
+# Layer 1 + Layer 2:
+export ANTHROPIC_API_KEY=sk-ant-...
+python3 examples/feature-demos/enrichment_demo.py
+```
+
+**API key:** optional (Layer 2 skips gracefully when absent)
+
 ---
 
-## walkthroughs/ — full pipeline walkthroughs
+## pipeline-demos/ — full pipeline on real datasets
 
-End-to-end pipeline examples on real datasets. No before/after story — shows
-how to wire up the full blue-data pipeline from scratch.
+End-to-end examples running the complete blue-data pipeline (register → sync →
+enrich → search → query) against real datasets.
 
 ### Semantic Enrichment on a Multi-Table SQL Source (`sql_semantic_enrichment_demo.py`)
 
@@ -93,7 +125,7 @@ and executes multi-table SQL queries.
 > full hybrid search.
 
 ```bash
-python3 examples/walkthroughs/sql_semantic_enrichment_demo.py
+python3 examples/pipeline-demos/sql_semantic_enrichment_demo.py
 ```
 
 **Dataset:** Northwind (`data/northwind_sqlite.sql`) | **API key:** not required
@@ -134,7 +166,7 @@ python3 examples/integration-demos/langgraph_mcp_demo.py
 
 ---
 
-## backends/ — infrastructure and API surface
+## backends/ — infrastructure and storage backends
 
 Start here when integrating blue-data into a new application.
 
@@ -164,35 +196,6 @@ the `rebuild` flag, hybrid search, and keyword-only fallback.
 ```bash
 python3 examples/backends/registry_memory_example.py
 ```
-
-### Enrichment Pipeline Reference (`enrichment_demo.py`)
-
-Developer reference for wiring up and running the enrichment pipeline. Uses a
-synthetic `purchases` table to show what each layer infers and where the results
-land in the registry.
-
-**Layer 1 (no API key):** runs `SemanticTypeInferencer` on sample values, then
-infers semantic roles (`id` → IDENTIFIER, `purchase_date` → EVENT_TIME,
-`amount` → EVIDENCE, `category` → SEGMENTATION_DRIVER), detects the table as an
-EVENT log, and finds cross-column links (`category` SEGMENTS `amount`).
-
-**Layer 2 (API key optional):** calls an LLM per column for VSI (richer semantic
-type) and SDI (domain subcategory label such as `TRANSACTION_AMOUNT`). Shows the
-`llm_fn` wiring contract and demonstrates that `rebuild=False` makes the second
-pass a no-op (0 additional LLM calls).
-
-```bash
-# Layer 1 only:
-python3 examples/backends/enrichment_demo.py
-
-# Layer 1 + Layer 2:
-export ANTHROPIC_API_KEY=sk-ant-...
-python3 examples/backends/enrichment_demo.py
-```
-
-**API key:** optional (Layer 2 skips gracefully when absent)
-
----
 
 ### Redis-backed Registry (`redis_demo.py`)
 
@@ -229,8 +232,8 @@ python3 examples/benchmarks/enrichment_benchmark.py
 | `coded_value_demo.py` | scenario-demos | Anthropic (SQL gen) | — |
 | `description_search_demo.py` | scenario-demos | none at runtime | — |
 | `process_reasoning_demo.py` | scenario-demos | none (default) | — |
-| `enrichment_demo.py` | backends | Anthropic (optional) | — |
-| `sql_semantic_enrichment_demo.py` | walkthroughs | none | — |
+| `enrichment_demo.py` | feature-demos | Anthropic (optional) | — |
+| `sql_semantic_enrichment_demo.py` | pipeline-demos | none | — |
 | `langgraph_direct_demo.py` | integration-demos | OpenAI | — |
 | `langgraph_mcp_demo.py` | integration-demos | OpenAI | MCP server |
 | `sqlite_example.py` | backends | none | — |

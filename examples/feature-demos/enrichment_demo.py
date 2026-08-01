@@ -35,9 +35,9 @@ stub.  The demo below wires the Anthropic SDK (claude-haiku-4-5-20251001).
 
 Run:
     pip install -e lib/
-    python3 examples/backends/enrichment_demo.py          # Layer 1 only
+    python3 examples/feature-demos/enrichment_demo.py          # Layer 1 only
     ANTHROPIC_API_KEY=sk-ant-... \\
-    python3 examples/backends/enrichment_demo.py          # Layer 1 + Layer 2
+    python3 examples/feature-demos/enrichment_demo.py          # Layer 1 + Layer 2
 """
 
 import os
