@@ -545,7 +545,7 @@ def run(use_judge: bool, use_layer2: bool, model: str, judge_model: str,
     print(f"Finance NL2SQL enrichment benchmark   model={model}")
     if use_judge:
         print(f"Judge model: {judge_model}")
-    print(f"Questions: {n}   judge: {'yes' if use_judge else 'no'}   layer2: {'yes' if use_layer2 else 'no'}")
+    print(f"Questions: {n}   judge: {'yes' if use_judge else 'no'}   enriched+L2: {'yes' if use_layer2 else 'no'}")
     print(DIV)
 
     tmp     = tempfile.mkdtemp(prefix="finance-bench-")
@@ -559,14 +559,14 @@ def run(use_judge: bool, use_layer2: bool, model: str, judge_model: str,
 
     conditions: list[tuple[str, str]] = [
         ("baseline", baseline_ctx),
-        ("layer1",   layer1_ctx),
+        ("enriched", layer1_ctx),
     ]
 
     if use_layer2:
         print("Step 2 — LLM-augmented enrichment (Layer 2) …")
         r2         = build_registry(tmp, llm_fn=make_enrich_fn(api_key, model))
         layer2_ctx = build_layer1_context(r2)
-        conditions.append(("layer2", layer2_ctx))
+        conditions.append(("enriched+L2", layer2_ctx))
 
     cnames = [c for c, _ in conditions]
     print(f"\nContext sizes:")
@@ -752,19 +752,19 @@ def run(use_judge: bool, use_layer2: bool, model: str, judge_model: str,
             line += f" {s:<10}"
 
         changes = []
-        if "layer1" in cnames and not r["baseline"]["has_rows"] and r["layer1"]["has_rows"]:
-            changes.append("L1 fixed")
-        if "layer2" in cnames and not r["layer1"]["has_rows"] and r["layer2"]["has_rows"]:
+        if "enriched" in cnames and not r["baseline"]["has_rows"] and r["enriched"]["has_rows"]:
+            changes.append("enrichment fixed")
+        if "enriched+L2" in cnames and not r["enriched"]["has_rows"] and r["enriched+L2"]["has_rows"]:
             changes.append("L2 fixed")
-        if "layer1" in cnames and r["baseline"]["has_rows"] and not r["layer1"]["has_rows"]:
-            changes.append("L1 regressed")
+        if "enriched" in cnames and r["baseline"]["has_rows"] and not r["enriched"]["has_rows"]:
+            changes.append("enrichment regressed")
         print(line + "  " + "; ".join(changes))
 
     # Show one example failure vs fix
     fixed = [r for r in results
-             if "layer1" in cnames
+             if "enriched" in cnames
              and not r["baseline"]["has_rows"]
-             and r["layer1"]["has_rows"]]
+             and r["enriched"]["has_rows"]]
     if fixed:
         ex = fixed[0]
         print(f"\n── Example: enrichment fixed '{ex['id']}' ──")
@@ -772,8 +772,8 @@ def run(use_judge: bool, use_layer2: bool, model: str, judge_model: str,
         print(f"  baseline SQL : {(ex['baseline']['sql'] or '(none)')[:120]}")
         if ex["baseline"]["error"]:
             print(f"  baseline err : {ex['baseline']['error'][:80]}")
-        print(f"  layer1 SQL   : {(ex['layer1']['sql'] or '(none)')[:120]}")
-        print(f"  layer1 rows  : {ex['layer1']['n_rows']}")
+        print(f"  enriched SQL : {(ex['enriched']['sql'] or '(none)')[:120]}")
+        print(f"  enriched rows: {ex['enriched']['n_rows']}")
 
     # Report
     if report_path:

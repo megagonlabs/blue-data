@@ -1,7 +1,7 @@
 # NL2SQL Enrichment Benchmark — Results
 
 **SQL model:** `claude-haiku-4-5-20251001` (temperature=0, deterministic) | **Judge:** `claude-sonnet-4-6`  
-**Questions:** 24 | **Conditions:** `baseline` vs `layer1` | **Context sizes:** baseline=640 chars vs layer1=17,846 chars  
+**Questions:** 24 | **Conditions:** `baseline` vs `enriched` | **Context sizes:** baseline=640 chars vs enriched=17,846 chars  
 **Last run:** 2026-08-02
 
 > Re-generate: `python3 examples/benchmarks/enrichment_benchmark.py --judge --model claude-haiku-4-5-20251001 --report`
@@ -10,7 +10,7 @@
 
 ## Overall results
 
-| Metric | baseline | layer1 | Δ |
+| Metric | baseline | enriched | Δ |
 |--------|----------|--------|---|
 | SQL runs without error | 21/24 (88%) | 23/24 (96%) | +2 |
 | SQL returns non-empty result | 14/24 (58%) | 22/24 (92%) | **+8** |
@@ -22,7 +22,7 @@
 Semantic correctness (% of 24 questions judged fully correct)
 
   baseline   ███░░░░░░░░░░░░   17%  (4/24)
-  layer1     ██████████████░   71%  (17/24)
+  enriched  ██████████████░   71%  (17/24)
 ```
 
 ---
@@ -38,9 +38,9 @@ xychart-beta
     bar [100, 100, 100, 67, 100, 33, 33]
 ```
 
-*First bar = baseline · Second bar = layer1 — sorted by improvement*
+*First bar = baseline · Second bar = enriched — sorted by improvement*
 
-| Category | n | Baseline | Layer 1 | Δ |
+| Category | n | Baseline | Enriched | Δ |
 |---|---|---|---|---|
 | opaque_column | 3 | 0/3 (0%) | 3/3 (100%) | +100pp ★ |
 | time_grain | 2 | 0/2 (0%) | 2/2 (100%) | +100pp ★ |
@@ -63,7 +63,7 @@ xychart-beta
     bar [100, 100, 100, 100, 67, 100, 67]
 ```
 
-| Category | n | Baseline rows | Layer 1 rows | Δ |
+| Category | n | Baseline rows | Enriched rows | Δ |
 |---|---|---|---|---|
 | enum_coded_value | 6 | 2/6 (33%) | 6/6 (100%) | **+67pp** |
 | time_grain | 2 | 0/2 (0%) | 2/2 (100%) | **+100pp** |
@@ -76,7 +76,7 @@ xychart-beta
 > **Note on `enum_coded_value`:** The SQL execution story (33% → 100%) is more diagnostic than
 > the semantic score (0% → 33%). All 6 questions return 0 rows at baseline because Haiku uses
 > English filter values (`WHERE k_symbol='INSURANCE'`) that don't exist in the Czech database.
-> Layer 1 injects the actual codes → rows returned for all 6. The semantic judge is strict about
+> blue-data enrichment injects the actual codes → rows returned for all 6. The semantic judge is strict about
 > minor query structure issues on top of the correct filter.
 
 ---
@@ -86,7 +86,7 @@ xychart-beta
 Exec: **✅ OK** = ran + returned rows · **⬜ exec** = ran + 0 rows · **❌ FAIL** = SQL error  
 Semantic: **✅ cor** = correct · **🟡 par** = partial · **❌ inc** = incorrect
 
-| ID | Category | Question | baseline exec | baseline semantic | layer1 exec | layer1 semantic |
+| ID | Category | Question | baseline exec | baseline semantic | enriched exec | enriched semantic |
 |---|---|---|---|---|---|---|
 | sem_c_001 | none | Which accounts have the highest number of transactions? | ✅ OK | 🟡 par | ✅ OK | ✅ cor |
 | sem_c_002 | none | Which loans are the most expensive? | ✅ OK | ✅ cor | ✅ OK | ✅ cor |
@@ -118,22 +118,22 @@ Semantic: **✅ cor** = correct · **🟡 par** = partial · **❌ inc** = incor
 ## What each category tests
 
 ### none
-**Control.** Questions answerable from column names alone. Both conditions expected correct. Validates that the benchmark does not give an unfair advantage — Layer 1 enrichment should not be needed here.
+**Control.** Questions answerable from column names alone. Both conditions expected correct. Validates that the benchmark does not give an unfair advantage — enrichment should not be needed here.
 
 ### enum_coded_value
 **ENUM code injection.** Columns store Czech domain codes that an LLM cannot infer from English intent:
 
-| Column | Codes injected by Layer 1 |
+| Column | Codes injected by enrichment |
 |---|---|
 | `trans.operation` | `VKLAD` (cash deposit), `VYBER` (withdrawal), `PREVOD NA UCET` (outgoing wire), `PREVOD Z UCTU` (incoming wire) |
 | `trans.k_symbol` | `POJISTNE` (insurance), `DUCHOD` (pension), `SIPO` (utility bills), `UROK` (interest), `SLUZBY` (services) |
 | `trans.type` | `PRIJEM` (credit/incoming), `VYDAJ` (debit/outgoing) |
 
 At baseline, Haiku generates English filter values (`WHERE k_symbol='INSURANCE'`) → 0 rows.  
-With Layer 1, actual codes are in context → queries return correct rows.
+With enrichment, actual codes are in context → queries return correct rows.
 
 ### opaque_column
-**Opaque column disambiguation.** The `district` table has 16 columns named `a1`–`a16` with no semantic meaning in their names. Layer 1 injects statistical sample values that reveal each column's domain:
+**Opaque column disambiguation.** The `district` table has 16 columns named `a1`–`a16` with no semantic meaning in their names. blue-data enrichment injects statistical sample values that reveal each column's domain:
 
 - `a3` → `ENUM_CATEGORY | values=[Prague, central Bohemia, south Bohemia]` — the region column
 - `a2` → `STRING | samples=['Hl.m. Praha', 'Benesov', 'Beroun', ...]` — the district name column
@@ -143,26 +143,26 @@ At baseline, Haiku cannot distinguish `a2` from `a3` and often filters or groups
 ### current_state
 **Process semantics / STATE_VARIABLE.** `trans.balance` is a running total — each row records the account balance *after* that transaction. Asking "what is the current balance?" requires the most recent row per account, not `AVG(balance)` or `MAX(balance)`.
 
-Layer 1 annotates:
+blue-data enrichment annotates:
 - `balance` → `process_role=STATE_VARIABLE`
 - `latest_record_only: {order_by: 'date', partition_by: ['account_id']}`
 - `trans` → `row_semantics=EVENT, event_time=date, entity_keys=['account_id']`
 
-**Note:** This category shows no improvement in the current run. The `latest_record_only` constraint is present in the Layer 1 context, but Haiku does not reliably translate it into a window function or correlated subquery. This is a Layer 2 use case — explicit column descriptions would make the requirement unambiguous.
+**Note:** This category shows no improvement in the current run. The `latest_record_only` constraint is present in the enriched context, but Haiku does not reliably translate it into a window function or correlated subquery. This is an enriched+L2 use case — explicit column descriptions would make the requirement unambiguous.
 
 ### distributional
-**Statistical extreme regions.** Layer 1 computes per-column `value_axis` extreme cutoffs from the actual data distribution:
+**Statistical extreme regions.** blue-data enrichment computes per-column `value_axis` extreme cutoffs from the actual data distribution:
 
 - `trans.amount` → `extremes={'small': '< 1320', 'large': '> 21200'}` — statistically derived outlier threshold
 - `trans.balance` → `extremes={'small': '< 9500', 'large': '> 32096'}` — critically low / unusually high balance
 
-At baseline, Haiku picks arbitrary round-number thresholds (`> 10000`, `< 0`) with no statistical basis. With Layer 1, the data-derived cutoffs are available in context.
+At baseline, Haiku picks arbitrary round-number thresholds (`> 10000`, `< 0`) with no statistical basis. With enrichment, the data-derived cutoffs are available in context.
 
 ### quantitative_misinterpretation
 **Ratio and net-credit queries.** Requires correctly isolating debit (`type='VYDAJ'`) vs credit (`type='PRIJEM'`) transactions before computing proportions or net values. At baseline, English type labels return 0 rows → the numerator and denominator of the formula are both empty → the computation is impossible regardless of the formula's correctness.
 
 ### time_grain
-**Temporal bucketing combined with ENUM filtering.** Monthly aggregations restricted to a specific transaction type. Layer 1 provides:
+**Temporal bucketing combined with ENUM filtering.** Monthly aggregations restricted to a specific transaction type. blue-data enrichment provides:
 - `type` → `ENUM_CATEGORY | values=[PRIJEM, VYDAJ]` — correct filter value
 - `date` → `time_grains=['monthly']` — correct temporal bucket
 - `AGGREGATE_OVER_TIME` operator — reinforces time-series aggregation pattern
