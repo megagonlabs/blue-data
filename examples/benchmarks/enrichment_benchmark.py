@@ -18,24 +18,67 @@ Scoring per question (max 4 pts with --judge, max 2 pts without):
   correct  (2pt) — LLM judge confirms semantic correctness  [--judge]
 
 Dataset : data/finance_sqlite.sql    (Czech banking, 5 tables)
-Questions: data/finance_benchmark_queries.json  (15 questions targeting
-           coded column values, opaque district names, process semantics)
+Questions: data/finance_benchmark_queries.json  (24 questions across 7 categories)
+
+Question categories — each tests a distinct enrichment feature:
+
+  none (4 Qs)
+    Control questions answerable from column names alone. Expected: both
+    baseline and layer1 correct. Validates benchmark honesty.
+
+  enum_coded_value (6 Qs)
+    Columns store Czech codes that Haiku cannot guess from English intent:
+      trans.operation: VKLAD=cash deposit, VYBER=withdrawal,
+                       PREVOD NA UCET=outgoing wire
+      trans.k_symbol:  POJISTNE=insurance, DUCHOD=pension, SIPO=utilities, UROK=interest
+    At baseline: Haiku generates WHERE operation='DEPOSIT' → 0 rows (wrong code).
+    Layer 1 injects ENUM_CATEGORY values → correct filter → rows returned.
+
+  opaque_column (3 Qs)
+    district table columns a1-a16 have no semantic meaning in their names.
+    Layer 1 injects sample values: a3 ENUM_CATEGORY values=[Prague, central Bohemia, ...]
+    and a2 STRING samples=['Hl.m. Praha', 'Benesov', ...].
+    At baseline: Haiku cannot distinguish a2 (district name) from a3 (region).
+
+  current_state (3 Qs)
+    trans.balance is a running total — each row is the balance AFTER that event.
+    "Current balance" = most recent row per account, not AVG or MAX.
+    Layer 1 annotates: balance -- process_role=STATE_VARIABLE and provides:
+      latest_record_only: {partition_by: ['account_id'], order_by: 'date'}
+    At baseline: Haiku computes AVG(balance) or checks any row — semantically wrong.
+
+  distributional (3 Qs)
+    Layer 1 computes per-column value_axis extremes (p10/p90 statistical cutoffs)
+    and conditional_value_distribution (p50/p90 per ENUM group).
+    Examples injected:
+      trans.amount -- extremes={'small': '<1320', 'large': '>21200'}
+      trans.amount -- dist_by_type: VYDAJ p90=7155, PRIJEM p90=32600
+    At baseline: Haiku picks arbitrary round thresholds with no statistical basis.
+    With Layer 1: uses the actual data-derived cutoffs.
+
+  quantitative_misinterpretation (3 Qs)
+    Requires correct ENUM codes to isolate the right population, combined with
+    arithmetic (SUM/ratio) that Layer 1's safe_aggregation flags support.
+    At baseline: wrong ENUM codes → 0 rows → cannot compute net credit or ratio.
+
+  time_grain (2 Qs)
+    Layer 1 injects time_grains=['monthly'] for date columns and emits an
+    AGGREGATE_OVER_TIME operator. Combined with ENUM codes for debit/credit
+    filtering, these 2 questions test ENUM + temporal aggregation together.
+    At baseline: wrong type code AND potentially wrong time bucket.
 
 Usage:
     export ANTHROPIC_API_KEY=sk-ant-...
     pip install -e lib/ anthropic
 
-    # baseline vs layer1 (default, no LLM enrichment cost)
-    python3 examples/enrichment_benchmark.py
-
-    # add LLM-as-judge for semantic correctness scoring
-    python3 examples/enrichment_benchmark.py --judge
+    # baseline vs layer1, with LLM judge (recommended)
+    python3 examples/benchmarks/enrichment_benchmark.py --judge
 
     # also run layer2 (LLM-augmented enrichment, more API calls)
-    python3 examples/enrichment_benchmark.py --layer2 --judge
+    python3 examples/benchmarks/enrichment_benchmark.py --judge --layer2
 
     # save full results
-    python3 examples/enrichment_benchmark.py --judge --out results/run.json
+    python3 examples/benchmarks/enrichment_benchmark.py --judge --out results/run.json
 """
 from __future__ import annotations
 
@@ -54,8 +97,8 @@ from blue_data.registry.enrichment.metadata import MetaData
 from blue_data.source.json.memory_json_source import MemoryJSONSource
 from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
-SQL_FILE     = Path(__file__).parent.parent / "data" / "finance_sqlite.sql"
-QUERIES_FILE = Path(__file__).parent.parent / "data" / "finance_benchmark_queries.json"
+SQL_FILE     = Path(__file__).parent.parent.parent / "data" / "finance_sqlite.sql"
+QUERIES_FILE = Path(__file__).parent.parent.parent / "data" / "finance_benchmark_queries.json"
 DATABASE     = "finance"
 TABLES       = ["district", "client", "account", "loan", "trans"]
 DIV          = "=" * 72
@@ -408,16 +451,21 @@ def build_layer1_context(reg: DataRegistry) -> str:
 
 # ── LLM wrappers ───────────────────────────────────────────────────────────
 
-def make_chat_fn(api_key: str, model: str):
-    """Returns (system, prompt) -> str for SQL generation and judging."""
+def make_chat_fn(api_key: str, model: str, temperature: float | None = None):
+    """Returns (system, prompt) -> str for SQL generation and judging.
+
+    Pass temperature=0 for reproducible SQL generation.
+    Omit (None) for models that don't accept temperature (e.g. claude-opus-4-8).
+    """
     import anthropic
     client = anthropic.Anthropic(api_key=api_key)
 
     def call(system: str, prompt: str) -> str:
-        resp = client.messages.create(
-            model=model, max_tokens=1024, system=system,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        kwargs: dict = {"model": model, "max_tokens": 1024, "system": system,
+                        "messages": [{"role": "user", "content": prompt}]}
+        if temperature is not None:
+            kwargs["temperature"] = temperature
+        resp = client.messages.create(**kwargs)
         for b in resp.content:
             if b.type == "text":
                 return b.text
@@ -432,7 +480,7 @@ def make_enrich_fn(api_key: str, model: str):
 
     def call(prompt: str) -> str:
         resp = client.messages.create(
-            model=model, max_tokens=1024,
+            model=model, max_tokens=1024, temperature=0,
             messages=[{"role": "user", "content": prompt}],
         )
         for b in resp.content:
@@ -472,20 +520,22 @@ def judge(chat, question: str, expected: str, sql: str, rows: list, err: str | N
         m   = re.search(r"\{.*\}", raw, re.DOTALL)
         if m:
             return json.loads(m.group())
-    except Exception:
-        pass
-    return {"verdict": "error", "reason": "judge failed"}
+        return {"verdict": "error", "reason": f"no JSON in response: {raw[:120]}"}
+    except Exception as e:
+        return {"verdict": "error", "reason": str(e)[:120]}
 
 
 # ── Benchmark run ──────────────────────────────────────────────────────────
 
-def run(use_judge: bool, use_layer2: bool, model: str, out_path: str | None) -> None:
+def run(use_judge: bool, use_layer2: bool, model: str, judge_model: str,
+        out_path: str | None, report_path: str | None = None) -> None:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         print("ERROR: set ANTHROPIC_API_KEY first.")
         return
 
-    chat    = make_chat_fn(api_key, model)
+    chat       = make_chat_fn(api_key, model, temperature=0)   # deterministic SQL generation
+    judge_chat = make_chat_fn(api_key, judge_model)             # no temperature — opus-4-8 doesn't accept it
     queries = json.loads(QUERIES_FILE.read_text())
     cats    = sorted({q["category"] for q in queries})
     n       = len(queries)
@@ -493,6 +543,8 @@ def run(use_judge: bool, use_layer2: bool, model: str, out_path: str | None) -> 
     print()
     print(DIV)
     print(f"Finance NL2SQL enrichment benchmark   model={model}")
+    if use_judge:
+        print(f"Judge model: {judge_model}")
     print(f"Questions: {n}   judge: {'yes' if use_judge else 'no'}   layer2: {'yes' if use_layer2 else 'no'}")
     print(DIV)
 
@@ -522,7 +574,11 @@ def run(use_judge: bool, use_layer2: bool, model: str, out_path: str | None) -> 
         print(f"  {cname:<10} {len(ctx):>6} chars")
 
     # ── Run questions ──────────────────────────────────────────────────────
-    print(f"\nRunning {n} questions × {len(conditions)} conditions …\n")
+    print(f"\nRunning {n} questions × {len(conditions)} conditions …")
+    print(f"  SQL execution  : OK = ran + returned rows | exec = ran + empty | FAIL = error")
+    if use_judge:
+        print(f"  Semantic judge : correct | partial | incorrect  (evaluated by {judge_model})")
+    print()
     results = []
 
     for i, q in enumerate(queries, 1):
@@ -544,7 +600,7 @@ def run(use_judge: bool, use_layer2: bool, model: str, out_path: str | None) -> 
 
             verdict_obj = None
             if use_judge:
-                verdict_obj = judge(chat, q["intent"], q["expected_behavior"],
+                verdict_obj = judge(judge_chat, q["intent"], q["expected_behavior"],
                                     sql_text or "", rows, err)
                 time.sleep(0.3)
 
@@ -565,16 +621,23 @@ def run(use_judge: bool, use_layer2: bool, model: str, out_path: str | None) -> 
                 "pts":       pts,
             }
 
-        status_line = "  " + "  ".join(
-            f"{cn}={'OK' if row[cn]['has_rows'] else ('exec' if row[cn]['exec_ok'] else 'FAIL')}"
+        exec_parts = "  ".join(
+            f"{cn}={'OK' if row[cn]['has_rows'] else ('exec(0 rows)' if row[cn]['exec_ok'] else 'FAIL(error)')}"
             for cn in cnames
         )
+        print(f"    SQL exec   : {exec_parts}")
         if use_judge:
-            status_line += "  " + "  ".join(
-                f"{cn}_judge={(row[cn]['judge'] or {}).get('verdict','?')}"
+            judge_parts = "  ".join(
+                f"{cn}={(row[cn]['judge'] or {}).get('verdict','?')}"
                 for cn in cnames
             )
-        print(f"  {status_line}\n")
+            print(f"    semantics  : {judge_parts}")
+            # surface any judge errors so failures are visible
+            for cn in cnames:
+                j = row[cn].get("judge") or {}
+                if j.get("verdict") == "error":
+                    print(f"    judge-error ({cn}): {j.get('reason', '?')}")
+        print()
         results.append(row)
 
     # ── Summary ────────────────────────────────────────────────────────────
@@ -589,12 +652,14 @@ def run(use_judge: bool, use_layer2: bool, model: str, out_path: str | None) -> 
         return f"{num/den:.0%}" if den else "—"
 
     # Overall table
-    header = f"\n{'Metric':<35}" + "".join(f"{c:>{col_w}}" for c in cnames)
+    print()
+    print("── SQLite execution (mechanical: did the SQL run and return rows?) ──")
+    header = f"{'Metric':<35}" + "".join(f"{c:>{col_w}}" for c in cnames)
     print(header)
     print(DIV2)
 
     for label, key in [
-        ("SQL executes without error",  "exec_ok"),
+        ("SQL runs without error",       "exec_ok"),
         ("SQL returns non-empty result", "has_rows"),
     ]:
         row_vals = {c: sum(1 for r in results if r[c][key]) for c in cnames}
@@ -604,11 +669,18 @@ def run(use_judge: bool, use_layer2: bool, model: str, out_path: str | None) -> 
         print(line)
 
     if use_judge:
-        for verdict, label in [("correct", "Correct"), ("partial", "Partial"), ("incorrect", "Incorrect")]:
+        print()
+        print(f"── Semantic correctness (LLM judge: {judge_model}) ──")
+        header2 = f"{'Metric':<35}" + "".join(f"{c:>{col_w}}" for c in cnames)
+        print(header2)
+        print(DIV2)
+        for verdict, label in [("correct", "Correct (fully answers question)"),
+                                ("partial", "Partial (right direction, wrong detail)"),
+                                ("incorrect", "Incorrect (wrong semantics)")]:
             row_vals = {c: sum(1 for r in results
                                if (r[c]["judge"] or {}).get("verdict") == verdict)
                         for c in cnames}
-            line = f"Judge — {label:<27}"
+            line = f"{label:<35}"
             for c in cnames:
                 line += f"{row_vals[c]:>{col_w-3}}/{n}  "
             print(line)
@@ -627,27 +699,46 @@ def run(use_judge: bool, use_layer2: bool, model: str, out_path: str | None) -> 
             print(f"  Δ correct   baseline → {cname}: {c_cor - b_cor:+d}/{n}  "
                   f"({pct(b_cor, n)} → {pct(c_cor, n)})")
 
-    # By category
-    print(f"\n{'By category':<35}" + "".join(f"{c:>{col_w}}" for c in cnames))
+    # By category — execution (has_rows) and semantic correctness side by side
+    print(f"\n── By category ──")
+    print(f"  {'Category':<32}" + "".join(f"  {c[:8]:<8}" for c in cnames) + "  n")
+    print(f"  {'(SQL: % returning rows)':<32}" + "".join(f"  {'exec%':>8}" for _ in cnames))
     print(DIV2)
     for cat in cats:
         cat_r = [r for r in results if r["category"] == cat]
         nc    = len(cat_r)
-        line  = f"  {cat:<33}"
+        line  = f"  {cat:<32}"
         for c in cnames:
             ok   = sum(1 for r in cat_r if r[c]["has_rows"])
-            line += f"{pct(ok, nc):>{col_w}}"
-        print(line + f"  (n={nc})")
+            line += f"  {pct(ok, nc):>8}"
+        print(line + f"  {nc}")
+
+    if use_judge:
+        print(f"\n  {'Category':<32}" + "".join(f"  {c[:8]:<8}" for c in cnames) + "  n")
+        print(f"  {'(Semantic: % fully correct)':<32}" + "".join(f"  {'correct':>8}" for _ in cnames))
+        print(DIV2)
+        for cat in cats:
+            cat_r = [r for r in results if r["category"] == cat]
+            nc    = len(cat_r)
+            line  = f"  {cat:<32}"
+            for c in cnames:
+                ok = sum(1 for r in cat_r if (r[c]["judge"] or {}).get("verdict") == "correct")
+                line += f"  {pct(ok, nc):>8}"
+            print(line + f"  {nc}")
 
     # Per-question detail
     print(f"\n{'Per-question detail'}")
+    if use_judge:
+        print(f"  Columns show: SQL-exec(rows?|error?) / semantic-verdict")
+        print(f"  SQL-exec : OK=ran+rows  exec=ran+empty  FAIL=error")
+        print(f"  Semantic : cor=correct  par=partial  inc=incorrect  (judge: {judge_model})")
     print(DIV2)
     hdr = f"  {'id':<14} {'category':<24}"
     for c in cnames:
-        hdr += f" {c:<6}"
+        hdr += f" {c:<10}"
     hdr += "  changes"
     print(hdr)
-    print(f"  {'-'*14} {'-'*24}" + "".join(f" {'-'*6}" for _ in cnames) + "  " + "-"*30)
+    print(f"  {'-'*14} {'-'*24}" + "".join(f" {'-'*10}" for _ in cnames) + "  " + "-"*30)
 
     for r in results:
         line   = f"  {r['id']:<14} {r['category']:<24}"
@@ -658,7 +749,7 @@ def run(use_judge: bool, use_layer2: bool, model: str, out_path: str | None) -> 
                 v = (r[c]["judge"] or {}).get("verdict", "?")
                 s = f"{s}/{v[:3]}"
             status[c] = s
-            line += f" {s:<6}"
+            line += f" {s:<10}"
 
         changes = []
         if "layer1" in cnames and not r["baseline"]["has_rows"] and r["layer1"]["has_rows"]:
@@ -684,6 +775,15 @@ def run(use_judge: bool, use_layer2: bool, model: str, out_path: str | None) -> 
         print(f"  layer1 SQL   : {(ex['layer1']['sql'] or '(none)')[:120]}")
         print(f"  layer1 rows  : {ex['layer1']['n_rows']}")
 
+    # Report
+    if report_path:
+        md = generate_report(results, cnames, use_judge, judge_model, model, n,
+                             {c: len(ctx) for c, ctx in conditions})
+        rpt = Path(report_path)
+        rpt.parent.mkdir(parents=True, exist_ok=True)
+        rpt.write_text(md)
+        print(f"\nMarkdown report saved → {report_path}")
+
     # Save
     if out_path:
         out = Path(out_path)
@@ -704,6 +804,270 @@ def run(use_judge: bool, use_layer2: bool, model: str, out_path: str | None) -> 
     print("Benchmark complete.")
 
 
+# ── Report generator ───────────────────────────────────────────────────────
+
+def generate_report(results: list, cnames: list[str], use_judge: bool,
+                    judge_model: str, model: str, n: int,
+                    ctx_sizes: dict[str, int]) -> str:
+    """Render benchmark results as a GitHub-flavoured markdown report with Mermaid charts."""
+    from datetime import datetime as _dt
+
+    cats   = sorted({r["category"] for r in results})
+    now    = _dt.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+
+    def _pct(num: int, den: int) -> str:
+        return f"{num/den:.0%}" if den else "—"
+
+    def _bar(pct_float: float, width: int = 15) -> str:
+        filled = round(pct_float * width)
+        return "█" * filled + "░" * (width - filled)
+
+    def _verdict_count(cond: str, verdict: str) -> int:
+        return sum(1 for r in results if (r[cond]["judge"] or {}).get("verdict") == verdict)
+
+    def _cat_correct(cat: str, cond: str) -> tuple[int, int]:
+        cat_r = [r for r in results if r["category"] == cat]
+        ok    = sum(1 for r in cat_r if (r[cond]["judge"] or {}).get("verdict") == "correct")
+        return ok, len(cat_r)
+
+    def _cat_rows(cat: str, cond: str) -> tuple[int, int]:
+        cat_r = [r for r in results if r["category"] == cat]
+        ok    = sum(1 for r in cat_r if r[cond]["has_rows"])
+        return ok, len(cat_r)
+
+    lines: list[str] = []
+    a = lines.append
+
+    # ── Header ──
+    a("# NL2SQL Enrichment Benchmark — Results")
+    a("")
+    a(f"**SQL model:** `{model}` (temperature=0, deterministic) | **Judge:** `{judge_model}`  ")
+    a(f"**Questions:** {n} | **Conditions:** {', '.join(f'`{c}`' for c in cnames)} | "
+      f"**Context sizes:** {' vs '.join(f'{c}={ctx_sizes[c]:,} chars' for c in cnames)}  ")
+    a(f"**Last run:** {now}")
+    a("")
+    a("> Re-generate: `python3 examples/benchmarks/enrichment_benchmark.py --judge "
+      f"--model {model} --report`")
+    a("")
+    a("---")
+    a("")
+
+    # ── Overall summary ──
+    a("## Overall results")
+    a("")
+    exec_ok_b = sum(1 for r in results if r["baseline"]["exec_ok"])
+    exec_ok_l = sum(1 for r in results if r["layer1"]["exec_ok"])
+    rows_b    = sum(1 for r in results if r["baseline"]["has_rows"])
+    rows_l    = sum(1 for r in results if r["layer1"]["has_rows"])
+
+    a("| Metric | baseline | layer1 | Δ |")
+    a("|--------|----------|--------|---|")
+    a(f"| SQL runs without error | {exec_ok_b}/{n} ({_pct(exec_ok_b,n)}) | "
+      f"{exec_ok_l}/{n} ({_pct(exec_ok_l,n)}) | {exec_ok_l-exec_ok_b:+d} |")
+    a(f"| SQL returns non-empty result | {rows_b}/{n} ({_pct(rows_b,n)}) | "
+      f"{rows_l}/{n} ({_pct(rows_l,n)}) | {rows_l-rows_b:+d} |")
+
+    if use_judge:
+        for verdict, label in [
+            ("correct",   "Semantically **correct**"),
+            ("partial",   "Semantically partial"),
+            ("incorrect", "Semantically incorrect"),
+        ]:
+            b = _verdict_count("baseline", verdict)
+            l = _verdict_count("layer1",   verdict)
+            a(f"| {label} | {b}/{n} ({_pct(b,n)}) | {l}/{n} ({_pct(l,n)}) | **{l-b:+d}** |")
+
+    a("")
+
+    # ── ASCII progress bars (overall) ──
+    if use_judge:
+        a("```")
+        a(f"Semantic correctness (% of {n} questions judged fully correct)")
+        a("")
+        for c in cnames:
+            ok  = _verdict_count(c, "correct")
+            frac = ok / n
+            a(f"  {c:<10}  {_bar(frac)}  {_pct(ok, n):>4}  ({ok}/{n})")
+        a("```")
+        a("")
+
+    a("---")
+    a("")
+
+    # ── By-category semantic chart ──
+    if use_judge:
+        a("## Semantic correctness by category")
+        a("")
+
+        # Sort categories: biggest gain first, control last
+        def _gain(cat: str) -> float:
+            bl, nl = _cat_correct(cat, "baseline")[0], _cat_correct(cat, "layer1")[0]
+            nc     = _cat_correct(cat, "baseline")[1]
+            return (bl - nl) / nc if nc else 0   # negative = improvement
+
+        sorted_cats = sorted(cats, key=_gain)
+
+        # Mermaid bar chart
+        short = {
+            "none":                         "none",
+            "enum_coded_value":             "enum",
+            "opaque_column":                "opaque",
+            "current_state":                "state",
+            "distributional":               "distrib",
+            "quantitative_misinterpretation": "quant",
+            "time_grain":                   "time",
+        }
+        x_labels = [f'"{short.get(c, c[:6])}"' for c in sorted_cats]
+        b_vals   = [round(_cat_correct(c, "baseline")[0] / _cat_correct(c, "baseline")[1] * 100)
+                    for c in sorted_cats]
+        l_vals   = [round(_cat_correct(c, "layer1")[0] / _cat_correct(c, "layer1")[1] * 100)
+                    for c in sorted_cats]
+
+        a("```mermaid")
+        a("xychart-beta")
+        a('    title "Semantic Correctness by Category (%)"')
+        a(f"    x-axis [{', '.join(x_labels)}]")
+        a('    y-axis "% semantically correct" 0 --> 100')
+        a(f"    bar [{', '.join(str(v) for v in b_vals)}]")
+        a(f"    bar [{', '.join(str(v) for v in l_vals)}]")
+        a("```")
+        a("")
+        a("*First bar = baseline · Second bar = layer1 — sorted by improvement*")
+        a("")
+
+        # Table
+        a("| Category | n | Baseline | Layer 1 | Δ |")
+        a("|---|---|---|---|---|")
+        for cat in sorted_cats:
+            b_ok, nc = _cat_correct(cat, "baseline")
+            l_ok, _  = _cat_correct(cat, "layer1")
+            delta    = l_ok - b_ok
+            delta_pp = round((l_ok - b_ok) / nc * 100)
+            flag     = " ★" if delta_pp >= 50 else (" ↑" if delta_pp > 0 else "")
+            a(f"| {cat} | {nc} | {b_ok}/{nc} ({_pct(b_ok, nc)}) | "
+              f"{l_ok}/{nc} ({_pct(l_ok, nc)}) | {delta_pp:+d}pp{flag} |")
+        a("")
+        a("---")
+        a("")
+
+    # ── SQL execution by category ──
+    a("## SQL execution by category (% returning non-empty result)")
+    a("")
+
+    ex_cats = sorted(cats, key=lambda c: _cat_rows(c, "layer1")[0] - _cat_rows(c, "baseline")[0],
+                     reverse=True)
+    x_labels2 = [f'"{short.get(c, c[:6])}"' for c in ex_cats]
+    b_ex = [round(_cat_rows(c, "baseline")[0] / _cat_rows(c, "baseline")[1] * 100) for c in ex_cats]
+    l_ex = [round(_cat_rows(c, "layer1")[0]   / _cat_rows(c, "layer1")[1]   * 100) for c in ex_cats]
+
+    a("```mermaid")
+    a("xychart-beta")
+    a('    title "SQL Execution: % Questions Returning Rows"')
+    a(f"    x-axis [{', '.join(x_labels2)}]")
+    a('    y-axis "% returning rows" 0 --> 100')
+    a(f"    bar [{', '.join(str(v) for v in b_ex)}]")
+    a(f"    bar [{', '.join(str(v) for v in l_ex)}]")
+    a("```")
+    a("")
+
+    a("| Category | n | Baseline rows | Layer 1 rows | Δ |")
+    a("|---|---|---|---|---|")
+    for cat in ex_cats:
+        b_ok, nc = _cat_rows(cat, "baseline")
+        l_ok, _  = _cat_rows(cat, "layer1")
+        delta_pp = round((l_ok - b_ok) / nc * 100)
+        a(f"| {cat} | {nc} | {b_ok}/{nc} ({_pct(b_ok, nc)}) | "
+          f"{l_ok}/{nc} ({_pct(l_ok, nc)}) | {delta_pp:+d}pp |")
+    a("")
+    a("---")
+    a("")
+
+    # ── Per-question table ──
+    a("## Per-question results")
+    a("")
+    if use_judge:
+        a("Exec: **OK** = ran + returned rows · **exec** = ran + 0 rows · **FAIL** = SQL error  ")
+        a("Semantic: **cor** = correct · **par** = partial · **inc** = incorrect")
+    a("")
+
+    # Build header
+    hdr  = "| ID | Category | Question"
+    sep  = "|---|---|---"
+    for c in cnames:
+        hdr += f" | {c} exec | {c} semantic"
+        sep += " |---|---"
+    hdr += " |"
+    sep += " |"
+    a(hdr)
+    a(sep)
+
+    emoji_exec = {"rows": "✅", "empty": "⬜", "error": "❌"}
+    emoji_sem  = {"correct": "✅", "partial": "🟡", "incorrect": "❌", "error": "⚠️"}
+
+    for r in results:
+        intent_short = r["intent"][:55] + "…" if len(r["intent"]) > 55 else r["intent"]
+        row = f"| {r['id']} | {r['category']} | {intent_short}"
+        for c in cnames:
+            exec_s = "✅ OK" if r[c]["has_rows"] else ("⬜ exec" if r[c]["exec_ok"] else "❌ FAIL")
+            if use_judge:
+                v     = (r[c]["judge"] or {}).get("verdict", "error")
+                sem_s = {"correct": "✅ cor", "partial": "🟡 par",
+                         "incorrect": "❌ inc", "error": "⚠️ err"}.get(v, v)
+            else:
+                sem_s = "—"
+            row += f" | {exec_s} | {sem_s}"
+        row += " |"
+        a(row)
+
+    a("")
+    a("---")
+    a("")
+
+    # ── Enrichment features covered ──
+    a("## What each category tests")
+    a("")
+    descriptions = {
+        "none":
+            "**Control.** Questions answerable from column names alone. Both conditions "
+            "expected correct. Validates that the benchmark is not giving unfair advantage.",
+        "enum_coded_value":
+            "**ENUM code injection.** Columns store Czech domain codes (`VKLAD`, `POJISTNE`, "
+            "`SIPO`, `PREVOD NA UCET`…) that an LLM cannot infer from English intent. "
+            "Layer 1 injects `ENUM_CATEGORY` values into the context. Baseline generates "
+            "English words as filter values → 0 rows. Layer 1 uses the actual codes → rows returned.",
+        "opaque_column":
+            "**Opaque column disambiguation.** `district` columns `a2`–`a16` have no "
+            "meaningful names. Layer 1 injects `a3` as `ENUM_CATEGORY` with region values "
+            "(`Prague`, `central Bohemia`…) and `a2` as STRING with district name samples. "
+            "Baseline confuses the two columns.",
+        "current_state":
+            "**Process semantics / STATE_VARIABLE.** `trans.balance` is a running total — "
+            "each row is the account balance *after* that event. 'Current balance' requires "
+            "the most recent row per account, not AVG or MAX. Layer 1 annotates `balance` "
+            "as `STATE_VARIABLE` and provides `latest_record_only: partition_by=[account_id]`.",
+        "distributional":
+            "**Statistical extremes.** Layer 1 computes `value_axis` extreme regions from the "
+            "actual data distribution: `trans.amount` large = > 21 200, "
+            "`trans.balance` small = < 9 500. Baseline picks arbitrary round-number thresholds.",
+        "quantitative_misinterpretation":
+            "**Ratio and net-credit queries.** Requires correctly isolating debit "
+            "(`type='VYDAJ'`) vs credit (`type='PRIJEM'`) transactions. Baseline uses "
+            "English words → 0 rows for both populations → formula cannot be computed.",
+        "time_grain":
+            "**Temporal bucketing + ENUM.** Monthly aggregations filtered by transaction type "
+            "(`type='PRIJEM'`). Layer 1 provides `time_grains=['monthly']` and an "
+            "`AGGREGATE_OVER_TIME` operator. Baseline fails on both: wrong ENUM code "
+            "and potentially wrong time bucket.",
+    }
+    for cat in sorted(cats):
+        a(f"### {cat}")
+        a("")
+        a(descriptions.get(cat, ""))
+        a("")
+
+    return "\n".join(lines)
+
+
 # ── Entry point ────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -712,10 +1076,20 @@ def main() -> None:
                    help="LLM-as-judge for semantic correctness (+2 pts per question)")
     p.add_argument("--layer2",  action="store_true",
                    help="Also run LLM-augmented enrichment (Layer 2) as a third condition")
-    p.add_argument("--model",   default=os.environ.get("BLUE_DATA_LLM_MODEL", "claude-opus-4-8"))
-    p.add_argument("--out",     default=None, help="Save detailed JSON results to this path")
+    p.add_argument("--model",        default=os.environ.get("BLUE_DATA_LLM_MODEL", "claude-opus-4-8"),
+                   help="Model for SQL generation (default: claude-opus-4-8)")
+    p.add_argument("--judge-model",  default=None,
+                   help="Separate model for judging semantic correctness. Defaults to claude-sonnet-4-6. "
+                        "Use a stronger model than the SQL generator. Note: claude-opus-4-8 requires extended "
+                        "thinking and will fail here — use claude-sonnet-4-6 or claude-haiku-4-5-20251001.")
+    p.add_argument("--out",          default=None, help="Save detailed JSON results to this path")
+    p.add_argument("--report",       default=None, const="examples/benchmarks/RESULTS.md",
+                   nargs="?",
+                   help="Write markdown report with charts (default path: examples/benchmarks/RESULTS.md)")
     args = p.parse_args()
-    run(use_judge=args.judge, use_layer2=args.layer2, model=args.model, out_path=args.out)
+    judge_model = args.judge_model or "claude-sonnet-4-6"
+    run(use_judge=args.judge, use_layer2=args.layer2, model=args.model,
+        judge_model=judge_model, out_path=args.out, report_path=args.report)
 
 
 if __name__ == "__main__":

@@ -1,137 +1,218 @@
 [
   {
-    "id": "fin_b_001",
-    "intent": "How many credit transactions occurred in 1997?",
-    "category": "coded_value",
-    "target_columns": ["trans.type"],
-    "failure_type": "Baseline guesses type='credit' or type='CREDIT' instead of type='PRIJEM'",
-    "expected_behavior": "Filter trans WHERE type = 'PRIJEM' (Czech for credit/incoming) AND date LIKE '1997%'",
+    "id": "sem_c_001",
+    "intent": "Which accounts have the highest number of transactions?",
+    "category": "none",
+    "enrichment_features": [],
+    "expected_behavior": "Count transactions per account and return top accounts by transaction count. Correct query: SELECT account_id, COUNT(*) AS tx_count FROM trans GROUP BY account_id ORDER BY tx_count DESC. Control question — answerable from column names alone, both baseline and enriched should handle this correctly.",
+    "target_columns": ["trans.account_id"],
     "difficulty": "easy"
   },
   {
-    "id": "fin_b_002",
-    "intent": "Find all loan payment transactions",
-    "category": "coded_value",
-    "target_columns": ["trans.k_symbol"],
-    "failure_type": "Baseline joins to loan table or guesses k_symbol values",
-    "expected_behavior": "Filter trans WHERE k_symbol = 'UVER' (Czech abbreviation for loan/credit payment)",
+    "id": "sem_c_002",
+    "intent": "Which loans are the most expensive?",
+    "category": "none",
+    "enrichment_features": [],
+    "expected_behavior": "Rank loans by loan.amount and return the highest values. Correct query: SELECT loan_id, account_id, amount FROM loan ORDER BY amount DESC LIMIT 5. Control question — both baseline and enriched should handle this correctly.",
+    "target_columns": ["loan.amount", "loan.loan_id"],
     "difficulty": "easy"
   },
   {
-    "id": "fin_b_003",
-    "intent": "Which clients have finished loans that were repaid successfully?",
-    "category": "coded_value",
-    "target_columns": ["loan.status"],
-    "failure_type": "Baseline uses status='finished' or status='paid' or omits status filter entirely",
-    "expected_behavior": "Filter loan WHERE status = 'C' (finished and OK, no debt)",
+    "id": "sem_c_003",
+    "intent": "How many clients are registered in each district?",
+    "category": "none",
+    "enrichment_features": [],
+    "expected_behavior": "Count clients per district. Correct query: SELECT district_id, COUNT(*) AS client_count FROM client GROUP BY district_id ORDER BY client_count DESC. No enrichment needed — straightforward count with known column names.",
+    "target_columns": ["client.district_id", "client.client_id"],
     "difficulty": "easy"
   },
   {
-    "id": "fin_b_004",
-    "intent": "What is the total amount of cash deposits made by each account?",
-    "category": "coded_value",
+    "id": "sem_c_004",
+    "intent": "What is the average loan amount for each loan status?",
+    "category": "none",
+    "enrichment_features": [],
+    "expected_behavior": "Group loans by status and compute average amount. Correct query: SELECT status, AVG(amount) AS avg_amount FROM loan GROUP BY status ORDER BY avg_amount DESC. Control question — no coded-value knowledge required to produce a useful result.",
+    "target_columns": ["loan.status", "loan.amount"],
+    "difficulty": "easy"
+  },
+  {
+    "id": "sem_e_001",
+    "intent": "How many cash deposit transactions are in the database?",
+    "category": "enum_coded_value",
+    "enrichment_features": ["ENUM_CATEGORY: trans.operation values=[VKLAD, VYBER, PREVOD Z UCTU, PREVOD NA UCET, VYBER KARTOU]"],
+    "expected_behavior": "Count rows in trans where operation is the Czech code for cash deposit: operation='VKLAD'. At baseline (no sample values), Haiku is likely to generate WHERE operation='DEPOSIT' or WHERE operation='CASH' which return 0 rows. Layer 1 injects: operation -- ENUM_CATEGORY | values=[VKLAD, VYBER, PREVOD Z UCTU, PREVOD NA UCET, ...], so Haiku can use the actual code. Correct query: SELECT COUNT(*) FROM trans WHERE operation='VKLAD'. A query using English words for operation is incorrect. A query counting all transactions without filtering on operation is also incorrect.",
     "target_columns": ["trans.operation"],
-    "failure_type": "Baseline sums all transactions or filters on wrong operation code",
-    "expected_behavior": "Filter trans WHERE operation = 'VKLAD' (cash credit/deposit) and group by account_id",
     "difficulty": "medium"
   },
   {
-    "id": "fin_b_005",
-    "intent": "Find accounts that have loans currently running with no issues",
-    "category": "coded_value",
-    "target_columns": ["loan.status"],
-    "failure_type": "Baseline uses status='running' or status='active' or status='good'",
-    "expected_behavior": "Filter loan WHERE status = 'A' (contract finished, no problems — 'running, OK')",
-    "difficulty": "easy"
-  },
-  {
-    "id": "fin_b_006",
-    "intent": "What is the average salary in Prague districts?",
-    "category": "opaque_column",
-    "target_columns": ["district.a2", "district.a11"],
-    "failure_type": "Baseline cannot identify which column is district name or which is salary",
-    "expected_behavior": "Filter district WHERE a2 = 'Prague' or similar, aggregate AVG(a11) where a11 is average salary",
+    "id": "sem_e_002",
+    "intent": "Which accounts made outgoing wire transfers to external bank accounts in 1998?",
+    "category": "enum_coded_value",
+    "enrichment_features": ["ENUM_CATEGORY: trans.operation values=[..., PREVOD NA UCET, ...]"],
+    "expected_behavior": "Filter trans where operation is the Czech code for outgoing remittance: operation='PREVOD NA UCET', and year is 1998. Layer 1 provides: operation -- values=[VKLAD, VYBER, PREVOD Z UCTU, PREVOD NA UCET, ...]. Baseline will use 'TRANSFER', 'WIRE', or 'outgoing' — returning 0 rows. Correct query: SELECT DISTINCT account_id FROM trans WHERE operation='PREVOD NA UCET' AND strftime('%Y', date)='1998'. Any English word in the operation filter is incorrect.",
+    "target_columns": ["trans.operation", "trans.account_id", "trans.date"],
     "difficulty": "medium"
   },
   {
-    "id": "fin_b_007",
-    "intent": "Which regions have the highest unemployment rate in 1996?",
-    "category": "opaque_column",
-    "target_columns": ["district.a3", "district.a13"],
-    "failure_type": "Baseline cannot identify which column is region name or 1996 unemployment rate",
-    "expected_behavior": "Group by a3 (region name), rank by a13 (unemployment rate 1996), return top results",
-    "difficulty": "medium"
-  },
-  {
-    "id": "fin_b_008",
-    "intent": "Find districts with more than 10 cities",
-    "category": "opaque_column",
-    "target_columns": ["district.a9"],
-    "failure_type": "Baseline counts a different column or applies filter to wrong numeric field",
-    "expected_behavior": "Filter district WHERE a9 > 10 where a9 is number of cities",
-    "difficulty": "easy"
-  },
-  {
-    "id": "fin_b_009",
-    "intent": "What is the average salary in each region?",
-    "category": "opaque_column",
-    "target_columns": ["district.a3", "district.a11"],
-    "failure_type": "Baseline cannot identify region column or salary column",
-    "expected_behavior": "GROUP BY a3 (region), AVG(a11) (average salary in CZK)",
-    "difficulty": "easy"
-  },
-  {
-    "id": "fin_b_010",
-    "intent": "Find districts where the unemployment rate increased from 1995 to 1996",
-    "category": "opaque_column",
-    "target_columns": ["district.a12", "district.a13"],
-    "failure_type": "Baseline cannot identify the two unemployment columns or their years",
-    "expected_behavior": "Filter district WHERE a13 > a12 where a12=unemployment_1995 and a13=unemployment_1996",
-    "difficulty": "medium"
-  },
-  {
-    "id": "fin_b_011",
-    "intent": "Show the monthly transaction volume trend for account 1 in 1998",
-    "category": "process_semantics",
-    "target_columns": ["trans.date", "trans.account_id"],
-    "failure_type": "Baseline aggregates without temporal grouping or misidentifies the time column",
-    "expected_behavior": "GROUP BY strftime month of trans.date WHERE account_id=1 AND date LIKE '1998%', COUNT or SUM amount",
-    "difficulty": "medium"
-  },
-  {
-    "id": "fin_b_012",
-    "intent": "For each account, show the balance trend across their last 5 transactions",
-    "category": "process_semantics",
-    "target_columns": ["trans.balance", "trans.date", "trans.account_id"],
-    "failure_type": "Baseline ignores temporal ordering or doesn't use balance as a running state",
-    "expected_behavior": "Use ROW_NUMBER or LIMIT ordered by date DESC per account_id to get last 5 rows, return balance",
-    "difficulty": "hard"
-  },
-  {
-    "id": "fin_b_013",
-    "intent": "Find clients who have made insurance payments",
-    "category": "coded_value",
+    "id": "sem_e_003",
+    "intent": "Find all transactions that represent insurance premium payments",
+    "category": "enum_coded_value",
+    "enrichment_features": ["k_symbol samples: [SLUZBY, DUCHOD, SIPO, POJISTNE, UROK]"],
+    "expected_behavior": "Filter trans where k_symbol is the Czech code for insurance: k_symbol='POJISTNE'. Layer 1 provides: k_symbol -- samples=['SLUZBY', 'DUCHOD', 'SIPO', 'POJISTNE', 'UROK']. Baseline will use k_symbol='INSURANCE' or k_symbol LIKE '%insur%' — returning 0 rows. Correct query: SELECT * FROM trans WHERE k_symbol='POJISTNE'. Any English text in the k_symbol filter is incorrect.",
     "target_columns": ["trans.k_symbol"],
-    "failure_type": "Baseline joins on a non-existent insurance table or guesses k_symbol value",
-    "expected_behavior": "Filter trans WHERE k_symbol = 'POJISTNE' (insurance payment code), join to client via account",
     "difficulty": "medium"
   },
   {
-    "id": "fin_b_014",
-    "intent": "How many accounts have active loans that are in financial difficulty?",
-    "category": "coded_value",
-    "target_columns": ["loan.status"],
-    "failure_type": "Baseline uses status='difficulty' or status='bad' or selects all running loans",
-    "expected_behavior": "Filter loan WHERE status = 'B' (running contract, client in debt)",
+    "id": "sem_e_004",
+    "intent": "Find all transactions that represent pension or retirement income",
+    "category": "enum_coded_value",
+    "enrichment_features": ["k_symbol samples: [SLUZBY, DUCHOD, SIPO, POJISTNE, UROK]"],
+    "expected_behavior": "Filter trans where k_symbol is the Czech code for pension: k_symbol='DUCHOD'. Layer 1 provides: k_symbol -- samples=['SLUZBY', 'DUCHOD', 'SIPO', 'POJISTNE', 'UROK']. Baseline will use k_symbol='PENSION' or k_symbol='RETIREMENT' — returning 0 rows. Correct query: SELECT account_id, amount, date FROM trans WHERE k_symbol='DUCHOD'. Any English text in k_symbol is incorrect.",
+    "target_columns": ["trans.k_symbol", "trans.account_id"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_e_005",
+    "intent": "Find all transactions that are household utility bill payments",
+    "category": "enum_coded_value",
+    "enrichment_features": ["k_symbol samples: [SLUZBY, DUCHOD, SIPO, POJISTNE, UROK]"],
+    "expected_behavior": "Filter trans where k_symbol is the Czech code for household bills: k_symbol='SIPO'. SIPO is a Czech direct-debit system for utilities and rent — no English cognate exists. Layer 1 provides: k_symbol -- samples=['SLUZBY', 'DUCHOD', 'SIPO', 'POJISTNE', 'UROK']. Baseline will use k_symbol='UTILITY', 'BILLS', or 'HOUSEHOLD' — returning 0 rows. Correct query: SELECT * FROM trans WHERE k_symbol='SIPO'. Any English text in k_symbol is incorrect.",
+    "target_columns": ["trans.k_symbol"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_e_006",
+    "intent": "Count the total number of interest credit transactions",
+    "category": "enum_coded_value",
+    "enrichment_features": ["k_symbol samples: [SLUZBY, DUCHOD, SIPO, POJISTNE, UROK]"],
+    "expected_behavior": "Count trans rows where k_symbol is the Czech code for interest credit: k_symbol='UROK'. Layer 1 provides: k_symbol -- samples=['SLUZBY', 'DUCHOD', 'SIPO', 'POJISTNE', 'UROK']. Baseline will use k_symbol='INTEREST' or k_symbol='CREDIT' — returning 0 rows. Correct query: SELECT COUNT(*) FROM trans WHERE k_symbol='UROK'. A query that returns all transactions without filtering on k_symbol='UROK' is incorrect.",
+    "target_columns": ["trans.k_symbol"],
     "difficulty": "easy"
   },
   {
-    "id": "fin_b_015",
-    "intent": "What is the total outgoing transfer amount per account?",
-    "category": "coded_value",
-    "target_columns": ["trans.type", "trans.operation"],
-    "failure_type": "Baseline confuses type and operation or picks wrong code for outgoing transfers",
-    "expected_behavior": "Filter WHERE type='VYDAJ' (debit/outgoing) AND operation='PREVOD_NA_UCET' (remittance to another bank), SUM amount per account_id",
+    "id": "sem_o_001",
+    "intent": "Find all districts located in the Prague region",
+    "category": "opaque_column",
+    "enrichment_features": ["ENUM_CATEGORY: district.a3 values=[Prague, central Bohemia, south Bohemia, ...]"],
+    "expected_behavior": "Filter district where column a3 (region) equals 'Prague'. Layer 1 marks a3 as ENUM_CATEGORY with values=[Prague, central Bohemia, ...] — providing both the correct column (a3, not a2) and the exact string value. At baseline, Haiku cannot distinguish a2 (district names like 'Hl.m. Praha') from a3 (region names like 'Prague'). Correct query: SELECT a2, district_id FROM district WHERE a3='Prague'. Using a2 instead of a3 for the region filter is incorrect. Not filtering at all is also incorrect.",
+    "target_columns": ["district.a3", "district.a2"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_o_002",
+    "intent": "What region does the district 'Benesov' belong to?",
+    "category": "opaque_column",
+    "enrichment_features": ["STRING: district.a2 samples=['Hl.m. Praha', 'Benesov', 'Beroun', ...]", "ENUM_CATEGORY: district.a3 values=[Prague, central Bohemia, ...]"],
+    "expected_behavior": "Look up the region (column a3) for the district whose name (column a2) is 'Benesov'. Layer 1 provides: a2 -- samples=['Hl.m. Praha', 'Benesov', 'Beroun', ...] and a3 -- ENUM_CATEGORY | values=[Prague, central Bohemia, ...]. The baseline cannot know that a2 holds district names and a3 holds region names. Correct query: SELECT a3 FROM district WHERE a2='Benesov'. The answer should be 'central Bohemia'. Confusing a2 and a3 roles, or returning district_id as the region, is incorrect.",
+    "target_columns": ["district.a2", "district.a3"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_o_003",
+    "intent": "How many districts are there in each region?",
+    "category": "opaque_column",
+    "enrichment_features": ["ENUM_CATEGORY: district.a3 values=[Prague, central Bohemia, south Bohemia, ...]"],
+    "expected_behavior": "Group district rows by the region column (a3) and count. Layer 1 marks a3 as ENUM_CATEGORY with values=[Prague, central Bohemia, south Bohemia, ...]. At baseline, Haiku does not know that a3 is the region column rather than a2. It may group by a2 (individual district names — 15 groups) instead of a3 (broad regions — 3 groups). Correct query: SELECT a3 AS region, COUNT(*) AS num_districts FROM district GROUP BY a3 ORDER BY num_districts DESC. Expected result: central Bohemia=12, south Bohemia=2, Prague=1. Grouping by a2 instead of a3 returns 15 single-row groups (wrong level of granularity).",
+    "target_columns": ["district.a3"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_s_002",
+    "intent": "How many accounts currently have a negative balance?",
+    "category": "current_state",
+    "enrichment_features": ["STATE_VARIABLE: trans.balance", "latest_record_only: partition_by=[account_id], order_by=date"],
+    "expected_behavior": "Count accounts whose most recent balance is below zero. This requires finding the latest balance per account (most recent row by date per account_id), then filtering where that balance < 0. Layer 1 annotates: balance -- process_role=STATE_VARIABLE and provides: latest_record_only: {partition_by: ['account_id'], order_by: 'date'}. Baseline will likely do COUNT(*) WHERE balance < 0 (counting rows, not accounts) or COUNT(DISTINCT account_id) WHERE balance < 0 (counting any negative-balance transaction, not the current state). Correct approach: SELECT COUNT(*) FROM (SELECT account_id, balance FROM trans WHERE date = (SELECT MAX(date) FROM trans t2 WHERE t2.account_id=trans.account_id)) WHERE balance < 0. Returning a row count instead of an account count is incorrect.",
+    "target_columns": ["trans.balance", "trans.account_id", "trans.date"],
     "difficulty": "hard"
+  },
+  {
+    "id": "sem_s_003",
+    "intent": "Which accounts recovered from a negative balance?",
+    "category": "current_state",
+    "enrichment_features": ["STATE_VARIABLE: trans.balance", "EVENT: trans event_time=date, entity_keys=[account_id]", "CHANGE_DETECTION operator"],
+    "expected_behavior": "Recovery requires a temporal sequence: balance below zero in an earlier transaction, then positive in a later one. Layer 1 marks trans as EVENT with event_time=date, balance as STATE_VARIABLE, and provides a CHANGE_DETECTION operator. Simply finding accounts with both negative and positive balance rows is insufficient — temporal order matters. Correct approach: for each account, verify MIN(date WHERE balance < 0) < MAX(date WHERE balance >= 0). Or use window functions to detect the negative-to-positive state transition ordered by date. Returning accounts that have any negative AND any positive balance row (without checking order) is partial.",
+    "target_columns": ["trans.balance", "trans.date", "trans.account_id"],
+    "difficulty": "hard"
+  },
+  {
+    "id": "sem_s_004",
+    "intent": "Show the monthly total transaction amount for all accounts in 1996",
+    "category": "current_state",
+    "enrichment_features": ["EVENT_TIME: trans.date", "time_grains=['weekly', 'monthly']", "AGGREGATE_OVER_TIME operator"],
+    "expected_behavior": "Aggregate trans.amount by calendar month for the year 1996. Layer 1 provides: date -- time_grains=['monthly'] and an AGGREGATE_OVER_TIME operator with event_time=date. Without enrichment, Haiku may return a single total, group by year, or group by week. Correct query: SELECT strftime('%Y-%m', date) AS month, SUM(amount) AS total FROM trans WHERE strftime('%Y', date)='1996' GROUP BY strftime('%Y-%m', date) ORDER BY month. Returning a flat total without monthly grouping is incorrect. Grouping by year or week instead of month is partial.",
+    "target_columns": ["trans.amount", "trans.date"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_d_001",
+    "intent": "Find transactions with exceptionally large amounts",
+    "category": "distributional",
+    "enrichment_features": ["value_axis: trans.amount CONTINUOUS extremes={'small': '<1320', 'large': '>21200'}"],
+    "expected_behavior": "Find transactions whose amount exceeds the statistically derived 'large' extreme cutoff. Layer 1 provides: amount -- axis=CONTINUOUS extremes={'small': '< 1320.0', 'large': '> 21200.0'}. This cutoff is computed from the data distribution — 'large' means in the upper extreme region. At baseline, Haiku picks an arbitrary round threshold (e.g., > 10000 or > 50000) with no statistical basis. With Layer 1, the model can reference the exact extreme cutoff of 21200. Correct query: SELECT trans_id, account_id, amount, date FROM trans WHERE amount > 21200 ORDER BY amount DESC. Using a different arbitrary threshold is partial. Not filtering by amount at all is incorrect.",
+    "target_columns": ["trans.amount"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_d_002",
+    "intent": "Find all accounts that have ever had a balance in the low extreme range",
+    "category": "distributional",
+    "enrichment_features": ["value_axis: trans.balance CONTINUOUS extremes={'small': '<9500', 'large': '>32096'}"],
+    "expected_behavior": "Find distinct accounts where any transaction recorded a balance below the statistically derived 'small' cutoff of 9500. Layer 1 provides: balance -- axis=CONTINUOUS extremes={'small': '< 9500.0', 'large': '> 32096.0'}. This cutoff is computed from the actual data distribution. At baseline, Haiku picks an arbitrary round threshold (e.g., balance < 0, balance < 1000, or balance < 5000) with no statistical basis. With Layer 1, the model can reference the exact extreme cutoff of 9500. Correct query: SELECT DISTINCT account_id FROM trans WHERE balance < 9500 ORDER BY account_id. Using a different arbitrary low threshold is partial. Not filtering by balance at all is incorrect.",
+    "target_columns": ["trans.balance", "trans.account_id"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_d_003",
+    "intent": "Which accounts currently have a critically low balance?",
+    "category": "distributional",
+    "enrichment_features": ["STATE_VARIABLE: trans.balance", "value_axis: trans.balance extremes={'small': '<9500', 'large': '>32096'}", "latest_record_only: partition_by=[account_id]"],
+    "expected_behavior": "Find accounts whose most recent balance is below the statistically derived 'small' cutoff (9500). This combines two Layer 1 signals: (1) balance -- process_role=STATE_VARIABLE with latest_record_only: {partition_by: ['account_id']} — requiring the latest-row-per-account pattern; (2) balance -- axis=CONTINUOUS extremes={'small': '< 9500.0'} — defining 'critically low' as below 9500. At baseline: Haiku uses AVG(balance) or a row-level filter without the latest-record pattern, AND picks an arbitrary low threshold. Correct query: SELECT account_id, balance FROM (SELECT account_id, balance FROM trans WHERE date=(SELECT MAX(date) FROM trans t2 WHERE t2.account_id=trans.account_id) GROUP BY account_id) WHERE balance < 9500. Using a non-latest-record pattern is incorrect.",
+    "target_columns": ["trans.balance", "trans.account_id", "trans.date"],
+    "difficulty": "hard"
+  },
+  {
+    "id": "sem_q_001",
+    "intent": "What is the total insurance payment amount charged to each account?",
+    "category": "quantitative_misinterpretation",
+    "enrichment_features": ["k_symbol samples: [SLUZBY, DUCHOD, SIPO, POJISTNE, UROK]", "safe_aggregation: trans.amount can_sum=true"],
+    "expected_behavior": "Filter trans where k_symbol='POJISTNE' (insurance) and aggregate SUM(amount) per account. Layer 1 provides: (1) k_symbol -- samples=['SLUZBY', 'DUCHOD', 'SIPO', 'POJISTNE', 'UROK'] — the code 'POJISTNE' must be used; (2) amount -- safe_aggregation: can_sum — confirms SUM is the correct aggregation. At baseline, Haiku uses k_symbol='INSURANCE' → 0 rows, making any per-account total impossible. With Layer 1, Haiku uses the correct code and correct aggregation. Correct query: SELECT account_id, SUM(amount) AS total_insurance FROM trans WHERE k_symbol='POJISTNE' GROUP BY account_id ORDER BY total_insurance DESC. Any query using an English word in the k_symbol filter is incorrect.",
+    "target_columns": ["trans.k_symbol", "trans.amount", "trans.account_id"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_q_002",
+    "intent": "Which accounts have a higher proportion of outgoing than incoming transactions?",
+    "category": "quantitative_misinterpretation",
+    "enrichment_features": ["ENUM_CATEGORY: trans.type values=[PRIJEM, VYDAJ]"],
+    "expected_behavior": "For each account, compute COUNT WHERE type='VYDAJ' (outgoing/debit) vs COUNT WHERE type='PRIJEM' (incoming/credit), then return accounts where outgoing count exceeds incoming count. Layer 1 provides: type -- ENUM_CATEGORY | values=[PRIJEM, VYDAJ]. At baseline, Haiku uses English words ('debit', 'credit', 'outgoing', 'incoming') in the type filter — returning 0 rows and making ratio computation impossible. With Layer 1: SELECT account_id, SUM(CASE WHEN type='VYDAJ' THEN 1 ELSE 0 END) AS out_cnt, SUM(CASE WHEN type='PRIJEM' THEN 1 ELSE 0 END) AS in_cnt FROM trans GROUP BY account_id HAVING out_cnt > in_cnt. Any English type values are incorrect.",
+    "target_columns": ["trans.type", "trans.account_id"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_q_003",
+    "intent": "Which account has the highest net credit balance (total deposits minus total withdrawals)?",
+    "category": "quantitative_misinterpretation",
+    "enrichment_features": ["ENUM_CATEGORY: trans.type values=[PRIJEM, VYDAJ]", "safe_aggregation: trans.amount can_sum=true"],
+    "expected_behavior": "Compute net credit per account as SUM(amount WHERE type='PRIJEM') - SUM(amount WHERE type='VYDAJ'), then return the account with the highest net. Layer 1 provides: type -- ENUM_CATEGORY | values=[PRIJEM, VYDAJ] and amount -- can_sum=true. At baseline, Haiku uses wrong type codes ('credit'/'debit' or 'incoming'/'outgoing') → 0 rows for both halves → cannot compute the net. With Layer 1, correct codes enable: SELECT account_id, SUM(CASE WHEN type='PRIJEM' THEN amount ELSE -amount END) AS net_credit FROM trans GROUP BY account_id ORDER BY net_credit DESC LIMIT 1. Any English type codes produce an incorrect result.",
+    "target_columns": ["trans.type", "trans.amount", "trans.account_id"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_t_001",
+    "intent": "Show the total deposit amount per month in 1996",
+    "category": "time_grain",
+    "enrichment_features": ["ENUM_CATEGORY: trans.type values=[PRIJEM, VYDAJ]", "time_grains=['weekly', 'monthly'] for trans.date", "AGGREGATE_OVER_TIME operator"],
+    "expected_behavior": "Filter for deposit transactions (type='PRIJEM') in 1996 and aggregate SUM(amount) per calendar month. Layer 1 provides two enrichment signals: (1) type -- ENUM_CATEGORY | values=[PRIJEM, VYDAJ] — baseline uses 'CREDIT' or 'DEPOSIT' (wrong code, 0 rows for that filter); (2) date -- time_grains=['monthly'] and AGGREGATE_OVER_TIME operator — explicitly suggesting monthly bucketing. Correct query: SELECT strftime('%Y-%m', date) AS month, SUM(amount) AS total_deposits FROM trans WHERE type='PRIJEM' AND strftime('%Y', date)='1996' GROUP BY month ORDER BY month. Using wrong type code is incorrect. Grouping by year or day instead of month is partial.",
+    "target_columns": ["trans.type", "trans.amount", "trans.date"],
+    "difficulty": "medium"
+  },
+  {
+    "id": "sem_t_002",
+    "intent": "Count the number of debit transactions per month in 1995",
+    "category": "time_grain",
+    "enrichment_features": ["ENUM_CATEGORY: trans.type values=[PRIJEM, VYDAJ]", "time_grains=['weekly', 'monthly'] for trans.date"],
+    "expected_behavior": "Count debit transactions (type='VYDAJ') per calendar month in 1995. Layer 1 provides: (1) type -- ENUM_CATEGORY | values=[PRIJEM, VYDAJ] — baseline uses 'DEBIT' or 'WITHDRAWAL' (0 rows); (2) date -- time_grains=['monthly'] — explicitly suggesting monthly grouping. Correct query: SELECT strftime('%Y-%m', date) AS month, COUNT(*) AS debit_count FROM trans WHERE type='VYDAJ' AND strftime('%Y', date)='1995' GROUP BY month ORDER BY month. Using wrong type code is incorrect. Returning a flat total count without monthly grouping is partial.",
+    "target_columns": ["trans.type", "trans.date"],
+    "difficulty": "medium"
   }
 ]

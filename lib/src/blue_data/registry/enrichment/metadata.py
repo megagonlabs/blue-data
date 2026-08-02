@@ -1237,7 +1237,10 @@ Return JSON ONLY:
             return None
 
         entity_keys, event_time_attr = [], None
+        fk_id_candidates: list[str] = []  # _id cols that look like foreign keys
+        pk_id_candidates: list[str] = []  # _id col that matches the table's own PK name
         _time_keywords = {"date", "_at", "time", "timestamp", "when", "created", "updated"}
+        entity_lower = entity_name.lower()
         for attr in attributes:
             name = attr["name"]
             name_lower = name.lower()
@@ -1245,8 +1248,13 @@ Return JSON ONLY:
             role = attr.get("properties", {}).get("semantic_role", {})
             if vsi.get("is_identifier"):
                 entity_keys.append(name)
-            if not entity_keys and name_lower.endswith("_id"):
-                entity_keys.append(name)
+            elif name_lower.endswith("_id"):
+                # Prefer FK-like _id columns (account_id, client_id) over the
+                # table's own PK (trans_id, loan_id) as the process entity key.
+                if name_lower == f"{entity_lower}_id":
+                    pk_id_candidates.append(name)
+                else:
+                    fk_id_candidates.append(name)
             if not event_time_attr:
                 # VSI-based (set by base-layer SemanticTypeInferencer)
                 if role.get("primary_role") == "EVENT_TIME" or vsi.get("semantic_type") in {"DATE", "DATETIME", "TIME"}:
@@ -1254,6 +1262,9 @@ Return JSON ONLY:
                 # name-based fallback when VSI not yet available
                 elif any(kw in name_lower for kw in _time_keywords):
                     event_time_attr = name
+
+        if not entity_keys:
+            entity_keys = fk_id_candidates or pk_id_candidates
 
         if not event_time_attr:
             return None

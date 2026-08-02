@@ -215,12 +215,46 @@ python3 examples/backends/redis_demo.py
 
 ### NL2SQL Enrichment Benchmark (`enrichment_benchmark.py`)
 
-Runs 15 NL2SQL questions through baseline / Layer 1 / Layer 2 and measures
-SQL correctness on the Czech banking dataset.
+Measures semantic correctness improvement from blue-data enrichment on the Czech
+banking dataset. **24 questions across 7 categories**, each targeting a distinct
+Layer 1 enrichment feature. Observed result: **17% → 71% semantic correctness**
+at zero LLM enrichment cost.
+
+- **none** (4): control questions answerable from column names alone — both conditions expected correct.
+- **enum_coded_value** (6): Czech domain codes (`VKLAD`, `POJISTNE`, `SIPO`, `PREVOD NA UCET`…)
+  that Haiku cannot guess from English. Layer 1 injects ENUM_CATEGORY values; baseline
+  generates English words and gets 0 rows.
+- **opaque_column** (3): `district` columns `a2`–`a16` have no meaningful names.
+  Layer 1 injects `a3` as ENUM_CATEGORY with actual region names (`Prague`, `central Bohemia`…)
+  and `a2` as district name samples — baseline confuses the two columns.
+- **current_state** (3): `trans.balance` is a running total per event; "current balance"
+  is the latest row per account, not `AVG`. Layer 1 provides `latest_record_only:
+  partition_by=[account_id]` and marks `balance` as `STATE_VARIABLE`.
+- **distributional** (3): Layer 1 computes `value_axis` statistical extremes
+  (`amount > 21200` = large outlier, `balance < 9500` = critically low). Baseline
+  picks arbitrary round thresholds; Layer 1 uses the actual data-derived cutoffs.
+- **quantitative_misinterpretation** (3): ratio and net-credit queries requiring correct
+  `PRIJEM`/`VYDAJ` ENUM codes to isolate the right population — baseline gets 0 rows.
+- **time_grain** (2): ENUM-filtered monthly aggregations (`type='PRIJEM'`) using Layer 1's
+  `time_grains=['monthly']` and `AGGREGATE_OVER_TIME` operator hint. Baseline fails
+  on both the ENUM code and the time bucket simultaneously.
+
+See **[RESULTS.md](benchmarks/RESULTS.md)** for the latest run: charts, per-question verdicts, and category breakdowns.
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
-python3 examples/benchmarks/enrichment_benchmark.py
+
+# baseline vs layer1, with LLM judge (recommended)
+python3 examples/benchmarks/enrichment_benchmark.py --judge --model claude-haiku-4-5-20251001
+
+# write a markdown report with Mermaid charts to benchmarks/RESULTS.md
+python3 examples/benchmarks/enrichment_benchmark.py --judge --model claude-haiku-4-5-20251001 --report
+
+# also run layer2 enrichment
+python3 examples/benchmarks/enrichment_benchmark.py --judge --layer2 --model claude-haiku-4-5-20251001
+
+# save raw JSON results
+python3 examples/benchmarks/enrichment_benchmark.py --judge --out results/run.json --model claude-haiku-4-5-20251001
 ```
 
 ---
