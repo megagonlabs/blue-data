@@ -12,11 +12,11 @@
 
 | Metric | baseline | enriched | Δ |
 |--------|----------|--------|---|
-| SQL runs without error | 21/24 (88%) | 23/24 (96%) | +2 |
-| SQL returns non-empty result | 14/24 (58%) | 22/24 (92%) | **+8** |
-| Semantically **correct** | 4/24 (17%) | 17/24 (71%) | **+13** |
-| Semantically partial | 5/24 (21%) | 3/24 (12%) | -2 |
-| Semantically incorrect | 15/24 (63%) | 4/24 (17%) | -11 |
+| SQL runs without error | 21/24 (88%) | 23/24 (96%) | +8pp |
+| SQL returns non-empty result | 14/24 (58%) | 22/24 (92%) | **+33pp** |
+| Semantically **correct** | 4/24 (17%) | 17/24 (71%) | **+54pp** |
+| Semantically partial | 5/24 (21%) | 3/24 (12%) | -8pp |
+| Semantically incorrect | 15/24 (63%) | 4/24 (17%) | -46pp |
 
 ```
 Semantic correctness (% of 24 questions judged fully correct)

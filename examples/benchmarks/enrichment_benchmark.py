@@ -856,16 +856,16 @@ def generate_report(results: list, cnames: list[str], use_judge: bool,
     a("## Overall results")
     a("")
     exec_ok_b = sum(1 for r in results if r["baseline"]["exec_ok"])
-    exec_ok_l = sum(1 for r in results if r["layer1"]["exec_ok"])
+    exec_ok_l = sum(1 for r in results if r["enriched"]["exec_ok"])
     rows_b    = sum(1 for r in results if r["baseline"]["has_rows"])
-    rows_l    = sum(1 for r in results if r["layer1"]["has_rows"])
+    rows_l    = sum(1 for r in results if r["enriched"]["has_rows"])
 
-    a("| Metric | baseline | layer1 | Δ |")
+    a("| Metric | baseline | enriched | Δ |")
     a("|--------|----------|--------|---|")
     a(f"| SQL runs without error | {exec_ok_b}/{n} ({_pct(exec_ok_b,n)}) | "
-      f"{exec_ok_l}/{n} ({_pct(exec_ok_l,n)}) | {exec_ok_l-exec_ok_b:+d} |")
+      f"{exec_ok_l}/{n} ({_pct(exec_ok_l,n)}) | {round((exec_ok_l-exec_ok_b)/n*100):+d}pp |")
     a(f"| SQL returns non-empty result | {rows_b}/{n} ({_pct(rows_b,n)}) | "
-      f"{rows_l}/{n} ({_pct(rows_l,n)}) | {rows_l-rows_b:+d} |")
+      f"{rows_l}/{n} ({_pct(rows_l,n)}) | **{round((rows_l-rows_b)/n*100):+d}pp** |")
 
     if use_judge:
         for verdict, label in [
@@ -874,8 +874,8 @@ def generate_report(results: list, cnames: list[str], use_judge: bool,
             ("incorrect", "Semantically incorrect"),
         ]:
             b = _verdict_count("baseline", verdict)
-            l = _verdict_count("layer1",   verdict)
-            a(f"| {label} | {b}/{n} ({_pct(b,n)}) | {l}/{n} ({_pct(l,n)}) | **{l-b:+d}** |")
+            l = _verdict_count("enriched", verdict)
+            a(f"| {label} | {b}/{n} ({_pct(b,n)}) | {l}/{n} ({_pct(l,n)}) | **{round((l-b)/n*100):+d}pp** |")
 
     a("")
 
@@ -901,7 +901,7 @@ def generate_report(results: list, cnames: list[str], use_judge: bool,
 
         # Sort categories: biggest gain first, control last
         def _gain(cat: str) -> float:
-            bl, nl = _cat_correct(cat, "baseline")[0], _cat_correct(cat, "layer1")[0]
+            bl, nl = _cat_correct(cat, "baseline")[0], _cat_correct(cat, "enriched")[0]
             nc     = _cat_correct(cat, "baseline")[1]
             return (bl - nl) / nc if nc else 0   # negative = improvement
 
@@ -920,7 +920,7 @@ def generate_report(results: list, cnames: list[str], use_judge: bool,
         x_labels = [f'"{short.get(c, c[:6])}"' for c in sorted_cats]
         b_vals   = [round(_cat_correct(c, "baseline")[0] / _cat_correct(c, "baseline")[1] * 100)
                     for c in sorted_cats]
-        l_vals   = [round(_cat_correct(c, "layer1")[0] / _cat_correct(c, "layer1")[1] * 100)
+        l_vals   = [round(_cat_correct(c, "enriched")[0] / _cat_correct(c, "enriched")[1] * 100)
                     for c in sorted_cats]
 
         a("```mermaid")
@@ -932,15 +932,15 @@ def generate_report(results: list, cnames: list[str], use_judge: bool,
         a(f"    bar [{', '.join(str(v) for v in l_vals)}]")
         a("```")
         a("")
-        a("*First bar = baseline · Second bar = layer1 — sorted by improvement*")
+        a("*First bar = baseline · Second bar = enriched — sorted by improvement*")
         a("")
 
         # Table
-        a("| Category | n | Baseline | Layer 1 | Δ |")
+        a("| Category | n | Baseline | Enriched | Δ |")
         a("|---|---|---|---|---|")
         for cat in sorted_cats:
             b_ok, nc = _cat_correct(cat, "baseline")
-            l_ok, _  = _cat_correct(cat, "layer1")
+            l_ok, _  = _cat_correct(cat, "enriched")
             delta    = l_ok - b_ok
             delta_pp = round((l_ok - b_ok) / nc * 100)
             flag     = " ★" if delta_pp >= 50 else (" ↑" if delta_pp > 0 else "")
@@ -954,11 +954,11 @@ def generate_report(results: list, cnames: list[str], use_judge: bool,
     a("## SQL execution by category (% returning non-empty result)")
     a("")
 
-    ex_cats = sorted(cats, key=lambda c: _cat_rows(c, "layer1")[0] - _cat_rows(c, "baseline")[0],
+    ex_cats = sorted(cats, key=lambda c: _cat_rows(c, "enriched")[0] - _cat_rows(c, "baseline")[0],
                      reverse=True)
     x_labels2 = [f'"{short.get(c, c[:6])}"' for c in ex_cats]
     b_ex = [round(_cat_rows(c, "baseline")[0] / _cat_rows(c, "baseline")[1] * 100) for c in ex_cats]
-    l_ex = [round(_cat_rows(c, "layer1")[0]   / _cat_rows(c, "layer1")[1]   * 100) for c in ex_cats]
+    l_ex = [round(_cat_rows(c, "enriched")[0]   / _cat_rows(c, "enriched")[1]   * 100) for c in ex_cats]
 
     a("```mermaid")
     a("xychart-beta")
@@ -970,11 +970,11 @@ def generate_report(results: list, cnames: list[str], use_judge: bool,
     a("```")
     a("")
 
-    a("| Category | n | Baseline rows | Layer 1 rows | Δ |")
+    a("| Category | n | Baseline rows | Enriched rows | Δ |")
     a("|---|---|---|---|---|")
     for cat in ex_cats:
         b_ok, nc = _cat_rows(cat, "baseline")
-        l_ok, _  = _cat_rows(cat, "layer1")
+        l_ok, _  = _cat_rows(cat, "enriched")
         delta_pp = round((l_ok - b_ok) / nc * 100)
         a(f"| {cat} | {nc} | {b_ok}/{nc} ({_pct(b_ok, nc)}) | "
           f"{l_ok}/{nc} ({_pct(l_ok, nc)}) | {delta_pp:+d}pp |")
