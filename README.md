@@ -13,6 +13,22 @@ Its core capabilities include:
 
 → **[Full feature list](docs/features.md)** · **[Installation](docs/installation.md)**
 
+## Why blue-data
+
+LLMs querying enterprise data fail in predictable, silent ways. blue-data fixes the root cause — not the prompt.
+
+**Coded value disambiguation**
+
+A Czech banking database stores transaction types as `PRIJEM`, `VYDAJ`, `UVER`. Ask an LLM *"how many credit transactions in 1997?"* and it writes `WHERE type = 'credit'` — returning 0 rows with no error. blue-data Layer 1 auto-detects these ENUM columns and captures the actual coded values from data. The LLM now writes `WHERE type = 'PRIJEM'` and gets the right answer. No annotation, no LLM cost, no schema changes.
+
+**Semantic data discovery**
+
+A column named `freight` doesn't match a search for *"shipping cost"*. A column named `units_in_stock` doesn't match *"current inventory"*. Agents and analysts searching by meaning find nothing. blue-data Layer 2 generates natural-language descriptions for every column — once, cheaply — and stores them in the registry. After enrichment, *"shipping cost"* finds `orders.freight`. *"No longer sold"* finds `products.discontinued`. Zero API calls at search time.
+
+**Process and temporal reasoning**
+
+Event-log tables get treated as static snapshots. *"What is the current account balance?"* produces `AVG(balance)` — averaging all historical records instead of reading the most recent one. *"Monthly trend"* produces a flat `COUNT(*)` with no time grouping. blue-data Layer 1 detects EVENT tables, identifies the event-time column, classifies state variables, and injects process operators into the schema context. The LLM now writes temporally correct queries — with `ORDER BY date`, `GROUP BY month`, and proper window logic. No LLM cost.
+
 ## Installation
 
 ```bash
