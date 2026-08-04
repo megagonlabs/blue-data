@@ -29,13 +29,6 @@ A column named `freight` doesn't match a search for *"shipping cost"*. A column 
 
 Event-log tables get treated as static snapshots. *"What is the current account balance?"* produces `AVG(balance)` — averaging all historical records instead of reading the most recent one. *"Monthly trend"* produces a flat `COUNT(*)` with no time grouping. blue-data Layer 1 detects EVENT tables, identifies the event-time column, classifies state variables, and injects process operators into the schema context. The LLM now writes temporally correct queries — with `ORDER BY date`, `GROUP BY month`, and proper window logic. No LLM cost.
 
-## Installation
-
-```bash
-cd lib && ./scripts/install.sh
-```
-
-Install `lib` first — all platform components depend on it. For full setup instructions (all components, optional extras, Redis Stack requirement, build/publish scripts) see **[docs/installation.md](docs/installation.md)**.
 
 ## Concepts
 
