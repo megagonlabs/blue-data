@@ -1,0 +1,14 @@
+API server started at http://localhost:8001
+Registry synced — sources: ['shop']
+
+Query: Show me all customer orders with their totals
+
+[discover] top hit: orders in shop/shop/public
+[translate] SQL: SELECT customer_id, SUM(total) AS total_order_amount
+FROM orders
+GROUP BY customer_id;
+[execute] 2 rows returned
+
+Results:
+  {'customer_id': 1, 'total_order_amount': 248.9}
+  {'customer_id': 2, 'total_order_amount': 49.5}

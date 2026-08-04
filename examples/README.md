@@ -166,6 +166,23 @@ python3 examples/integration-demos/langgraph_mcp_demo.py
 
 ---
 
+### LangGraph — REST API Integration (`langgraph_api_demo.py`)
+
+3-node LangGraph pipeline that talks to blue-data exclusively over HTTP. No
+blue-data Python imports on the agent side — only `httpx` calls to the running
+REST API. The API server launches automatically as a subprocess.
+
+```bash
+pip install langgraph langchain-core langchain-openai httpx
+pip install -e lib/ -e platform/api/
+export OPENAI_API_KEY=sk-...
+python3 examples/integration-demos/langgraph_api_demo.py
+```
+
+**API key:** OpenAI required | **[Sample output](integration-demos/langgraph_api_demo.output.txt)**
+
+---
+
 ## backends/ — infrastructure and storage backends
 
 Start here when integrating blue-data into a new application.
@@ -274,6 +291,7 @@ python3 examples/benchmarks/enrichment_benchmark.py --judge --out results/run.js
 | `sql_semantic_enrichment_demo.py` | pipeline-demos | none | — | [output](pipeline-demos/sql_semantic_enrichment_demo.output.txt) |
 | `langgraph_direct_demo.py` | integration-demos | OpenAI | — | [output](integration-demos/langgraph_direct_demo.output.txt) |
 | `langgraph_mcp_demo.py` | integration-demos | OpenAI | MCP server | [output](integration-demos/langgraph_mcp_demo.output.txt) |
+| `langgraph_api_demo.py` | integration-demos | OpenAI | — | [output](integration-demos/langgraph_api_demo.output.txt) |
 | `sqlite_example.py` | backends | none | — | — |
 | `sqlite_data_registry_demo.py` | backends | none | — | [output](backends/sqlite_data_registry_demo.output.txt) |
 | `registry_memory_example.py` | backends | none | — | [output](backends/registry_memory_example.output.txt) |
