@@ -309,74 +309,9 @@ class MySource(DataSource):
 
 ## Examples
 
-After installing with `pip install -e .`:
+See **[examples/README.md](examples/README.md)** for the full list of runnable examples — scenario demos, feature demos, pipeline demos, integration demos, and benchmarks.
 
-**Backends**
-
-| File | Description |
-|---|---|
-| `examples/backends/registry_memory_example.py` | Pure in-memory `Registry` and `DataRegistry` — CRUD, filter, search, dumps/loads. No external dependencies. |
-| `examples/backends/sqlite_data_registry_demo.py` | Full pipeline with SQLite — sync, stats, enrich, relations, connect_source, search, MetaData enrichment. No external dependencies. |
-| `examples/backends/redis_demo.py` | Redis Stack + PostgreSQL (falls back to SQLite) — Redis-backed registry and search index, namespace isolation, full hierarchy walk. Requires Redis Stack. |
-
-**Feature demos**
-
-| File | Description |
-|---|---|
-| `examples/feature-demos/enrichment_demo.py` | Enrichment deep-dive — `SemanticTypeInferencer` standalone, Mode A (deterministic), Mode B (LLM-augmented with Anthropic SDK), idempotency and rebuild. |
-
-**Pipeline demos**
-
-| File | Description |
-|---|---|
-| `examples/pipeline-demos/sql_semantic_enrichment_demo.py` | Full pipeline against the Northwind multi-table schema — register, sync, enrich, search the registry, execute SQL. No external dependencies for enrichment. |
-
-**Scenario demos**
-
-| File | Description |
-|---|---|
-| `examples/scenario-demos/coded_value_demo.py` | Coded value disambiguation — auto-detects ENUM columns and captures actual coded values so NL queries find the right rows. |
-| `examples/scenario-demos/description_search_demo.py` | Description-enriched discovery — Layer 2 generates attribute descriptions; registry search finds columns by semantic meaning. |
-| `examples/scenario-demos/process_reasoning_demo.py` | Process reasoning — Layer 1 detects EVENT tables and process operators, grounding SQL generation in temporal semantics. |
-
-**Integration demos**
-
-| File | Description |
-|---|---|
-| `examples/integration-demos/langgraph_direct_demo.py` | LangGraph 3-node pipeline (discover → translate → execute) calling blue-data Python API directly. Requires `langgraph`, `langchain-openai`, and `OPENAI_API_KEY`. |
-| `examples/integration-demos/langgraph_mcp_demo.py` | LangGraph ReAct agent using blue-data's `registry-mcp` server as tools via `langchain-mcp-adapters`. No blue-data imports on the agent side. Requires `registry-mcp` running and `OPENAI_API_KEY`. |
-
-```bash
-# In-memory demo (no deps)
-python3 examples/backends/registry_memory_example.py
-
-# SQLite demo (no deps)
-python3 examples/backends/sqlite_data_registry_demo.py
-
-# Enrichment demo: Mode A runs without deps; Mode B requires ANTHROPIC_API_KEY
-python3 examples/feature-demos/enrichment_demo.py
-
-# Redis + Postgres demo (requires Redis Stack; falls back to SQLite)
-python3 examples/backends/redis_demo.py
-
-# LangGraph direct API demo (requires langgraph, langchain-openai, OPENAI_API_KEY)
-pip install langgraph langchain-core langchain-openai
-python3 examples/integration-demos/langgraph_direct_demo.py
-
-# LangGraph MCP demo (requires langchain-mcp-adapters, registry-mcp running, OPENAI_API_KEY)
-pip install langgraph langchain-mcp-adapters
-blue-data-registry-mcp  # start in a separate terminal
-python3 examples/integration-demos/langgraph_mcp_demo.py
-```
-
-## Demo databases
-
-The `data/` directory contains the **Northwind** sales schema — a 7-table dataset (categories, customers, employees, orders, order\_details, products, suppliers) with FK relations and sample data.
-
-| File | Use |
-|---|---|
-| `data/northwind_sqlite.sql` | Load into SQLite: `sqlite3 northwind.db < data/northwind_sqlite.sql` |
-| `data/northwind_postgres.sql` | Load into Postgres: `psql -U postgres -d northwind -f data/northwind_postgres.sql` |
+See **[data/README.md](data/README.md)** for the demo datasets (Northwind and Czech banking) used by the examples.
 
 ## Configuration
 
