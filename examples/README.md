@@ -50,7 +50,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 python3 examples/scenario-demos/description_search_demo.py --generate
 ```
 
-**Dataset:** Northwind (`data/northwind_sqlite.sql`) | **API key:** not required at runtime
+**Dataset:** Northwind (`data/northwind_sqlite.sql`) | **API key:** not required at runtime | **[Sample output](scenario-demos/description_search_demo.output.txt)**
 
 ---
 
@@ -72,7 +72,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 python3 examples/scenario-demos/process_reasoning_demo.py --live
 ```
 
-**Dataset:** Czech banking (`data/finance_sqlite.sql`) | **API key:** not required (default mode)
+**Dataset:** Czech banking (`data/finance_sqlite.sql`) | **API key:** not required (default mode) | **[Sample output](scenario-demos/process_reasoning_demo.output.txt)**
 
 ---
 
@@ -106,7 +106,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 python3 examples/feature-demos/enrichment_demo.py
 ```
 
-**API key:** optional (Layer 2 skips gracefully when absent)
+**API key:** optional (Layer 2 skips gracefully when absent) | **[Sample output](feature-demos/enrichment_demo.output.txt)**
 
 ---
 
@@ -128,7 +128,7 @@ and executes multi-table SQL queries.
 python3 examples/pipeline-demos/sql_semantic_enrichment_demo.py
 ```
 
-**Dataset:** Northwind (`data/northwind_sqlite.sql`) | **API key:** not required
+**Dataset:** Northwind (`data/northwind_sqlite.sql`) | **API key:** not required | **[Sample output](pipeline-demos/sql_semantic_enrichment_demo.output.txt)**
 
 ---
 
@@ -187,6 +187,8 @@ relations → reconnect → serialize → multi-source → search.
 python3 examples/backends/sqlite_data_registry_demo.py
 ```
 
+**[Sample output](backends/sqlite_data_registry_demo.output.txt)**
+
 ### In-memory Registry API (`registry_memory_example.py`)
 
 Full `Registry` public API with in-memory backends. No database or Redis
@@ -196,6 +198,8 @@ the `rebuild` flag, hybrid search, and keyword-only fallback.
 ```bash
 python3 examples/backends/registry_memory_example.py
 ```
+
+**[Sample output](backends/registry_memory_example.output.txt)**
 
 ### Redis-backed Registry (`redis_demo.py`)
 
@@ -261,17 +265,17 @@ python3 examples/benchmarks/enrichment_benchmark.py --judge --out results/run.js
 
 ## Summary table
 
-| File | Folder | API key | External |
-|------|--------|---------|----------|
-| `coded_value_demo.py` | scenario-demos | Anthropic (SQL gen) | — |
-| `description_search_demo.py` | scenario-demos | none at runtime | — |
-| `process_reasoning_demo.py` | scenario-demos | none (default) | — |
-| `enrichment_demo.py` | feature-demos | Anthropic (optional) | — |
-| `sql_semantic_enrichment_demo.py` | pipeline-demos | none | — |
-| `langgraph_direct_demo.py` | integration-demos | OpenAI | — |
-| `langgraph_mcp_demo.py` | integration-demos | OpenAI | MCP server |
-| `sqlite_example.py` | backends | none | — |
-| `sqlite_data_registry_demo.py` | backends | none | — |
-| `registry_memory_example.py` | backends | none | — |
-| `redis_demo.py` | backends | none | Redis Stack |
-| `enrichment_benchmark.py` | benchmarks | Anthropic | — |
+| File | Folder | API key | External | Output |
+|------|--------|---------|----------|--------|
+| `coded_value_demo.py` | scenario-demos | Anthropic (SQL gen) | — | — |
+| `description_search_demo.py` | scenario-demos | none at runtime | — | [output](scenario-demos/description_search_demo.output.txt) |
+| `process_reasoning_demo.py` | scenario-demos | none (default) | — | [output](scenario-demos/process_reasoning_demo.output.txt) |
+| `enrichment_demo.py` | feature-demos | Anthropic (optional) | — | [output](feature-demos/enrichment_demo.output.txt) |
+| `sql_semantic_enrichment_demo.py` | pipeline-demos | none | — | [output](pipeline-demos/sql_semantic_enrichment_demo.output.txt) |
+| `langgraph_direct_demo.py` | integration-demos | OpenAI | — | — |
+| `langgraph_mcp_demo.py` | integration-demos | OpenAI | MCP server | — |
+| `sqlite_example.py` | backends | none | — | — |
+| `sqlite_data_registry_demo.py` | backends | none | — | [output](backends/sqlite_data_registry_demo.output.txt) |
+| `registry_memory_example.py` | backends | none | — | [output](backends/registry_memory_example.output.txt) |
+| `redis_demo.py` | backends | none | Redis Stack | — |
+| `enrichment_benchmark.py` | benchmarks | Anthropic | — | — |
