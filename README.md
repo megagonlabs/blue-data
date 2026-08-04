@@ -169,101 +169,30 @@ The `platform/` directory contains deployable components built on top of `lib/`.
 | `platform/cli` | Command-line interface | ✅ Done |
 | `platform/json-mcp` | MCP server for raw JSONSource operations (memory + file) | ✅ Done |
 
-### registry-mcp quick start
+### registry-mcp
 
 ```bash
-# Install
-cd platform/registry-mcp
-pip install -e ../../lib
-pip install -e .
-
-# Run (stdio transport — for Claude Desktop / Claude Code)
-blue-data-registry-mcp
-
-# Pre-load sources from a config file
 BLUE_DATA_SOURCES_CONFIG=/path/to/sources.json blue-data-registry-mcp
-
-# Persistent registry backed by Redis
-BLUE_DATA_REGISTRY_STORE=redis BLUE_DATA_REGISTRY_REDIS_URL=redis://localhost:6379/0 \
-    blue-data-registry-mcp
-
-# LLM-augmented enrichment tools
-BLUE_DATA_LLM_PROVIDER=anthropic ANTHROPIC_API_KEY=sk-ant-... \
-    blue-data-registry-mcp
 ```
 
-**Claude Desktop config** (`~/.config/claude-desktop/claude_desktop_config.json`):
+See [`docs/registry-mcp.md`](docs/registry-mcp.md) for Claude Desktop config, tool reference, and all options.
 
-```json
-{
-  "mcpServers": {
-    "blue-data-registry": {
-      "command": "blue-data-registry-mcp",
-      "env": {
-        "BLUE_DATA_SOURCES_CONFIG": "/path/to/sources.json"
-      }
-    }
-  }
-}
-```
-
-Source config file format (`sources.json`):
-
-```json
-{
-  "sources": [
-    {
-      "type": "sqlite",
-      "name": "mydb",
-      "properties": { "connection": { "database_directory": "/data/dbs" } }
-    }
-  ]
-}
-```
-
-See [`docs/registry-mcp.md`](docs/registry-mcp.md) for the full tool reference and all configuration options.
-
-### api quick start
+### api
 
 ```bash
-cd platform/api
-pip install -e ../../lib
-pip install -e .
-
-# dev server (auto-reload)
-uvicorn registry_api.main:app --reload --port 8000
-
-# or via the installed script
-blue-data-api
+blue-data-api  # http://localhost:8000 · interactive docs at /docs
 ```
 
-Interactive docs at `http://localhost:8000/docs`.  
-Pre-load sources with `BLUE_DATA_SOURCES_CONFIG=/path/to/sources.json` (same format as registry-mcp).  
 See [`docs/api.md`](docs/api.md) for the full endpoint reference.
 
-### cli quick start
+### cli
 
 ```bash
-cd platform/cli
-pip install -e ../../lib
-pip install -e .
-
-# Register a source and run the full pipeline
-blue-data sources add shop --type sqlite --database-dir /data/shop
-blue-data sync shop
-blue-data stats shop
-blue-data enrich shop
-blue-data metadata shop          # add BLUE_DATA_LLM_PROVIDER=anthropic for LLM enrichment
-
-# Search and inspect
+blue-data sources add mydb --type sqlite --database-dir /data
+blue-data sync mydb && blue-data enrich mydb
 blue-data search "revenue"
-blue-data inspect entity shop prod public orders
-
-# Use --json for scripting
-blue-data --json search "orders" | jq '.[].name'
 ```
 
-Pre-load sources with `BLUE_DATA_SOURCES_CONFIG=/path/to/sources.json` (same format as other platforms).  
 See [`docs/cli.md`](docs/cli.md) for the full command reference.
 
 ---
