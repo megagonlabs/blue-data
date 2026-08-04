@@ -1,0 +1,94 @@
+================================================================
+1. Register — connect Northwind SQLite source
+================================================================
+  Sources: ['northwind']
+
+================================================================
+2. Sync — walk live schema into the registry
+================================================================
+  Databases:   ['northwind']
+  Collections: ['public']
+  Entities:    ['categories', 'products', 'orders', 'sqlite_sequence', 'order_details', 'suppliers', 'customers', 'employees']
+
+================================================================
+3. Enrich — deterministic semantic type inference
+================================================================
+
+  products
+    product_id             INTEGER                IDENTIFIER
+    unit_price             FLOAT                  EVIDENCE
+    units_in_stock         INTEGER                SEGMENTATION_DRIVER
+    discontinued           INTEGER                SEGMENTATION_DRIVER
+
+  orders
+    order_id               INTEGER                IDENTIFIER
+    order_date             DATE                   EVENT_TIME
+    ship_country           STRING                 SEGMENTATION_DRIVER
+    freight                FLOAT                  EVIDENCE
+
+  order_details
+    unit_price             FLOAT                  SEGMENTATION_DRIVER
+    quantity               INTEGER                SEGMENTATION_DRIVER
+    discount               FLOAT                  SEGMENTATION_DRIVER
+
+  employees
+    employee_id            INTEGER                IDENTIFIER
+    hire_date              DATE                   EVENT_TIME
+    title                  ENUM_CATEGORY          DESCRIPTIVE
+
+  orders process semantics:
+    row_semantics = EVENT
+    event_time    = order_date
+
+================================================================
+4. Search — hybrid BM25 + vector search over the registry
+================================================================
+
+  'revenue and pricing'  [attribute]
+    (no results — add a VectorSource + embedding_fn to enable hybrid search)
+
+  'discontinued products'  [attribute]
+    products.discontinued (0.87)
+
+  'customer and order dates'  [entity]
+    (no results — add a VectorSource + embedding_fn to enable hybrid search)
+
+  'employee hire date'  [attribute]
+    (no results — add a VectorSource + embedding_fn to enable hybrid search)
+
+  'stock and inventory'  [attribute]
+    (no results — add a VectorSource + embedding_fn to enable hybrid search)
+
+================================================================
+5. Query — execute SQL against the registered source
+================================================================
+
+  Top 5 products by unit price
+  SQL: SELECT product_name, unit_price, units_in_stock FROM products ORDER BY unit_pric...
+    {'product_name': 'Mishi Kobe Niku', 'unit_price': 97.0, 'units_in_stock': 29}
+    {'product_name': 'Sir Rodneys Marmalade', 'unit_price': 81.0, 'units_in_stock': 40}
+    {'product_name': 'Carnarvon Tigers', 'unit_price': 62.5, 'units_in_stock': 42}
+    {'product_name': 'Northwoods Cranberry Sauce', 'unit_price': 40.0, 'units_in_stock': 6}
+    {'product_name': 'Alice Mutton', 'unit_price': 39.0, 'units_in_stock': 0}
+
+  Orders per country
+  SQL: SELECT ship_country, COUNT(*) as order_count FROM orders GROUP BY ship_country O...
+    {'ship_country': 'Mexico', 'order_count': 3}
+    {'ship_country': 'UK', 'order_count': 2}
+    {'ship_country': 'Germany', 'order_count': 2}
+    {'ship_country': 'France', 'order_count': 2}
+    {'ship_country': 'Switzerland', 'order_count': 1}
+
+  Revenue by category
+  SQL: SELECT c.category_name,   ROUND(SUM(od.unit_price * od.quantity * (1 - od.discou...
+    {'category_name': 'Condiments', 'revenue': 4014.3}
+    {'category_name': 'Confections', 'revenue': 2882.12}
+    {'category_name': 'Meat/Poultry', 'revenue': 1866.2}
+    {'category_name': 'Seafood', 'revenue': 692.2}
+    {'category_name': 'Beverages', 'revenue': 456.76}
+
+  Discontinued products still in stock
+  SQL: SELECT product_name, units_in_stock, unit_price FROM products WHERE discontinued...
+    {'product_name': 'Mishi Kobe Niku', 'units_in_stock': 29, 'unit_price': 97.0}
+
+Demo complete.

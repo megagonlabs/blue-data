@@ -1,0 +1,116 @@
+====================================================================
+Demo 4 — Process Reasoning
+====================================================================
+
+  Problem : LLMs treat event-log tables as static snapshots.
+            'Current balance' → AVG(balance).  Wrong.
+            'Monthly trend'   → flat COUNT(*). Wrong.
+  Solution: blue-data Layer 1 detects EVENT tables, event_time,
+            and state variables — zero LLM cost.
+
+--------------------------------------------------------------------
+Step 1 — Connect database → Layer 1 process detection  (no LLM)
+--------------------------------------------------------------------
+
+  trans table auto-detected:
+    row_semantics  = EVENT
+    event_time     = date
+    constraints    = requires_temporal_reasoning, row_local_substitution_invalid
+    operators      = ['AGGREGATE_OVER_TIME', 'CHANGE_DETECTION', 'CURRENT_STATE']
+
+  Column process roles:
+    trans.date            process_role = EVENT_TIME
+    trans.balance         process_role = STATE_VARIABLE
+    trans.amount          process_role = STATE_VARIABLE
+    trans.account_id      process_role = PROCESS_KEY
+
+  No human annotation. No LLM.
+
+--------------------------------------------------------------------
+Step 2 — Baseline vs process-enriched SQL  [pre-built examples]
+--------------------------------------------------------------------
+
+  [p1]  What is the current account balance for each account?
+         Why hard: balance is a running STATE — must use the most recent row, not AVG or SUM
+
+  baseline (no enrichment):
+    SELECT account_id, AVG(balance) AS current_balance
+    FROM trans
+    GROUP BY account_id
+  ✗ AVG(balance) averages all historical snapshots — semantically wrong
+
+  enriched (Layer 1):
+    SELECT account_id, balance AS current_balance
+    FROM trans
+    WHERE (account_id, date) IN (
+        SELECT account_id, MAX(date) FROM trans GROUP BY account_id
+    )
+  ✓ row_semantics=EVENT + event_time=date → balance at most recent event = current state
+
+  [p2]  Show monthly transaction count for account 2 between 1993 and 1997
+         Why hard: trans is an EVENT log — needs GROUP BY on event_time, not a flat count
+
+  baseline (no enrichment):
+    SELECT COUNT(*) AS transaction_count
+    FROM trans
+    WHERE account_id = 2
+      AND date BETWEEN '1993-01-01' AND '1997-12-31'
+  ✗ Returns a single number — loses all temporal structure
+
+  enriched (Layer 1):
+    SELECT strftime('%Y-%m', date) AS month,
+           COUNT(*)                AS transaction_count
+    FROM trans
+    WHERE account_id = 2
+      AND date BETWEEN '1993-01-01' AND '1997-12-31'
+    GROUP BY month
+    ORDER BY month
+  ✓ event_time=date + time_grains=[monthly] → GROUP BY strftime month
+
+  [p3]  Which accounts had a negative balance more than once?
+         Why hard: needs COUNT of occurrences across ordered events, not a single row check
+
+  baseline (no enrichment):
+    SELECT DISTINCT account_id
+    FROM trans
+    WHERE balance < 0
+  ✗ EXISTS check — returns any account with even one negative row
+
+  enriched (Layer 1):
+    SELECT account_id, COUNT(*) AS negative_balance_events
+    FROM trans
+    WHERE balance < 0
+    GROUP BY account_id
+    HAVING COUNT(*) > 1
+    ORDER BY negative_balance_events DESC
+  ✓ row_semantics=EVENT + requires_temporal_reasoning → count events, not existence
+
+  [p4]  Show the sequence of balance changes for account 1
+         Why hard: balance is a running state — must be read in chronological order
+
+  baseline (no enrichment):
+    SELECT date, balance
+    FROM trans
+    WHERE account_id = 1
+  ✗ No ORDER BY — rows returned in arbitrary storage order
+
+  enriched (Layer 1):
+    SELECT date,
+           amount,
+           type,
+           balance
+    FROM trans
+    WHERE account_id = 1
+    ORDER BY date ASC
+  ✓ event_time=date → ORDER BY date to reconstruct state sequence
+
+====================================================================
+Result
+====================================================================
+
+  4 process reasoning failure modes — all fixed by Layer 1 enrichment
+
+  row_semantics=EVENT           → each row is a point-in-time event
+  event_time=date               → ORDER BY / GROUP BY on date
+  requires_temporal_reasoning   → count occurrences, not existence
+  All detected from data — zero annotation, zero LLM cost.

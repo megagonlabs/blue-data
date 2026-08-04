@@ -1,0 +1,97 @@
+Working directory: /tmp/blue-data-demo-xxxxxx
+
+------------------------------------------------------------
+1. Register source and create schema
+------------------------------------------------------------
+Registered sources: ['sqlite']
+Inserted 3 customers: [{'id': 1, 'email': 'alice@example.com', 'age': 30}, {'id': 2, 'email': 'bob@example.com', 'age': 25}, {'id': 3, 'email': 'carol@example.com', 'age': 35}]
+
+------------------------------------------------------------
+2. sync_source — discover schema
+------------------------------------------------------------
+Databases: ['shop']
+Collections in 'shop': ['public']
+Entities in 'public': ['customers', 'orders']
+Attributes of 'customers': ['age', 'email', 'id']
+Schema stored on collection (truncated): {
+  "entities": [
+    {
+      "name": "customers",
+      "type": "entity",
+      "scope": "/source/sqlite/database/shop/ ...
+
+------------------------------------------------------------
+3. Descriptions and properties
+------------------------------------------------------------
+customers.pii: True
+customers.description: Registered customer accounts
+age.description: Customer age in years
+
+------------------------------------------------------------
+4. collect_source_stats (recursive)
+------------------------------------------------------------
+Database stats: {'size_bytes': 12288, 'table_count': 2}
+Entity stats (customers): {'row_count': 3, 'row_samples': [{'id': 2, 'email': 'bob@example.com', 'age': 25}, {'id': 1, 'email': 'alice@example.com', 'age': 30}, {'id': 3, 'email': 'carol@example.com', 'age': 35}], 'row_sample_size': 3, 'row_samples_aligned': True}
+Attribute stats (age): {'count': 3, 'distinct_count': 3, 'null_count': 0, 'sample_values': [30, 25, 35], 'min': 25, 'max': 35, 'most_common_vals': []}
+
+------------------------------------------------------------
+5. enrich_source — semantic type inference
+------------------------------------------------------------
+age value_semantics: {'semantic_type': 'INTEGER', 'confidence': 0.9, 'rationale': 'All values are Python int.', 'examples': [30, 25, 35]}
+email value_semantics: {'semantic_type': 'EMAIL', 'confidence': 0.97, 'rationale': 'All values match email pattern.', 'examples': ['alice@example.com', 'bob@example.com', 'carol@example.com']}
+
+------------------------------------------------------------
+6. Relations and relation attributes
+------------------------------------------------------------
+Relations: ['customers_orders']
+Relation cardinality: one-to-many
+Relation attributes: ['placed_at']
+
+------------------------------------------------------------
+7. connect_source — lazy reconnect
+------------------------------------------------------------
+Lazily connected source type: SQLiteDBSource
+Source now in registry.sources: True
+Databases visible from lazy source: ['shop']
+
+------------------------------------------------------------
+8. dumps / loads — round-trip serialization
+------------------------------------------------------------
+Serialized registry: 13 records, 9084 chars
+Restored 'customers' description: Registered customer accounts
+Restored 'customers' pii property: True
+Restored total record count: 13
+
+------------------------------------------------------------
+9. sync_all — multiple sources
+------------------------------------------------------------
+src1 databases: ['shop']
+src2 databases: ['reports', 'analytics']
+src2/analytics entities: ['events']
+
+------------------------------------------------------------
+10. create_source_database_collection — registry-only
+------------------------------------------------------------
+create_source_database_collection result: {'status': 'registry_only'}
+Collections after create: ['public']
+Second call (no-op) result: None
+
+------------------------------------------------------------
+11. search_records — hybrid BM25 + vector
+------------------------------------------------------------
+search_records('customer purchase orders'):
+  [0.564] orders — Customer purchase orders
+  [0.485] customers_orders — A customer places many orders
+  [0.404] customers — Registered customer accounts
+search_records('orders', type='entity'): ['orders', 'customers']
+
+------------------------------------------------------------
+12. enrich_source_metadata — deterministic MetaData enrichment
+------------------------------------------------------------
+Enrichment results for 'customers' and 'orders':
+  customers.age                 type=INTEGER             role=EVIDENCE                qvst=MEASUREMENT
+  customers.email               type=EMAIL               role=DESCRIPTIVE             qvst=—
+  orders.customer_id            type=INTEGER             role=IDENTIFIER              qvst=MEASUREMENT
+  orders.total                  type=FLOAT               role=EVIDENCE                qvst=MAGNITUDE
+
+Demo complete.

@@ -1,0 +1,80 @@
+------------------------------------------------------------
+0. SemanticTypeInferencer — standalone usage
+------------------------------------------------------------
+
+  SemanticTypeInferencer inspects a list of sample values and returns a
+  semantic_type + confidence.  It runs without any LLM or API key.
+  The full pipeline calls this internally for every registered attribute.
+
+  integers     → INTEGER              (confidence=0.90)
+  floats       → FLOAT                (confidence=0.85)
+  dates        → DATE                 (confidence=0.95)
+  categories   → ENUM_CATEGORY        (confidence=0.75)
+  free text    → FREE_TEXT            (confidence=0.75)
+  emails       → EMAIL                (confidence=0.97)
+  percentages  → FLOAT                (confidence=0.85)
+
+------------------------------------------------------------
+Layer 1 — Deterministic enrichment  (llm_fn=None)
+------------------------------------------------------------
+
+  Pipeline: sync → collect_stats → enrich_source_metadata(llm_fn=None)
+  No API key needed. Reads column names, declared types, and sample values.
+
+  Column-level enrichment results:
+  attribute       semantic_type          semantic_role        quantitative_vst
+  --------------- ---------------------- -------------------- ----------------
+  id              INTEGER                IDENTIFIER           MEASUREMENT
+  user_id         INTEGER                IDENTIFIER           MEASUREMENT
+  purchase_date   DATE                   EVENT_TIME           —
+  amount          FLOAT                  EVIDENCE             MAGNITUDE
+  category        ENUM_CATEGORY          SEGMENTATION_DRIVER  —
+  status          ENUM_CATEGORY          SEGMENTATION_DRIVER  —
+  discount_pct    FLOAT                  SEGMENTATION_DRIVER  MAGNITUDE
+
+  Entity-level enrichment results:
+  process_semantics:
+    row_semantics = EVENT  (this table is treated as an event log)
+    event_time    = purchase_date  (the column that anchors each event in time)
+  semantic_links  (21 pair(s) detected):
+    user_id → id  (SEGMENTS, confidence=0.60)
+    user_id → amount  (SEGMENTS, confidence=0.60)
+    user_id → amount  (DERIVES, confidence=0.60)
+
+  Layer 1 complete — no LLM was called.
+
+------------------------------------------------------------
+Layer 2 — LLM-augmented enrichment  (SKIPPED — no ANTHROPIC_API_KEY)
+------------------------------------------------------------
+
+  Set ANTHROPIC_API_KEY to run the LLM enrichment layer.
+  Install the SDK first if needed:
+    pip install anthropic
+    pip install "blue-data[llm]"
+
+  With an API key, Layer 2 adds:
+    • value_semantics    — richer type with confidence and rationale (VSI)
+    • semantic_discovery — domain subcategory label per column (SDI)
+
+------------------------------------------------------------
+Enrichment property reference
+------------------------------------------------------------
+
+  Every property below is stored on the attribute or entity record in the
+  registry and is available to search, NL2SQL, and downstream agents.
+
+  value_semantics                     Semantic type of column values (INTEGER, DATE, ENUM_CATEGORY, …)  [L1+L2]
+  semantic_role                       Structural role: IDENTIFIER, EVENT_TIME, EVIDENCE, SEGMENTATION_DRIVER  [L1]
+  quantitative_vst                    Aggregation role for numeric columns: COUNT, AMOUNT, RATE, DURATION  [L1]
+  process_semantics                   Event-log detection: row_semantics, event_time, event_key  [L1]
+  semantic_links                      Column pairs whose values co-vary across the table  [L1]
+  semantic_discovery                  LLM domain subcategory label and confidence  [L2]
+  domain_concept                      Canonical domain concept this column maps to  [L2]
+  interpretive_semantics              Human-readable interpretation of coded/ordinal values  [L2]
+  value_axis                          Whether the column can serve as a quantitative axis  [L1]
+  safe_aggregation                    Which aggregations are safe to apply (SUM, AVG, …)  [L1]
+  process_patterns                    Recurring temporal patterns detected in the event data  [L1]
+  process_trends                      Trend signals over time  [L1]
+  conditional_value_distribution      Value distribution conditioned on another column  [L1]
+
+Demo complete.

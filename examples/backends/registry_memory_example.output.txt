@@ -1,0 +1,70 @@
+------------------------------------------------------------
+1. Basic Registry CRUD
+------------------------------------------------------------
+get_record('users'): users — Stores user accounts and profile data
+list_records() → 3 records
+After update — users.description: User accounts, profile data, and preferences
+After update — users.properties: {'owner': 'platform-team', 'pii': True}
+get_record_property('orders', 'status'): active
+get_record_description('products'): Product catalog — managed by catalog-team
+After delete_record_property('status'): None
+After deregister — list_records count: 2
+
+------------------------------------------------------------
+2. list_records — scope and recursive filtering
+------------------------------------------------------------
+list_records(scope='/source/s1', recursive=True): ['mydb', 'public', 'users']
+list_records(scope='/source/s1', recursive=False): ['mydb']
+
+------------------------------------------------------------
+3. filter_records_by_properties — exact and partial
+------------------------------------------------------------
+Exact match domain=finance: ['transactions', 'invoices']
+Partial match owner contains 'finance': ['transactions', 'invoices']
+Exact match logistics + type filter: ['shipments']
+
+------------------------------------------------------------
+4. register_record_json — nested contents import
+------------------------------------------------------------
+database record: Sales database
+collection record: Default schema
+entity record: Sales pipeline deals
+attribute record: deal_id — Primary key
+All records imported: ['sales', 'public', 'deals', 'deal_id', 'amount']
+
+------------------------------------------------------------
+5. dumps / loads — round-trip serialization
+------------------------------------------------------------
+Serialized to JSON, length: 686 chars
+Restored 'customers' description: Customer records
+Restored 'customers' pk property: customer_id
+Restored record count: 3
+
+------------------------------------------------------------
+6. set_record_data / get_record_data / delete_record_data
+------------------------------------------------------------
+get_record_data('lineage'): {'source': 'kafka', 'pipeline': 'v2'}
+After delete_record_data: None
+
+------------------------------------------------------------
+7. rebuild flag — True / False / None
+------------------------------------------------------------
+rebuild=None (instance default True) — indexed: True
+rebuild=False — beta indexed: False
+rebuild=True (instance default False) — gamma indexed: True
+
+------------------------------------------------------------
+8. Hybrid search — BM25 + vector
+------------------------------------------------------------
+search_records('customer purchase orders'):
+  [0.533] customer_orders — All customer purchase orders and their status
+  [0.269] users — Registered user accounts
+  [0.268] products — Product catalog with pricing and inventory
+search_records('products', type='entity') types: {'entity'}
+search_records('users', scope='/source/shop'): ['users', 'products', 'customer_orders']
+
+------------------------------------------------------------
+9. Keyword-only search — no vector source
+------------------------------------------------------------
+keyword_search('payment'):
+  [score=15] payments — Payment records
