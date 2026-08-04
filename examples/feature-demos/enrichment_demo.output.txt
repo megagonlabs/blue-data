@@ -37,24 +37,43 @@ Layer 1 — Deterministic enrichment  (llm_fn=None)
     row_semantics = EVENT  (this table is treated as an event log)
     event_time    = purchase_date  (the column that anchors each event in time)
   semantic_links  (21 pair(s) detected):
-    user_id → id  (SEGMENTS, confidence=0.60)
-    user_id → amount  (SEGMENTS, confidence=0.60)
-    user_id → amount  (DERIVES, confidence=0.60)
+    amount → user_id  (DERIVES, confidence=0.60)
+    category → amount  (SEGMENTS, confidence=0.60)
+    category → discount_pct  (SEGMENTS, confidence=0.60)
 
   Layer 1 complete — no LLM was called.
 
 ------------------------------------------------------------
-Layer 2 — LLM-augmented enrichment  (SKIPPED — no ANTHROPIC_API_KEY)
+Layer 2 — LLM-augmented enrichment  (claude-haiku-4-5-20251001)
 ------------------------------------------------------------
 
-  Set ANTHROPIC_API_KEY to run the LLM enrichment layer.
-  Install the SDK first if needed:
-    pip install anthropic
-    pip install "blue-data[llm]"
+  Layer 2 runs on top of Layer 1 results.  For each column it calls the LLM
+  twice: once for VSI (richer semantic type) and once for SDI (domain label).
+  DCM and IVS are disabled in this demo to keep runtime short.
 
-  With an API key, Layer 2 adds:
-    • value_semantics    — richer type with confidence and rationale (VSI)
-    • semantic_discovery — domain subcategory label per column (SDI)
+  Running enrich_source_metadata (rebuild=False) …
+  LLM called 31 time(s).
+
+  LLM-enriched column results:
+  attribute       VSI semantic_type         SDI subcategory
+  --------------- ------------------------- ------------------------------
+  id              INTEGER                   transaction_sequence_key
+  user_id         INTEGER                   user_surrogate_key
+  purchase_date   DATE                      date
+  amount          FLOAT                     transaction_amount
+  category        ENUM_CATEGORY             PRODUCT_CATEGORY
+  status          ENUM_CATEGORY             transaction_lifecycle_state
+  discount_pct    FLOAT                     PROMOTIONAL_REDUCTION
+
+  Auto-generated entity description:
+    Records of customer purchases including transaction details, amounts, dates, and associated user information.
+
+  Idempotency check:
+  Running a second pass with rebuild=False — already-enriched columns are skipped.
+  LLM called 0 additional time(s) (expected 0).
+
+  To force re-enrichment, pass rebuild=True — every property is overwritten.
+  Layer 2 complete.
 
 ------------------------------------------------------------
 Enrichment property reference

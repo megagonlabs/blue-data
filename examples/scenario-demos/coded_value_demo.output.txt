@@ -1,0 +1,86 @@
+====================================================================
+Demo 1 — Coded Value Disambiguation
+====================================================================
+
+  Problem : Czech banking database stores values as codes.
+            Baseline LLM guesses English values → 0 results.
+  Solution: blue-data Layer 1 detects ENUM columns and
+            captures actual coded values — zero LLM cost.
+
+--------------------------------------------------------------------
+Step 1 — Connect database → Layer 1 enrichment  (no LLM)
+--------------------------------------------------------------------
+
+  ENUM columns auto-detected:
+
+    district.a3                  [Prague, central Bohemia]
+    client.gender              [F, M]
+    account.frequency           [POPLATEK MESICNE, POPLATEK TYDNE, POPLATEK PO OBRATU]
+    loan.status              [A, D, C]
+    trans.type                [PRIJEM, VYDAJ]
+    trans.operation           [VKLAD, VYBER, PREVOD Z UCTU, PREVOD NA UCET]
+
+  No human annotation. No LLM. Deterministic pattern detection.
+
+--------------------------------------------------------------------
+Step 2 — NL2SQL: baseline vs enriched   (SQL model: claude-haiku-4-5-20251001)
+--------------------------------------------------------------------
+
+  [q1]  How many credit transactions occurred in 1997?
+         Target: trans.type  |  baseline guesses type='credit' → 0 rows  |  correct code: PRIJEM
+
+  baseline  SELECT COUNT(*) as credit_transactions_1997 FROM trans WHERE type = 'credit' AND…
+            → 1 row  {'credit_transactions_1997': 0} ✓
+
+  enriched  SELECT COUNT(*) FROM trans WHERE type = 'PRIJEM' AND strftime('%Y', date) = '199…
+            → 1 row  {'COUNT(*)': 6} ✓
+
+  [q2]  What is the total cash deposit amount per account?
+         Target: trans.operation  |  baseline guesses operation='deposit' → 0 rows  |  correct code: VKLAD
+
+  baseline  SELECT account_id, SUM(amount) as total_cash_deposit_amount FROM trans WHERE typ…
+            → 15 rows  {'account_id': 1, 'total_cash_deposit_amount': 18500} ✓
+
+  enriched  SELECT account_id, SUM(amount) AS total_deposit_amount FROM trans WHERE type = '…
+            → 15 rows  {'account_id': 1, 'total_deposit_amount': 18500} ✓
+
+  [q3]  Find all loans that were completed and fully repaid with no issues
+         Target: loan.status  |  baseline guesses status='paid' or 'completed' → 0 rows  |  correct code: C
+
+  baseline  SELECT * FROM loan WHERE status = 'completed' OR status = 'fully repaid'
+            → 0 rows ✗
+
+  enriched  SELECT * FROM loan WHERE status = 'C';
+            → 6 rows  {'loan_id': 4962, 'account_id': 3, 'date': '1997-12-08', 'am ✓
+
+  ✓ enrichment fixed this query
+
+  [q4]  Find accounts with loans currently running with no payment issues
+         Target: loan.status  |  baseline guesses status='active' or 'running' → 0 rows  |  correct code: A
+
+  baseline  SELECT DISTINCT a.account_id FROM account a INNER JOIN loan l ON a.account_id = …
+            → 0 rows ✗
+
+  enriched  SELECT DISTINCT a.account_id FROM account a INNER JOIN loan l ON a.account_id = …
+            → 4 rows  {'account_id': 2} ✓
+
+  ✓ enrichment fixed this query
+
+  [q5]  How many accounts have active loans where the client is in debt?
+         Target: loan.status  |  baseline guesses status='bad' or 'overdue' → 0 rows  |  correct code: B
+
+  baseline  SELECT COUNT(DISTINCT a.account_id) FROM account a JOIN loan l ON a.account_id =…
+            → 1 row  {'COUNT(DISTINCT a.account_id)': 0} ✓
+
+  enriched  SELECT COUNT(DISTINCT a.account_id) FROM account a JOIN loan l ON a.account_id =…
+            → 1 row  {'COUNT(DISTINCT a.account_id)': 3} ✓
+
+====================================================================
+Result
+====================================================================
+
+  baseline  3/5  (guessed English values, missed coded columns)
+  enriched  5/5  (used actual ENUM values from data)
+
+  Layer 1 only — zero LLM enrichment cost.
+  Works on any SQL database you connect.

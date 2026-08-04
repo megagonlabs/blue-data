@@ -1,0 +1,43 @@
+Loaded 13 tools from registry-mcp: ['search_records', 'list_sources', 'list_source_databases',
+  'list_database_collections', 'list_collection_entities', 'get_entity', 'get_record',
+  'sync_source', 'collect_source_stats', 'enrich_source', 'enrich_source_metadata',
+  'execute_query', 'import_data']
+
+Query: What data sources are registered? Then sync the 'shop' source so its tables are in the registry.
+Answer: The registered data source is "shop," and it has been successfully synced to ensure its
+tables are in the registry.
+
+Query: Find all tables related to customers or orders.
+Answer: I found the following tables related to customers and orders:
+
+1. **Customers Table**
+   - **Name:** customers
+   - **Scope:** /source/shop/database/shop/collection/public
+
+2. **Orders Table**
+   - **Name:** orders
+   - **Scope:** /source/shop/database/shop/collection/public
+
+Query: What are the attributes of the orders entity?
+Answer: The "orders" entity has the following attributes:
+
+1. **id**
+   - Type: INTEGER
+   - Description: Unique identifier for the order.
+
+2. **customer_id**
+   - Type: INTEGER
+   - Description: Identifier for the customer who placed the order.
+
+3. **total**
+   - Type: REAL
+   - Description: Total amount for the order.
+
+Query: Show me all customer orders with their totals from the shop source.
+Answer: Here are all customer orders along with their totals from the shop source:
+
+| Customer ID | Total  |
+|-------------|--------|
+| 1           | 99.9   |
+| 1           | 149.0  |
+| 2           | 49.5   |

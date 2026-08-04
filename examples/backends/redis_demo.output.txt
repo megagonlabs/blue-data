@@ -1,0 +1,104 @@
+------------------------------------------------------------
+1. Connectivity checks
+------------------------------------------------------------
+  Redis Stack: OK  (localhost:6379)
+  SQLite Northwind loaded: /tmp/northwind-demo-xxx/northwind.db
+
+------------------------------------------------------------
+2. Setup — DataRegistry with Redis backends
+------------------------------------------------------------
+  Registry namespace : demo-e7861da9
+  Vector scan_prefix : demo-e7861da9-vec
+  Vector index       : demo-e7861da9-idx
+  Store type         : RedisJSONSource
+  Vector store type  : RedisVectorSource
+
+------------------------------------------------------------
+3. Register source and sync schema
+------------------------------------------------------------
+  Registered source  : northwind_sqlite
+  Databases          : ['northwind']
+  Entities in public : ['categories', 'customers', 'employees', 'order_details', 'orders', 'products', 'sqlite_sequence', 'suppliers']
+  Schema entity count: 8
+
+------------------------------------------------------------
+3b. Full hierarchy walk
+------------------------------------------------------------
+  source: northwind_sqlite
+    database: northwind
+      collection: public
+        entity: categories              attributes: ['category_id', 'category_name', 'description']
+        entity: customers               attributes: ['city', 'company_name', 'contact_name', 'country', 'customer_id']
+        entity: employees               attributes: ['city', 'country', 'employee_id', 'first_name', 'hire_date', 'last_name', 'title']
+        entity: order_details           attributes: ['discount', 'order_id', 'product_id', 'quantity', 'unit_price']
+        entity: orders                  attributes: ['customer_id', 'employee_id', 'freight', 'order_date', 'order_id', 'ship_country']
+        entity: products                attributes: ['category_id', 'discontinued', 'product_id', 'product_name', 'supplier_id', 'unit_price', 'units_in_stock']
+        entity: sqlite_sequence         attributes: ['name', 'seq']
+        entity: suppliers               attributes: ['city', 'company_name', 'contact_name', 'country', 'supplier_id']
+
+------------------------------------------------------------
+4. Set descriptions
+------------------------------------------------------------
+  Set descriptions on 7 entities + database + collection
+  orders.description : Customer purchase orders with freight and ship details
+
+------------------------------------------------------------
+5. collect_source_stats
+------------------------------------------------------------
+  categories  stats: {'row_count': 8, 'row_samples': [...], 'row_sample_size': 8, 'row_samples_aligned': True}
+  customers   stats: {'row_count': 15, 'row_samples': [...], 'row_sample_size': 15, 'row_samples_aligned': True}
+  orders      stats: {'row_count': 15, 'row_samples': [...], 'row_sample_size': 15, 'row_samples_aligned': True}
+  products.unit_price stats: {'count': 20, 'distinct_count': 20, 'null_count': 0, 'min': 6.0, 'max': 97.0}
+
+------------------------------------------------------------
+6. enrich_source — semantic type inference
+------------------------------------------------------------
+  customers.contact_name → {'semantic_type': 'STRING', 'confidence': 0.7}
+  orders.order_date      → {'semantic_type': 'DATE', 'confidence': 0.95}
+
+------------------------------------------------------------
+7. search_records — hybrid BM25 + vector
+------------------------------------------------------------
+  search('customer purchase orders'):
+    [0.261] orders        — Customer purchase orders with freight and ship details
+    [0.076] customers     — Customer accounts and contact information
+    [0.076] order_details — Line items linking orders to products with pricing
+  search('product pricing inventory'):
+    [0.261] categories    — Product category taxonomy
+    [0.261] suppliers     — Product supplier companies and contacts
+    [0.261] products      — Product catalog with pricing, stock, and category
+  search('employee sales representative'):
+    [0.261] northwind     — Northwind demo sales database
+    [0.261] employees     — Sales staff and their reporting structure
+  search('orders', type='entity')  : ['orders', 'order_details', 'categories', 'customers', 'suppliers']
+  search('products', scope=source) : ['products', 'order_details', 'categories', 'contact_name']
+
+------------------------------------------------------------
+8. Keyword-only search (BM25 only)
+------------------------------------------------------------
+  keyword_search('sales'  ): ['northwind', 'employees']
+  keyword_search('freight'): ['freight', 'orders']
+  keyword_search('supplier'): ['suppliers', 'supplier_id', 'supplier_id']
+
+------------------------------------------------------------
+9. Namespace isolation
+------------------------------------------------------------
+  Namespace 1 key count: 51
+  Namespace 2 key count: 2
+  No cross-contamination: True
+  'warehouses' not in registry1: True
+
+------------------------------------------------------------
+10. dumps / loads — round-trip serialization
+------------------------------------------------------------
+  Serialized 51 records (56,586 chars)
+  Restored 'orders' description: Customer purchase orders with freight and ship details
+  Restored total record count  : 51
+  Count matches original       : True
+
+------------------------------------------------------------
+Cleanup
+------------------------------------------------------------
+  Redis keys deleted.
+
+Demo complete.

@@ -28,7 +28,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 python3 examples/scenario-demos/coded_value_demo.py
 ```
 
-**Dataset:** Czech banking (`data/finance_sqlite.sql`) | **API key:** required (SQL generation only)
+**Dataset:** Czech banking (`data/finance_sqlite.sql`) | **API key:** required (SQL generation only) | **[Sample output](scenario-demos/coded_value_demo.output.txt)**
 
 ---
 
@@ -145,7 +145,7 @@ export OPENAI_API_KEY=sk-...
 python3 examples/integration-demos/langgraph_direct_demo.py
 ```
 
-**API key:** OpenAI required
+**API key:** OpenAI required | **[Sample output](integration-demos/langgraph_direct_demo.output.txt)**
 
 ---
 
@@ -162,7 +162,7 @@ export OPENAI_API_KEY=sk-...
 python3 examples/integration-demos/langgraph_mcp_demo.py
 ```
 
-**API key:** OpenAI required
+**API key:** OpenAI required | **[Sample output](integration-demos/langgraph_mcp_demo.output.txt)**
 
 ---
 
@@ -211,7 +211,7 @@ redis-stack-server &   # or: docker run -p 6379:6379 redis/redis-stack
 python3 examples/backends/redis_demo.py
 ```
 
-**Requires:** Redis Stack on `localhost:6379`
+**Requires:** Redis Stack on `localhost:6379` | **[Sample output](backends/redis_demo.output.txt)**
 
 ---
 
@@ -267,15 +267,15 @@ python3 examples/benchmarks/enrichment_benchmark.py --judge --out results/run.js
 
 | File | Folder | API key | External | Output |
 |------|--------|---------|----------|--------|
-| `coded_value_demo.py` | scenario-demos | Anthropic (SQL gen) | — | — |
+| `coded_value_demo.py` | scenario-demos | Anthropic (SQL gen) | — | [output](scenario-demos/coded_value_demo.output.txt) |
 | `description_search_demo.py` | scenario-demos | none at runtime | — | [output](scenario-demos/description_search_demo.output.txt) |
 | `process_reasoning_demo.py` | scenario-demos | none (default) | — | [output](scenario-demos/process_reasoning_demo.output.txt) |
 | `enrichment_demo.py` | feature-demos | Anthropic (optional) | — | [output](feature-demos/enrichment_demo.output.txt) |
 | `sql_semantic_enrichment_demo.py` | pipeline-demos | none | — | [output](pipeline-demos/sql_semantic_enrichment_demo.output.txt) |
-| `langgraph_direct_demo.py` | integration-demos | OpenAI | — | — |
-| `langgraph_mcp_demo.py` | integration-demos | OpenAI | MCP server | — |
+| `langgraph_direct_demo.py` | integration-demos | OpenAI | — | [output](integration-demos/langgraph_direct_demo.output.txt) |
+| `langgraph_mcp_demo.py` | integration-demos | OpenAI | MCP server | [output](integration-demos/langgraph_mcp_demo.output.txt) |
 | `sqlite_example.py` | backends | none | — | — |
 | `sqlite_data_registry_demo.py` | backends | none | — | [output](backends/sqlite_data_registry_demo.output.txt) |
 | `registry_memory_example.py` | backends | none | — | [output](backends/registry_memory_example.output.txt) |
-| `redis_demo.py` | backends | none | Redis Stack | — |
+| `redis_demo.py` | backends | none | Redis Stack | [output](backends/redis_demo.output.txt) |
 | `enrichment_benchmark.py` | benchmarks | Anthropic | — | — |

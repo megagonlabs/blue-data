@@ -1,0 +1,12 @@
+Registry ready — sources: ['shop']
+
+Query: Show me all customer orders with their totals
+
+[discover] top hit: orders in shop/shop/public
+[translate] SQL: SELECT orders.id, orders.total FROM orders;
+[execute] 3 rows returned
+
+Results:
+  {'id': 1, 'total': 99.9}
+  {'id': 2, 'total': 149.0}
+  {'id': 3, 'total': 49.5}
