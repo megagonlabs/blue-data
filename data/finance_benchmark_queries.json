@@ -145,10 +145,10 @@
   },
   {
     "id": "sem_d_001",
-    "intent": "Find transactions with exceptionally large amounts",
+    "intent": "Find all transactions in the large amount extreme range",
     "category": "distributional",
     "enrichment_features": ["value_axis: trans.amount CONTINUOUS extremes={'small': '<1320', 'large': '>21200'}"],
-    "expected_behavior": "Find transactions whose amount exceeds the statistically derived 'large' extreme cutoff. Layer 1 provides: amount -- axis=CONTINUOUS extremes={'small': '< 1320.0', 'large': '> 21200.0'}. This cutoff is computed from the data distribution — 'large' means in the upper extreme region. At baseline, Haiku picks an arbitrary round threshold (e.g., > 10000 or > 50000) with no statistical basis. With Layer 1, the model can reference the exact extreme cutoff of 21200. Correct query: SELECT trans_id, account_id, amount, date FROM trans WHERE amount > 21200 ORDER BY amount DESC. Using a different arbitrary threshold is partial. Not filtering by amount at all is incorrect.",
+    "expected_behavior": "Find transactions whose amount falls in the large-extreme range according to the data distribution. Enrichment provides: amount -- axis=CONTINUOUS extremes={'small': '< 1320.0', 'large': '> 21200.0'}. At baseline, Haiku does not know the cutoff and typically generates broken SQL trying to compute it statistically (FAIL). With enrichment, the model reads the provided 21200 cutoff and generates WHERE amount > 21200. Correct query: SELECT trans_id, account_id, amount, date FROM trans WHERE amount > 21200 ORDER BY amount DESC (returns 8 rows). Using a different arbitrary threshold is partial.",
     "target_columns": ["trans.amount"],
     "difficulty": "medium"
   },
@@ -163,12 +163,12 @@
   },
   {
     "id": "sem_d_003",
-    "intent": "Which accounts currently have a critically low balance?",
+    "intent": "Find all accounts that have ever had a balance in the high extreme range",
     "category": "distributional",
-    "enrichment_features": ["STATE_VARIABLE: trans.balance", "value_axis: trans.balance extremes={'small': '<9500', 'large': '>32096'}", "latest_record_only: partition_by=[account_id]"],
-    "expected_behavior": "Find accounts whose most recent balance is below the statistically derived 'small' cutoff (9500). This combines two Layer 1 signals: (1) balance -- process_role=STATE_VARIABLE with latest_record_only: {partition_by: ['account_id']} — requiring the latest-row-per-account pattern; (2) balance -- axis=CONTINUOUS extremes={'small': '< 9500.0'} — defining 'critically low' as below 9500. At baseline: Haiku uses AVG(balance) or a row-level filter without the latest-record pattern, AND picks an arbitrary low threshold. Correct query: SELECT account_id, balance FROM (SELECT account_id, balance FROM trans WHERE date=(SELECT MAX(date) FROM trans t2 WHERE t2.account_id=trans.account_id) GROUP BY account_id) WHERE balance < 9500. Using a non-latest-record pattern is incorrect.",
-    "target_columns": ["trans.balance", "trans.account_id", "trans.date"],
-    "difficulty": "hard"
+    "enrichment_features": ["value_axis: trans.balance CONTINUOUS extremes={'small': '<9500', 'large': '>32096'}"],
+    "expected_behavior": "Find distinct accounts where any transaction recorded a balance above the statistically derived 'large' cutoff of 32096. Enrichment provides: balance -- axis=CONTINUOUS extremes={'small': '< 9500.0', 'large': '> 32096.0'}. At baseline, Haiku does not know the cutoff and typically generates broken SQL trying to compute it statistically (FAIL). With enrichment, the model reads the provided 32096 cutoff and generates WHERE balance > 32096. Correct query: SELECT DISTINCT account_id FROM trans WHERE balance > 32096 ORDER BY account_id (returns 3 accounts). Using a different arbitrary high threshold is partial.",
+    "target_columns": ["trans.balance", "trans.account_id"],
+    "difficulty": "medium"
   },
   {
     "id": "sem_q_001",

@@ -191,9 +191,9 @@ At baseline, Haiku fails on both simultaneously: wrong type code → 0 matching 
 | sem_s_002 | current_state | `trans.balance` STATE_VARIABLE, `latest_record_only` | How many accounts currently have a negative balance? |
 | sem_s_003 | current_state | `trans` EVENT, CHANGE_DETECTION operator | Which accounts recovered from a negative balance? |
 | sem_s_004 | current_state | `trans.date` EVENT_TIME, AGGREGATE_OVER_TIME | Show monthly total transaction amount for all accounts in 1996 |
-| sem_d_001 | distributional | `trans.amount` value_axis large > 21200 | Find transactions with exceptionally large amounts |
+| sem_d_001 | distributional | `trans.amount` value_axis large > 21200 | Find all transactions in the large amount extreme range |
 | sem_d_002 | distributional | `trans.balance` value_axis small < 9500 | Find all accounts that have ever had a balance in the low extreme range |
-| sem_d_003 | distributional | `trans.balance` STATE_VARIABLE + extremes < 9500 | Which accounts currently have a critically low balance? |
+| sem_d_003 | distributional | `trans.balance` value_axis large > 32096 | Find all accounts that have ever had a balance in the high extreme range |
 | sem_q_001 | quantitative_misinterpretation | `trans.k_symbol` POJISTNE + `trans.amount` can_sum | What is the total insurance payment amount charged to each account? |
 | sem_q_002 | quantitative_misinterpretation | `trans.type` ENUM: VYDAJ/PRIJEM | Which accounts have a higher proportion of outgoing than incoming transactions? |
 | sem_q_003 | quantitative_misinterpretation | `trans.type` ENUM: VYDAJ/PRIJEM + `trans.amount` can_sum | Which account has the highest net credit balance (deposits minus withdrawals)? |

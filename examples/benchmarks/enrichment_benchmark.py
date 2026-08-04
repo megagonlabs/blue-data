@@ -1033,29 +1033,30 @@ def generate_report(results: list, cnames: list[str], use_judge: bool,
         "enum_coded_value":
             "**ENUM code injection.** Columns store Czech domain codes (`VKLAD`, `POJISTNE`, "
             "`SIPO`, `PREVOD NA UCET`…) that an LLM cannot infer from English intent. "
-            "Layer 1 injects `ENUM_CATEGORY` values into the context. Baseline generates "
-            "English words as filter values → 0 rows. Layer 1 uses the actual codes → rows returned.",
+            "Enrichment injects `ENUM_CATEGORY` values into the context. Baseline generates "
+            "English words as filter values → 0 rows. Enrichment uses the actual codes → rows returned.",
         "opaque_column":
             "**Opaque column disambiguation.** `district` columns `a2`–`a16` have no "
-            "meaningful names. Layer 1 injects `a3` as `ENUM_CATEGORY` with region values "
+            "meaningful names. Enrichment injects `a3` as `ENUM_CATEGORY` with region values "
             "(`Prague`, `central Bohemia`…) and `a2` as STRING with district name samples. "
             "Baseline confuses the two columns.",
         "current_state":
             "**Process semantics / STATE_VARIABLE.** `trans.balance` is a running total — "
             "each row is the account balance *after* that event. 'Current balance' requires "
-            "the most recent row per account, not AVG or MAX. Layer 1 annotates `balance` "
+            "the most recent row per account, not AVG or MAX. Enrichment annotates `balance` "
             "as `STATE_VARIABLE` and provides `latest_record_only: partition_by=[account_id]`.",
         "distributional":
-            "**Statistical extremes.** Layer 1 computes `value_axis` extreme regions from the "
-            "actual data distribution: `trans.amount` large = > 21 200, "
-            "`trans.balance` small = < 9 500. Baseline picks arbitrary round-number thresholds.",
+            "**Statistical extremes.** Enrichment computes `value_axis` extreme regions from "
+            "the actual data distribution: `trans.amount` large > 21 200, "
+            "`trans.balance` small < 9 500 and large > 32 096. "
+            "Baseline picks arbitrary round-number thresholds.",
         "quantitative_misinterpretation":
             "**Ratio and net-credit queries.** Requires correctly isolating debit "
             "(`type='VYDAJ'`) vs credit (`type='PRIJEM'`) transactions. Baseline uses "
             "English words → 0 rows for both populations → formula cannot be computed.",
         "time_grain":
             "**Temporal bucketing + ENUM.** Monthly aggregations filtered by transaction type "
-            "(`type='PRIJEM'`). Layer 1 provides `time_grains=['monthly']` and an "
+            "(`type='PRIJEM'`). Enrichment provides `time_grains=['monthly']` and an "
             "`AGGREGATE_OVER_TIME` operator. Baseline fails on both: wrong ENUM code "
             "and potentially wrong time bucket.",
     }
