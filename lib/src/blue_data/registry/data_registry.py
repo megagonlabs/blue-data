@@ -61,12 +61,17 @@ class DataRegistry(Registry):
         """Register a DataSource and add a corresponding top-level registry record."""
         self.sources[source.name] = source
 
+        cls = type(source)
+        properties = {
+            **source.properties,
+            "_class": f"{cls.__module__}.{cls.__qualname__}",
+        }
         self.register_record(
             name=source.name,
             type="source",
             scope="/",
             description=f"{source.name} data source",
-            properties=source.properties,
+            properties=properties,
         )
 
     def get_source(self, name: str) -> DataSource | None:
@@ -2053,61 +2058,78 @@ class DataRegistry(Registry):
         if not properties:
             return None
 
-        connection = properties.get("connection", {})
-        protocol = connection.get("protocol")
-
-        if protocol == "sqlite":
-            from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
-            source_obj = SQLiteDBSource(source, properties=properties)
-
-        elif protocol == "postgres":
-            from blue_data.source.sql.postgres.postgres_sql_source import PostgresDBSource
-            source_obj = PostgresDBSource(source, properties=properties)
-
-        elif protocol == "mysql":
-            from blue_data.source.sql.mysql.mysql_sql_source import MySQLDBSource
-            source_obj = MySQLDBSource(source, properties=properties)
-
-        elif protocol == "mongodb":
-            from blue_data.source.json.mongodb.mongodb_json_source import MongoDBSource
-            source_obj = MongoDBSource(source, properties=properties)
-
-        elif protocol in {"bolt", "neo4j"}:
-            from blue_data.source.graph.neo4j.neo4j_graph_source import NEO4JSource
-            source_obj = NEO4JSource(source, properties=properties)
-
-        elif protocol == "json":
-            subprotocol = connection.get("subprotocol")
-
-            if subprotocol == "memory":
-                from blue_data.source.json.memory_json_source import MemoryJSONSource
-                source_obj = MemoryJSONSource(name=source, properties=properties)
-            else:
-                raise ValueError(f"Unsupported JSON subprotocol: {subprotocol}")
-
-        elif protocol == "vector":
-            subprotocol = connection.get("subprotocol")
-
-            if subprotocol == "redis":
-                from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
-                source_obj = RedisVectorSource(source, properties=properties)
-            else:
-                raise ValueError(f"Unsupported vector subprotocol: {subprotocol}")
-
-        elif protocol == "redis":
-            from blue_data.source.json.redis.redis_json_source import RedisJSONSource
-            source_obj = RedisJSONSource(source, properties=properties)
-
-        elif protocol == "bn":
-            from blue_data.source.network.bn.bayesian_network_source import BayesianNetworkSource
-            source_obj = BayesianNetworkSource(source, properties=properties)
-
+        # Prefer the stored class name — works for any DataSource subclass without
+        # protocol registration. Falls back to protocol-based dispatch for sources
+        # registered before _class was introduced.
+        class_path = properties.get("_class")
+        if class_path:
+            from blue_data.source.source import DataSource as _DS
+            source_obj = _DS.instantiate(class_path, source, properties=properties)
         else:
-            raise ValueError(f"Unsupported source protocol: {protocol}")
+            connection = properties.get("connection", {})
+            protocol = connection.get("protocol")
+            source_obj = self._connect_source_by_protocol(source, protocol, connection, properties)
+
 
         self.sources[source] = source_obj
         return source_obj
-    
+
+    def _connect_source_by_protocol(self, source: str, protocol: str, connection: dict, properties: dict):
+        """Instantiate a source from its protocol string.
+
+        Supports both the new hierarchical format ("sql/sqlite", "graph/neo4j", …)
+        and the legacy flat format ("sqlite", "bolt", …) for backward compatibility.
+        """
+        # Normalise legacy flat protocols to the new "type/subtype" form
+        _legacy = {
+            "sqlite":  "sql/sqlite",
+            "postgres": "sql/postgres",
+            "mysql":   "sql/mysql",
+            "mongodb": "json/mongodb",
+            "bolt":    "graph/neo4j",
+            "neo4j":   "graph/neo4j",
+            "redis":   "json/redis",
+            "bn":      "network/bn",
+        }
+        if protocol in _legacy:
+            protocol = _legacy[protocol]
+        elif protocol == "json":
+            sub = connection.get("subprotocol", "")
+            protocol = f"json/{sub}"
+        elif protocol == "vector":
+            sub = connection.get("subprotocol", "")
+            protocol = f"vector/{sub}"
+
+        if protocol == "sql/sqlite":
+            from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+            return SQLiteDBSource(source, properties=properties)
+        elif protocol == "sql/postgres":
+            from blue_data.source.sql.postgres.postgres_sql_source import PostgresDBSource
+            return PostgresDBSource(source, properties=properties)
+        elif protocol == "sql/mysql":
+            from blue_data.source.sql.mysql.mysql_sql_source import MySQLDBSource
+            return MySQLDBSource(source, properties=properties)
+        elif protocol == "json/mongodb":
+            from blue_data.source.json.mongodb.mongodb_json_source import MongoDBSource
+            return MongoDBSource(source, properties=properties)
+        elif protocol == "graph/neo4j":
+            from blue_data.source.graph.neo4j.neo4j_graph_source import NEO4JSource
+            return NEO4JSource(source, properties=properties)
+        elif protocol == "json/memory":
+            from blue_data.source.json.memory_json_source import MemoryJSONSource
+            return MemoryJSONSource(name=source, properties=properties)
+        elif protocol == "json/redis":
+            from blue_data.source.json.redis.redis_json_source import RedisJSONSource
+            return RedisJSONSource(source, properties=properties)
+        elif protocol == "vector/redis":
+            from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
+            return RedisVectorSource(source, properties=properties)
+        elif protocol == "network/bn":
+            from blue_data.source.network.bn.bayesian_network_source import BayesianNetworkSource
+            return BayesianNetworkSource(source, properties=properties)
+        else:
+            raise ValueError(f"Unsupported source protocol: {protocol}")
+
 
     def sync_source_database_collection_entity(
         self,

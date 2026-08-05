@@ -7,6 +7,23 @@ class DataSource:
         self.name = name
         self.properties = properties or {}
 
+    @classmethod
+    def instantiate(cls, full_class_path: str, *args, **kwargs) -> "DataSource":
+        """Instantiate a DataSource subclass by its fully-qualified class path.
+
+        Example:
+            DataSource.instantiate(
+                "blue_data.source.graph.neo4j.neo4j_graph_source.NEO4JSource",
+                "my_source",
+                properties={...},
+            )
+        """
+        import importlib
+        module_path, class_name = full_class_path.rsplit(".", 1)
+        module = importlib.import_module(module_path)
+        source_cls = getattr(module, class_name)
+        return source_cls(*args, **kwargs)
+
     # ---------- source ----------
     def fetch_metadata(self) -> dict:
         return {}

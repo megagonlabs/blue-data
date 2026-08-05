@@ -461,6 +461,38 @@ def test_connect_source_no_properties_returns_none(reg):
     assert reg.connect_source("noprops") is None
 
 
+def test_register_source_stores_class_name(reg):
+    """register_source should record _class so the source can be reconstructed."""
+    source = StubSource("s1")
+    reg.register_source(source)
+    props = reg.get_source_properties("s1")
+    expected = f"{StubSource.__module__}.{StubSource.__qualname__}"
+    assert props.get("_class") == expected
+
+
+def test_connect_source_uses_class_path(tmp_path):
+    """connect_source should reconstruct a source via _class without a protocol."""
+    from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+    reg = DataRegistry(store=MemoryJSONSource())
+    source = SQLiteDBSource("s2", properties={"connection": {"database_directory": str(tmp_path)}})
+    reg.register_source(source)
+    # Evict the live source so connect_source must reconstruct it via _class
+    del reg.sources["s2"]
+    result = reg.connect_source("s2")
+    assert isinstance(result, SQLiteDBSource)
+    assert result.name == "s2"
+
+
+def test_datasource_instantiate_classmethod(tmp_path):
+    """DataSource.instantiate should load and return an instance by full class path."""
+    from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+    full_path = f"{SQLiteDBSource.__module__}.{SQLiteDBSource.__qualname__}"
+    props = {"connection": {"database_directory": str(tmp_path)}}
+    result = DataSource.instantiate(full_path, "mydb", properties=props)
+    assert isinstance(result, SQLiteDBSource)
+    assert result.name == "mydb"
+
+
 # ---------- execute_query ----------
 
 def test_execute_query_routes_to_source(reg):
