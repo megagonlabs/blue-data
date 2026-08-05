@@ -181,7 +181,7 @@ def _source_with_rows(tmp_path, name, rows):
 def test_import_creates_csv_by_default(src, tmp_path):
     (tmp_path / "src_orders").mkdir()
     source = _source_with_rows(tmp_path, "orders", [{"id": 1, "val": "a"}])
-    result = src.import_data(source, "orders")
+    result = src.import_data(source, collection="orders")
     assert result["status"] == "success"
     assert result["format"] == "csv"
     assert result["rows_written"] == 1
@@ -191,23 +191,23 @@ def test_import_creates_csv_by_default(src, tmp_path):
 def test_import_creates_json(src, tmp_path):
     (tmp_path / "src_items").mkdir()
     source = _source_with_rows(tmp_path, "items", [{"id": 1}])
-    src.import_data(source, "items", options={"format": "json"})
+    src.import_data(source, collection="items", options={"format": "json"})
     assert os.path.exists(tmp_path / "items.json")
 
 
 def test_import_creates_jsonl(src, tmp_path):
     (tmp_path / "src_events").mkdir()
     source = _source_with_rows(tmp_path, "events", [{"id": 1}])
-    src.import_data(source, "events", options={"format": "jsonl"})
+    src.import_data(source, collection="events", options={"format": "jsonl"})
     assert os.path.exists(tmp_path / "events.jsonl")
 
 
 def test_import_append_adds_rows(src, tmp_path):
     (tmp_path / "src_orders").mkdir()
     source = _source_with_rows(tmp_path, "orders", [{"id": 1}])
-    src.import_data(source, "orders")
+    src.import_data(source, collection="orders")
     source2 = _source_with_rows(tmp_path, "orders", [{"id": 2}])
-    src.import_data(source2, "orders", mode="append")
+    src.import_data(source2, collection="orders", mode="append")
     rows = src.execute_query(None, collection="orders")
     assert len(rows) == 2
 
@@ -215,9 +215,9 @@ def test_import_append_adds_rows(src, tmp_path):
 def test_import_overwrite_replaces_rows(src, tmp_path):
     (tmp_path / "src_orders").mkdir()
     source = _source_with_rows(tmp_path, "orders", [{"id": 1}, {"id": 2}])
-    src.import_data(source, "orders")
+    src.import_data(source, collection="orders")
     source2 = _source_with_rows(tmp_path, "orders", [{"id": 99}])
-    src.import_data(source2, "orders", mode="overwrite")
+    src.import_data(source2, collection="orders", mode="overwrite")
     rows = src.execute_query(None, collection="orders")
     assert len(rows) == 1
     assert rows[0]["id"] == 99
@@ -227,7 +227,7 @@ def test_import_infers_format_from_existing_file(src, tmp_path):
     _write_json(tmp_path, "data", [{"x": 1}])
     (tmp_path / "src_data").mkdir()
     source = _source_with_rows(tmp_path, "data", [{"x": 2}])
-    src.import_data(source, "data", mode="append")
+    src.import_data(source, collection="data", mode="append")
     rows = src.execute_query(None, collection="data")
     assert len(rows) == 2
     assert (tmp_path / "data.json").exists()
@@ -243,7 +243,7 @@ def test_execute_query_parquet(src, tmp_path):
 def test_import_creates_parquet(src, tmp_path):
     (tmp_path / "src_data").mkdir()
     source = _source_with_rows(tmp_path, "data", [{"id": 1}])
-    src.import_data(source, "data", options={"format": "parquet"})
+    src.import_data(source, collection="data", options={"format": "parquet"})
     assert os.path.exists(tmp_path / "data.parquet")
     rows = src.execute_query(None, collection="data")
     assert len(rows) == 1
@@ -253,7 +253,7 @@ def test_import_empty_source(src, tmp_path):
     (tmp_path / "src_empty").mkdir()
     source = FileSource("empty_src", directory=str(tmp_path / "src_empty"))
     _write_csv(tmp_path / "src_empty", "empty", [])
-    result = src.import_data(source, "empty")
+    result = src.import_data(source, collection="empty")
     assert result["status"] == "success"
     assert result["rows_written"] == 0
     assert os.path.exists(tmp_path / "empty.csv")
@@ -264,7 +264,7 @@ def test_import_empty_source(src, tmp_path):
 def test_import_csv_source_to_json_target(src, tmp_path):
     (tmp_path / "src_orders").mkdir()
     source = _source_with_rows(tmp_path, "orders", [{"id": 1, "city": "NYC"}])
-    src.import_data(source, "orders", options={"format": "json"})
+    src.import_data(source, collection="orders", options={"format": "json"})
     assert (tmp_path / "orders.json").exists()
     rows = src.execute_query(None, collection="orders")
     assert len(rows) == 1
@@ -274,7 +274,7 @@ def test_import_csv_source_to_json_target(src, tmp_path):
 def test_import_csv_source_to_parquet_target(src, tmp_path):
     (tmp_path / "src_orders").mkdir()
     source = _source_with_rows(tmp_path, "orders", [{"id": 1, "amount": 99.5}])
-    src.import_data(source, "orders", options={"format": "parquet"})
+    src.import_data(source, collection="orders", options={"format": "parquet"})
     assert (tmp_path / "orders.parquet").exists()
     rows = src.execute_query(None, collection="orders")
     assert rows[0]["amount"] == 99.5
@@ -285,7 +285,7 @@ def test_import_parquet_source_to_csv_target(src, tmp_path):
     src_dir.mkdir()
     pd.DataFrame([{"x": 10}, {"x": 20}]).to_parquet(src_dir / "data.parquet", index=False)
     source = FileSource("parquet_src", directory=str(src_dir))
-    src.import_data(source, "data", options={"format": "csv"})
+    src.import_data(source, collection="data", options={"format": "csv"})
     assert (tmp_path / "data.csv").exists()
     rows = src.execute_query(None, collection="data")
     assert len(rows) == 2
@@ -296,11 +296,11 @@ def test_import_parquet_source_to_csv_target(src, tmp_path):
 def test_import_parquet_append(src, tmp_path):
     (tmp_path / "src_a").mkdir()
     source_a = _source_with_rows(tmp_path, "a", [{"id": 1}])
-    src.import_data(source_a, "a", options={"format": "parquet"})
+    src.import_data(source_a, collection="a", options={"format": "parquet"})
     (tmp_path / "src_a2").mkdir()
     source_b = FileSource("src_a2", directory=str(tmp_path / "src_a2"))
     _write_csv(tmp_path / "src_a2", "a", [{"id": 2}])
-    src.import_data(source_b, "a", mode="append")
+    src.import_data(source_b, collection="a", mode="append")
     rows = src.execute_query(None, collection="a")
     assert len(rows) == 2
 
@@ -309,7 +309,7 @@ def test_import_parquet_append(src, tmp_path):
 
 def test_import_source_collection_missing_writes_empty(src, tmp_path):
     source = FileSource("empty_src", directory=str(tmp_path / "empty_src"))
-    result = src.import_data(source, "ghost")
+    result = src.import_data(source, collection="ghost")
     assert result["status"] == "success"
     assert result["rows_written"] == 0
 
@@ -329,7 +329,7 @@ def test_e2e_full_collection_copy(tmp_path):
     source = FileSource("source", directory=str(src_dir))
     dest = FileSource("dest", directory=str(dst_dir))
 
-    result = dest.import_data(source, "products")
+    result = dest.import_data(source, collection="products")
     assert result["status"] == "success"
     assert result["rows_written"] == 5
 
@@ -350,16 +350,16 @@ def test_e2e_append_then_overwrite(tmp_path):
     dest = FileSource("dst", directory=str(dst_dir))
 
     pd.DataFrame([{"id": 1}]).to_csv(src_dir / "orders.csv", index=False)
-    dest.import_data(source, "orders")
+    dest.import_data(source, collection="orders")
 
     pd.DataFrame([{"id": 2}]).to_csv(src_dir / "orders.csv", index=False)
-    dest.import_data(source, "orders", mode="append")
+    dest.import_data(source, collection="orders", mode="append")
 
     rows = dest.execute_query(None, collection="orders")
     assert len(rows) == 2
 
     pd.DataFrame([{"id": 99}]).to_csv(src_dir / "orders.csv", index=False)
-    dest.import_data(source, "orders", mode="overwrite")
+    dest.import_data(source, collection="orders", mode="overwrite")
 
     rows = dest.execute_query(None, collection="orders")
     assert len(rows) == 1
@@ -370,5 +370,5 @@ def test_import_data_stub_on_base():
     from blue_data.source.source import DataSource
     ds = DataSource("base")
     source = DataSource("source")
-    result = ds.import_data(source, "col")
+    result = ds.import_data(source, collection="col")
     assert result == {}

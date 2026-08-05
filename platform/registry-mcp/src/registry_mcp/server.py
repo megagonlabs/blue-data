@@ -366,8 +366,8 @@ def execute_query(
 def import_data(
     source: str,
     target: str,
-    collection: str,
     database: str = "default",
+    collection: str = "default",
     entity: Optional[str] = None,
     mode: str = "append",
 ) -> str:

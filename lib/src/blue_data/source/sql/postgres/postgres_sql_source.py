@@ -481,7 +481,7 @@ class PostgresDBSource(SQLSource):
     ):
         return {"status": "registry_only"}
 
-    def import_data(self, source, collection, database="default", entity=None, mode="append", options=None):
+    def import_data(self, source, database="default", collection="default", entity=None, mode="append", options=None):
         if entity is None:
             raise ValueError("entity (table name) is required for PostgresDBSource.import_data")
 

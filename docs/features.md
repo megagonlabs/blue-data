@@ -185,8 +185,8 @@ Source-to-source data import across SQLite, Postgres, MySQL, and FileSource, wit
 registry.import_data(
     source="sqlite",    # source to read from
     target="postgres",  # target to write to
-    collection="public",
     database="mydb",
+    collection="public",
     entity="users",
     mode="append",
 )
