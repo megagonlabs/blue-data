@@ -22,10 +22,6 @@ The package has two runtime dependencies: `pandas` and `numpy`. No build step is
 
 - **`DataSchema`** (`schema.py`) — in-memory graph model used by `DataSource` implementations during schema introspection. Holds entities (with attributes) and relations. Sources build a `DataSchema`, call `get_entities()`, and return the result from `fetch_database_collection_entities`.
 
-- **`Plan` / `PlanNode` / `PlanEdge`** (`plan.py`) — DAG model for execution plans. Nodes have types (`INPUT`, `OUTPUT`, `OPERATOR`) and a status lifecycle (`INITED → REFINING → REFINED → EXECUTING → EXECUTED`). `Plan.to_dict()` serializes the full graph.
-
-- **`Operator`** (`operator.py`) — abstract base with a single `execute(inputs)` method. Concrete operators implement data transformation steps that operate within a `Plan`.
-
 ### Storage backends (`blue_data/sources/`)
 
 These serve as the persistence layer for the `Registry`, not for the data sources themselves:

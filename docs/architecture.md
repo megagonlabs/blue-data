@@ -299,20 +299,3 @@ Both implement the same `execute_query` interface with operations: `VECTOR.CREAT
 
 > `RedisVectorSource` also requires **Redis Stack** for `FT.CREATE` and `FT.SEARCH`.
 
----
-
-## Plan / Operator model
-
-`Plan` is a DAG of `PlanNode` objects used to represent data transformation pipelines. It is independent of the registry hierarchy and exists for future operator-based execution.
-
-```
-Plan
-  ├─ nodes: { id → PlanNode }
-  │           type: INPUT | OUTPUT | OPERATOR
-  │           status: INITED → REFINING → REFINED → EXECUTING → EXECUTED
-  └─ edges: [ PlanEdge(source_id, target_id) ]
-```
-
-`Operator` is the abstract base class for nodes of type `OPERATOR`. Concrete operators implement `execute(inputs) → outputs`.
-
-`Plan.to_dict()` serializes the full graph to a JSON-compatible dict.

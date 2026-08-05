@@ -664,33 +664,6 @@ PostgresDBSource(name: str, properties: dict | None = None)
 
 ---
 
-## `Plan` / `PlanNode` / `PlanEdge`
-
-```python
-from blue_data.core.plan import Plan, PlanNode, PlanEdge, NodeType, NodeStatus
-```
-
-### `NodeStatus`
-
-`INITED` → `REFINING` → `REFINED` → `EXECUTING` → `EXECUTED`, plus `PLANNED` and `FAILED`.
-
-### `NodeType`
-
-`INPUT`, `OUTPUT`, `OPERATOR`.
-
-### `Plan`
-
-| Method | Returns | Description |
-|---|---|---|
-| `add_node(node)` | `PlanNode` | Register a node |
-| `add_edge(source_id, target_id, **properties)` | `PlanEdge` | Add a directed edge |
-| `get_node(node_id)` | `PlanNode \| None` | Lookup node by id |
-| `set_input(node_id)` | `None` | Designate the input node |
-| `set_output(node_id)` | `None` | Designate the output node |
-| `to_dict()` | `dict` | Full JSON-serializable representation |
-
----
-
 ## Utilities
 
 ```python
