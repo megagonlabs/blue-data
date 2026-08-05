@@ -1,0 +1,34 @@
+------------------------------------------------------------
+1. Source — CSV files
+------------------------------------------------------------
+  csv/customers.csv  (3 rows)
+  csv/orders.csv     (4 rows)
+  2. Registered sources: ['csv_store', 'sqlite_store']
+  3. FileSource collections after sync: ['orders', 'customers']
+  4. SQLite tables created: ['customers', 'orders']
+
+------------------------------------------------------------
+5. import_data results
+------------------------------------------------------------
+  customers → {'status': 'success', 'rows_imported': 3}
+  orders    → {'status': 'success', 'rows_imported': 4}
+
+------------------------------------------------------------
+6. Verify — query SQLite target
+------------------------------------------------------------
+  customers (3 rows):
+    {'id': 1, 'email': 'alice@example.com', 'country': 'US', 'age': 30}
+    {'id': 2, 'email': 'bob@example.com', 'country': 'UK', 'age': 25}
+    {'id': 3, 'email': 'carol@example.com', 'country': 'US', 'age': 35}
+
+  paid orders (3 rows):
+    {'id': 1, 'email': 'alice@example.com', 'amount': 99.9, 'status': 'paid'}
+    {'id': 2, 'email': 'alice@example.com', 'amount': 149.0, 'status': 'paid'}
+    {'id': 4, 'email': 'carol@example.com', 'amount': 200.0, 'status': 'paid'}
+
+------------------------------------------------------------
+7. Overwrite mode — reload with updated rows
+------------------------------------------------------------
+  row count after overwrite: 4 (was 3, now 4)
+
+Demo complete.
