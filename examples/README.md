@@ -81,6 +81,53 @@ python3 examples/scenario-demos/process_reasoning_demo.py --live
 Deep-dives into individual blue-data features. No before/after story — shows
 what a feature does, what it produces, and how to wire it up.
 
+### Source-to-Source Data Import (`import_data_demo.py`)
+
+Shows `registry.import_data` moving rows between two registered sources. A
+FileSource (CSV) is the origin; a SQLiteDBSource is the target. Demonstrates
+`append` mode (incremental load) and `overwrite` mode (full reload).
+
+```bash
+python3 examples/feature-demos/import_data_demo.py
+```
+
+**API key:** not required | **[Sample output](feature-demos/import_data_demo.output.txt)**
+
+---
+
+### Natural Language Querying (`nl_query_demo.py`)
+
+Shows `registry.execute_query_nl` — one call that translates a plain-English
+question into SQL and executes it. The registry pulls the schema from its own
+records and the LLM callable from the `metadata_enricher`. Demonstrates four
+queries against a Northwind SQLite database.
+
+```bash
+pip install openai
+export OPENAI_API_KEY=sk-...
+python3 examples/feature-demos/nl_query_demo.py
+```
+
+**API key:** OpenAI required | **[Sample output](feature-demos/nl_query_demo.output.txt)**
+
+---
+
+### Programmatic Schema Creation (`schema_creation_demo.py`)
+
+Shows how to declare a schema in the registry without syncing a live source.
+Calls `create_source_database`, `create_source_database_collection`, and
+`create_source_database_collection_entity` to define two tables, then inserts
+rows and verifies they are queryable. Also shows idempotency (creating an
+entity that already exists is a no-op).
+
+```bash
+python3 examples/feature-demos/schema_creation_demo.py
+```
+
+**API key:** not required | **[Sample output](feature-demos/schema_creation_demo.output.txt)**
+
+---
+
 ### Enrichment Pipeline Reference (`enrichment_demo.py`)
 
 Developer reference for wiring up and running the enrichment pipeline. Uses a
@@ -287,6 +334,9 @@ python3 examples/benchmarks/enrichment_benchmark.py --judge --out results/run.js
 | `coded_value_demo.py` | scenario-demos | Anthropic (SQL gen) | — | [output](scenario-demos/coded_value_demo.output.txt) |
 | `description_search_demo.py` | scenario-demos | none at runtime | — | [output](scenario-demos/description_search_demo.output.txt) |
 | `process_reasoning_demo.py` | scenario-demos | none (default) | — | [output](scenario-demos/process_reasoning_demo.output.txt) |
+| `import_data_demo.py` | feature-demos | none | — | [output](feature-demos/import_data_demo.output.txt) |
+| `nl_query_demo.py` | feature-demos | OpenAI | — | [output](feature-demos/nl_query_demo.output.txt) |
+| `schema_creation_demo.py` | feature-demos | none | — | [output](feature-demos/schema_creation_demo.output.txt) |
 | `enrichment_demo.py` | feature-demos | Anthropic (optional) | — | [output](feature-demos/enrichment_demo.output.txt) |
 | `sql_semantic_enrichment_demo.py` | pipeline-demos | none | — | [output](pipeline-demos/sql_semantic_enrichment_demo.output.txt) |
 | `langgraph_direct_demo.py` | integration-demos | OpenAI | — | [output](integration-demos/langgraph_direct_demo.output.txt) |

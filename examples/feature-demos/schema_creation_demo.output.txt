@@ -1,0 +1,37 @@
+
+------------------------------------------------------------
+1. Registered source — no databases yet
+------------------------------------------------------------
+  databases: []
+  2. create_source_database('shop'): {'status': 'success'}
+  databases now: [{'name': 'shop', 'type': 'database', 'scope': '/source/mydb', 'description': '', 'created_by': None, 'properties': {}, 'icon': None, 'contents': {}}]
+
+------------------------------------------------------------
+3. create_source_database_collection('public')
+------------------------------------------------------------
+  collections: [{'name': 'public', 'type': 'collection', 'scope': '/source/mydb/database/shop', 'description': '', 'created_by': None, 'properties': {'schema': '{\n  "entities": [],\n  "relations": []\n}'}, 'icon': None, 'contents': {}}]
+  4a. create entity 'customers': {'status': 'success'}
+  4b. create entity 'orders': {'status': 'success'}
+
+------------------------------------------------------------
+5. Entities in registry
+------------------------------------------------------------
+  customers       description=''
+  orders          description=''
+    customers.pii property: True
+
+------------------------------------------------------------
+6. Insert rows and query
+------------------------------------------------------------
+  customers: [{'id': 1, 'email': 'alice@example.com', 'country': 'US', 'age': 30}, {'id': 2, 'email': 'bob@example.com', 'country': 'UK', 'age': 25}]
+  spend by customer: [{'email': 'alice@example.com', 'total_spend': 248.9}, {'email': 'bob@example.com', 'total_spend': 49.5}]
+
+------------------------------------------------------------
+7. Idempotency — create 'customers' again (no overwrite)
+------------------------------------------------------------
+
+------------------------------------------------------------
+  result (expected None)
+------------------------------------------------------------
+
+Demo complete.
