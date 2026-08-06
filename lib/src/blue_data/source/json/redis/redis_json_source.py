@@ -13,16 +13,10 @@ from blue_data.core.schema import DataSchema
 class RedisJSONSource(JSONSource):
     """Redis-backed JSON source — registry backend and data source for Redis introspection."""
 
-    def __init__(self, name: str = "redis_json", connection: Any = None, properties: dict | None = None):
+    def __init__(self, name: str = "redis_json", properties: dict | None = None):
         super().__init__(name, properties=properties)
         self.logger = logging.getLogger(self.__class__.__name__)
-
-        if connection is not None:
-            self.connection = connection
-        else:
-            self._initialize_connection_properties()
-            self.connection = self._connect()
-
+        self.connection = self._connect()
         self._namespace = self.properties.get("namespace", "registry")
 
     # ---------- connection ----------

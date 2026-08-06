@@ -9,11 +9,21 @@ from blue_data.source.stream.stream_source import StreamSource
 class FileStreamSource(StreamSource):
     """File-backed stream source — appends JSON lines to per-stream files."""
 
-    def __init__(self, name: str, directory: str = ".", properties: dict | None = None):
-        super().__init__(name, properties=properties)
-        self._directory = os.path.abspath(directory)
+    def __init__(self, name: str, directory: str | None = None, properties: dict | None = None):
+        props = dict(properties or {})
+        if directory is not None:
+            props.setdefault("connection", {})["directory"] = directory
+        super().__init__(name, properties=props)
+        self._directory = os.path.abspath(self.properties["connection"]["directory"])
         os.makedirs(self._directory, exist_ok=True)
         self._cursors: dict[str, int] = {}
+
+    def _initialize_connection_properties(self) -> None:
+        conn = self.properties.get("connection", {})
+        conn.setdefault("protocol", "stream")
+        conn.setdefault("subprotocol", "file")
+        conn.setdefault("directory", ".")
+        self.properties["connection"] = conn
 
     def _stream_path(self, stream: str) -> str:
         return os.path.join(self._directory, stream + ".jsonl")

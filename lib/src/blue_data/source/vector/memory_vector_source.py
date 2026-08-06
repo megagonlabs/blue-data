@@ -18,10 +18,14 @@ class MemoryVectorSource(VectorSource):
     def __init__(self, name: str = "memory_vector", embedding_fn=None, properties: dict | None = None):
         super().__init__(name, embedding_fn=embedding_fn, properties=properties or {})
         self.logger = logging.getLogger(self.__class__.__name__)
-        # index_name -> {"collection": str, "dim": int, "metric": str}
         self._indices: dict[str, dict] = {}
-        # collection -> {doc_id: doc_dict}
         self._store: dict[str, dict[str, dict]] = {}
+
+    def _initialize_connection_properties(self) -> None:
+        conn = self.properties.get("connection", {})
+        conn.setdefault("protocol", "vector")
+        conn.setdefault("subprotocol", "memory")
+        self.properties["connection"] = conn
 
     # ---------- DataSource interface (stubs — not relevant for registry search) ----------
 

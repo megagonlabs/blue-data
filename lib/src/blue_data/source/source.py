@@ -6,6 +6,16 @@ class DataSource:
     def __init__(self, name: str, properties: dict | None = None):
         self.name = name
         self.properties = properties or {}
+        self._initialize_connection_properties()
+
+    def _initialize_connection_properties(self) -> None:
+        """Set default values in ``self.properties["connection"]``.
+
+        Override in each subclass to call ``setdefault`` on the connection
+        dict for every config key the source needs.  Called automatically
+        by ``DataSource.__init__`` so subclasses never need to invoke it
+        explicitly.
+        """
 
     @classmethod
     def instantiate(cls, full_class_path: str, *args, **kwargs) -> "DataSource":

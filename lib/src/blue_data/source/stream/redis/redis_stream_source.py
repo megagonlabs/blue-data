@@ -11,16 +11,10 @@ from blue_data.source.stream.stream_source import StreamSource
 class RedisStreamSource(StreamSource):
     """Redis Streams-backed source using XADD / XREAD."""
 
-    def __init__(self, name: str, connection=None, properties: dict | None = None):
+    def __init__(self, name: str, properties: dict | None = None):
         super().__init__(name, properties=properties)
         self.logger = logging.getLogger(self.__class__.__name__)
-
-        if connection is not None:
-            self.connection = connection
-        else:
-            self._initialize_connection_properties()
-            self.connection = self._connect()
-
+        self.connection = self._connect()
         self._cursors: dict[str, str] = {}
 
     # ---------- connection ----------

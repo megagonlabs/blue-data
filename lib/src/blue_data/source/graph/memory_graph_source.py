@@ -16,6 +16,12 @@ class MemoryGraphSource(GraphSource):
         self._edges: dict[str, dict[str, dict]] = defaultdict(dict)
         self._transactions: dict[str, GraphTransaction] = {}
 
+    def _initialize_connection_properties(self) -> None:
+        conn = self.properties.get("connection", {})
+        conn.setdefault("protocol", "graph")
+        conn.setdefault("subprotocol", "memory")
+        self.properties["connection"] = conn
+
     # ---------- transaction helpers ----------
 
     def _require_transaction(self, transaction_id: str) -> GraphTransaction:

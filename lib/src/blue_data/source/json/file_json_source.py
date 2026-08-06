@@ -11,10 +11,18 @@ from blue_data.core.utils.json_utils import json_query_get, json_query_set, json
 class FileJSONSource(JSONSource):
     """File-backed JSON storage backend."""
 
-    def __init__(self, path: str):
-        self.path = path
+    def __init__(self, name: str = "file_json", properties: dict | None = None):
+        super().__init__(name, properties=properties)
+        self.path = self.properties["connection"]["path"]
         if not os.path.exists(self.path):
             self._write({})
+
+    def _initialize_connection_properties(self) -> None:
+        conn = self.properties.get("connection", {})
+        conn.setdefault("protocol", "json")
+        conn.setdefault("subprotocol", "file")
+        conn.setdefault("path", "registry.json")
+        self.properties["connection"] = conn
 
     def _read(self) -> dict:
         with open(self.path, "r") as f:

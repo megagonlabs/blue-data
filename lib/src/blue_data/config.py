@@ -55,7 +55,7 @@ def build_store():
     if store_type == "file":
         from blue_data.source.json.file_json_source import FileJSONSource
         path = os.environ.get("BLUE_DATA_REGISTRY_FILE", "blue_data_store.json")
-        return FileJSONSource(path)
+        return FileJSONSource(properties={"connection": {"path": path}})
 
     from blue_data.source.json.memory_json_source import MemoryJSONSource
     return MemoryJSONSource()

@@ -24,11 +24,21 @@ class FileGraphSource(MemoryGraphSource):
     begin_transaction() itself.
     """
 
-    def __init__(self, name: str, directory: str = ".", properties: dict | None = None):
-        super().__init__(name, properties=properties or {})
+    def __init__(self, name: str, directory: str | None = None, properties: dict | None = None):
+        props = dict(properties or {})
+        if directory is not None:
+            props.setdefault("connection", {})["directory"] = directory
+        super().__init__(name, properties=props)
         self.logger = logging.getLogger(self.__class__.__name__)
-        self._directory = os.path.abspath(directory)
+        self._directory = os.path.abspath(self.properties["connection"]["directory"])
         os.makedirs(self._directory, exist_ok=True)
+
+    def _initialize_connection_properties(self) -> None:
+        conn = self.properties.get("connection", {})
+        conn.setdefault("protocol", "graph")
+        conn.setdefault("subprotocol", "file")
+        conn.setdefault("directory", ".")
+        self.properties["connection"] = conn
 
     # ---------- persistence helpers (committed database) ----------
 

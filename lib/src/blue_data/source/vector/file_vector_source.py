@@ -12,12 +12,22 @@ from blue_data.source.vector.vector_source import VectorSource
 class FileVectorSource(VectorSource):
     """File-backed vector storage — persists docs as JSON files per collection."""
 
-    def __init__(self, name: str, directory: str = ".", embedding_fn=None, properties: dict | None = None):
-        super().__init__(name, embedding_fn=embedding_fn, properties=properties or {})
+    def __init__(self, name: str, directory: str | None = None, embedding_fn=None, properties: dict | None = None):
+        props = dict(properties or {})
+        if directory is not None:
+            props.setdefault("connection", {})["directory"] = directory
+        super().__init__(name, embedding_fn=embedding_fn, properties=props)
         self.logger = logging.getLogger(self.__class__.__name__)
-        self._directory = os.path.abspath(directory)
+        self._directory = os.path.abspath(self.properties["connection"]["directory"])
         os.makedirs(self._directory, exist_ok=True)
         self._indices: dict[str, dict] = self._load_indices()
+
+    def _initialize_connection_properties(self) -> None:
+        conn = self.properties.get("connection", {})
+        conn.setdefault("protocol", "vector")
+        conn.setdefault("subprotocol", "file")
+        conn.setdefault("directory", ".")
+        self.properties["connection"] = conn
 
     # ---------- persistence helpers ----------
 

@@ -12,7 +12,7 @@ from blue_data.source.json.file_json_source import FileJSONSource
 def _sources(tmp_path):
     return [
         MemoryJSONSource(),
-        FileJSONSource(str(tmp_path / "store.json")),
+        FileJSONSource(properties={"connection": {"path": str(tmp_path / "store.json")}}),
     ]
 
 

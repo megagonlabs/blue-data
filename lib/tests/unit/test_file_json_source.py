@@ -4,14 +4,18 @@ import pytest
 from blue_data.source.json.file_json_source import FileJSONSource
 
 
+def _make(path: str) -> FileJSONSource:
+    return FileJSONSource(properties={"connection": {"path": path}})
+
+
 @pytest.fixture
 def src(tmp_path):
-    return FileJSONSource(str(tmp_path / "store.json"))
+    return _make(str(tmp_path / "store.json"))
 
 
 def test_initial_file_created(tmp_path):
     path = str(tmp_path / "new.json")
-    FileJSONSource(path)
+    _make(path)
     assert (tmp_path / "new.json").exists()
 
 
@@ -60,7 +64,7 @@ def test_delete_missing_no_error(src):
 
 def test_data_written_to_file(tmp_path):
     path = str(tmp_path / "store.json")
-    src = FileJSONSource(path)
+    src = _make(path)
     src.set("key", "value")
     with open(path) as f:
         raw = json.load(f)
@@ -69,9 +73,9 @@ def test_data_written_to_file(tmp_path):
 
 def test_data_persists_across_instances(tmp_path):
     path = str(tmp_path / "store.json")
-    src1 = FileJSONSource(path)
+    src1 = _make(path)
     src1.set("persistent", True)
-    src2 = FileJSONSource(path)
+    src2 = _make(path)
     assert src2.get("persistent") is True
 
 

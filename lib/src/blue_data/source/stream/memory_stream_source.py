@@ -13,6 +13,12 @@ class MemoryStreamSource(StreamSource):
         self._streams: dict[str, list[dict]] = defaultdict(list)
         self._cursor: dict[str, int] = {}
 
+    def _initialize_connection_properties(self) -> None:
+        conn = self.properties.get("connection", {})
+        conn.setdefault("protocol", "stream")
+        conn.setdefault("subprotocol", "memory")
+        self.properties["connection"] = conn
+
     def publish(self, stream: str, message: dict) -> None:
         self._streams[stream].append(message)
 

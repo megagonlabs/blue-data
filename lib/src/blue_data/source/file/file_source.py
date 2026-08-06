@@ -18,10 +18,19 @@ class FileSource(DataSource):
     concept — ``database`` is always ``"default"``.
     """
 
-    def __init__(self, name: str, directory: str = ".", properties: dict | None = None):
-        super().__init__(name, properties=properties)
-        self._directory = os.path.abspath(directory)
+    def __init__(self, name: str, directory: str | None = None, properties: dict | None = None):
+        props = dict(properties or {})
+        if directory is not None:
+            props.setdefault("connection", {})["directory"] = directory
+        super().__init__(name, properties=props)
+        self._directory = os.path.abspath(self.properties["connection"]["directory"])
         os.makedirs(self._directory, exist_ok=True)
+
+    def _initialize_connection_properties(self) -> None:
+        conn = self.properties.get("connection", {})
+        conn.setdefault("protocol", "file")
+        conn.setdefault("directory", ".")
+        self.properties["connection"] = conn
 
     # ---------- internal helpers ----------
 
