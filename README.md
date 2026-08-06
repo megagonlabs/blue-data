@@ -40,8 +40,6 @@ Event-log tables get treated as static snapshots. *"What is the current account 
 
 **VectorSource** — pluggable vector index used by the search engine. `MemoryVectorSource` for dev/test; `RedisVectorSource` for production (requires Redis Stack).
 
-**Plan** — a DAG of `PlanNode` objects (`INPUT`, `OUTPUT`, `OPERATOR`) used to represent and execute data transformation pipelines.
-
 ## Quick start
 
 ```python
