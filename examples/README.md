@@ -157,7 +157,7 @@ python3 examples/feature-demos/enrichment_demo.py
 
 ---
 
-## pipeline-demos/ — full pipeline on real datasets
+## integration-demos/ — full pipeline on real datasets
 
 End-to-end examples running the complete blue-data pipeline (register → sync →
 enrich → search → query) against real datasets.
@@ -172,14 +172,14 @@ and executes multi-table SQL queries.
 > full hybrid search.
 
 ```bash
-python3 examples/pipeline-demos/sql_semantic_enrichment_demo.py
+python3 examples/integration-demos/sql_semantic_enrichment_demo.py
 ```
 
-**Dataset:** Northwind (`data/northwind_sqlite.sql`) | **API key:** not required | **[Sample output](pipeline-demos/sql_semantic_enrichment_demo.output.txt)**
+**Dataset:** Northwind (`data/northwind_sqlite.sql`) | **API key:** not required | **[Sample output](integration-demos/sql_semantic_enrichment_demo.output.txt)**
 
 ---
 
-## integration-demos/ — framework integrations
+## framework-demos/ — framework integrations
 
 ### LangGraph — Direct Python API (`langgraph_direct_demo.py`)
 
@@ -189,10 +189,10 @@ python3 examples/pipeline-demos/sql_semantic_enrichment_demo.py
 ```bash
 pip install langgraph langchain-core langchain-openai
 export OPENAI_API_KEY=sk-...
-python3 examples/integration-demos/langgraph_direct_demo.py
+python3 examples/framework-demos/langgraph_direct_demo.py
 ```
 
-**API key:** OpenAI required | **[Sample output](integration-demos/langgraph_direct_demo.output.txt)**
+**API key:** OpenAI required | **[Sample output](framework-demos/langgraph_direct_demo.output.txt)**
 
 ---
 
@@ -206,10 +206,10 @@ as a subprocess — no separate terminal needed.
 pip install langgraph langchain-core langchain-openai langchain-mcp-adapters
 pip install -e lib/ -e platform/registry-mcp/
 export OPENAI_API_KEY=sk-...
-python3 examples/integration-demos/langgraph_mcp_demo.py
+python3 examples/framework-demos/langgraph_mcp_demo.py
 ```
 
-**API key:** OpenAI required | **[Sample output](integration-demos/langgraph_mcp_demo.output.txt)**
+**API key:** OpenAI required | **[Sample output](framework-demos/langgraph_mcp_demo.output.txt)**
 
 ---
 
@@ -223,10 +223,10 @@ REST API. The API server launches automatically as a subprocess.
 pip install langgraph langchain-core langchain-openai httpx
 pip install -e lib/ -e platform/api/
 export OPENAI_API_KEY=sk-...
-python3 examples/integration-demos/langgraph_api_demo.py
+python3 examples/framework-demos/langgraph_api_demo.py
 ```
 
-**API key:** OpenAI required | **[Sample output](integration-demos/langgraph_api_demo.output.txt)**
+**API key:** OpenAI required | **[Sample output](framework-demos/langgraph_api_demo.output.txt)**
 
 ---
 
@@ -338,10 +338,10 @@ python3 examples/benchmarks/enrichment_benchmark.py --judge --out results/run.js
 | `nl_query_demo.py` | feature-demos | OpenAI | — | [output](feature-demos/nl_query_demo.output.txt) |
 | `schema_creation_demo.py` | feature-demos | none | — | [output](feature-demos/schema_creation_demo.output.txt) |
 | `enrichment_demo.py` | feature-demos | Anthropic (optional) | — | [output](feature-demos/enrichment_demo.output.txt) |
-| `sql_semantic_enrichment_demo.py` | pipeline-demos | none | — | [output](pipeline-demos/sql_semantic_enrichment_demo.output.txt) |
-| `langgraph_direct_demo.py` | integration-demos | OpenAI | — | [output](integration-demos/langgraph_direct_demo.output.txt) |
-| `langgraph_mcp_demo.py` | integration-demos | OpenAI | MCP server | [output](integration-demos/langgraph_mcp_demo.output.txt) |
-| `langgraph_api_demo.py` | integration-demos | OpenAI | — | [output](integration-demos/langgraph_api_demo.output.txt) |
+| `sql_semantic_enrichment_demo.py` | integration-demos | none | — | [output](integration-demos/sql_semantic_enrichment_demo.output.txt) |
+| `langgraph_direct_demo.py` | framework-demos | OpenAI | — | [output](framework-demos/langgraph_direct_demo.output.txt) |
+| `langgraph_mcp_demo.py` | framework-demos | OpenAI | MCP server | [output](framework-demos/langgraph_mcp_demo.output.txt) |
+| `langgraph_api_demo.py` | framework-demos | OpenAI | — | [output](framework-demos/langgraph_api_demo.output.txt) |
 | `sqlite_example.py` | backends | none | — | — |
 | `sqlite_data_registry_demo.py` | backends | none | — | [output](backends/sqlite_data_registry_demo.output.txt) |
 | `registry_memory_example.py` | backends | none | — | [output](backends/registry_memory_example.output.txt) |

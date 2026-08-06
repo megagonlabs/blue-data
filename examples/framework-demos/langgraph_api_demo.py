@@ -21,7 +21,7 @@ Run:
     pip install langgraph langchain-core langchain-openai httpx
     pip install -e lib/ -e platform/api/
     export OPENAI_API_KEY=sk-...
-    python3 examples/integration-demos/langgraph_api_demo.py
+    python3 examples/framework-demos/langgraph_api_demo.py
 """
 
 import json
