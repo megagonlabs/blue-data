@@ -11,14 +11,25 @@ class ChromaDBVectorSource(VectorSource):
     """ChromaDB vector source — persistent or ephemeral via chromadb client."""
 
     def __init__(self, name: str, path: str | None = None, embedding_fn=None, properties: dict | None = None):
-        super().__init__(name, embedding_fn=embedding_fn, properties=properties or {})
+        props = dict(properties or {})
+        if path is not None:
+            props.setdefault("connection", {})["path"] = path
+        super().__init__(name, embedding_fn=embedding_fn, properties=props)
         self.logger = logging.getLogger(self.__class__.__name__)
+        resolved_path = self.properties["connection"].get("path")
         settings = chromadb.Settings(allow_reset=True)
         self._client = (
-            chromadb.PersistentClient(path=path) if path else chromadb.EphemeralClient(settings=settings)
+            chromadb.PersistentClient(path=resolved_path)
+            if resolved_path
+            else chromadb.EphemeralClient(settings=settings)
         )
-        # index_name -> {"collection": str, "embedding_field": str}
         self._indices: dict[str, dict] = {}
+
+    def _initialize_connection_properties(self) -> None:
+        conn = self.properties.get("connection", {})
+        conn.setdefault("protocol", "vector")
+        conn.setdefault("subprotocol", "chromadb")
+        self.properties["connection"] = conn
 
     # ---------- primitive operations ----------
 
