@@ -74,4 +74,4 @@ python3 -m pytest lib/tests/ -v
 
 ## Benchmarks
 
-See [benchmarks/README.md](benchmarks/README.md) for the NL2SQL enrichment benchmark. It requires an Anthropic API key and is not part of the normal test run.
+See [benchmarks/README.md](benchmarks/README.md) for the NL2SQL enrichment benchmark. It requires an OpenAI or Anthropic API key and is not part of the normal test run.

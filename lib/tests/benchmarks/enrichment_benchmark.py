@@ -1,7 +1,7 @@
 """
 NL2SQL enrichment benchmark — quantitative before/after impact of blue-data.
 
-Runs benchmark questions through three conditions and measures SQL quality:
+Runs 25 benchmark questions through three conditions and measures SQL quality:
 
   baseline  — raw DDL only (column names + SQL types, no enrichment)
   layer1    — DDL + all deterministic blue-data enrichment pulled from the
@@ -26,11 +26,12 @@ Question categories — each tests a distinct enrichment feature:
     Control questions answerable from column names alone. Expected: both
     baseline and layer1 correct. Validates benchmark honesty.
 
-  enum_coded_value (6 Qs)
+  enum_coded_value (7 Qs)
     Columns store Czech codes that Haiku cannot guess from English intent:
       trans.operation: VKLAD=cash deposit, VYBER=withdrawal,
                        PREVOD NA UCET=outgoing wire
       trans.k_symbol:  POJISTNE=insurance, DUCHOD=pension, SIPO=utilities, UROK=interest
+      loan.status:     A=repaid/OK, B=finished/default, C=running/OK, D=running/debt
     At baseline: Haiku generates WHERE operation='DEPOSIT' → 0 rows (wrong code).
     Layer 1 injects ENUM_CATEGORY values → correct filter → rows returned.
 
@@ -62,10 +63,10 @@ Question categories — each tests a distinct enrichment feature:
     At baseline: wrong ENUM codes → 0 rows → cannot compute net credit or ratio.
 
   time_grain (2 Qs)
-    Layer 1 injects time_grains=['monthly'] for date columns and emits an
-    AGGREGATE_OVER_TIME operator. Combined with ENUM codes for debit/credit
-    filtering, these 2 questions test ENUM + temporal aggregation together.
-    At baseline: wrong type code AND potentially wrong time bucket.
+    Layer 1 injects time_grains=['weekly', 'monthly'] for date columns and emits an
+    AGGREGATE_OVER_TIME operator. Tests weekly and monthly bucketing, combined with
+    ENUM codes for transaction type and operation filtering.
+    At baseline: wrong type/operation code AND potentially wrong time bucket.
 
 Usage:
     export ANTHROPIC_API_KEY=sk-ant-...
@@ -451,43 +452,76 @@ def build_layer1_context(reg: DataRegistry) -> str:
 
 # ── LLM wrappers ───────────────────────────────────────────────────────────
 
+def _is_openai_model(model: str) -> bool:
+    return model.startswith(("gpt-", "o1", "o3", "o4"))
+
+
 def make_chat_fn(api_key: str, model: str, temperature: float | None = None):
     """Returns (system, prompt) -> str for SQL generation and judging.
 
+    Supports Anthropic and OpenAI models — provider detected from model name.
     Pass temperature=0 for reproducible SQL generation.
-    Omit (None) for models that don't accept temperature (e.g. claude-opus-4-8).
     """
-    import anthropic
-    client = anthropic.Anthropic(api_key=api_key)
+    if _is_openai_model(model):
+        import openai
+        client = openai.OpenAI(api_key=api_key)
 
-    def call(system: str, prompt: str) -> str:
-        kwargs: dict = {"model": model, "max_tokens": 1024, "system": system,
-                        "messages": [{"role": "user", "content": prompt}]}
-        if temperature is not None:
-            kwargs["temperature"] = temperature
-        resp = client.messages.create(**kwargs)
-        for b in resp.content:
-            if b.type == "text":
-                return b.text
-        return ""
-    return call
+        def call_openai(system: str, prompt: str) -> str:
+            kwargs: dict = {"model": model, "max_tokens": 1024,
+                            "messages": [{"role": "system", "content": system},
+                                         {"role": "user", "content": prompt}]}
+            if temperature is not None:
+                kwargs["temperature"] = temperature
+            resp = client.chat.completions.create(**kwargs)
+            return resp.choices[0].message.content or ""
+        return call_openai
+    else:
+        import anthropic
+        client = anthropic.Anthropic(api_key=api_key)
+
+        def call_anthropic(system: str, prompt: str) -> str:
+            kwargs: dict = {"model": model, "max_tokens": 1024, "system": system,
+                            "messages": [{"role": "user", "content": prompt}]}
+            if temperature is not None:
+                kwargs["temperature"] = temperature
+            resp = client.messages.create(**kwargs)
+            for b in resp.content:
+                if b.type == "text":
+                    return b.text
+            return ""
+        return call_anthropic
 
 
 def make_enrich_fn(api_key: str, model: str):
-    """Returns prompt -> str for MetaData enricher."""
-    import anthropic
-    client = anthropic.Anthropic(api_key=api_key)
+    """Returns prompt -> str for MetaData enricher.
 
-    def call(prompt: str) -> str:
-        resp = client.messages.create(
-            model=model, max_tokens=1024, temperature=0,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        for b in resp.content:
-            if b.type == "text":
-                return b.text
-        return ""
-    return call
+    Supports Anthropic and OpenAI models — provider detected from model name.
+    """
+    if _is_openai_model(model):
+        import openai
+        client = openai.OpenAI(api_key=api_key)
+
+        def call_openai(prompt: str) -> str:
+            resp = client.chat.completions.create(
+                model=model, max_tokens=1024, temperature=0,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return resp.choices[0].message.content or ""
+        return call_openai
+    else:
+        import anthropic
+        client = anthropic.Anthropic(api_key=api_key)
+
+        def call_anthropic(prompt: str) -> str:
+            resp = client.messages.create(
+                model=model, max_tokens=1024, temperature=0,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            for b in resp.content:
+                if b.type == "text":
+                    return b.text
+            return ""
+        return call_anthropic
 
 
 def extract_sql(text: str) -> str | None:
@@ -527,15 +561,28 @@ def judge(chat, question: str, expected: str, sql: str, rows: list, err: str | N
 
 # ── Benchmark run ──────────────────────────────────────────────────────────
 
+def _api_key_for(model: str) -> str | None:
+    if _is_openai_model(model):
+        return os.environ.get("OPENAI_API_KEY")
+    return os.environ.get("ANTHROPIC_API_KEY")
+
+
 def run(use_judge: bool, use_layer2: bool, model: str, judge_model: str,
         out_path: str | None, report_path: str | None = None) -> None:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = _api_key_for(model)
     if not api_key:
-        print("ERROR: set ANTHROPIC_API_KEY first.")
+        provider = "OPENAI_API_KEY" if _is_openai_model(model) else "ANTHROPIC_API_KEY"
+        print(f"ERROR: set {provider} first.")
         return
 
-    chat       = make_chat_fn(api_key, model, temperature=0)   # deterministic SQL generation
-    judge_chat = make_chat_fn(api_key, judge_model)             # no temperature — opus-4-8 doesn't accept it
+    judge_api_key = _api_key_for(judge_model)
+    if not judge_api_key and use_judge:
+        provider = "OPENAI_API_KEY" if _is_openai_model(judge_model) else "ANTHROPIC_API_KEY"
+        print(f"ERROR: set {provider} for judge model first.")
+        return
+
+    chat       = make_chat_fn(api_key, model, temperature=0)
+    judge_chat = make_chat_fn(judge_api_key or api_key, judge_model)
     queries = json.loads(QUERIES_FILE.read_text())
     cats    = sorted({q["category"] for q in queries})
     n       = len(queries)
@@ -1077,18 +1124,17 @@ def main() -> None:
                    help="LLM-as-judge for semantic correctness (+2 pts per question)")
     p.add_argument("--layer2",  action="store_true",
                    help="Also run LLM-augmented enrichment (Layer 2) as a third condition")
-    p.add_argument("--model",        default=os.environ.get("BLUE_DATA_LLM_MODEL", "claude-opus-4-8"),
-                   help="Model for SQL generation (default: claude-opus-4-8)")
+    p.add_argument("--model",        default=os.environ.get("BLUE_DATA_LLM_MODEL", "gpt-4o-mini"),
+                   help="Model for SQL generation. Anthropic and OpenAI supported. (default: gpt-4o-mini)")
     p.add_argument("--judge-model",  default=None,
-                   help="Separate model for judging semantic correctness. Defaults to claude-sonnet-4-6. "
-                        "Use a stronger model than the SQL generator. Note: claude-opus-4-8 requires extended "
-                        "thinking and will fail here — use claude-sonnet-4-6 or claude-haiku-4-5-20251001.")
+                   help="Model for judging semantic correctness. Defaults to same provider as --model. "
+                        "Anthropic: claude-sonnet-4-6. OpenAI: gpt-4o.")
     p.add_argument("--out",          default=None, help="Save detailed JSON results to this path")
     p.add_argument("--report",       default=None, const="lib/tests/benchmarks/RESULTS.md",
                    nargs="?",
                    help="Write markdown report with charts (default path: lib/tests/benchmarks/RESULTS.md)")
     args = p.parse_args()
-    judge_model = args.judge_model or "claude-sonnet-4-6"
+    judge_model = args.judge_model or ("gpt-4o" if _is_openai_model(args.model) else "claude-sonnet-4-6")
     run(use_judge=args.judge, use_layer2=args.layer2, model=args.model,
         judge_model=judge_model, out_path=args.out, report_path=args.report)
 

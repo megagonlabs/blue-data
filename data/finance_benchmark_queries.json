@@ -214,5 +214,14 @@
     "expected_behavior": "Count debit transactions (type='VYDAJ') per calendar month in 1995. Layer 1 provides: (1) type -- ENUM_CATEGORY | values=[PRIJEM, VYDAJ] — baseline uses 'DEBIT' or 'WITHDRAWAL' (0 rows); (2) date -- time_grains=['monthly'] — explicitly suggesting monthly grouping. Correct query: SELECT strftime('%Y-%m', date) AS month, COUNT(*) AS debit_count FROM trans WHERE type='VYDAJ' AND strftime('%Y', date)='1995' GROUP BY month ORDER BY month. Using wrong type code is incorrect. Returning a flat total count without monthly grouping is partial.",
     "target_columns": ["trans.type", "trans.date"],
     "difficulty": "medium"
+  },
+  {
+    "id": "sem_e_007",
+    "intent": "How many loans have been fully repaid without any issues?",
+    "category": "enum_coded_value",
+    "enrichment_features": ["ENUM_CATEGORY: loan.status values=[A, B, C, D]"],
+    "expected_behavior": "Count loans where status is the code for 'finished, no problems': status='A'. Layer 1 detects loan.status as ENUM_CATEGORY with values=[A, B, C, D]. At baseline, the model uses English words such as status='paid', status='good', or status='repaid' — returning 0 rows. With enrichment, the model knows the valid codes and can infer 'A' as the successful repayment code. Correct query: SELECT COUNT(*) FROM loan WHERE status='A' (returns 4). Any English word in the status filter is incorrect.",
+    "target_columns": ["loan.status"],
+    "difficulty": "medium"
   }
 ]
