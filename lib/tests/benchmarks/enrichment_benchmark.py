@@ -72,13 +72,13 @@ Usage:
     pip install -e lib/ anthropic
 
     # baseline vs layer1, with LLM judge (recommended)
-    python3 examples/benchmarks/enrichment_benchmark.py --judge
+    python3 lib/tests/benchmarks/enrichment_benchmark.py --judge
 
     # also run layer2 (LLM-augmented enrichment, more API calls)
-    python3 examples/benchmarks/enrichment_benchmark.py --judge --layer2
+    python3 lib/tests/benchmarks/enrichment_benchmark.py --judge --layer2
 
     # save full results
-    python3 examples/benchmarks/enrichment_benchmark.py --judge --out results/run.json
+    python3 lib/tests/benchmarks/enrichment_benchmark.py --judge --out results/run.json
 """
 from __future__ import annotations
 
@@ -97,8 +97,8 @@ from blue_data.registry.enrichment.metadata import MetaData
 from blue_data.source.json.memory_json_source import MemoryJSONSource
 from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
-SQL_FILE     = Path(__file__).parent.parent.parent / "data" / "finance_sqlite.sql"
-QUERIES_FILE = Path(__file__).parent.parent.parent / "data" / "finance_benchmark_queries.json"
+SQL_FILE     = Path(__file__).parent.parent.parent.parent / "data" / "finance_sqlite.sql"
+QUERIES_FILE = Path(__file__).parent.parent.parent.parent / "data" / "finance_benchmark_queries.json"
 DATABASE     = "finance"
 TABLES       = ["district", "client", "account", "loan", "trans"]
 DIV          = "=" * 72
@@ -846,7 +846,7 @@ def generate_report(results: list, cnames: list[str], use_judge: bool,
       f"**Context sizes:** {' vs '.join(f'{c}={ctx_sizes[c]:,} chars' for c in cnames)}  ")
     a(f"**Last run:** {now}")
     a("")
-    a("> Re-generate: `python3 examples/benchmarks/enrichment_benchmark.py --judge "
+    a("> Re-generate: `python3 lib/tests/benchmarks/enrichment_benchmark.py --judge "
       f"--model {model} --report`")
     a("")
     a("---")
@@ -1084,9 +1084,9 @@ def main() -> None:
                         "Use a stronger model than the SQL generator. Note: claude-opus-4-8 requires extended "
                         "thinking and will fail here — use claude-sonnet-4-6 or claude-haiku-4-5-20251001.")
     p.add_argument("--out",          default=None, help="Save detailed JSON results to this path")
-    p.add_argument("--report",       default=None, const="examples/benchmarks/RESULTS.md",
+    p.add_argument("--report",       default=None, const="lib/tests/benchmarks/RESULTS.md",
                    nargs="?",
-                   help="Write markdown report with charts (default path: examples/benchmarks/RESULTS.md)")
+                   help="Write markdown report with charts (default path: lib/tests/benchmarks/RESULTS.md)")
     args = p.parse_args()
     judge_model = args.judge_model or "claude-sonnet-4-6"
     run(use_judge=args.judge, use_layer2=args.layer2, model=args.model,

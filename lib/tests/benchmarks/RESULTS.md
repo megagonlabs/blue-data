@@ -4,7 +4,7 @@
 **Questions:** 24 | **Conditions:** `baseline` vs `enriched` | **Context sizes:** baseline=640 chars vs enriched=17,846 chars  
 **Last run:** 2026-08-02
 
-> Re-generate: `python3 examples/benchmarks/enrichment_benchmark.py --judge --model claude-haiku-4-5-20251001 --report`
+> Re-generate: `python3 lib/tests/benchmarks/enrichment_benchmark.py --judge --model claude-haiku-4-5-20251001 --report`
 
 ---
 
