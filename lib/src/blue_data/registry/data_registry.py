@@ -135,6 +135,75 @@ class DataRegistry(Registry):
             options=options,
         )
 
+    def export_data(
+        self,
+        source: str,
+        path: str,
+        collection: str = "default",
+        database: str | None = None,
+        query=None,
+        fmt: str | None = None,
+    ) -> dict:
+        """Export rows from *source*/*collection* directly to a file.
+
+        Args:
+            source: Registered DataSource name to read from.
+            path: Output file path. Format is inferred from the extension
+                  (csv, json, jsonl, parquet) when *fmt* is omitted.
+            collection: Collection (table/file) to export.
+            database: Database to query; uses the source default when omitted.
+            query: Optional filter passed to ``execute_query``. ``None``
+                   returns all rows; a dict performs equality filtering.
+            fmt: Force output format (``"csv"``, ``"json"``, ``"jsonl"``,
+                 ``"parquet"``). Overrides extension inference.
+        """
+        import json as _json
+        import os
+
+        import pandas as pd
+
+        source_obj = self.connect_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered or connectable: {source}")
+
+        rows = source_obj.execute_query(
+            query=query,
+            database=database,
+            collection=collection,
+        )
+
+        if fmt is None:
+            ext = os.path.splitext(path)[1].lstrip(".")
+            fmt = ext if ext in ("csv", "json", "jsonl", "parquet") else "csv"
+
+        parent = os.path.dirname(os.path.abspath(path))
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+
+        df = pd.DataFrame(rows)
+
+        if fmt == "csv":
+            df.to_csv(path, index=False)
+        elif fmt == "json":
+            df.to_json(path, orient="records", indent=2)
+        elif fmt == "jsonl":
+            with open(path, "w") as f:
+                for record in df.to_dict(orient="records"):
+                    f.write(_json.dumps(record) + "\n")
+        elif fmt == "parquet":
+            df.to_parquet(path, index=False)
+        else:
+            raise ValueError(
+                f"Unsupported export format: {fmt!r}. Use csv, json, jsonl, or parquet."
+            )
+
+        return {
+            "status": "success",
+            "rows_written": len(df),
+            "path": os.path.abspath(path),
+            "format": fmt,
+        }
+
     def execute_query_nl(
         self,
         source: str,

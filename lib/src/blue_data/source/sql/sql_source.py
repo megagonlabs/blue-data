@@ -42,6 +42,10 @@ class SQLSource(DataSource, ABC):
         optional_properties = optional_properties or {}
         if database is None:
             raise Exception("No database provided")
+        if query is None:
+            if collection is None:
+                raise ValueError("collection is required when query is None")
+            query = f"SELECT * FROM {collection}"
         conn = self._db_connect(database)
         cur = conn.cursor()
         try:
