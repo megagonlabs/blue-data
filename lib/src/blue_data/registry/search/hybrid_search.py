@@ -12,6 +12,12 @@ from blue_data.registry.search.ranking import (
 )
 from blue_data.core.utils.similarity_utils import compute_bm25_score, normalize_bm25_scores
 
+class _SimpleRecord:
+    """Lightweight attribute-access wrapper around a plain dict."""
+    def __init__(self, d: dict):
+        self.__dict__.update(d)
+
+
 DEFAULT_PARAMS: dict = {
     "bm25_weight": 0.3,
     "vector_weight": 0.7,
@@ -59,13 +65,13 @@ class HybridSearch:
     def prepare_parameters(
         self,
         input_query: str,
-        type: str | None = None,
+        record_type: str | None = None,
         scope: str | None = None,
         **overrides,
     ) -> dict:
         params = {**self.config, **overrides}
         params["query"] = input_query
-        params["type"] = type
+        params["type"] = record_type
         params["scope"] = scope
         bw, vw, vaw = normalize_weights(
             params["bm25_weight"],
@@ -79,12 +85,12 @@ class HybridSearch:
 
     # ---------- filtering ----------
 
-    def _filter_records(self, records: list, type: str | None, scope: str | None) -> list:
+    def _filter_records(self, records: list, record_type: str | None, scope: str | None) -> list:
         out = []
         for r in records:
-            if type:
+            if record_type:
                 rtype = r.get("type") if isinstance(r, dict) else getattr(r, "type", None)
-                if rtype != type:
+                if rtype != record_type:
                     continue
             if scope:
                 rscope = r.get("scope") if isinstance(r, dict) else getattr(r, "scope", None)
@@ -136,14 +142,14 @@ class HybridSearch:
         self,
         records: list,
         input_query: str,
-        type: str | None = None,
+        record_type: str | None = None,
         scope: str | None = None,
         page: int = 0,
         page_size: int = 10,
         **overrides,
     ) -> list[dict]:
-        params = self.prepare_parameters(input_query, type=type, scope=scope, **overrides)
-        candidates = self._filter_records(records, type, scope)[: params["search_limit"]]
+        params = self.prepare_parameters(input_query, record_type=record_type, scope=scope, **overrides)
+        candidates = self._filter_records(records, record_type, scope)[: params["search_limit"]]
 
         query_vector = self.vector_searcher.compute_embedding(input_query)
         if query_vector is None:
@@ -200,16 +206,16 @@ class HybridSearch:
         self,
         records: list,
         input_query: str,
-        type: str | None = None,
+        record_type: str | None = None,
         scope: str | None = None,
         page: int = 0,
         page_size: int = 10,
         **overrides,
     ) -> list[dict]:
         """Score all records then propagate child scores to target-type parents."""
-        params = self.prepare_parameters(input_query, type=type, scope=scope, **overrides)
+        params = self.prepare_parameters(input_query, record_type=record_type, scope=scope, **overrides)
         if not params["hierarchical_enabled"]:
-            return self.search(records, input_query, type, scope, page, page_size, **overrides)
+            return self.search(records, input_query, record_type, scope, page, page_size, **overrides)
 
         query_vector = self.vector_searcher.compute_embedding(input_query)
         if query_vector is None:
@@ -246,7 +252,7 @@ class HybridSearch:
             node_record["vector_score"] = vec
 
             hierarchy[node_id] = {
-                "record": type("_R", (), node_record)(),
+                "record": _SimpleRecord(node_record),
                 "children": set(),
                 "parent": rscope,
             }
@@ -260,7 +266,7 @@ class HybridSearch:
         # Determine target types
         hierarchical_types: list[str] = (
             params["hierarchical_database_types"]
-            if type in ("source", "database", None)
+            if record_type in ("source", "database", None)
             else params["hierarchical_collection_types"]
         )
 
@@ -269,7 +275,7 @@ class HybridSearch:
         for node_id, node in hierarchy.items():
             record = node["record"]
             rtype = getattr(record, "type", "")
-            if type and rtype != type:
+            if record_type and rtype != record_type:
                 continue
 
             descendant_ids: set[str] = set()

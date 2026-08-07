@@ -113,7 +113,7 @@ class RegistrySearch(SearchEngine):
         return self.hybrid_engine.search(
             records=records,
             input_query=query,
-            type=type,
+            record_type=type,
             scope=scope,
             page=page,
             page_size=page_size,
@@ -134,7 +134,7 @@ class RegistrySearch(SearchEngine):
             return self.hybrid_engine.search_hierarchical(
                 records=records,
                 input_query=query,
-                type=type,
+                record_type=type,
                 scope=scope,
                 page=page,
                 page_size=page_size,
