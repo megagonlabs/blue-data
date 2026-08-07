@@ -34,7 +34,7 @@ class SQLiteDBSource(SQLSource):
             return {}
 
     def _disconnect(self):
-        # TODO:
+        # SQLite uses per-query connections via _db_connect — no persistent connection to close.
         return None
 
    
@@ -351,11 +351,27 @@ class SQLiteDBSource(SQLSource):
         Fetch source-level statistics for the SQLite source.
 
         Returns:
-            dict: Source-level statistics (currently empty for SQLite).
+            dict: A dictionary containing:
+                - ``database_count``: number of .db files in the directory.
+                - ``total_size_bytes``: combined size of all database files.
+                - ``directory``: absolute path to the database directory.
         """
-        # TODO:
-        stats = {}
-        return stats
+        try:
+            directory = self._get_database_directory()
+            db_files = [f for f in os.listdir(directory) if f.endswith(".db")]
+            total_size = sum(
+                os.path.getsize(os.path.join(directory, f))
+                for f in db_files
+                if os.path.isfile(os.path.join(directory, f))
+            )
+            return {
+                "database_count": len(db_files),
+                "total_size_bytes": total_size,
+                "directory": directory,
+            }
+        except Exception as e:
+            self.logger.warning(f"Failed to fetch SQLite source stats: {e}")
+            return {"error": str(e)}
 
     def fetch_database_stats(self, database):
         """

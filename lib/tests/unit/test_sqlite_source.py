@@ -548,6 +548,55 @@ def test_import_data_empty_source_returns_zero(src, tmp_path):
     assert result["rows_imported"] == 0
 
 
+# ---------- fetch_source_stats ----------
+
+def test_fetch_source_stats_empty_directory(tmp_path):
+    src = SQLiteDBSource("db", properties={"connection": {"database_directory": str(tmp_path)}})
+    stats = src.fetch_source_stats()
+    assert stats["database_count"] == 0
+    assert stats["total_size_bytes"] == 0
+    assert stats["directory"] == str(tmp_path)
+
+
+def test_fetch_source_stats_counts_db_files(tmp_path):
+    src = SQLiteDBSource("db", properties={"connection": {"database_directory": str(tmp_path)}})
+    src.create_database("alpha")
+    src.create_database("beta")
+    stats = src.fetch_source_stats()
+    assert stats["database_count"] == 2
+
+
+def test_fetch_source_stats_ignores_non_db_files(tmp_path):
+    src = SQLiteDBSource("db", properties={"connection": {"database_directory": str(tmp_path)}})
+    src.create_database("mydb")
+    (tmp_path / "readme.txt").write_text("ignore me")
+    (tmp_path / "backup.bak").write_text("ignore me too")
+    stats = src.fetch_source_stats()
+    assert stats["database_count"] == 1
+
+
+def test_fetch_source_stats_size_increases_after_data_written(tmp_path):
+    src = SQLiteDBSource("db", properties={"connection": {"database_directory": str(tmp_path)}})
+    src.create_database("mydb")
+    stats_before = src.fetch_source_stats()
+
+    conn = sqlite3.connect(str(tmp_path / "mydb.db"))
+    conn.execute("CREATE TABLE users (id INTEGER, name TEXT)")
+    for i in range(100):
+        conn.execute("INSERT INTO users VALUES (?, ?)", (i, "x" * 50))
+    conn.commit()
+    conn.close()
+
+    stats_after = src.fetch_source_stats()
+    assert stats_after["total_size_bytes"] > stats_before["total_size_bytes"]
+
+
+def test_fetch_source_stats_returns_absolute_directory(tmp_path):
+    src = SQLiteDBSource("db", properties={"connection": {"database_directory": str(tmp_path)}})
+    stats = src.fetch_source_stats()
+    assert os.path.isabs(stats["directory"])
+
+
 def test_import_data_e2e_filesource_to_sqlite(tmp_path):
     """CSV file → FileSource → SQLiteDBSource round-trip."""
     files_dir = tmp_path / "files"
