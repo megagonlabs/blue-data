@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import redis
+from redis.exceptions import ResponseError
 
 from blue_data.source.json.json_source import JSONSource
 from blue_data.core.schema import DataSchema
@@ -73,13 +74,10 @@ class RedisJSONSource(JSONSource):
             return self.data
         key_part, json_part = self._split_path(path)
         redis_key = self._key(key_part)
-        try:
-            result = self.connection.json().get(redis_key, json_part)
-            if isinstance(result, list) and len(result) == 1:
-                return result[0]
-            return result
-        except Exception:
-            return None
+        result = self.connection.json().get(redis_key, json_part)
+        if isinstance(result, list) and len(result) == 1:
+            return result[0]
+        return result
 
     def set(self, path: str | None, value: Any) -> None:
         if path in (None, "", "$"):
@@ -91,8 +89,8 @@ class RedisJSONSource(JSONSource):
         else:
             try:
                 self.connection.json().set(redis_key, json_part, value)
-            except Exception:
-                # Sub-path set fails if the document doesn't exist yet
+            except ResponseError:
+                # Sub-path set on a non-existent document — create the root first.
                 self.connection.json().set(redis_key, "$", {})
                 self.connection.json().set(redis_key, json_part, value)
 
@@ -134,8 +132,8 @@ class RedisJSONSource(JSONSource):
                         result[path] = doc[0]
                     elif doc is not None:
                         result[path] = doc
-                except Exception:
-                    pass
+                except Exception as e:
+                    self.logger.warning("Failed to read key %s: %s", key, e)
 
             if cursor == 0:
                 break
@@ -255,7 +253,8 @@ class RedisJSONSource(JSONSource):
             for key in keys:
                 try:
                     doc = self.connection.json().get(key)
-                except Exception:
+                except Exception as e:
+                    self.logger.warning("Failed to read key %s during entity introspection: %s", key, e)
                     continue
                 if isinstance(doc, dict):
                     samples.append(doc)
@@ -282,7 +281,8 @@ class RedisJSONSource(JSONSource):
             for key in keys:
                 try:
                     doc = self.connection.json().get(key)
-                except Exception:
+                except Exception as e:
+                    self.logger.warning("Failed to read key %s during relation introspection: %s", key, e)
                     continue
                 if isinstance(doc, dict):
                     samples.append(doc)
