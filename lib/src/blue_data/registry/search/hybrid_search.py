@@ -167,10 +167,8 @@ class HybridSearch:
             nbm = norm_bm25[idx]
             vec = self.vector_searcher.score_record(r, query_vector, params)
             value_norm = min(1.0, max(
-                getattr(r, "value_relevance_score", 0.0) if not isinstance(r, dict)
-                else 0.0,
-                getattr(r, "aggregated_value_relevance", 0.0) if not isinstance(r, dict)
-                else 0.0,
+                r.get("value_relevance_score", 0.0) if isinstance(r, dict) else getattr(r, "value_relevance_score", 0.0),
+                r.get("aggregated_value_relevance", 0.0) if isinstance(r, dict) else getattr(r, "aggregated_value_relevance", 0.0),
             ))
 
             value_ok = value_norm >= params["value_threshold"]
