@@ -1,21 +1,75 @@
+import logging
+
+
 class DataSource:
     """Base abstraction for all Blue data sources."""
 
     content_type: str = "tabular"
 
     def __init__(self, name: str, properties: dict | None = None):
+        if properties is None:
+            properties = {}
         self.name = name
-        self.properties = properties or {}
+        self._initialize(properties=properties)
+        self._start()
+
+    # ---------- initialization chain ----------
+
+    def _initialize(self, properties=None):
+        self._initialize_properties()
+        self._update_properties(properties=properties)
+        self._initialize_logger()
+
+    def _initialize_properties(self):
+        self.properties = {}
         self._initialize_connection_properties()
 
-    def _initialize_connection_properties(self) -> None:
-        """Set default values in ``self.properties["connection"]``.
+    def _initialize_connection_properties(self):
+        self.properties["connection"] = {"protocol": "default"}
 
-        Override in each subclass to call ``setdefault`` on the connection
-        dict for every config key the source needs.  Called automatically
-        by ``DataSource.__init__`` so subclasses never need to invoke it
-        explicitly.
-        """
+    def _update_properties(self, properties=None):
+        if not properties:
+            return
+        for key, value in properties.items():
+            if isinstance(value, dict) and isinstance(self.properties.get(key), dict):
+                self.properties[key] = self._deep_merge(self.properties[key], value)
+            else:
+                self.properties[key] = value
+
+    def _deep_merge(self, base, update):
+        result = dict(base)
+        for k, v in update.items():
+            if k in result and isinstance(result[k], dict) and isinstance(v, dict):
+                result[k] = self._deep_merge(result[k], v)
+            else:
+                result[k] = v
+        return result
+
+    def _initialize_logger(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+    # ---------- lifecycle ----------
+
+    def _start(self):
+        self._start_connection()
+        self.logger.info("Started source %s", self.name)
+
+    def _stop(self):
+        self._stop_connection()
+        self.logger.info("Stopped source %s", self.name)
+
+    def _start_connection(self):
+        connection = self.properties["connection"]
+        self.connection = self._connect(**connection)
+
+    def _stop_connection(self):
+        self._disconnect()
+
+    def _connect(self, **connection):
+        return None
+
+    def _disconnect(self):
+        return None
 
     @classmethod
     def instantiate(cls, full_class_path: str, *args, **kwargs) -> "DataSource":

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import logging
 import os
 
 import numpy as np
@@ -17,7 +16,6 @@ class FileVectorSource(VectorSource):
         if directory is not None:
             props.setdefault("connection", {})["directory"] = directory
         super().__init__(name, embedding_fn=embedding_fn, properties=props)
-        self.logger = logging.getLogger(self.__class__.__name__)
         self._directory = os.path.abspath(self.properties["connection"]["directory"])
         os.makedirs(self._directory, exist_ok=True)
         self._indices: dict[str, dict] = self._load_indices()

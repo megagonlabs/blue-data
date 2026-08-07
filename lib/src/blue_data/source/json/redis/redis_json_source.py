@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import copy
-import logging
 from typing import Any
 
 import redis
@@ -15,8 +13,6 @@ class RedisJSONSource(JSONSource):
 
     def __init__(self, name: str = "redis_json", properties: dict | None = None):
         super().__init__(name, properties=properties)
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.connection = self._connect()
         self._namespace = self.properties.get("namespace", "registry")
 
     # ---------- connection ----------
@@ -28,9 +24,8 @@ class RedisJSONSource(JSONSource):
         conn.setdefault("db", 0)
         self.properties["connection"] = conn
 
-    def _connect(self):
-        conn = self.properties.get("connection", {})
-        config = copy.deepcopy(conn)
+    def _connect(self, **connection):
+        config = dict(connection)
         config.pop("protocol", None)
         config.pop("subprotocol", None)
         config.pop("scan_prefix", None)

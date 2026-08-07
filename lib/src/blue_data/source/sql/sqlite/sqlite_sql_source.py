@@ -1,5 +1,4 @@
 import copy
-import logging
 import os
 import sqlite3
 
@@ -12,8 +11,6 @@ from blue_data.core.schema import DataSchema
 class SQLiteDBSource(SQLSource):
     def __init__(self, name, properties=None):
         super().__init__(name, properties=properties)
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self._initialize_connection_properties()
 
     def _initialize_connection_properties(self):
         connection = self.properties.get("connection", {})

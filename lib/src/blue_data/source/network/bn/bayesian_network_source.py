@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import logging
 import os
 import shutil
 
@@ -18,9 +17,7 @@ class BayesianNetworkSource(NetworkSource):
 
     def __init__(self, name: str, properties: dict | None = None):
         super().__init__(name, properties=properties or {})
-        self.logger = logging.getLogger(self.__class__.__name__)
         self._cache: dict = {}
-        self._initialize_connection_properties()
 
     # ---------- connection ----------
 

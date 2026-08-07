@@ -1,6 +1,5 @@
 import copy
 import json
-import logging
 
 import numpy as np
 import redis
@@ -14,9 +13,6 @@ class RedisVectorSource(VectorSource):
 
     def __init__(self, name: str, embedding_fn=None, properties: dict | None = None):
         super().__init__(name, embedding_fn=embedding_fn, properties=properties)
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self._initialize_connection_properties()
-        self.connection = self._connect(**self.properties["connection"])
 
     def _initialize_connection_properties(self):
         connection = self.properties.get("connection", {})
@@ -27,14 +23,6 @@ class RedisVectorSource(VectorSource):
         connection.setdefault("subprotocol", "redis")
         connection.setdefault("db", 0)
 
-        scan_prefix = connection.get("scan_prefix")
-        if not scan_prefix:
-            raise Exception("RedisVectorSource requires 'scan_prefix'")
-
-        if not scan_prefix.endswith(":"):
-            scan_prefix += ":"
-
-        connection["scan_prefix"] = scan_prefix
         self.properties["connection"] = connection
 
     def _connect(self, **connection):

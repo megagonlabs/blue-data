@@ -1,5 +1,4 @@
 import copy
-import logging
 import re
 
 import mysql.connector as cpy
@@ -13,9 +12,6 @@ class MySQLDBSource(SQLSource):
 
     def __init__(self, name, properties=None):
         super().__init__(name, properties=properties)
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self._initialize_connection_properties()
-        self.connection = self._connect(**self.properties["connection"])
 
     # ---------- connection ----------
 

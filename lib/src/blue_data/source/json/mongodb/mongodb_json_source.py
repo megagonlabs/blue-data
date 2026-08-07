@@ -1,5 +1,4 @@
 import json
-import logging
 import re
 
 from pymongo import MongoClient
@@ -13,10 +12,7 @@ class MongoDBSource(JSONSource):
 
     def __init__(self, name, properties=None):
         super().__init__(name, properties=properties)
-        self.logger = logging.getLogger(self.__class__.__name__)
         self._schema_cache = {}
-        self._initialize_connection_properties()
-        self.connection = self._connect(**self.properties["connection"])
 
     def _initialize_connection_properties(self):
         connection = self.properties.get("connection", {})

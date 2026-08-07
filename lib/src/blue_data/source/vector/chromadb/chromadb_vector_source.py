@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import logging
-
 import chromadb
 
 from blue_data.source.vector.vector_source import VectorSource
@@ -15,7 +13,6 @@ class ChromaDBVectorSource(VectorSource):
         if path is not None:
             props.setdefault("connection", {})["path"] = path
         super().__init__(name, embedding_fn=embedding_fn, properties=props)
-        self.logger = logging.getLogger(self.__class__.__name__)
         resolved_path = self.properties["connection"].get("path")
         settings = chromadb.Settings(allow_reset=True)
         self._client = (

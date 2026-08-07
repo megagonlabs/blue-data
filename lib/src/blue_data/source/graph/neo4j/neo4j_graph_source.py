@@ -7,6 +7,9 @@ from neo4j import GraphDatabase
 from blue_data.source.graph.graph_source import GraphSource
 from blue_data.core.schema import DataSchema
 
+# Suppress all standard and warning notifications from Neo4j
+logging.getLogger("neo4j.notifications").setLevel(logging.ERROR)
+
 
 NATIVE_NODE_PROPERTIES_QUERY = """
 CALL db.schema.nodeTypeProperties()
@@ -38,24 +41,16 @@ RETURN
 ORDER BY type
 """.strip()
 
-import logging
-
-# Suppress all standard and warning notifications from Neo4j
-logging.getLogger("neo4j.notifications").setLevel(logging.ERROR)
-
 
 class NEO4JSource(GraphSource):
     """Neo4j graph database source."""
 
     def __init__(self, name, properties=None):
         super().__init__(name, properties=properties)
-        self.logger = logging.getLogger(self.__class__.__name__)
         self._edition = None
         self._apoc_available = None
         self._schema_cache = {}
         self._transactions: dict[str, dict] = {}
-        self._initialize_connection_properties()
-        self.connection = self._connect(**self.properties["connection"])
 
     # ---------- connection ----------
 

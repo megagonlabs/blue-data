@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import copy
-import logging
-
 import redis
 
 from blue_data.source.stream.stream_source import StreamSource
@@ -13,8 +10,6 @@ class RedisStreamSource(StreamSource):
 
     def __init__(self, name: str, properties: dict | None = None):
         super().__init__(name, properties=properties)
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.connection = self._connect()
         self._cursors: dict[str, str] = {}
 
     # ---------- connection ----------
@@ -26,9 +21,8 @@ class RedisStreamSource(StreamSource):
         conn.setdefault("db", 0)
         self.properties["connection"] = conn
 
-    def _connect(self):
-        conn = self.properties.get("connection", {})
-        config = copy.deepcopy(conn)
+    def _connect(self, **connection):
+        config = dict(connection)
         config.pop("protocol", None)
         return redis.Redis(
             host=config.get("host", "localhost"),
