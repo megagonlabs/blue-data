@@ -1,0 +1,162 @@
+[
+  {
+    "id": "srch_01",
+    "intent": "loan table records",
+    "category": "exact_name",
+    "relevant_names": ["loan", "loan_id", "amount", "duration", "payments", "status"],
+    "primary_name": "loan",
+    "description": "Exact match on the 'loan' entity name"
+  },
+  {
+    "id": "srch_02",
+    "intent": "transaction entries in the database",
+    "category": "exact_name",
+    "relevant_names": ["trans", "trans_id", "operation", "type", "balance"],
+    "primary_name": "trans",
+    "description": "Exact match on the 'trans' entity name"
+  },
+  {
+    "id": "srch_03",
+    "intent": "how frequently is the account statement issued",
+    "category": "exact_name",
+    "relevant_names": ["frequency", "account"],
+    "primary_name": "frequency",
+    "description": "Exact match on the 'frequency' attribute of account"
+  },
+  {
+    "id": "srch_04",
+    "intent": "district location and region data",
+    "category": "exact_name",
+    "relevant_names": ["district", "district_id", "a2", "a3"],
+    "primary_name": "district",
+    "description": "Exact match on the 'district' entity name"
+  },
+  {
+    "id": "srch_05",
+    "intent": "customer personal profile",
+    "category": "synonym",
+    "relevant_names": ["client", "client_id", "gender", "birth_date"],
+    "primary_name": "client",
+    "description": "'customer' is a synonym for 'client' in this dataset"
+  },
+  {
+    "id": "srch_06",
+    "intent": "money transfer value in a transaction",
+    "category": "synonym",
+    "relevant_names": ["amount", "trans", "payments"],
+    "primary_name": "amount",
+    "description": "'value' / 'transfer amount' maps to the 'amount' column"
+  },
+  {
+    "id": "srch_07",
+    "intent": "monthly repayment installment",
+    "category": "synonym",
+    "relevant_names": ["payments", "duration", "loan"],
+    "primary_name": "payments",
+    "description": "'installment' maps to loan.payments"
+  },
+  {
+    "id": "srch_08",
+    "intent": "cash withdrawal or deposit transaction type",
+    "category": "synonym",
+    "relevant_names": ["operation", "type", "trans"],
+    "primary_name": "operation",
+    "description": "'withdrawal' and 'deposit' are coded values of trans.operation"
+  },
+  {
+    "id": "srch_09",
+    "intent": "geographic region or area of the client",
+    "category": "synonym",
+    "relevant_names": ["district", "a3", "district_id"],
+    "primary_name": "district",
+    "description": "'region' / 'geographic area' maps to district entity and its a3 (region) column"
+  },
+  {
+    "id": "srch_10",
+    "intent": "running total of money remaining in the account",
+    "category": "concept",
+    "relevant_names": ["balance", "trans"],
+    "primary_name": "balance",
+    "description": "'running total' is the semantic role of trans.balance (STATE_VARIABLE)"
+  },
+  {
+    "id": "srch_11",
+    "intent": "whether the loan was repaid or went into default",
+    "category": "concept",
+    "relevant_names": ["status", "loan"],
+    "primary_name": "status",
+    "description": "Repayment outcome is encoded in loan.status (A=repaid, B=default, C=running/OK, D=running/debt)"
+  },
+  {
+    "id": "srch_12",
+    "intent": "which external bank received the wire transfer",
+    "category": "concept",
+    "relevant_names": ["bank", "account", "trans"],
+    "primary_name": "bank",
+    "description": "External bank name is stored in trans.bank"
+  },
+  {
+    "id": "srch_13",
+    "intent": "purpose or reason code for a bank transaction",
+    "category": "concept",
+    "relevant_names": ["k_symbol", "trans"],
+    "primary_name": "k_symbol",
+    "description": "Transaction reason is the Czech k_symbol code (POJISTNE=insurance, DUCHOD=pension, etc.)"
+  },
+  {
+    "id": "srch_14",
+    "intent": "age or birth year of the account holder",
+    "category": "concept",
+    "relevant_names": ["birth_date", "gender", "client"],
+    "primary_name": "birth_date",
+    "description": "Client age is derived from birth_date in the client table"
+  },
+  {
+    "id": "srch_15",
+    "intent": "how many months does the loan last",
+    "category": "attribute_level",
+    "relevant_names": ["duration", "loan"],
+    "primary_name": "duration",
+    "description": "Loan term length is stored in loan.duration (in months)"
+  },
+  {
+    "id": "srch_16",
+    "intent": "date when the loan was approved or granted",
+    "category": "attribute_level",
+    "relevant_names": ["date", "loan"],
+    "primary_name": "loan",
+    "description": "Loan origination date is loan.date; tests disambiguation from account.date"
+  },
+  {
+    "id": "srch_17",
+    "intent": "date when the bank account was opened or created",
+    "category": "attribute_level",
+    "relevant_names": ["date", "account"],
+    "primary_name": "account",
+    "description": "Account opening date is account.date; tests disambiguation from loan.date"
+  },
+  {
+    "id": "srch_18",
+    "intent": "unique identifier for a banking transaction record",
+    "category": "attribute_level",
+    "relevant_names": ["trans_id", "trans"],
+    "primary_name": "trans_id",
+    "description": "Primary key of the transaction table is trans_id"
+  },
+  {
+    "id": "srch_19",
+    "intent": "accounts that have an associated active loan",
+    "category": "cross_entity",
+    "relevant_names": ["account", "loan", "account_id"],
+    "primary_name": "loan",
+    "description": "Spans account and loan entities, joined on account_id"
+  },
+  {
+    "id": "srch_20",
+    "intent": "client spending and purchase history",
+    "category": "cross_entity",
+    "relevant_names": ["client", "trans", "account", "amount"],
+    "primary_name": "trans",
+    "description": "Spans client, account, and trans entities"
+  }
+]
