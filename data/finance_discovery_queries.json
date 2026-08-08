@@ -1,0 +1,162 @@
+[
+  {
+    "id": "fin_disc_01",
+    "intent": "How many clients defaulted on their loans?",
+    "category": "filter",
+    "relevant_names": ["loan", "status", "client"],
+    "primary_name": "status",
+    "description": "Requires loan.status (B=finished/default, D=running/debt) joined to client"
+  },
+  {
+    "id": "fin_disc_02",
+    "intent": "What is the average monthly payment amount for active loans?",
+    "category": "aggregation",
+    "relevant_names": ["loan", "payments", "status"],
+    "primary_name": "payments",
+    "description": "Requires loan.payments and filtering on loan.status for active loans (C or D)"
+  },
+  {
+    "id": "fin_disc_03",
+    "intent": "Which district has the highest average loan amount?",
+    "category": "join",
+    "relevant_names": ["loan", "amount", "client", "district", "district_id"],
+    "primary_name": "district",
+    "description": "Requires joining loan → account → client → district to group by region"
+  },
+  {
+    "id": "fin_disc_04",
+    "intent": "How many transactions were cash withdrawals?",
+    "category": "filter",
+    "relevant_names": ["trans", "operation", "type"],
+    "primary_name": "operation",
+    "description": "trans.operation contains VYBER (cash withdrawal), trans.type contains VYDAJ"
+  },
+  {
+    "id": "fin_disc_05",
+    "intent": "What is the current account balance for each client?",
+    "category": "concept",
+    "relevant_names": ["trans", "balance", "account_id"],
+    "primary_name": "balance",
+    "description": "balance is a running total (STATE_VARIABLE) — latest row per account gives current balance"
+  },
+  {
+    "id": "fin_disc_06",
+    "intent": "Which accounts have more than one hundred transactions?",
+    "category": "aggregation",
+    "relevant_names": ["trans", "account_id", "account"],
+    "primary_name": "trans",
+    "description": "Count trans rows grouped by account_id, filter by count > 100"
+  },
+  {
+    "id": "fin_disc_07",
+    "intent": "What is the total amount paid as pension income across all transactions?",
+    "category": "concept",
+    "relevant_names": ["trans", "k_symbol", "amount"],
+    "primary_name": "k_symbol",
+    "description": "k_symbol = DUCHOD encodes pension payments; amount sums the value"
+  },
+  {
+    "id": "fin_disc_08",
+    "intent": "How old is the youngest client at the bank?",
+    "category": "concept",
+    "relevant_names": ["client", "birth_date"],
+    "primary_name": "birth_date",
+    "description": "Age is derived from client.birth_date — the column encodes birth year"
+  },
+  {
+    "id": "fin_disc_09",
+    "intent": "Which accounts belong to clients living in the Prague region?",
+    "category": "join",
+    "relevant_names": ["account", "client", "district", "district_id", "a3"],
+    "primary_name": "district",
+    "description": "Requires client.district_id → district.a3 (region column) to filter by Prague"
+  },
+  {
+    "id": "fin_disc_10",
+    "intent": "What percentage of loans are fully repaid with no issues?",
+    "category": "filter",
+    "relevant_names": ["loan", "status"],
+    "primary_name": "status",
+    "description": "loan.status = A means finished and repaid OK; status is the single required column"
+  },
+  {
+    "id": "fin_disc_11",
+    "intent": "What is the average loan duration in months grouped by region?",
+    "category": "join",
+    "relevant_names": ["loan", "duration", "client", "district", "district_id"],
+    "primary_name": "duration",
+    "description": "loan.duration holds term in months; group by district via client.district_id"
+  },
+  {
+    "id": "fin_disc_12",
+    "intent": "How many distinct external banks received wire transfers?",
+    "category": "aggregation",
+    "relevant_names": ["trans", "bank"],
+    "primary_name": "bank",
+    "description": "trans.bank stores the destination bank for outgoing wire transfers"
+  },
+  {
+    "id": "fin_disc_13",
+    "intent": "How many loans were issued in each calendar year?",
+    "category": "temporal",
+    "relevant_names": ["loan", "date"],
+    "primary_name": "loan",
+    "description": "Group loan records by year extracted from loan.date"
+  },
+  {
+    "id": "fin_disc_14",
+    "intent": "What is the maximum outstanding debt amount currently owed?",
+    "category": "concept",
+    "relevant_names": ["loan", "amount", "status"],
+    "primary_name": "amount",
+    "description": "Outstanding debt = loan.amount where status is D (running/in debt)"
+  },
+  {
+    "id": "fin_disc_15",
+    "intent": "Which accounts receive their statements on a monthly basis?",
+    "category": "filter",
+    "relevant_names": ["account", "frequency"],
+    "primary_name": "frequency",
+    "description": "account.frequency encodes statement issuance cadence (monthly, weekly, etc.)"
+  },
+  {
+    "id": "fin_disc_16",
+    "intent": "How many male versus female clients does the bank have?",
+    "category": "aggregation",
+    "relevant_names": ["client", "gender"],
+    "primary_name": "gender",
+    "description": "client.gender stores M/F; simple count grouped by gender"
+  },
+  {
+    "id": "fin_disc_17",
+    "intent": "What is the average transaction amount per calendar month?",
+    "category": "temporal",
+    "relevant_names": ["trans", "amount", "date"],
+    "primary_name": "amount",
+    "description": "Group trans.amount by month from trans.date"
+  },
+  {
+    "id": "fin_disc_18",
+    "intent": "What is the total amount paid for insurance across all transactions?",
+    "category": "concept",
+    "relevant_names": ["trans", "k_symbol", "amount"],
+    "primary_name": "k_symbol",
+    "description": "k_symbol = POJISTNE encodes insurance payments — opaque code requires discovery"
+  },
+  {
+    "id": "fin_disc_19",
+    "intent": "Which clients have an account in one district but live in another?",
+    "category": "join",
+    "relevant_names": ["client", "account", "district_id"],
+    "primary_name": "client",
+    "description": "Compare client.district_id with account.district_id — requires both entities"
+  },
+  {
+    "id": "fin_disc_20",
+    "intent": "What is the total loan amount taken out by clients in each city?",
+    "category": "join",
+    "relevant_names": ["loan", "amount", "client", "district", "district_id", "a2"],
+    "primary_name": "loan",
+    "description": "Sum loan.amount grouped by district city via client.district_id → district.a2"
+  }
+]
