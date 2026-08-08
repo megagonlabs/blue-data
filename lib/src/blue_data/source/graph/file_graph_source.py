@@ -8,6 +8,7 @@ from blue_data.source.graph.memory_graph_source import MemoryGraphSource
 
 
 class FileGraphSource(MemoryGraphSource):
+    source_type = "graph/file"
     """File-backed graph storage — persists nodes and edges as a JSON file per database.
 
     Reuses MemoryGraphSource's in-memory logic: each call loads the database's

@@ -8,6 +8,7 @@ from blue_data.core.schema import DataSchema
 
 
 class MySQLDBSource(SQLSource):
+    source_type = "sql/mysql"
     """MySQL data source."""
 
     def __init__(self, name, properties=None):

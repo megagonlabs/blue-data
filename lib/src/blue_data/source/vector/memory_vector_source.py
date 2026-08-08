@@ -8,6 +8,7 @@ from blue_data.source.vector.vector_source import VectorSource
 
 
 class MemoryVectorSource(VectorSource):
+    source_type = "vector/memory"
     """In-memory vector storage for dev/test — mirrors RedisVectorSource's execute_query interface.
 
     Stores docs in a plain dict and computes KNN via cosine distance with numpy.

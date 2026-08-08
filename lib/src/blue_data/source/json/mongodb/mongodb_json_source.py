@@ -8,6 +8,7 @@ from blue_data.core.schema import DataSchema
 
 
 class MongoDBSource(JSONSource):
+    source_type = "json/mongodb"
     """MongoDB data source."""
 
     def __init__(self, name, properties=None):

@@ -7,6 +7,7 @@ from blue_data.core.utils.json_utils import json_query_get, json_query_set, json
 
 
 class MemoryJSONSource(JSONSource):
+    source_type = "json/memory"
     """In-memory JSON storage backend for local/dev/test use."""
 
     def __init__(self, name: str = "memory_json", properties: dict | None = None):

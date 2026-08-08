@@ -9,6 +9,7 @@ from blue_data.core.schema import DataSchema
 
 
 class SQLiteDBSource(SQLSource):
+    source_type = "sql/sqlite"
     def __init__(self, name, properties=None):
         super().__init__(name, properties=properties)
 

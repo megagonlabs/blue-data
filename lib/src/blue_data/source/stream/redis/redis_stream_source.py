@@ -6,6 +6,7 @@ from blue_data.source.stream.stream_source import StreamSource
 
 
 class RedisStreamSource(StreamSource):
+    source_type = "stream/redis"
     """Redis Streams-backed source using XADD / XREAD."""
 
     def __init__(self, name: str, properties: dict | None = None):

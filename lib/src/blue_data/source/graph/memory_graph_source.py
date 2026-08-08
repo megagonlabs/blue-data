@@ -8,6 +8,7 @@ from blue_data.source.graph.graph_source import GraphSource, GraphTransaction
 
 
 class MemoryGraphSource(GraphSource):
+    source_type = "graph/memory"
     """In-memory graph storage backend for local/dev/test use."""
 
     def __init__(self, name: str, properties: dict | None = None):

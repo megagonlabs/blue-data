@@ -13,6 +13,7 @@ from blue_data.core.schema import DataSchema
 
 
 class BayesianNetworkSource(NetworkSource):
+    source_type = "network/bn"
     """Bayesian network source — probabilistic graphical model backend using pgmpy."""
 
     def __init__(self, name: str, properties: dict | None = None):

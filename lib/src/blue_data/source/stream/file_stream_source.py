@@ -7,6 +7,7 @@ from blue_data.source.stream.stream_source import StreamSource
 
 
 class FileStreamSource(StreamSource):
+    source_type = "stream/file"
     """File-backed stream source — appends JSON lines to per-stream files."""
 
     def __init__(self, name: str, directory: str | None = None, properties: dict | None = None):

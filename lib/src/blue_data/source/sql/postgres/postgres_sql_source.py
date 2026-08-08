@@ -7,6 +7,7 @@ from blue_data.core.schema import DataSchema
 
 
 class PostgresDBSource(SQLSource):
+    source_type = "sql/postgres"
     """PostgreSQL data source."""
 
     def __init__(self, name, properties=None):

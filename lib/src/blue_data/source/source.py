@@ -5,6 +5,7 @@ class DataSource:
     """Base abstraction for all Blue data sources."""
 
     content_type: str = "tabular"
+    source_type: str = ""   # "type/impl" identifier, e.g. "graph/neo4j", "sql/sqlite"
 
     def __init__(self, name: str, properties: dict | None = None):
         if properties is None:

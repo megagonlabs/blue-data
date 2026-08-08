@@ -43,6 +43,7 @@ ORDER BY type
 
 
 class NEO4JSource(GraphSource):
+    source_type = "graph/neo4j"
     """Neo4j graph database source."""
 
     def __init__(self, name, properties=None):

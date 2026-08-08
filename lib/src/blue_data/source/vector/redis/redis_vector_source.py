@@ -9,6 +9,7 @@ from blue_data.core.schema import DataSchema
 
 
 class RedisVectorSource(VectorSource):
+    source_type = "vector/redis"
     """Redis Vector data source using RedisJSON + RediSearch."""
 
     def __init__(self, name: str, embedding_fn=None, properties: dict | None = None):

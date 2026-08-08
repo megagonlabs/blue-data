@@ -65,6 +65,7 @@ class DataRegistry(Registry):
         properties = {
             **source.properties,
             "_class": f"{cls.__module__}.{cls.__qualname__}",
+            "_source_type": cls.source_type,
         }
         self.register_record(
             name=source.name,

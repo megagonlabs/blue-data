@@ -9,6 +9,7 @@ from blue_data.source.vector.vector_source import VectorSource
 
 
 class FileVectorSource(VectorSource):
+    source_type = "vector/file"
     """File-backed vector storage — persists docs as JSON files per collection."""
 
     def __init__(self, name: str, directory: str | None = None, embedding_fn=None, properties: dict | None = None):
