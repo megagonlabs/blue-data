@@ -71,8 +71,14 @@ class RedisJSONSource(JSONSource):
     # ---------- JSONSource interface ----------
 
     def get(self, path: str | None = None) -> Any:
-        if path in (None, "", "$"):
+        if path is None or path == "":
             return self.data
+        if path == "$":
+            redis_key = self._key("$")
+            result = self.connection.json().get(redis_key, "$")
+            if isinstance(result, list) and len(result) == 1:
+                return result[0]
+            return result
         key_part, json_part = self._split_path(path)
         redis_key = self._key(key_part)
         result = self.connection.json().get(redis_key, json_part)
@@ -81,7 +87,10 @@ class RedisJSONSource(JSONSource):
         return result
 
     def set(self, path: str | None, value: Any) -> None:
-        if path in (None, "", "$"):
+        if path is None or path == "":
+            return
+        if path == "$":
+            self.connection.json().set(self._key("$"), "$", value)
             return
         key_part, json_part = self._split_path(path)
         redis_key = self._key(key_part)
