@@ -54,6 +54,31 @@ skip_no_neo4j = pytest.mark.skipif(
 )
 
 
+def _neo4j_supports_multi_db():
+    if not _neo4j_available():
+        return False
+    try:
+        from blue_data.source.graph.neo4j.neo4j_graph_source import NEO4JSource
+        user, pw = _neo4j_auth()
+        source = NEO4JSource("probe", properties={"connection": {
+            "host": _neo4j_uri().split("://")[-1].split(":")[0],
+            "port": int(_neo4j_uri().split(":")[-1]) if ":" in _neo4j_uri().split("://")[-1] else 7687,
+            "user": user,
+            "password": pw,
+        }})
+        result = source._support_multiple_databases()
+        source._disconnect()
+        return result
+    except Exception:
+        return False
+
+
+skip_no_multi_db = pytest.mark.skipif(
+    not _neo4j_supports_multi_db(),
+    reason="Neo4j Community Edition does not support multiple databases — requires Enterprise",
+)
+
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -119,6 +144,7 @@ def test_fetch_metadata(src):
 # ---------------------------------------------------------------------------
 
 @skip_no_neo4j
+@skip_no_multi_db
 def test_create_database(src, testdb):
     assert testdb in src.fetch_databases()
 
@@ -130,6 +156,7 @@ def test_create_database_skips_when_exists(src, testdb):
 
 
 @skip_no_neo4j
+@skip_no_multi_db
 def test_create_database_overwrite(src, testdb):
     result = src.create_database(testdb, overwrite=True)
     assert result["status"] == "success"
@@ -154,6 +181,7 @@ def test_fetch_database_stats(src, testdb):
 # ---------------------------------------------------------------------------
 
 @skip_no_neo4j
+@skip_no_multi_db
 def test_fetch_database_collections_returns_database_name(src, testdb):
     cols = src.fetch_database_collections(testdb)
     assert cols == [testdb]
@@ -273,6 +301,11 @@ def test_execute_query_read(src, db_with_nodes):
 
 @skip_no_neo4j
 def test_execute_query_write(src, testdb):
+    src.execute_query(
+        "MATCH (n:Widget) DETACH DELETE n",
+        database=testdb,
+        optional_properties={"read": False},
+    )
     src.execute_query(
         "CREATE (n:Widget {id: 1})",
         database=testdb,
