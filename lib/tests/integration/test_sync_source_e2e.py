@@ -358,22 +358,23 @@ def _flush_redis(r):
 
 @pytest.fixture
 def redis_registry(tmp_path, redis_conn, flush_redis):
-    import redis as redis_lib
     from blue_data.source.json.redis.redis_json_source import RedisJSONSource
     from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
 
-    json_conn = redis_lib.Redis(host="localhost", port=6379, db=TEST_DB, decode_responses=True)
-    vec_conn = redis_lib.Redis(host="localhost", port=6379, db=TEST_DB, decode_responses=False)
-
-    store = RedisJSONSource(connection=json_conn, properties={"namespace": TEST_NS})
+    store = RedisJSONSource(
+        "test_store",
+        properties={
+            "namespace": TEST_NS,
+            "connection": {"host": "localhost", "port": 6379, "db": TEST_DB},
+        },
+    )
     vector_source = RedisVectorSource(
-        name="test_vec",
+        "test_vec",
         properties={"connection": {
             "host": "localhost", "port": 6379, "db": TEST_DB,
             "scan_prefix": TEST_VEC_PREFIX,
         }},
     )
-    vector_source.connection = vec_conn
 
     source = SQLiteDBSource(
         name="mydb",
