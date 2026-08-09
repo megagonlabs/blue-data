@@ -72,9 +72,19 @@ def stream_name(raw_conn):
 
 @pytest.fixture
 def src(raw_conn):
-    """RedisStreamSource using an injected connection (db=15)."""
-    from source.stream.redis.redis_stream_source import RedisStreamSource
-    source = RedisStreamSource(name="test_redis_stream", connection=raw_conn)
+    """RedisStreamSource on db=15."""
+    from blue_data.source.stream.redis.redis_stream_source import RedisStreamSource
+    source = RedisStreamSource(
+        "test_redis_stream",
+        properties={
+            "connection": {
+                "host": os.environ.get("REDIS_HOST", "localhost"),
+                "port": int(os.environ.get("REDIS_PORT", "6379")),
+                "db": 15,
+                "password": os.environ.get("REDIS_PASSWORD") or None,
+            }
+        },
+    )
     return source
 
 
