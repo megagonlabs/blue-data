@@ -429,7 +429,6 @@ def import_table(src, testdb):
                 {"name": "id",    "type": "INTEGER"},
                 {"name": "name",  "type": "TEXT"},
             ],
-            "primary_key": ["id"],
         },
         overwrite=True,
     )
@@ -459,7 +458,7 @@ def test_import_data_requires_entity(src, testdb, file_src):
 @skip_no_postgres
 def test_import_data_inserts_rows(src, import_table, file_src):
     db, col, entity = import_table
-    result = src.import_data(file_src, collection=entity, database=db, entity=entity)
+    result = src.import_data(file_src, collection=col, database=db, entity=entity)
     assert result["status"] == "success"
     assert result["rows_imported"] == 2
     rows = src.execute_query(f'SELECT * FROM "{col}"."{entity}"', database=db)
@@ -469,8 +468,8 @@ def test_import_data_inserts_rows(src, import_table, file_src):
 @skip_no_postgres
 def test_import_data_append_adds_rows(src, import_table, file_src):
     db, col, entity = import_table
-    src.import_data(file_src, collection=entity, database=db, entity=entity)
-    src.import_data(file_src, collection=entity, database=db, entity=entity, mode="append")
+    src.import_data(file_src, collection=col, database=db, entity=entity)
+    src.import_data(file_src, collection=col, database=db, entity=entity, mode="append")
     rows = src.execute_query(f'SELECT * FROM "{col}"."{entity}"', database=db)
     assert len(rows) == 4
 
@@ -478,8 +477,8 @@ def test_import_data_append_adds_rows(src, import_table, file_src):
 @skip_no_postgres
 def test_import_data_overwrite_truncates(src, import_table, file_src):
     db, col, entity = import_table
-    src.import_data(file_src, collection=entity, database=db, entity=entity)
-    src.import_data(file_src, collection=entity, database=db, entity=entity, mode="overwrite")
+    src.import_data(file_src, collection=col, database=db, entity=entity)
+    src.import_data(file_src, collection=col, database=db, entity=entity, mode="overwrite")
     rows = src.execute_query(f'SELECT * FROM "{col}"."{entity}"', database=db)
     assert len(rows) == 2
 
@@ -523,7 +522,7 @@ def test_import_data_e2e_filesource_to_postgres(src, testdb, tmp_path):
     )
 
     file_src = FileSource("files", directory=str(d))
-    result = src.import_data(file_src, collection="products", database=testdb, entity="products")
+    result = src.import_data(file_src, collection="public", database=testdb, entity="products")
     assert result["rows_imported"] == 3
 
     rows = src.execute_query('SELECT * FROM "public"."products" ORDER BY price', database=testdb)

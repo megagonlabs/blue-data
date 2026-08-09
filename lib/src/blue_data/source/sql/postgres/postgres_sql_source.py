@@ -482,7 +482,7 @@ class PostgresDBSource(SQLSource):
         if entity is None:
             raise ValueError("entity (table name) is required for PostgresDBSource.import_data")
 
-        rows = source.execute_query(None, collection=collection)
+        rows = source.execute_query(None, collection=entity)
         if not rows:
             return {"status": "success", "rows_imported": 0}
 
