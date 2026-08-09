@@ -59,7 +59,7 @@ skip_no_mysql = pytest.mark.skipif(
 
 @pytest.fixture(scope="module")
 def src():
-    from source.sql.mysql.mysql_sql_source import MySQLDBSource
+    from blue_data.source.sql.mysql.mysql_sql_source import MySQLDBSource
     kwargs = _mysql_conn_kwargs()
     source = MySQLDBSource(
         name="test_mysql",
@@ -362,7 +362,6 @@ def import_table(src, testdb):
                 {"name": "id",   "type": "INTEGER"},
                 {"name": "name", "type": "TEXT"},
             ],
-            "primary_key": ["id"],
         },
         overwrite=True,
     )
