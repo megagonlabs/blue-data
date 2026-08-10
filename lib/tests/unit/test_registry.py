@@ -220,3 +220,242 @@ def test_deregister_via_record_object(registry):
     record = registry.get_record("users", "entity", "/source/mydb")
     registry.deregister(record)
     assert registry.get_record("users", "entity", "/source/mydb") is None
+
+
+# ---------------------------------------------------------------------------
+# Error cases on missing records
+# ---------------------------------------------------------------------------
+
+def test_set_record_property_missing_record_raises(registry):
+    with pytest.raises(ValueError, match="Record not found"):
+        registry.set_record_property("ghost", "entity", "/source/mydb", "key", "val")
+
+
+def test_set_record_description_missing_record_raises(registry):
+    with pytest.raises(ValueError, match="Record not found"):
+        registry.set_record_description("ghost", "entity", "/source/mydb", "desc")
+
+
+def test_set_record_data_missing_record_raises(registry):
+    with pytest.raises(KeyError):
+        registry.set_record_data("ghost", "entity", "/source/mydb", key="x", value=1)
+
+
+def test_delete_record_data_missing_record_raises(registry):
+    with pytest.raises(KeyError):
+        registry.delete_record_data("ghost", "entity", "/source/mydb", key="x")
+
+
+# ---------------------------------------------------------------------------
+# parse_path
+# ---------------------------------------------------------------------------
+
+def test_parse_path_source_only(registry):
+    result = registry.parse_path("/source/mydb")
+    assert result == {"source": "mydb"}
+
+
+def test_parse_path_full_hierarchy(registry):
+    result = registry.parse_path("/source/mydb/database/sales/collection/public")
+    assert result == {"source": "mydb", "database": "sales", "collection": "public"}
+
+
+def test_parse_path_empty(registry):
+    result = registry.parse_path("/")
+    assert result == {}
+
+
+# ---------------------------------------------------------------------------
+# _encode / _decode helpers
+# ---------------------------------------------------------------------------
+
+def test_encode_dot(registry):
+    assert registry._encode("a.b") == "a__DOT__b"
+
+
+def test_encode_star(registry):
+    assert registry._encode("a*b") == "a__STAR__b"
+
+
+def test_encode_question(registry):
+    assert registry._encode("a?b") == "a__Q__b"
+
+
+def test_decode_roundtrip(registry):
+    original = "field.name*with?special"
+    assert registry._decode(registry._encode(original)) == original
+
+
+def test_encode_dict_nested(registry):
+    result = registry._encode_dict({"a.b": {"c*d": 1}})
+    assert "a__DOT__b" in result
+    assert "c__STAR__d" in result["a__DOT__b"]
+
+
+def test_decode_dict_nested(registry):
+    encoded = {"a__DOT__b": {"c__STAR__d": 1}}
+    result = registry._decode_dict(encoded)
+    assert "a.b" in result
+    assert "c*d" in result["a.b"]
+
+
+def test_encode_list_passthrough(registry):
+    result = registry._encode_dict([{"a.b": 1}])
+    assert result == [{"a__DOT__b": 1}]
+
+
+def test_encode_non_string_passthrough(registry):
+    assert registry._encode(42) == 42
+
+
+# ---------------------------------------------------------------------------
+# filter_record_contents — filter_name and single
+# ---------------------------------------------------------------------------
+
+def test_filter_record_contents_by_name(registry):
+    registry.register_record(name="sales", type="database", scope="/source/mydb")
+    registry.register_record(name="public", type="collection", scope="/source/mydb/database/sales")
+    registry.register_record(name="private", type="collection", scope="/source/mydb/database/sales")
+
+    result = registry.filter_record_contents("sales", "database", "/source/mydb", filter_name="public")
+    assert len(result) == 1
+    assert result[0]["name"] == "public"
+
+
+def test_filter_record_contents_single_true(registry):
+    registry.register_record(name="sales", type="database", scope="/source/mydb")
+    registry.register_record(name="public", type="collection", scope="/source/mydb/database/sales")
+
+    result = registry.filter_record_contents("sales", "database", "/source/mydb", single=True)
+    assert isinstance(result, dict)
+    assert result["name"] == "public"
+
+
+def test_filter_record_contents_single_no_match(registry):
+    registry.register_record(name="sales", type="database", scope="/source/mydb")
+    result = registry.filter_record_contents("sales", "database", "/source/mydb", single=True)
+    assert result is None
+
+
+# ---------------------------------------------------------------------------
+# dump / load (file-based)
+# ---------------------------------------------------------------------------
+
+def test_dump_and_load_file(registry, tmp_path):
+    registry.register_record(name="users", type="entity", scope="/source/mydb", description="User table")
+    out = tmp_path / "export.json"
+    registry.dump(str(out))
+
+    new_reg = Registry()
+    new_reg.load(str(out))
+    record = new_reg.get_record("users", "entity", "/source/mydb")
+    assert record is not None
+    assert record["description"] == "User table"
+
+
+# ---------------------------------------------------------------------------
+# update_record_json
+# ---------------------------------------------------------------------------
+
+def test_update_record_json_updates_description(registry):
+    registry.register_record(name="users", type="entity", scope="/source/mydb", description="old")
+    registry.update_record_json({
+        "name": "users",
+        "type": "entity",
+        "scope": "/source/mydb",
+        "description": "new",
+    })
+    record = registry.get_record("users", "entity", "/source/mydb")
+    assert record["description"] == "new"
+
+
+def test_update_record_json_upserts_if_missing(registry):
+    registry.update_record_json({
+        "name": "ghost",
+        "type": "entity",
+        "scope": "/source/mydb",
+        "description": "auto",
+    })
+    assert registry.get_record("ghost", "entity", "/source/mydb") is not None
+
+
+# ---------------------------------------------------------------------------
+# register_record_json with recursive=False
+# ---------------------------------------------------------------------------
+
+def test_register_record_json_non_recursive_skips_children(registry):
+    record = {
+        "name": "sales",
+        "type": "database",
+        "scope": "/source/mydb",
+        "description": "",
+        "properties": {},
+        "contents": {
+            "collection": {
+                "public": {
+                    "name": "public",
+                    "type": "collection",
+                    "scope": "/source/mydb/database/sales",
+                    "description": "",
+                    "properties": {},
+                    "contents": {},
+                }
+            }
+        },
+    }
+    registry.register_record_json(record, recursive=False)
+    assert registry.get_record("sales", "database", "/source/mydb") is not None
+    assert registry.get_record("public", "collection", "/source/mydb/database/sales") is None
+
+
+# ---------------------------------------------------------------------------
+# get_record_data / set_record_data / delete_record_data with key=None
+# ---------------------------------------------------------------------------
+
+def test_set_record_data_key_none_sets_data_key(registry):
+    registry.register_record(name="users", type="entity", scope="/source/mydb")
+    registry.set_record_data("users", "entity", "/source/mydb", key=None, value={"x": 1})
+    record = registry.get_record("users", "entity", "/source/mydb")
+    assert record["data"] == {"x": 1}
+
+
+def test_get_record_data_key_none_returns_full_record(registry):
+    registry.register_record(name="users", type="entity", scope="/source/mydb")
+    record = registry.get_record_data("users", "entity", "/source/mydb", key=None)
+    assert record["name"] == "users"
+
+
+def test_delete_record_data_key_none_removes_data_key(registry):
+    registry.register_record(name="users", type="entity", scope="/source/mydb")
+    registry.set_record_data("users", "entity", "/source/mydb", key=None, value={"x": 1})
+    registry.delete_record_data("users", "entity", "/source/mydb", key=None)
+    record = registry.get_record("users", "entity", "/source/mydb")
+    assert "data" not in record
+
+
+# ---------------------------------------------------------------------------
+# get_contents
+# ---------------------------------------------------------------------------
+
+def test_get_contents_returns_root(registry):
+    contents = registry.get_contents()
+    assert isinstance(contents, dict)
+    assert "contents" in contents
+
+
+# ---------------------------------------------------------------------------
+# filter_records_by_properties — nested dict match
+# ---------------------------------------------------------------------------
+
+def test_filter_records_by_nested_properties(registry):
+    registry.register_record(
+        name="users", type="entity", scope="/source/mydb",
+        properties={"metadata": {"owner": "alice", "pii": True}},
+    )
+    registry.register_record(
+        name="orders", type="entity", scope="/source/mydb",
+        properties={"metadata": {"owner": "bob", "pii": False}},
+    )
+    results = registry.filter_records_by_properties(properties={"metadata": {"owner": "alice"}})
+    assert len(results) == 1
+    assert results[0]["name"] == "users"
