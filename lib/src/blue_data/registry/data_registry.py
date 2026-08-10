@@ -2160,6 +2160,7 @@ class DataRegistry(Registry):
             "neo4j":   "graph/neo4j",
             "redis":   "json/redis",
             "bn":      "network/bn",
+            "chromadb": "vector/chromadb",
         }
         if protocol in _legacy:
             protocol = _legacy[protocol]
@@ -2197,6 +2198,9 @@ class DataRegistry(Registry):
         elif protocol == "network/bn":
             from blue_data.source.network.bn.bayesian_network_source import BayesianNetworkSource
             return BayesianNetworkSource(source, properties=properties)
+        elif protocol == "vector/chromadb":
+            from blue_data.source.vector.chromadb.chromadb_vector_source import ChromaDBVectorSource
+            return ChromaDBVectorSource(source, properties=properties)
         else:
             raise ValueError(f"Unsupported source protocol: {protocol}")
 
