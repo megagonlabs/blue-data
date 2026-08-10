@@ -227,6 +227,9 @@ class Registry:
 
 
     def load(self, input_file):
+        import os
+        if not os.path.exists(input_file):
+            return
         with open(input_file, "r") as fp:
             records = json.load(fp)
         self._load_records(records)
