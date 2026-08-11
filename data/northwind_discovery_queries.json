@@ -158,5 +158,165 @@
     "relevant_names": ["products", "unit_price", "discontinued", "product_name"],
     "primary_name": "unit_price",
     "description": "Filter products where discontinued = 0, sort by unit_price descending, limit 5"
+  },
+  {
+    "id": "nw_disc_21",
+    "intent": "How many different countries do our customers come from?",
+    "category": "aggregation",
+    "relevant_names": ["customers", "country"],
+    "primary_name": "country",
+    "description": "COUNT(DISTINCT country) from customers"
+  },
+  {
+    "id": "nw_disc_22",
+    "intent": "What is the average number of items per order line?",
+    "category": "aggregation",
+    "relevant_names": ["order_details", "quantity"],
+    "primary_name": "quantity",
+    "description": "AVG(order_details.quantity) across all line items"
+  },
+  {
+    "id": "nw_disc_23",
+    "intent": "How many distinct products have ever been ordered?",
+    "category": "aggregation",
+    "relevant_names": ["order_details", "product_id", "products"],
+    "primary_name": "order_details",
+    "description": "COUNT(DISTINCT product_id) from order_details"
+  },
+  {
+    "id": "nw_disc_24",
+    "intent": "Which employees are based in London?",
+    "category": "filter",
+    "relevant_names": ["employees", "city", "first_name", "last_name"],
+    "primary_name": "city",
+    "description": "Filter employees where city = 'London'"
+  },
+  {
+    "id": "nw_disc_25",
+    "intent": "Which orders were shipped to France?",
+    "category": "filter",
+    "relevant_names": ["orders", "ship_country"],
+    "primary_name": "ship_country",
+    "description": "Filter orders where ship_country = 'France'"
+  },
+  {
+    "id": "nw_disc_26",
+    "intent": "Which year had the highest total shipping costs?",
+    "category": "temporal",
+    "relevant_names": ["orders", "order_date", "freight"],
+    "primary_name": "freight",
+    "description": "Sum orders.freight grouped by year from order_date, return year with max sum"
+  },
+  {
+    "id": "nw_disc_27",
+    "intent": "How many orders were placed each calendar month across all years?",
+    "category": "temporal",
+    "relevant_names": ["orders", "order_date"],
+    "primary_name": "order_date",
+    "description": "Group orders by month extracted from order_date, count per month"
+  },
+  {
+    "id": "nw_disc_28",
+    "intent": "What was the date of the very first order ever placed?",
+    "category": "temporal",
+    "relevant_names": ["orders", "order_date"],
+    "primary_name": "order_date",
+    "description": "MIN(orders.order_date)"
+  },
+  {
+    "id": "nw_disc_29",
+    "intent": "Which product categories have no products assigned to them?",
+    "category": "existence",
+    "relevant_names": ["categories", "products", "category_id", "category_name"],
+    "primary_name": "categories",
+    "description": "LEFT JOIN categories to products on category_id, filter where product_id IS NULL"
+  },
+  {
+    "id": "nw_disc_30",
+    "intent": "Which employees have never handled any order?",
+    "category": "existence",
+    "relevant_names": ["employees", "orders", "employee_id", "first_name", "last_name"],
+    "primary_name": "employees",
+    "description": "LEFT JOIN employees to orders on employee_id, filter where order_id IS NULL"
+  },
+  {
+    "id": "nw_disc_31",
+    "intent": "What is the total revenue generated from each customer city?",
+    "category": "join",
+    "relevant_names": ["orders", "order_details", "customers", "customer_id", "city", "unit_price", "quantity", "discount"],
+    "primary_name": "city",
+    "description": "Sum revenue via order_details, join orders to customers, group by customers.city"
+  },
+  {
+    "id": "nw_disc_32",
+    "intent": "Which supplier country offers the widest product variety?",
+    "category": "join",
+    "relevant_names": ["products", "supplier_id", "suppliers", "country"],
+    "primary_name": "suppliers",
+    "description": "COUNT(DISTINCT product_id) grouped by suppliers.country via product supplier_id"
+  },
+  {
+    "id": "nw_disc_33",
+    "intent": "What data do we store about product inventory and pricing?",
+    "category": "schema",
+    "relevant_names": ["products", "units_in_stock", "unit_price", "product_name"],
+    "primary_name": "products",
+    "description": "Schema discovery: products entity holds stock level and price attributes"
+  },
+  {
+    "id": "nw_disc_34",
+    "intent": "What information is recorded about each employee?",
+    "category": "schema",
+    "relevant_names": ["employees", "first_name", "last_name", "title", "hire_date", "city"],
+    "primary_name": "employees",
+    "description": "Schema discovery: employees entity and its personal/role attributes"
+  },
+  {
+    "id": "nw_disc_35",
+    "intent": "Which entities capture the full lifecycle of a customer order?",
+    "category": "schema",
+    "relevant_names": ["orders", "order_details", "customers", "products"],
+    "primary_name": "orders",
+    "description": "Schema discovery: orders + order_details together represent the order structure"
+  },
+  {
+    "id": "nw_disc_36",
+    "intent": "What details are stored about suppliers?",
+    "category": "schema",
+    "relevant_names": ["suppliers", "company_name", "contact_name", "country", "city"],
+    "primary_name": "suppliers",
+    "description": "Schema discovery: suppliers entity and its contact/location attributes"
+  },
+  {
+    "id": "nw_disc_37",
+    "intent": "Which column records whether a product is still being sold?",
+    "category": "attribute",
+    "relevant_names": ["products", "discontinued"],
+    "primary_name": "discontinued",
+    "description": "Attribute discovery: products.discontinued is the availability flag (0=active, 1=retired)"
+  },
+  {
+    "id": "nw_disc_38",
+    "intent": "Where is the shipment destination country stored?",
+    "category": "attribute",
+    "relevant_names": ["orders", "ship_country"],
+    "primary_name": "ship_country",
+    "description": "Attribute discovery: orders.ship_country holds the country the order was shipped to"
+  },
+  {
+    "id": "nw_disc_39",
+    "intent": "What field contains the price charged per unit in an order line?",
+    "category": "attribute",
+    "relevant_names": ["order_details", "unit_price"],
+    "primary_name": "unit_price",
+    "description": "Attribute discovery: order_details.unit_price is the per-unit selling price"
+  },
+  {
+    "id": "nw_disc_40",
+    "intent": "Which attribute records the date an employee joined the company?",
+    "category": "attribute",
+    "relevant_names": ["employees", "hire_date"],
+    "primary_name": "hire_date",
+    "description": "Attribute discovery: employees.hire_date stores the date of employment"
   }
 ]

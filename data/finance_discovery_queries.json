@@ -158,5 +158,165 @@
     "relevant_names": ["loan", "amount", "client", "district", "district_id", "a2"],
     "primary_name": "loan",
     "description": "Sum loan.amount grouped by district city via client.district_id → district.a2"
+  },
+  {
+    "id": "fin_disc_21",
+    "intent": "What is the total number of transaction records in the database?",
+    "category": "aggregation",
+    "relevant_names": ["trans"],
+    "primary_name": "trans",
+    "description": "COUNT(*) from trans"
+  },
+  {
+    "id": "fin_disc_22",
+    "intent": "How many distinct accounts have taken out at least one loan?",
+    "category": "aggregation",
+    "relevant_names": ["loan", "account_id"],
+    "primary_name": "loan",
+    "description": "COUNT(DISTINCT account_id) from loan"
+  },
+  {
+    "id": "fin_disc_23",
+    "intent": "Which transactions are debits — money leaving the account?",
+    "category": "filter",
+    "relevant_names": ["trans", "type"],
+    "primary_name": "type",
+    "description": "trans.type = 'VYDAJ' means debit/outgoing payment"
+  },
+  {
+    "id": "fin_disc_24",
+    "intent": "Which loans are currently active with no repayment problems?",
+    "category": "filter",
+    "relevant_names": ["loan", "status"],
+    "primary_name": "status",
+    "description": "loan.status = 'C' means loan is running with no issues"
+  },
+  {
+    "id": "fin_disc_25",
+    "intent": "How many bank accounts were opened each year?",
+    "category": "temporal",
+    "relevant_names": ["account", "date"],
+    "primary_name": "account",
+    "description": "Group account records by year extracted from account.date"
+  },
+  {
+    "id": "fin_disc_26",
+    "intent": "Which loans were issued most recently?",
+    "category": "temporal",
+    "relevant_names": ["loan", "date"],
+    "primary_name": "loan",
+    "description": "Sort loan records by loan.date descending to find most recent"
+  },
+  {
+    "id": "fin_disc_27",
+    "intent": "How many transactions occurred each calendar month?",
+    "category": "temporal",
+    "relevant_names": ["trans", "date"],
+    "primary_name": "trans",
+    "description": "Group trans records by month from trans.date, count per month"
+  },
+  {
+    "id": "fin_disc_28",
+    "intent": "Which field in the transaction table indicates money in versus money out?",
+    "category": "concept",
+    "relevant_names": ["trans", "type"],
+    "primary_name": "type",
+    "description": "trans.type encodes PRIJEM (credit/incoming) vs VYDAJ (debit/outgoing)"
+  },
+  {
+    "id": "fin_disc_29",
+    "intent": "What column stores a client's geographic region?",
+    "category": "concept",
+    "relevant_names": ["district", "a3", "client", "district_id"],
+    "primary_name": "a3",
+    "description": "district.a3 encodes the region name (e.g. Prague, central Bohemia); reached via client.district_id"
+  },
+  {
+    "id": "fin_disc_30",
+    "intent": "What is the average loan amount for male versus female clients?",
+    "category": "join",
+    "relevant_names": ["loan", "amount", "account", "client", "gender"],
+    "primary_name": "loan",
+    "description": "Join loan → account → client to group loan.amount by client.gender"
+  },
+  {
+    "id": "fin_disc_31",
+    "intent": "Which district has the most bank accounts opened?",
+    "category": "join",
+    "relevant_names": ["account", "district_id", "district", "a2"],
+    "primary_name": "district",
+    "description": "Count accounts grouped by district_id, join district for city name (a2)"
+  },
+  {
+    "id": "fin_disc_32",
+    "intent": "How many loans are held by female clients?",
+    "category": "join",
+    "relevant_names": ["loan", "account", "client", "gender"],
+    "primary_name": "client",
+    "description": "Join loan → account → client, filter client.gender = 'F', count distinct loans"
+  },
+  {
+    "id": "fin_disc_33",
+    "intent": "What is the total inflow transaction volume per account?",
+    "category": "join",
+    "relevant_names": ["trans", "amount", "account_id", "type"],
+    "primary_name": "amount",
+    "description": "Sum trans.amount where type = PRIJEM grouped by account_id"
+  },
+  {
+    "id": "fin_disc_34",
+    "intent": "What data do we store about each bank client?",
+    "category": "schema",
+    "relevant_names": ["client", "gender", "birth_date", "district_id"],
+    "primary_name": "client",
+    "description": "Schema discovery: client entity and its demographic attributes"
+  },
+  {
+    "id": "fin_disc_35",
+    "intent": "Which entities in the database represent financial transactions?",
+    "category": "schema",
+    "relevant_names": ["trans", "loan", "amount"],
+    "primary_name": "trans",
+    "description": "Schema discovery: trans records day-to-day movements, loan records credit events"
+  },
+  {
+    "id": "fin_disc_36",
+    "intent": "What information does a loan record contain?",
+    "category": "schema",
+    "relevant_names": ["loan", "amount", "duration", "payments", "status", "date"],
+    "primary_name": "loan",
+    "description": "Schema discovery: loan entity and its key attributes (term, amount, status, repayments)"
+  },
+  {
+    "id": "fin_disc_37",
+    "intent": "Which column stores the monthly repayment amount for a loan?",
+    "category": "attribute",
+    "relevant_names": ["loan", "payments"],
+    "primary_name": "payments",
+    "description": "Attribute discovery: loan.payments holds the monthly instalment amount"
+  },
+  {
+    "id": "fin_disc_38",
+    "intent": "Where is the type of a bank transaction stored?",
+    "category": "attribute",
+    "relevant_names": ["trans", "type", "operation"],
+    "primary_name": "type",
+    "description": "Attribute discovery: trans.type stores PRIJEM/VYDAJ (credit/debit direction)"
+  },
+  {
+    "id": "fin_disc_39",
+    "intent": "Which field encodes a client's date of birth?",
+    "category": "attribute",
+    "relevant_names": ["client", "birth_date"],
+    "primary_name": "birth_date",
+    "description": "Attribute discovery: client.birth_date stores birth year as integer"
+  },
+  {
+    "id": "fin_disc_40",
+    "intent": "What attribute stores the purpose code for a bank transaction?",
+    "category": "attribute",
+    "relevant_names": ["trans", "k_symbol"],
+    "primary_name": "k_symbol",
+    "description": "Attribute discovery: trans.k_symbol encodes transaction purpose (salary, pension, insurance, etc.)"
   }
 ]

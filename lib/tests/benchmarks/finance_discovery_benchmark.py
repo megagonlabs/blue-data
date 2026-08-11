@@ -11,15 +11,17 @@ Conditions:
 Scoring: Hit@1, Hit@3, Hit@5, MRR against manually curated ground truth.
 
 Dataset : data/finance_sqlite.sql    (district, client, account, loan, trans)
-Queries : data/finance_discovery_queries.json  (20 analytical questions)
+Queries : data/finance_discovery_queries.json  (40 analytical questions)
 
 Query categories:
-  aggregation (4) — counting, summing, averaging over a single entity
-  filter      (5) — finding records matching a coded or threshold condition
-  join        (6) — intent spans multiple entities via foreign keys
-  temporal    (3) — date-based grouping or ordering
-  concept     (4) — abstract intent that maps to a non-obvious column
+  aggregation (6) — counting, summing, averaging over a single entity
+  filter      (6) — finding records matching a coded or threshold condition
+  join        (9) — intent spans multiple entities via foreign keys
+  temporal    (5) — date-based grouping or ordering
+  concept     (7) — abstract intent that maps to a non-obvious column
                     (e.g. "current balance" → trans.balance STATE_VARIABLE)
+  schema      (3) — what data/entities exist for a given concept
+  attribute   (4) — which specific column stores a named piece of information
 
 Usage:
     # keyword-only (no API key needed)

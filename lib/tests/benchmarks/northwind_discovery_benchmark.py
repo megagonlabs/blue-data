@@ -12,14 +12,16 @@ Scoring: Hit@1, Hit@3, Hit@5, MRR against manually curated ground truth.
 
 Dataset : data/northwind_sqlite.sql  (categories, suppliers, customers,
                                       employees, products, orders, order_details)
-Queries : data/northwind_discovery_queries.json  (20 analytical questions)
+Queries : data/northwind_discovery_queries.json  (40 analytical questions)
 
 Query categories:
-  aggregation (3) — counting, summing, averaging over a single entity
-  filter      (4) — finding records matching a coded or threshold condition
-  join        (8) — intent spans multiple entities via foreign keys
-  temporal    (2) — date-based grouping or ordering
-  existence   (3) — "never ordered", "no associated record" queries
+  aggregation (5) — counting, summing, averaging over a single entity
+  filter      (6) — finding records matching a coded or threshold condition
+  join       (12) — intent spans multiple entities via foreign keys
+  temporal    (5) — date-based grouping or ordering
+  existence   (4) — "never ordered", "no associated record" queries
+  schema      (4) — what data/entities exist for a given concept
+  attribute   (4) — which specific column stores a named piece of information
 
 Usage:
     # keyword-only (no API key needed)
