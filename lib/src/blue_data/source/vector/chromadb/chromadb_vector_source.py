@@ -31,7 +31,7 @@ class ChromaDBVectorSource(VectorSource):
 
     # ---------- primitive operations ----------
 
-    def create_index(self, index_name: str, collection: str, dim: int, distance_metric: str = "COSINE") -> str:
+    def create_index(self, index_name: str, collection: str, dim: int, distance_metric: str = "COSINE", extra_fields: list | None = None) -> str:
         metric = distance_metric.lower()
         chroma_metric = {"cosine": "cosine", "l2": "l2", "ip": "ip"}.get(metric, "cosine")
         self._client.get_or_create_collection(

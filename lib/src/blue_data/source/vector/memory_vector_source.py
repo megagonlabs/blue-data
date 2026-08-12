@@ -68,7 +68,7 @@ class MemoryVectorSource(VectorSource):
 
     # ---------- primitive operations ----------
 
-    def create_index(self, index_name: str, collection: str, dim: int, distance_metric: str = "COSINE") -> str:
+    def create_index(self, index_name: str, collection: str, dim: int, distance_metric: str = "COSINE", extra_fields: list | None = None) -> str:
         self._indices[index_name] = {
             "collection": collection,
             "dim": int(dim),

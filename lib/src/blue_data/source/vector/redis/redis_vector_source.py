@@ -240,28 +240,41 @@ class RedisVectorSource(VectorSource):
         algorithm = query.get("algorithm", "HNSW")
         metric = query.get("metric", query.get("distance_metric", "COSINE"))
 
-        return [
-            "FT.CREATE",
-            index_name,
-            "ON",
-            "JSON",
-            "PREFIX",
-            "1",
-            prefix,
-            "SCHEMA",
-            vector_path,
-            "AS",
-            vector_field,
-            "VECTOR",
-            algorithm,
-            "6",
-            "TYPE",
-            "FLOAT32",
-            "DIM",
-            int(dimension),
-            "DISTANCE_METRIC",
-            metric,
+        # Always index node_id/type/name so RETURN projections work for any caller.
+        _standard_fields = [
+            ("$.node_id", "node_id", "TAG"),
+            ("$.type",    "type",    "TAG"),
+            ("$.name",    "name",    "TAG"),
         ]
+
+        cmd = [
+            "FT.CREATE", index_name,
+            "ON", "JSON",
+            "PREFIX", "1", prefix,
+            "SCHEMA",
+        ]
+
+        for path, alias, field_type in _standard_fields:
+            cmd.extend([path, "AS", alias, field_type])
+
+        # Caller-supplied extra fields, e.g. node_id for KB sources.
+        for extra in (query.get("extra_fields") or []):
+            cmd.extend([
+                extra["path"],
+                "AS",
+                extra["name"],
+                extra.get("field_type", "TAG"),
+            ])
+
+        cmd.extend([
+            vector_path, "AS", vector_field,
+            "VECTOR", algorithm, "6",
+            "TYPE", "FLOAT32",
+            "DIM", int(dimension),
+            "DISTANCE_METRIC", metric,
+        ])
+
+        return cmd
 
     def _build_knn_command(self, query):
         index_name = query.get("index")
@@ -359,7 +372,14 @@ class RedisVectorSource(VectorSource):
 
     # ---------- primitive operations ----------
 
-    def create_index(self, index_name: str, collection: str, dim: int, distance_metric: str = "COSINE") -> str:
+    def create_index(
+        self,
+        index_name: str,
+        collection: str,
+        dim: int,
+        distance_metric: str = "COSINE",
+        extra_fields: list | None = None,
+    ) -> str:
         conn = self.properties["connection"]
         query = {
             "index": index_name,
@@ -369,6 +389,7 @@ class RedisVectorSource(VectorSource):
             "path": conn.get("vector_path", "$.embedding"),
             "field": conn.get("vector_field", "embedding"),
             "algorithm": conn.get("algorithm", "HNSW"),
+            "extra_fields": extra_fields,
         }
         try:
             return self.connection.execute_command(*self._build_create_index_command(query))

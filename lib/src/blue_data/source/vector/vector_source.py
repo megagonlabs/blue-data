@@ -17,7 +17,14 @@ class VectorSource(DataSource, ABC):
     # ---------- primitive operations ----------
 
     @abstractmethod
-    def create_index(self, index_name: str, collection: str, dim: int, distance_metric: str = "COSINE") -> str:
+    def create_index(
+        self,
+        index_name: str,
+        collection: str,
+        dim: int,
+        distance_metric: str = "COSINE",
+        extra_fields: list | None = None,
+    ) -> str:
         raise NotImplementedError
 
     @abstractmethod
@@ -67,6 +74,7 @@ class VectorSource(DataSource, ABC):
                 collection=query["collection"],
                 dim=int(query["dim"]),
                 distance_metric=query.get("distance_metric", "COSINE"),
+                extra_fields=query.get("extra_fields"),
             )
 
         if op == "VECTOR.UPSERT":
