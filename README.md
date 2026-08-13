@@ -40,6 +40,37 @@ Event-log tables get treated as static snapshots. *"What is the current account 
 
 **VectorSource** — pluggable vector index used by the search engine. `MemoryVectorSource` for dev/test; `RedisVectorSource` for production (requires Redis Stack).
 
+## Repository layout
+
+```
+blue-data/
+├── lib/                          # Python library (blue-data)
+│   ├── src/blue_data/
+│   └── tests/
+├── platform/
+│   ├── api/                      # REST API (blue-data-api)
+│   ├── cli/                      # Command-line interface (blue-data)
+│   ├── json-mcp/                 # MCP server for JSONSource operations
+│   └── registry-mcp/            # MCP server for registry operations
+├── docs/                         # Documentation
+├── data/                         # Demo datasets (Northwind, Czech banking, finance)
+├── design/                       # Architecture decision records
+└── examples/                     # Runnable examples
+```
+
+## Requirements
+
+- Python 3.10+
+- Runtime dependencies: `pandas`, `numpy` — no build step required
+- Optional: Redis Stack (`redis-stack-server`) for production registry persistence and vector search
+- Optional: Anthropic or OpenAI API key for LLM metadata enrichment
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+# or
+export OPENAI_API_KEY=sk-...
+```
+
 ## Quick start
 
 ```python
