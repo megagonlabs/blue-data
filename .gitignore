@@ -8,6 +8,9 @@ dist/
 build/
 *.egg-info/
 
+# Claude Code
+CLAUDE.md
+
 # Python generated files
 __pycache__/
 *.py[cod]
