@@ -11,7 +11,7 @@ Its core capabilities include:
 - **Cross-source intelligence** that understands relationships and semantics across multiple enterprise systems
 - **AI-ready semantic metadata** that enables more accurate reasoning, planning, and decision-making over enterprise data
 
-→ **[Full feature list](docs/features.md)** · **[Installation](docs/installation.md)**
+→ **[Full feature list](docs/features.md)** · **[Installation](docs/installation.md)** · **[Quick start](#quick-start)** · **[Examples](#examples)**
 
 ## Why blue-data
 
