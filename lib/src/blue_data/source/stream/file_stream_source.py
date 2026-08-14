@@ -7,7 +7,6 @@ from blue_data.source.stream.stream_source import StreamSource
 
 
 class FileStreamSource(StreamSource):
-    source_type = "stream/file"
     """File-backed stream source — appends JSON lines to per-stream files."""
 
     def __init__(self, name: str, directory: str | None = None, properties: dict | None = None):
@@ -21,8 +20,7 @@ class FileStreamSource(StreamSource):
 
     def _initialize_connection_properties(self) -> None:
         conn = self.properties.get("connection", {})
-        conn.setdefault("protocol", "stream")
-        conn.setdefault("subprotocol", "file")
+        conn.setdefault("protocol", "stream/file")
         conn.setdefault("directory", ".")
         self.properties["connection"] = conn
 

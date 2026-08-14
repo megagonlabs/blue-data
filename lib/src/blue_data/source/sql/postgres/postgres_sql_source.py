@@ -7,7 +7,6 @@ from blue_data.core.schema import DataSchema
 
 
 class PostgresDBSource(SQLSource):
-    source_type = "sql/postgres"
     """PostgreSQL data source."""
 
     def __init__(self, name, properties=None):
@@ -20,7 +19,7 @@ class PostgresDBSource(SQLSource):
 
         connection.setdefault("host", "localhost")
         connection.setdefault("port", 5432)
-        connection.setdefault("protocol", "postgres")
+        connection.setdefault("protocol", "sql/postgres")
         connection.setdefault("user", "postgres")
         connection.setdefault("password", "")
         connection.setdefault("database", "postgres")

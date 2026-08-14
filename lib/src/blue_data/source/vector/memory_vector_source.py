@@ -8,7 +8,6 @@ from blue_data.source.vector.vector_source import VectorSource
 
 
 class MemoryVectorSource(VectorSource):
-    source_type = "vector/memory"
     """In-memory vector storage for dev/test — mirrors RedisVectorSource's execute_query interface.
 
     Stores docs in a plain dict and computes KNN via cosine distance with numpy.
@@ -22,8 +21,7 @@ class MemoryVectorSource(VectorSource):
 
     def _initialize_connection_properties(self) -> None:
         conn = self.properties.get("connection", {})
-        conn.setdefault("protocol", "vector")
-        conn.setdefault("subprotocol", "memory")
+        conn.setdefault("protocol", "vector/memory")
         self.properties["connection"] = conn
 
     # ---------- DataSource interface (stubs — not relevant for registry search) ----------
@@ -53,18 +51,66 @@ class MemoryVectorSource(VectorSource):
 
     # ---------- filter parsing ----------
 
+    @staticmethod
+    def _unescape_tag(value: str) -> str:
+        return re.sub(r'\\(.)', r'\1', value)
+
+    def _apply_one_clause(self, docs: dict[str, dict], clause: str) -> dict[str, dict]:
+        clause = clause.strip()
+
+        # Legacy: @id:{doc_id} — filter by store key
+        id_match = re.match(r"@id:\{(.+)\}", clause)
+        if id_match:
+            doc_id = self._unescape_tag(id_match.group(1))
+            return {k: v for k, v in docs.items() if k == doc_id}
+
+        # TAG filter: @field:{value}
+        tag_match = re.match(r"@(\w+):\{([^}]*)\}", clause)
+        if tag_match:
+            field = tag_match.group(1)
+            value = self._unescape_tag(tag_match.group(2))
+            return {k: v for k, v in docs.items() if str(v.get(field, "")) == value}
+
+        # NUMERIC filter: @field:[lo hi]
+        num_match = re.match(r"@(\w+):\[(\S+) (\S+)\]", clause)
+        if num_match:
+            field = num_match.group(1)
+            lo_str, hi_str = num_match.group(2), num_match.group(3)
+            lo = float("-inf") if lo_str == "-inf" else float(lo_str)
+            hi = float("inf") if hi_str in ("+inf", "inf") else float(hi_str)
+            return {
+                k: v for k, v in docs.items()
+                if field in v and lo <= float(v[field]) <= hi
+            }
+
+        self.logger.warning(f"MemoryVectorSource: unsupported filter clause '{clause}' — ignored")
+        return docs
+
     def _apply_filter(self, docs: dict[str, dict], filter_expr: str) -> dict[str, dict]:
-        """Supports '*' (all) and '@id:{doc_id}' (exact ID match)."""
+        """Apply a Redis Search-style filter expression to the in-memory store.
+
+        Supports:
+            ``*``                         — return all docs
+            ``@field:{value}``            — TAG exact match (unescapes backslash escapes)
+            ``@field:[lo hi]``            — NUMERIC range (-inf / +inf accepted)
+            ``(@clause1) (@clause2) …``   — AND of multiple clauses
+            ``@id:{doc_id}``              — legacy key-based match
+        """
         if not filter_expr or filter_expr.strip() == "*":
             return docs
 
-        match = re.match(r"@id:\{(.+)\}", filter_expr.strip())
-        if match:
-            doc_id = match.group(1)
-            return {k: v for k, v in docs.items() if k == doc_id}
+        expr = filter_expr.strip()
 
-        self.logger.warning(f"MemoryVectorSource: unsupported filter '{filter_expr}' — returning all docs")
-        return docs
+        # Split combined filters: "(@a:{x}) (@b:[1 5])" → ["@a:{x}", "@b:[1 5]"]
+        if expr.startswith("("):
+            clauses = [part.strip() for part in re.split(r"\) \(", expr.strip("()"))]
+        else:
+            clauses = [expr]
+
+        result = docs
+        for clause in clauses:
+            result = self._apply_one_clause(result, clause)
+        return result
 
     # ---------- primitive operations ----------
 

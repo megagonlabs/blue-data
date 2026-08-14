@@ -12,7 +12,6 @@ _FORMATS = ("csv", "json", "jsonl", "parquet")
 
 
 class FileSource(DataSource):
-    source_type = "file"
     """DataSource backed by a directory of tabular files (CSV, JSON, JSONL).
 
     Each file in the directory maps to one collection.  There is no database

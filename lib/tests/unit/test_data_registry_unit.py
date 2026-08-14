@@ -440,7 +440,8 @@ def test_connect_source_returns_live_if_registered(reg):
 def test_connect_source_sqlite_lazy(tmp_path):
     reg = DataRegistry(store=MemoryJSONSource())
     reg.register_record("mydb", "source", "/", properties={
-        "connection": {"protocol": "sqlite", "database_directory": str(tmp_path)}
+        "_class": "blue_data.source.sql.sqlite.sqlite_sql_source.SQLiteDBSource",
+        "connection": {"protocol": "sql/sqlite", "database_directory": str(tmp_path)},
     })
     from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
     result = reg.connect_source("mydb")
@@ -448,11 +449,11 @@ def test_connect_source_sqlite_lazy(tmp_path):
     assert "mydb" in reg.sources
 
 
-def test_connect_source_unknown_protocol_raises(reg):
+def test_connect_source_missing_class_raises(reg):
     reg.register_record("mydb", "source", "/", properties={
-        "connection": {"protocol": "unknowndb"}
+        "connection": {"protocol": "sql/sqlite"}
     })
-    with pytest.raises(ValueError, match="Unsupported"):
+    with pytest.raises(ValueError, match="_class"):
         reg.connect_source("mydb")
 
 

@@ -10,7 +10,6 @@ from blue_data.core.schema import DataSchema
 
 
 class RedisJSONSource(JSONSource):
-    source_type = "json/redis"
     """Redis-backed JSON source — registry backend and data source for Redis introspection."""
 
     def __init__(self, name: str = "redis_json", properties: dict | None = None):
@@ -21,6 +20,7 @@ class RedisJSONSource(JSONSource):
 
     def _initialize_connection_properties(self):
         conn = self.properties.get("connection", {})
+        conn.setdefault("protocol", "json/redis")
         conn.setdefault("host", "localhost")
         conn.setdefault("port", 6379)
         conn.setdefault("db", 0)
@@ -29,7 +29,6 @@ class RedisJSONSource(JSONSource):
     def _connect(self, **connection):
         config = dict(connection)
         config.pop("protocol", None)
-        config.pop("subprotocol", None)
         config.pop("scan_prefix", None)
         return redis.Redis(
             host=config.get("host", "localhost"),

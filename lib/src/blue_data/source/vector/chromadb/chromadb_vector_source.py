@@ -6,7 +6,6 @@ from blue_data.source.vector.vector_source import VectorSource
 
 
 class ChromaDBVectorSource(VectorSource):
-    source_type = "vector/chromadb"
     """ChromaDB vector source — persistent or ephemeral via chromadb client."""
 
     def __init__(self, name: str, path: str | None = None, embedding_fn=None, properties: dict | None = None):
@@ -25,8 +24,7 @@ class ChromaDBVectorSource(VectorSource):
 
     def _initialize_connection_properties(self) -> None:
         conn = self.properties.get("connection", {})
-        conn.setdefault("protocol", "vector")
-        conn.setdefault("subprotocol", "chromadb")
+        conn.setdefault("protocol", "vector/chromadb")
         self.properties["connection"] = conn
 
     # ---------- primitive operations ----------

@@ -7,7 +7,6 @@ from blue_data.core.utils.json_utils import json_query_get, json_query_set, json
 
 
 class MemoryJSONSource(JSONSource):
-    source_type = "json/memory"
     """In-memory JSON storage backend for local/dev/test use."""
 
     def __init__(self, name: str = "memory_json", properties: dict | None = None):
@@ -16,8 +15,7 @@ class MemoryJSONSource(JSONSource):
 
     def _initialize_connection_properties(self) -> None:
         conn = self.properties.get("connection", {})
-        conn.setdefault("protocol", "json")
-        conn.setdefault("subprotocol", "memory")
+        conn.setdefault("protocol", "json/memory")
         self.properties["connection"] = conn
 
     def get(self, path: str | None = None) -> Any:

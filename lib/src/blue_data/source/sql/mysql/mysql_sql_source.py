@@ -8,7 +8,6 @@ from blue_data.core.schema import DataSchema
 
 
 class MySQLDBSource(SQLSource):
-    source_type = "sql/mysql"
     """MySQL data source."""
 
     def __init__(self, name, properties=None):
@@ -21,7 +20,7 @@ class MySQLDBSource(SQLSource):
 
         connection.setdefault("host", "localhost")
         connection.setdefault("port", 3306)
-        connection.setdefault("protocol", "mysql")
+        connection.setdefault("protocol", "sql/mysql")
         connection.setdefault("user", "root")
         connection.setdefault("password", "")
         connection.setdefault("database", "mysql")

@@ -8,7 +8,6 @@ from blue_data.source.graph.graph_source import GraphSource, GraphTransaction
 
 
 class MemoryGraphSource(GraphSource):
-    source_type = "graph/memory"
     """In-memory graph storage backend for local/dev/test use."""
 
     def __init__(self, name: str, properties: dict | None = None):
@@ -19,8 +18,7 @@ class MemoryGraphSource(GraphSource):
 
     def _initialize_connection_properties(self) -> None:
         conn = self.properties.get("connection", {})
-        conn.setdefault("protocol", "graph")
-        conn.setdefault("subprotocol", "memory")
+        conn.setdefault("protocol", "graph/memory")
         self.properties["connection"] = conn
 
     # ---------- transaction helpers ----------

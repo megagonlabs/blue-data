@@ -9,7 +9,6 @@ from blue_data.core.utils.json_utils import json_query_get, json_query_set, json
 
 
 class FileJSONSource(JSONSource):
-    source_type = "json/file"
     """File-backed JSON storage backend."""
 
     def __init__(self, name: str = "file_json", properties: dict | None = None):
@@ -20,8 +19,7 @@ class FileJSONSource(JSONSource):
 
     def _initialize_connection_properties(self) -> None:
         conn = self.properties.get("connection", {})
-        conn.setdefault("protocol", "json")
-        conn.setdefault("subprotocol", "file")
+        conn.setdefault("protocol", "json/file")
         conn.setdefault("path", "registry.json")
         self.properties["connection"] = conn
 

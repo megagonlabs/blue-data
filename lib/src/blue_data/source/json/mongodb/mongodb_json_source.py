@@ -8,7 +8,6 @@ from blue_data.core.schema import DataSchema
 
 
 class MongoDBSource(JSONSource):
-    source_type = "json/mongodb"
     """MongoDB data source."""
 
     def __init__(self, name, properties=None):
@@ -19,7 +18,7 @@ class MongoDBSource(JSONSource):
         connection = self.properties.get("connection", {})
         connection.setdefault("host", "localhost")
         connection.setdefault("port", 27017)
-        connection.setdefault("protocol", "mongodb")
+        connection.setdefault("protocol", "json/mongodb")
         self.properties["connection"] = connection
 
     def _connect(self, **connection):

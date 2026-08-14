@@ -9,7 +9,6 @@ from blue_data.core.schema import DataSchema
 
 
 class RedisVectorSource(VectorSource):
-    source_type = "vector/redis"
     """Redis Vector data source using RedisJSON + RediSearch."""
 
     def __init__(self, name: str, embedding_fn=None, properties: dict | None = None):
@@ -18,10 +17,9 @@ class RedisVectorSource(VectorSource):
     def _initialize_connection_properties(self):
         connection = self.properties.get("connection", {})
 
+        connection.setdefault("protocol", "vector/redis")
         connection.setdefault("host", "localhost")
         connection.setdefault("port", 6379)
-        connection.setdefault("protocol", "vector")
-        connection.setdefault("subprotocol", "redis")
         connection.setdefault("db", 0)
 
         self.properties["connection"] = connection
@@ -30,7 +28,6 @@ class RedisVectorSource(VectorSource):
         config = copy.deepcopy(connection)
 
         config.pop("protocol", None)
-        config.pop("subprotocol", None)
         config.pop("scan_prefix", None)
 
         return redis.Redis(

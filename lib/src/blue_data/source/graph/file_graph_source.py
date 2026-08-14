@@ -8,7 +8,6 @@ from blue_data.source.graph.memory_graph_source import MemoryGraphSource
 
 
 class FileGraphSource(MemoryGraphSource):
-    source_type = "graph/file"
     """File-backed graph storage — persists nodes and edges as a JSON file per database.
 
     Reuses MemoryGraphSource's in-memory logic: each call loads the database's
@@ -34,8 +33,7 @@ class FileGraphSource(MemoryGraphSource):
 
     def _initialize_connection_properties(self) -> None:
         conn = self.properties.get("connection", {})
-        conn.setdefault("protocol", "graph")
-        conn.setdefault("subprotocol", "file")
+        conn.setdefault("protocol", "graph/file")
         conn.setdefault("directory", ".")
         self.properties["connection"] = conn
 

@@ -9,14 +9,13 @@ from blue_data.core.schema import DataSchema
 
 
 class SQLiteDBSource(SQLSource):
-    source_type = "sql/sqlite"
     def __init__(self, name, properties=None):
         super().__init__(name, properties=properties)
 
     def _initialize_connection_properties(self):
         connection = self.properties.get("connection", {})
 
-        connection.setdefault("protocol", "sqlite")
+        connection.setdefault("protocol", "sql/sqlite")
         connection.setdefault("database_directory", ".")
 
         self.properties["connection"] = connection

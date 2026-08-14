@@ -6,7 +6,6 @@ from blue_data.source.stream.stream_source import StreamSource
 
 
 class RedisStreamSource(StreamSource):
-    source_type = "stream/redis"
     """Redis Streams-backed source using XADD / XREAD."""
 
     def __init__(self, name: str, properties: dict | None = None):
@@ -17,6 +16,7 @@ class RedisStreamSource(StreamSource):
 
     def _initialize_connection_properties(self):
         conn = self.properties.get("connection", {})
+        conn.setdefault("protocol", "stream/redis")
         conn.setdefault("host", "localhost")
         conn.setdefault("port", 6379)
         conn.setdefault("db", 0)

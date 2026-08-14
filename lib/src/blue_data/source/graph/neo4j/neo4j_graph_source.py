@@ -43,7 +43,6 @@ ORDER BY type
 
 
 class NEO4JSource(GraphSource):
-    source_type = "graph/neo4j"
     """Neo4j graph database source."""
 
     def __init__(self, name, properties=None):
@@ -58,22 +57,23 @@ class NEO4JSource(GraphSource):
     def _initialize_connection_properties(self):
         connection = self.properties.get("connection", {})
 
+        connection.setdefault("protocol", "graph/neo4j")
+        connection.setdefault("scheme", "bolt")
         connection.setdefault("host", "localhost")
         connection.setdefault("port", 7687)
-        connection.setdefault("protocol", "bolt")
         connection.setdefault("user", "neo4j")
         connection.setdefault("password", "")
 
         self.properties["connection"] = connection
 
     def _connect(self, **connection):
-        protocol = connection.get("protocol", "bolt")
+        scheme = connection.get("scheme", "bolt")
         host = connection.get("host", "localhost")
         port = connection.get("port", 7687)
         user = connection.get("user", "neo4j")
         password = connection.get("password", "")
 
-        uri = f"{protocol}://{host}:{port}"
+        uri = f"{scheme}://{host}:{port}"
         return GraphDatabase.driver(uri, auth=(user, password))
 
     def _disconnect(self):

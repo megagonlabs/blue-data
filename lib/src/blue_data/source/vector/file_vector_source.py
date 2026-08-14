@@ -9,7 +9,6 @@ from blue_data.source.vector.vector_source import VectorSource
 
 
 class FileVectorSource(VectorSource):
-    source_type = "vector/file"
     """File-backed vector storage — persists docs as JSON files per collection."""
 
     def __init__(self, name: str, directory: str | None = None, embedding_fn=None, properties: dict | None = None):
@@ -23,8 +22,7 @@ class FileVectorSource(VectorSource):
 
     def _initialize_connection_properties(self) -> None:
         conn = self.properties.get("connection", {})
-        conn.setdefault("protocol", "vector")
-        conn.setdefault("subprotocol", "file")
+        conn.setdefault("protocol", "vector/file")
         conn.setdefault("directory", ".")
         self.properties["connection"] = conn
 

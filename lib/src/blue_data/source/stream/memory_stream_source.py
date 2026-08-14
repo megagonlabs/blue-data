@@ -6,7 +6,6 @@ from blue_data.source.stream.stream_source import StreamSource
 
 
 class MemoryStreamSource(StreamSource):
-    source_type = "stream/memory"
     """In-memory stream backend for local/dev/test use."""
 
     def __init__(self, name: str, properties: dict | None = None):
@@ -16,8 +15,7 @@ class MemoryStreamSource(StreamSource):
 
     def _initialize_connection_properties(self) -> None:
         conn = self.properties.get("connection", {})
-        conn.setdefault("protocol", "stream")
-        conn.setdefault("subprotocol", "memory")
+        conn.setdefault("protocol", "stream/memory")
         self.properties["connection"] = conn
 
     def publish(self, stream: str, message: dict) -> None:
