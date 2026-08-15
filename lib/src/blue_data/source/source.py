@@ -478,6 +478,31 @@ class DataSource:
         mode: str = "append",
         options: dict | None = None,
     ) -> dict:
+        """Import rows from *source* into this DataSource.
+
+        Subclasses override this to implement the actual write logic.
+        The base implementation is a no-op and returns ``{}``.
+
+        Contract for subclasses:
+        - Read rows by calling ``source.execute_query(None, collection=collection)``.
+        - Write those rows into the local store identified by *database* / *entity*.
+        - Respect *mode*: ``"append"`` adds to existing data; ``"overwrite"``
+          replaces it entirely before writing.
+        - Return a dict with at least ``{"status": "success", "rows_imported": n}``.
+
+        Args:
+            source: The DataSource to pull rows from.
+            database: Target database within this source.
+            collection: Collection name used to query the *source* side.
+                Note: ``collection`` and ``entity`` refer to different levels of
+                the hierarchy — ``collection`` is the schema/directory, ``entity``
+                is the specific table/file to write. For backends where these are
+                the same concept (e.g. ``FileSource``), ``entity`` is ignored.
+            entity: Specific table or entity to write into on the target side.
+                Required for SQL targets; ignored by file-based targets.
+            mode: ``"append"`` or ``"overwrite"``.
+            options: Backend-specific options (e.g. output format for files).
+        """
         return {}
 
     # ---------- stats ----------

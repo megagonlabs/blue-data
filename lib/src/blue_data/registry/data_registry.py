@@ -116,7 +116,32 @@ class DataRegistry(Registry):
     ) -> dict:
         """Import rows from *source* into *target* via their registered DataSource objects.
 
-        Raises ``ValueError`` if either source is not registered or connectable.
+        The transfer is pull-based: the target DataSource reads rows from the source
+        by calling ``source.execute_query(None, collection=collection)``.
+
+        Args:
+            source: Registered name of the DataSource to read from.
+            target: Registered name of the DataSource to write into.
+            database: Target database (e.g. the ``.db`` filename for SQLite).
+            collection: Identifies which collection to read on the source side.
+                For ``FileSource`` this is the file stem (``"customers"`` →
+                ``customers.csv``). For SQL sources it is the schema name.
+            entity: Target table/entity name on the destination side. Required
+                for SQL targets (``SQLiteDBSource``, etc.) because the source
+                ``collection`` concept (schema) differs from the target entity
+                concept (table). Ignored by ``FileSource``, which derives the
+                output filename from ``collection``. Omitting this for a SQL
+                target raises ``ValueError``.
+            mode: ``"append"`` (default) adds rows to existing data.
+                ``"overwrite"`` clears the target table/file first.
+            options: Backend-specific options passed to the target's
+                ``import_data`` implementation (e.g. ``{"format": "parquet"}``
+                for ``FileSource``).
+
+        Raises:
+            ValueError: If either *source* or *target* is not registered or
+                connectable, or if the target implementation requires *entity*
+                and it was not provided.
         """
         source_obj = self.connect_source(source)
         if source_obj is None:
