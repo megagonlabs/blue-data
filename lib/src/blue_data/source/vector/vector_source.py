@@ -8,8 +8,6 @@ from blue_data.source.source import DataSource
 class VectorSource(DataSource, ABC):
     """Base class for vector data sources."""
 
-    content_type: str = "vector"
-
     def __init__(self, name: str, embedding_fn=None, properties: dict | None = None):
         super().__init__(name, properties=properties)
         self._embedding_fn = embedding_fn

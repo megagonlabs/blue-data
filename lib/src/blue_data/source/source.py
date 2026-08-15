@@ -5,8 +5,6 @@ from contextlib import contextmanager
 class DataSource:
     """Base abstraction for all Blue data sources."""
 
-    content_type: str = "tabular"
-
     def __init__(self, name: str, properties: dict | None = None):
         if properties is None:
             properties = {}

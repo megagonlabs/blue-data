@@ -59,7 +59,6 @@ class GraphTransaction:
 class GraphSource(DataSource, ABC):
     """Base class for graph data sources."""
 
-    content_type: str = "graph"
 
     # ---------- node operations ----------
 
