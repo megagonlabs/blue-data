@@ -177,20 +177,127 @@ results = registry.execute_query_nl(
 
 ---
 
-## Data import
+## Data import and export
 
-Source-to-source data import across SQLite, Postgres, MySQL, and FileSource, with a registry-level wrapper and MCP tool.
+Move rows between registered sources, or export them directly to a file — no manual pandas or SQL boilerplate required.
+
+### `import_data` — source to source
+
+Copies rows from one registered DataSource into another. The transfer is **pull-based**: the target connects to the source and reads from it.
 
 ```python
 registry.import_data(
-    source="sqlite",    # source to read from
-    target="postgres",  # target to write to
-    database="mydb",
-    collection="public",
-    entity="users",
+    source="csv_store",    # registered name of the source to read from
+    target="sqlite_store", # registered name of the target to write into
+    database="shop",       # target database
+    collection="orders",   # identifies the collection on the source side
+    entity="orders",       # target table/entity name (required for SQL targets)
+    mode="append",         # "append" (default) or "overwrite"
+)
+```
+
+**`collection` vs `entity`**
+
+These two parameters serve different sides of the transfer:
+
+| Parameter | Side | Meaning |
+|---|---|---|
+| `collection` | Source | Which collection to read from (file stem for FileSource, table name for SQL sources) |
+| `entity` | Target | Which table to write into on the SQL target |
+
+They are separate because source and target may use different names for the same data. For `FileSource` targets, `entity` is not needed — the output filename is derived from `collection`.
+
+**Source compatibility**
+
+Any source that returns a flat list of rows from `execute_query(None, collection=...)` can be used as the source:
+
+| Source type | Can be source | Can be target |
+|---|---|---|
+| `FileSource` | Yes | Yes |
+| `SQLiteDBSource` | Yes | Yes |
+| `PostgresDBSource` | Yes | Yes |
+| `MySQLDBSource` | Yes | Yes |
+| `GraphSource` | No — `execute_query` expects dict ops, not `None` | No |
+| `VectorSource` | No | No |
+
+**Modes**
+
+- `"append"` — adds rows to existing data without touching what is already there.
+- `"overwrite"` — clears the target table or file first, then writes the new rows.
+
+**Examples**
+
+File → SQL:
+```python
+registry.import_data(
+    source="csv_store",
+    target="sqlite_store",
+    database="shop",
+    collection="customers",  # reads customers.csv
+    entity="customers",      # writes into the customers table
     mode="append",
 )
 ```
+
+SQL → SQL (same database name, different directories):
+```python
+registry.import_data(
+    source="analytics_store",
+    target="warehouse_store",
+    database="shop",
+    collection="top_customers",  # source table
+    entity="top_customers",      # target table
+    mode="append",
+)
+```
+
+File → File (no `entity` needed):
+```python
+registry.import_data(
+    source="csv_store",
+    target="csv_backup",
+    collection="orders",
+    mode="append",
+)
+```
+
+See `examples/feature-demos/import_data_demo.py` for a full walkthrough including overwrite mode and SQL → SQL transfer.
+
+---
+
+### `export_data` — source to file
+
+Exports rows from a registered source directly to a file. Format is inferred from the file extension, or can be forced with `fmt`.
+
+```python
+registry.export_data(
+    source="sqlite_store",          # registered source to read from
+    path="/tmp/exports/orders.csv", # output file path
+    database="shop",
+    collection="orders",            # table or file to export
+    query=None,                     # None = all rows; SQL string or dict = filter
+    fmt=None,                       # inferred from extension: csv, json, jsonl, parquet
+)
+```
+
+**Supported formats:** `csv`, `json`, `jsonl`, `parquet` — inferred from the file extension, or set explicitly with `fmt`.
+
+**Filtering:** pass a query to export a subset of rows. For SQL sources this is a SQL string; for `FileSource` it is a `{column: value}` equality filter.
+
+```python
+# Export only paid orders to JSONL
+registry.export_data(
+    source="sqlite_store",
+    path="/tmp/exports/paid_orders.jsonl",
+    database="shop",
+    collection="orders",
+    query="SELECT * FROM orders WHERE status = 'paid'",
+)
+```
+
+`export_data` is a registry-level convenience — there is no `DataSource.export_data` method. It always reads via `execute_query` and writes using pandas.
+
+See `examples/feature-demos/export_data_demo.py` for a full walkthrough including CSV, JSON, and filtered JSONL exports.
 
 ---
 
