@@ -177,6 +177,7 @@ class DataSchema:
         if description is None:
             description = ""
 
+        relation_obj['properties'][attribute] = type
         relation_obj['contents']['attributes'][attribute] = {
             'name': attribute,
             'info': type,
