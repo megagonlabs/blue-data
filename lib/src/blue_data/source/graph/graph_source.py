@@ -109,15 +109,100 @@ class GraphSource(DataSource, ABC):
     # ---------- tool-based nl2q ----------
 
     def get_nl_tools(self, database=None, collection=None):
-        tools = super().get_nl_tools(database=database, collection=collection)
-        for tool in tools:
-            if tool["name"] == "execute_query":
-                tool["description"] = (
-                    "Execute a Cypher query against the graph database and return results. "
-                    "Use standard Cypher syntax (MATCH, RETURN, WHERE, etc.)."
-                )
-                tool["input_schema"]["properties"]["query"]["description"] = "Cypher query string"
-        return tools
+        base = super().get_nl_tools(database=database, collection=collection)
+        # Keep list_databases, list_collections, get_schema, get_metadata.
+        # Replace execute_query with graph-specific traversal tools.
+        graph_tools = [t for t in base if t["name"] != "execute_query"]
+        graph_tools += [
+            {
+                "name": "match_nodes",
+                "description": "Find nodes in the graph by label and/or property values.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database": {"type": "string"},
+                        "label": {"type": "string", "description": "Node label to filter by"},
+                        "properties": {
+                            "type": "object",
+                            "description": "Key/value pairs the node must match",
+                        },
+                    },
+                    "required": ["database"],
+                },
+            },
+            {
+                "name": "get_node",
+                "description": "Fetch a single node by its ID.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database": {"type": "string"},
+                        "node_id": {"type": "string"},
+                    },
+                    "required": ["database", "node_id"],
+                },
+            },
+            {
+                "name": "get_neighbors",
+                "description": "Get neighbouring nodes connected to a given node, optionally filtered by edge type and direction.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database": {"type": "string"},
+                        "node_id": {"type": "string"},
+                        "edge_type": {"type": "string", "description": "Edge/relationship type to filter by"},
+                        "direction": {
+                            "type": "string",
+                            "enum": ["in", "out", "both"],
+                            "description": "Traversal direction (default: both)",
+                        },
+                    },
+                    "required": ["database", "node_id"],
+                },
+            },
+            {
+                "name": "match_edges",
+                "description": "Find edges/relationships in the graph by type and/or endpoint node IDs.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database": {"type": "string"},
+                        "edge_type": {"type": "string"},
+                        "source_id": {"type": "string"},
+                        "target_id": {"type": "string"},
+                    },
+                    "required": ["database"],
+                },
+            },
+        ]
+        return graph_tools
+
+    def execute_nl_tool(self, name, tool_input, database=None, collection=None, optional_properties=None):
+        db = tool_input.get("database", database)
+
+        if name == "match_nodes":
+            return self.match_nodes(
+                db,
+                label=tool_input.get("label"),
+                properties=tool_input.get("properties"),
+            )
+        if name == "get_node":
+            return self.get_node(db, tool_input["node_id"])
+        if name == "get_neighbors":
+            return self.get_neighbors(
+                db,
+                node_id=tool_input["node_id"],
+                edge_type=tool_input.get("edge_type"),
+                direction=tool_input.get("direction", "both"),
+            )
+        if name == "match_edges":
+            return self.match_edges(
+                db,
+                edge_type=tool_input.get("edge_type"),
+                source_id=tool_input.get("source_id"),
+                target_id=tool_input.get("target_id"),
+            )
+        return super().execute_nl_tool(name, tool_input, database=database, collection=collection, optional_properties=optional_properties)
 
     # ---------- query ----------
 

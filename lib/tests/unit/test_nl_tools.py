@@ -185,19 +185,17 @@ def graph_src():
     return src
 
 
-def test_graph_execute_query_tool_describes_cypher(graph_src):
+def test_graph_has_no_execute_query_tool(graph_src):
     tools = graph_src.get_nl_tools(database="kg")
-    eq_tool = next(t for t in tools if t["name"] == "execute_query")
-    assert "Cypher" in eq_tool["description"]
+    names = {t["name"] for t in tools}
+    assert "execute_query" not in names
+    assert {"match_nodes", "get_node", "get_neighbors", "match_edges"} <= names
 
 
-def test_graph_nl_tools_loop(graph_src):
-    """LLM calls execute_query (GRAPH op) then returns text."""
+def test_graph_nl_tools_match_nodes(graph_src):
+    """LLM calls match_nodes then returns text — result is the matched nodes."""
     llm = make_scripted_llm(
-        _tool_use_response("t1", "execute_query", {
-            "query": {"op": "GRAPH.MATCH_NODE", "label": "Person"},
-            "database": "kg",
-        }),
+        _tool_use_response("t1", "match_nodes", {"database": "kg", "label": "Person"}),
         _text_response("Found 2 Person nodes."),
     )
     result = graph_src.execute_query_nl_tools(
@@ -205,4 +203,18 @@ def test_graph_nl_tools_loop(graph_src):
         database="kg",
         llm_fn=llm,
     )
-    assert len(result) == 2
+    assert result == [{"answer": "Found 2 Person nodes."}]
+
+
+def test_graph_nl_tools_get_neighbors(graph_src):
+    """LLM calls get_neighbors to traverse from a known node."""
+    llm = make_scripted_llm(
+        _tool_use_response("t1", "get_neighbors", {"database": "kg", "node_id": "alice"}),
+        _text_response("Alice knows Bob."),
+    )
+    result = graph_src.execute_query_nl_tools(
+        "who does Alice know?",
+        database="kg",
+        llm_fn=llm,
+    )
+    assert result == [{"answer": "Alice knows Bob."}]
