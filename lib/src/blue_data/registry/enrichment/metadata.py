@@ -500,23 +500,23 @@ OUTPUT FORMAT (STRICT JSON ONLY):
 Return ONLY this JSON structure, filled in appropriately.
 """.strip()
 
-    def build_value_semantics_prompt(self, entity_name: str, attr_name: str, attr_properties: dict, context: dict | None = None) -> str:
-        """Full open-world SDI prompt. Generates new semantic types when the closed VSI taxonomy does not fit."""
+    def build_sdi_prompt(self, entity_name: str, attr_name: str, attr_properties: dict, context: dict | None = None) -> str:
+        """Open-world SDI prompt. Generates new semantic types when the closed VSI taxonomy does not fit."""
         stats = attr_properties.get("stats", {}) or {}
         sample_values = stats.get("sample_values", [])[:10] or ["<NO SAMPLE VALUES AVAILABLE>"]
         attr_type = attr_properties.get("info", {}).get("type", "unknown")
 
         return f"""
-You are an advanced VALUE SEMANTICS inference engine designed for enterprise-scale,
+You are an advanced semantic discovery engine designed for enterprise-scale,
 heterogeneous data. Your goal is to infer the **intrinsic semantic meaning** of the VALUES
 in a database attribute — based only on the values themselves, not business rules.
 
 ──────────────────────────────────────────────
-VALUE SEMANTICS (VST) — CORE PRINCIPLES
+SEMANTIC DISCOVERY (SDI) — CORE PRINCIPLES
 ──────────────────────────────────────────────
 You operate under an OPEN-WORLD semantic model:
 
-1. VST is NOT a closed taxonomy.
+1. SDI is NOT a closed taxonomy.
 2. You may generate new semantic types if supported by patterns in the values.
 3. You infer meaning by analyzing:
    • linguistic patterns
@@ -615,9 +615,6 @@ INTERPRETATION GUIDELINES:
 
 Now infer the most accurate semantics and return ONLY valid JSON.
 """.strip()
-
-    def build_sdi_prompt(self, entity_name: str, attr_name: str, attr_properties: dict, context: dict | None = None) -> str:
-        return self.build_value_semantics_prompt(entity_name, attr_name, attr_properties, context=context)
 
     def build_domain_concept_prompt(self, entity_name: str, attr_name: str, attr_properties: dict) -> str:
         taxonomy_text = (
