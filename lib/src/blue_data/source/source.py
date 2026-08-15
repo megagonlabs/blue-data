@@ -1,4 +1,5 @@
 import logging
+from contextlib import contextmanager
 
 
 class DataSource:
@@ -87,6 +88,35 @@ class DataSource:
         module = importlib.import_module(module_path)
         source_cls = getattr(module, class_name)
         return source_cls(*args, **kwargs)
+
+    # ---------- transactions ----------
+
+    def begin_transaction(self, database: str) -> str:
+        raise NotImplementedError(f"{type(self).__name__} does not support transactions")
+
+    def commit_transaction(self, transaction_id: str) -> None:
+        raise NotImplementedError(f"{type(self).__name__} does not support transactions")
+
+    def rollback_transaction(self, transaction_id: str) -> None:
+        raise NotImplementedError(f"{type(self).__name__} does not support transactions")
+
+    def get_transaction_operations(self, transaction_id: str) -> list[dict]:
+        raise NotImplementedError(f"{type(self).__name__} does not support transactions")
+
+    def list_transactions(self, database: str | None = None) -> list[str]:
+        raise NotImplementedError(f"{type(self).__name__} does not support transactions")
+
+    @contextmanager
+    def transaction(self, database: str):
+        """Context manager: begin on enter, commit on clean exit, rollback on exception."""
+        transaction_id = self.begin_transaction(database)
+        try:
+            yield transaction_id
+        except Exception:
+            self.rollback_transaction(transaction_id)
+            raise
+        else:
+            self.commit_transaction(transaction_id)
 
     # ---------- source ----------
     def fetch_metadata(self) -> dict:
