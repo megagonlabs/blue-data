@@ -500,21 +500,88 @@ OUTPUT FORMAT (STRICT JSON ONLY):
 Return ONLY this JSON structure, filled in appropriately.
 """.strip()
 
-    def build_sdi_prompt(self, entity_name: str, attr_name: str, attr_properties: dict, context: dict | None = None) -> str:
+    def build_value_semantics_prompt(self, entity_name: str, attr_name: str, attr_properties: dict, context: dict | None = None) -> str:
+        """Full open-world SDI prompt. Generates new semantic types when the closed VSI taxonomy does not fit."""
         stats = attr_properties.get("stats", {}) or {}
         sample_values = stats.get("sample_values", [])[:10] or ["<NO SAMPLE VALUES AVAILABLE>"]
         attr_type = attr_properties.get("info", {}).get("type", "unknown")
 
         return f"""
-You are an advanced VALUE SEMANTICS inference engine.
-Infer the intrinsic semantic meaning of values using an OPEN-WORLD model — you may generate new types.
+You are an advanced VALUE SEMANTICS inference engine designed for enterprise-scale,
+heterogeneous data. Your goal is to infer the **intrinsic semantic meaning** of the VALUES
+in a database attribute — based only on the values themselves, not business rules.
 
-THREE-LAYER MODEL:
-LAYER 1 — STRUCTURAL SEMANTICS: shape of the values (STRING, NUMBER, DATE, etc.)
-LAYER 2 — LINGUISTIC/ENTITY SEMANTICS: type of entity (person name, job title, etc.)
-LAYER 3 — CONCEPTUAL/CATEGORY SEMANTICS: semantic class (demographic group, tier, etc.)
+──────────────────────────────────────────────
+VALUE SEMANTICS (VST) — CORE PRINCIPLES
+──────────────────────────────────────────────
+You operate under an OPEN-WORLD semantic model:
 
+1. VST is NOT a closed taxonomy.
+2. You may generate new semantic types if supported by patterns in the values.
+3. You infer meaning by analyzing:
+   • linguistic patterns
+   • structural patterns
+   • categorical signals
+   • statistical regularities
+   • latent real-world semantics
+
+Never restrict yourself to predefined categories.
+
+──────────────────────────────────────────────
+THE THREE-LAYER SEMANTIC MODEL
+──────────────────────────────────────────────
+
+LAYER 1 — STRUCTURAL SEMANTICS
+    What *shape* do the values have?
+    Examples: STRING, NUMBER, INTEGER, DATE, URL, EMAIL, ID_STRING, BOOLEAN, CODE
+
+LAYER 2 — LINGUISTIC / ENTITY SEMANTICS
+    What *type of entity or label* do the values resemble?
+    Examples (not exhaustive): person names, job titles, certification names,
+    skills or competencies, locations, product names, organizational entities.
+    These categories are open-world: you may create new ones.
+
+LAYER 3 — CONCEPTUAL / CATEGORY SEMANTICS
+    What *semantic class or conceptual grouping* do the values imply?
+    This includes: demographic groups (teenagers, seniors), vehicle classes
+    (heavy truck, light truck), risk/quality tiers, product tiers (premium, basic),
+    salary or value levels, measurement categories (speed, volume, weight).
+    This is open-world: you may generate new conceptual classes.
+
+IMPORTANT: These layers are not mutually exclusive — produce the *most informative*
+semantic type that best describes the values.
+
+──────────────────────────────────────────────
+GENERALIZED DETECTION PATTERNS
+──────────────────────────────────────────────
+
+• STRUCTURAL SIGNALS: formats (dates, codes, emails, numbers), token patterns,
+  length consistency, character composition.
+
+• LINGUISTIC SIGNALS: multi-word phrases, professional titles, credential-like
+  structures ("Certified…", "Diploma in…"), named entities (locations, organizations),
+  labels with standardised wording (hazard class, tier labels).
+
+• CATEGORY SIGNALS: group names ("teenagers", "seniors"), categorical adjectives
+  (high, low, premium, hazardous), domain-like clusters, ordinal or tiered values.
+
+• NUMERIC SEMANTICS: if values *represent* categories (not numbers), infer:
+    – ranges (age group, tier)
+    – thresholds (heavy truck → payload > X)
+    – levels (risk, salary, quality)
+
+──────────────────────────────────────────────
+WHEN TO USE FREE_TEXT
+──────────────────────────────────────────────
+ONLY use FREE_TEXT if:
+1. Values show no consistent structure,
+2. No stable linguistic or categorical signals exist,
+3. Values are arbitrary human-written sentences with no common semantic class.
+This should be rare.
+
+──────────────────────────────────────────────
 ATTRIBUTE CONTEXT
+──────────────────────────────────────────────
 Entity: {entity_name}
 Attribute: {attr_name}
 Declared Type: {attr_type}
@@ -522,22 +589,35 @@ Declared Type: {attr_type}
 Sample Values:
 {json.dumps(sample_values, indent=2)}
 
-Cross-attribute context (optional evidence):
+Cross-attribute context (optional evidence — use ONLY to discover latent groupings,
+thresholds, or fuzzy categories; do NOT assign roles or enforce column consistency):
 {json.dumps(context or {}, indent=2)}
 
-OUTPUT FORMAT (STRICT JSON ONLY):
+──────────────────────────────────────────────
+OUTPUT FORMAT (STRICT JSON ONLY)
+──────────────────────────────────────────────
 {{
   "semantic_type": "string",
   "subcategory": "string or null",
   "confidence": 0.0,
   "range": {{"min": null, "max": null}},
   "criteria": "string or null",
-  "rationale": "short explanation",
+  "rationale": "short explanation of the inferred semantics",
   "examples": []
 }}
 
-Return ONLY valid JSON.
+INTERPRETATION GUIDELINES:
+- semantic_type: most informative object-level category.
+- subcategory: refinement (e.g. HEAVY_TRUCK, TEENAGER, PREMIUM).
+- range: only when applicable (ages, thresholds, numeric groups).
+- criteria: inferred thresholds or rules.
+- examples: must be drawn from the provided sample values.
+
+Now infer the most accurate semantics and return ONLY valid JSON.
 """.strip()
+
+    def build_sdi_prompt(self, entity_name: str, attr_name: str, attr_properties: dict, context: dict | None = None) -> str:
+        return self.build_value_semantics_prompt(entity_name, attr_name, attr_properties, context=context)
 
     def build_domain_concept_prompt(self, entity_name: str, attr_name: str, attr_properties: dict) -> str:
         taxonomy_text = (
