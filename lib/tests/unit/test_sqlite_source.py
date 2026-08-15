@@ -48,7 +48,7 @@ def _create_table(src, db, table, cols=None, rows=None):
 
 def test_default_connection_properties(tmp_path):
     src = SQLiteDBSource(name="s", properties={})
-    assert src.properties["connection"]["protocol"] == "sqlite"
+    assert src.properties["connection"]["protocol"] == "sql/sqlite"
     assert "database_directory" in src.properties["connection"]
 
 

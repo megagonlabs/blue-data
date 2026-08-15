@@ -64,7 +64,7 @@ def src():
         properties={"connection": {
             "host": _neo4j_uri().split("://")[-1].split(":")[0],
             "port": int(_neo4j_uri().split(":")[-1]) if ":" in _neo4j_uri().split("://")[-1] else 7687,
-            "protocol": _neo4j_uri().split("://")[0],
+            "scheme": _neo4j_uri().split("://")[0],
             "user": user,
             "password": pw,
         }},
