@@ -1,7 +1,7 @@
 """Metadata enrichment pipeline.
 
-Ported from ``blue.data.metadata.MetaData``.  All LLM-based enrichments require
-an ``llm_fn`` callable to be injected at construction time.  Without it every
+All LLM-based enrichments require an ``llm_fn`` callable to be injected at
+construction time.  Without it every
 LLM-dependent method silently returns ``None`` so deterministic enrichments
 (process semantics, semantic links, value-axis inference, etc.) still run.
 
@@ -147,7 +147,7 @@ class MetaData:
             "enable_collection_description_generation": True,
             "enable_value_semantics_inference": True,
             "enable_semantic_discovery_inference": True,
-            "enable_domain_concept_mapping": True,
+            "enable_domain_concept_mapping": bool(self._taxonomy),
             "enable_value_axis_inference": True,
             "enable_semantic_links_inference": True,
             "enable_interpretive_semantics": True,
