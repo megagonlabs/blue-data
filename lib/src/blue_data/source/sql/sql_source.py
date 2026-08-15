@@ -64,6 +64,16 @@ class SQLSource(DataSource, ABC):
             cur.close()
             self._db_disconnect(conn)
 
+    def get_nl_tools(self, database=None, collection=None):
+        tools = super().get_nl_tools(database=database, collection=collection)
+        for tool in tools:
+            if tool["name"] == "execute_query":
+                tool["description"] = (
+                    "Execute a SQL SELECT statement against the database and return results. "
+                    "Use standard SQL syntax."
+                )
+        return tools
+
     def execute_query_nl(self, query, database=None, collection=None, schema=None, llm_fn=None, optional_properties=None):
         """Translate *query* from natural language to SQL and execute it.
 

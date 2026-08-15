@@ -288,6 +288,186 @@ class DataSource:
             optional_properties=optional_properties,
         )
 
+    # ---------- tool-based nl2q ----------
+
+    def get_nl_tools(self, database: str | None = None, collection: str | None = None) -> list[dict]:
+        """Return Anthropic-format tool definitions for this source.
+
+        Override to add or replace tools for a specific source dialect.
+        """
+        return [
+            {
+                "name": "list_databases",
+                "description": "List available databases in this data source.",
+                "input_schema": {"type": "object", "properties": {}, "required": []},
+            },
+            {
+                "name": "list_collections",
+                "description": "List collections or tables in a database.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database": {"type": "string", "description": "Database name"},
+                    },
+                    "required": ["database"],
+                },
+            },
+            {
+                "name": "get_schema",
+                "description": "Get the schema (entities and attributes) for a collection.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database": {"type": "string"},
+                        "collection": {"type": "string"},
+                    },
+                    "required": ["database", "collection"],
+                },
+            },
+            {
+                "name": "get_metadata",
+                "description": "Get metadata (row count, size, etc.) for a collection.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database": {"type": "string"},
+                        "collection": {"type": "string"},
+                    },
+                    "required": ["database", "collection"],
+                },
+            },
+            {
+                "name": "execute_query",
+                "description": "Execute a native query against the data source and return results.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "Native query string"},
+                        "database": {"type": "string"},
+                        "collection": {"type": "string"},
+                    },
+                    "required": ["query"],
+                },
+            },
+        ]
+
+    def execute_nl_tool(
+        self,
+        name: str,
+        tool_input: dict,
+        database: str | None = None,
+        collection: str | None = None,
+        optional_properties: dict | None = None,
+    ):
+        """Dispatch a single tool call by name and return the result."""
+        db = tool_input.get("database", database)
+        coll = tool_input.get("collection", collection)
+
+        if name == "list_databases":
+            return self.fetch_databases()
+        if name == "list_collections":
+            return self.fetch_database_collections(db)
+        if name == "get_schema":
+            entities = self.fetch_database_collection_entities(db, coll)
+            relations = self.fetch_database_collection_relations(db, coll)
+            return {"entities": entities, "relations": relations}
+        if name == "get_metadata":
+            return self.fetch_database_collection_metadata(db, coll)
+        if name == "execute_query":
+            return self.execute_query(
+                tool_input["query"],
+                database=db,
+                collection=coll,
+                optional_properties=optional_properties,
+            )
+        raise ValueError(f"Unknown tool: {name!r}")
+
+    def _build_nl_tools_system_prompt(
+        self, database: str | None = None, collection: str | None = None
+    ) -> str:
+        parts = [f"You are a data assistant for the '{self.name}' data source."]
+        if database:
+            parts.append(f"The target database is '{database}'.")
+        if collection:
+            parts.append(f"The target collection is '{collection}'.")
+        parts.append(
+            "Use the available tools to explore the data and answer the user's question. "
+            "Return the final answer as plain text."
+        )
+        return " ".join(parts)
+
+    def execute_query_nl_tools(
+        self,
+        query: str,
+        database: str | None = None,
+        collection: str | None = None,
+        llm_fn=None,
+        optional_properties: dict | None = None,
+        max_iterations: int = 10,
+    ) -> list[dict]:
+        """Tool-based NL2Q: drive an LLM tool loop to answer *query*.
+
+        ``llm_fn`` must accept ``(messages, tools, system=None)`` and return a
+        response dict with::
+
+            {
+                "stop_reason": "tool_use" | "end_turn",
+                "content": [
+                    {"type": "text", "text": "..."},
+                    {"type": "tool_use", "id": "...", "name": "...", "input": {...}},
+                ]
+            }
+
+        Returns the rows from the last ``execute_query`` tool call, or wraps the
+        LLM's final text answer as ``[{"answer": text}]``.
+        """
+        if llm_fn is None:
+            return []
+
+        tools = self.get_nl_tools(database=database, collection=collection)
+        system = self._build_nl_tools_system_prompt(database, collection)
+        messages = [{"role": "user", "content": query}]
+        last_query_result = None
+
+        for _ in range(max_iterations):
+            response = llm_fn(messages, tools, system=system)
+            content = response.get("content", [])
+            messages.append({"role": "assistant", "content": content})
+
+            if response.get("stop_reason") != "tool_use":
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "text":
+                        text = block.get("text", "")
+                        return last_query_result if last_query_result is not None else [{"answer": text}]
+                return last_query_result or []
+
+            tool_results = []
+            for block in content:
+                if not isinstance(block, dict) or block.get("type") != "tool_use":
+                    continue
+                tool_name = block["name"]
+                tool_input = block.get("input", {})
+                tool_id = block["id"]
+                try:
+                    result = self.execute_nl_tool(
+                        tool_name, tool_input,
+                        database=database, collection=collection,
+                        optional_properties=optional_properties,
+                    )
+                    if tool_name == "execute_query" and isinstance(result, list):
+                        last_query_result = result
+                except Exception as e:
+                    result = {"error": str(e)}
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": tool_id,
+                    "content": str(result),
+                })
+
+            messages.append({"role": "user", "content": tool_results})
+
+        return last_query_result or []
+
     # ---------- import ----------
     def import_data(
         self,

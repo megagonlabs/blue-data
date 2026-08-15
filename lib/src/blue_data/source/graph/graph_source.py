@@ -106,6 +106,19 @@ class GraphSource(DataSource, ABC):
     def get_neighbors(self, database: str, node_id: str, edge_type: str | None = None, direction: str = "both", transaction_id: str | None = None) -> list[dict]:
         raise NotImplementedError
 
+    # ---------- tool-based nl2q ----------
+
+    def get_nl_tools(self, database=None, collection=None):
+        tools = super().get_nl_tools(database=database, collection=collection)
+        for tool in tools:
+            if tool["name"] == "execute_query":
+                tool["description"] = (
+                    "Execute a Cypher query against the graph database and return results. "
+                    "Use standard Cypher syntax (MATCH, RETURN, WHERE, etc.)."
+                )
+                tool["input_schema"]["properties"]["query"]["description"] = "Cypher query string"
+        return tools
+
     # ---------- query ----------
 
     def execute_query(self, query, database=None, collection=None, optional_properties=None):
