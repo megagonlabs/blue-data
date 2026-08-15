@@ -79,7 +79,29 @@ src.add_edge("company", "alice", "KNOWS",       "bob")
 src.add_edge("company", "bob",   "KNOWS",       "eve")
 
 # ---------------------------------------------------------------------------
-# 2. Run NL queries through the tool loop
+# 2. Traced llm_fn — prints every tool call and result
+# ---------------------------------------------------------------------------
+
+def traced_llm_fn(messages, tools, system=None):
+    response = llm_fn(messages, tools, system=system)
+    for block in response.get("content", []):
+        if isinstance(block, dict) and block.get("type") == "tool_use":
+            print(f"    → tool call : {block['name']}({block.get('input', {})})")
+    return response
+
+
+def traced_execute_nl_tool(src, name, tool_input, **kwargs):
+    result = src.execute_nl_tool(name, tool_input, **kwargs)
+    print(f"    ← tool result: {result}")
+    return result
+
+
+# Monkey-patch execute_nl_tool on the instance for tracing
+_orig = src.execute_nl_tool
+src.execute_nl_tool = lambda name, tool_input, **kw: traced_execute_nl_tool(src, name, tool_input, **kw)
+
+# ---------------------------------------------------------------------------
+# 3. Run NL queries through the tool loop
 # ---------------------------------------------------------------------------
 
 queries = [
@@ -97,8 +119,9 @@ for nl in queries:
     result = src.execute_query_nl_tools(
         query=nl,
         database="company",
-        llm_fn=llm_fn,
+        llm_fn=traced_llm_fn,
     )
+    print(f"  A:  ", end="")
     if result:
         for row in result[:5]:
             print(f"      {row}")
