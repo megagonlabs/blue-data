@@ -179,14 +179,23 @@ class FileSource(DataSource):
     ) -> dict:
         """Import rows from *source* into *collection*.
 
+        ``collection`` is used for both sides of the transfer: it is passed to
+        ``source.execute_query`` to identify which collection to read from, and
+        it becomes the output file stem (e.g. ``"orders"`` → ``orders.csv``).
+        This means source and target collection names must be the same; there
+        is no separate ``source_collection`` parameter.
+
         Args:
             source: A DataSource to read rows from via ``execute_query``.
-            collection: Target collection name (file stem).
+            collection: Collection name used as both the source collection and
+                the target file stem.
             database: Ignored; FileSource has no database concept.
+            entity: Accepted for interface consistency but not used.
             mode: ``"append"`` (default) or ``"overwrite"``.
             options:
-                ``format``: ``"csv"`` (default), ``"json"``, or ``"jsonl"``.
-                    Inferred from an existing file when omitted.
+                ``format``: ``"csv"`` (default), ``"json"``, ``"jsonl"``, or
+                    ``"parquet"``. Inferred from an existing file when omitted;
+                    defaults to ``"csv"`` if no file exists yet.
         """
         options = options or {}
         fmt = options.get("format")
