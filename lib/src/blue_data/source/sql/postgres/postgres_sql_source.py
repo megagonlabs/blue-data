@@ -478,10 +478,30 @@ class PostgresDBSource(SQLSource):
         return {"status": "registry_only"}
 
     def import_data(self, source, database="default", collection="default", entity=None, mode="append", options=None):
+        """Import rows from *source* into a Postgres table.
+
+        Args:
+            source: DataSource to pull rows from via
+                ``source.execute_query(None, collection=collection)``.
+            database: Target Postgres database name.
+            collection: Collection name used on the *source* side to identify
+                which data to read. Also used as the Postgres schema name when
+                qualifying the target table (``"schema"."entity"``).
+            entity: **Required.** Name of the Postgres table to write into.
+                Must already exist under *collection* schema in *database*.
+                Separate from *collection* because source and target may use
+                different names for the same data.
+            mode: ``"append"`` (default) inserts rows into the existing table.
+                ``"overwrite"`` deletes all existing rows first, then inserts.
+            options: Unused; accepted for interface consistency.
+
+        Raises:
+            ValueError: If *entity* is ``None``.
+        """
         if entity is None:
             raise ValueError("entity (table name) is required for PostgresDBSource.import_data")
 
-        rows = source.execute_query(None, collection=entity)
+        rows = source.execute_query(None, database=database, collection=collection)
         if not rows:
             return {"status": "success", "rows_imported": 0}
 

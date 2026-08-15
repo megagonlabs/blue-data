@@ -180,4 +180,82 @@ registry.import_data(
 rows = registry.execute_query("sqlite_store", "SELECT count(*) as n FROM customers", database="shop")
 print(f"  row count after overwrite: {rows[0]['n']} (was 3, now 4)")
 
+# ---------------------------------------------------------------------------
+# 8. File → File import
+# ---------------------------------------------------------------------------
+
+_print("8. File → File — copy a collection between two FileSources")
+
+csv_backup_dir = os.path.join(tmp, "csv_backup")
+os.makedirs(csv_backup_dir)
+
+file_backup = FileSource("csv_backup", directory=csv_backup_dir)
+registry.register_source(file_backup)
+
+result = registry.import_data(
+    source="csv_store",
+    target="csv_backup",
+    collection="orders",
+    mode="append",
+)
+_print("result", result)
+
+backup_rows = file_backup.execute_query(None, collection="orders")
+print(f"  orders in csv_backup ({len(backup_rows)} rows):")
+for r in backup_rows:
+    print(f"    {r}")
+
+# ---------------------------------------------------------------------------
+# 9. SQL → SQL import (SQLite → SQLite)
+# ---------------------------------------------------------------------------
+
+_print("9. SQL → SQL — SQLite to SQLite")
+
+# Source: analytics database with aggregated data
+analytics_dir = os.path.join(tmp, "analytics_db")
+os.makedirs(analytics_dir)
+conn = sqlite3.connect(os.path.join(analytics_dir, "shop.db"))
+conn.executescript("""
+    CREATE TABLE top_customers (id INTEGER, email TEXT, total REAL);
+    INSERT INTO top_customers VALUES (1, 'alice@example.com', 248.90);
+    INSERT INTO top_customers VALUES (3, 'carol@example.com', 200.00);
+""")
+conn.commit()
+conn.close()
+
+analytics_src = SQLiteDBSource("analytics_store", properties={
+    "connection": {"database_directory": analytics_dir}
+})
+registry.register_source(analytics_src)
+
+# Target: warehouse database with empty matching table
+warehouse_dir = os.path.join(tmp, "warehouse_db")
+os.makedirs(warehouse_dir)
+conn = sqlite3.connect(os.path.join(warehouse_dir, "shop.db"))
+conn.executescript("""
+    CREATE TABLE top_customers (id INTEGER, email TEXT, total REAL);
+""")
+conn.commit()
+conn.close()
+
+warehouse_src = SQLiteDBSource("warehouse_store", properties={
+    "connection": {"database_directory": warehouse_dir}
+})
+registry.register_source(warehouse_src)
+
+result = registry.import_data(
+    source="analytics_store",
+    target="warehouse_store",
+    database="shop",
+    collection="top_customers",  # source table name
+    entity="top_customers",      # target table name
+    mode="append",
+)
+_print("result", result)
+
+rows = registry.execute_query("warehouse_store", "SELECT * FROM top_customers", database="shop")
+print(f"  top_customers in warehouse ({len(rows)} rows):")
+for r in rows:
+    print(f"    {r}")
+
 print("\nDemo complete.")

@@ -298,10 +298,29 @@ class MySQLDBSource(SQLSource):
     # ---------- import ----------
 
     def import_data(self, source, database="default", collection="default", entity=None, mode="append", options=None):
+        """Import rows from *source* into a MySQL table.
+
+        Args:
+            source: DataSource to pull rows from via
+                ``source.execute_query(None, collection=collection)``.
+            database: Target MySQL database name.
+            collection: Collection name used on the *source* side to identify
+                which data to read. Not used to determine the target table.
+            entity: **Required.** Name of the MySQL table to write into.
+                Must already exist in *database*. Separate from *collection*
+                because source and target may use different names for the same
+                data.
+            mode: ``"append"`` (default) inserts rows into the existing table.
+                ``"overwrite"`` deletes all existing rows first, then inserts.
+            options: Unused; accepted for interface consistency.
+
+        Raises:
+            ValueError: If *entity* is ``None``.
+        """
         if entity is None:
             raise ValueError("entity (table name) is required for MySQLDBSource.import_data")
 
-        rows = source.execute_query(None, collection=collection)
+        rows = source.execute_query(None, database=database, collection=collection)
         if not rows:
             return {"status": "success", "rows_imported": 0}
 

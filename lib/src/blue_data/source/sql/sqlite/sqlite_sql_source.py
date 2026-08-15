@@ -342,7 +342,7 @@ class SQLiteDBSource(SQLSource):
         if entity is None:
             raise ValueError("entity (table name) is required for SQLiteDBSource.import_data")
 
-        rows = source.execute_query(None, collection=collection)
+        rows = source.execute_query(None, database=database, collection=collection)
         if not rows:
             return {"status": "success", "rows_imported": 0}
 
