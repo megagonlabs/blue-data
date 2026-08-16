@@ -11,14 +11,14 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.838,
+      "latency": 0.748,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 4.751,
+      "latency": 4.26,
       "llm_calls": 4,
       "rows": 1,
       "error": null
@@ -36,14 +36,14 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.675,
+      "latency": 0.666,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 4.379,
+      "latency": 4.336,
       "llm_calls": 4,
       "rows": 1,
       "error": null
@@ -61,14 +61,14 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.674,
+      "latency": 0.584,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 3.983,
+      "latency": 4.256,
       "llm_calls": 4,
       "rows": 1,
       "error": null
@@ -87,14 +87,14 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.82,
+      "latency": 0.758,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 3.983,
+      "latency": 4.724,
       "llm_calls": 4,
       "rows": 1,
       "error": null
@@ -112,14 +112,14 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.917,
+      "latency": 1.0,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 4.444,
+      "latency": 4.295,
       "llm_calls": 4,
       "rows": 1,
       "error": null
@@ -137,15 +137,15 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 1.016,
+      "latency": 1.169,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 4.146,
-      "llm_calls": 4,
+      "latency": 5.229,
+      "llm_calls": 5,
       "rows": 1,
       "error": null
     }
@@ -162,15 +162,15 @@
       }
     ],
     "oneshot": {
-      "correct": true,
-      "latency": 0.853,
+      "correct": false,
+      "latency": 0.955,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 5.904,
+      "latency": 6.118,
       "llm_calls": 5,
       "rows": 9,
       "error": null
@@ -213,15 +213,15 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 1.363,
+      "latency": 1.694,
       "llm_calls": 1,
       "rows": 7,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 6.54,
-      "llm_calls": 4,
+      "latency": 6.808,
+      "llm_calls": 5,
       "rows": 7,
       "error": null
     }
@@ -238,14 +238,14 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.704,
+      "latency": 0.625,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 4.798,
+      "latency": 4.904,
       "llm_calls": 4,
       "rows": 1,
       "error": null
@@ -263,14 +263,14 @@
     ],
     "oneshot": {
       "correct": false,
-      "latency": 0.893,
+      "latency": 0.865,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 5.104,
+      "latency": 5.395,
       "llm_calls": 4,
       "rows": 1,
       "error": null

@@ -18,11 +18,9 @@ Usage
     export ANTHROPIC_API_KEY=sk-ant-...
     python3 lib/tests/benchmarks/nl2q_benchmark.py
 
-    # save raw results
-    python3 lib/tests/benchmarks/nl2q_benchmark.py --out results/nl2q.json
-
-    # write markdown report
-    python3 lib/tests/benchmarks/nl2q_benchmark.py --report results/nl2q_report.md
+    # override output paths (defaults write alongside this script)
+    python3 lib/tests/benchmarks/nl2q_benchmark.py --out path/to/nl2q.json
+    python3 lib/tests/benchmarks/nl2q_benchmark.py --report path/to/NL2Q_RESULTS.md
 """
 from __future__ import annotations
 
@@ -487,8 +485,11 @@ def main() -> None:
         raise SystemExit("Set ANTHROPIC_API_KEY to run this benchmark.")
 
     p = argparse.ArgumentParser(description="NL2Q benchmark: 1-shot vs tool-based")
-    p.add_argument("--out",    default=None, help="Save raw JSON results to this path")
-    p.add_argument("--report", default=None, help="Write markdown report to this path")
+    _here = Path(__file__).parent
+    p.add_argument("--out",    default=str(_here / "nl2q.json"),
+                   help="Save raw JSON results to this path")
+    p.add_argument("--report", default=str(_here / "NL2Q_RESULTS.md"),
+                   help="Write markdown report to this path")
     args = p.parse_args()
 
     client = anthropic.Anthropic(api_key=api_key)
@@ -509,13 +510,12 @@ def main() -> None:
 
     print_summary(results)
 
-    if args.out:
-        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
-        Path(args.out).write_text(json.dumps(results, indent=2))
-        print(f"Raw results → {args.out}")
+    Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.out).write_text(json.dumps(results, indent=2))
+    print(f"Raw results → {args.out}")
 
-    if args.report:
-        write_report(results, args.report)
+    write_report(results, args.report)
+    print(f"Report written → {args.report}")
 
 
 if __name__ == "__main__":
