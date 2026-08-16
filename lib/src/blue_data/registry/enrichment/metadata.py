@@ -134,6 +134,21 @@ class MetaData:
         taxonomy_path: str | None = None,
         properties: dict | None = None,
     ):
+        """
+        Args:
+            llm_fn: Provider-agnostic LLM callable ``(prompt: str) -> str``.
+                When ``None`` all LLM-dependent steps are skipped; deterministic
+                enrichments (process semantics, semantic links, value-axis, etc.)
+                still run.
+            taxonomy: Pre-loaded list of domain concept strings
+                (e.g. ``["CONCEPT.PERSON.NAME", "CONCEPT.FINANCE.AMOUNT"]``).
+                Takes precedence over ``taxonomy_path``.
+            taxonomy_path: Path to a JSON file with shape ``{"concepts": [...]}``.
+                Used when the taxonomy is stored on disk. Ignored if ``taxonomy``
+                is provided. DCM is disabled when neither is supplied.
+            properties: Feature-flag overrides. Any key set here takes precedence
+                over the defaults (e.g. ``{"enable_process_semantics_inference": False}``).
+        """
         self.logger = logging.getLogger(self.__class__.__name__)
         self._llm_fn = llm_fn
 
@@ -763,6 +778,11 @@ Return JSON ONLY:
         return self._call_llm(self.build_database_description_prompt(database_name, collection_descriptions, database_metadata))
 
     def infer_attribute_vsi(self, entity_name: str, attr: dict) -> dict | None:
+        """Run closed-world VSI for a single attribute via LLM.
+
+        Returns the parsed ``value_semantics`` dict, or ``None`` if the LLM is
+        unavailable or the response cannot be parsed.
+        """
         attr_name = attr.get("name")
         props = attr.get("properties", {})
         context = self.build_attribute_context(self.current_entity_attributes, attr_name)
@@ -783,6 +803,11 @@ Return JSON ONLY:
             return None
 
     def infer_attribute_sdi(self, entity_name: str, attr: dict) -> dict | None:
+        """Run open-world SDI for a single attribute via LLM.
+
+        Returns the parsed ``semantic_discovery`` dict, or ``None`` if the LLM
+        is unavailable or the response cannot be parsed.
+        """
         attr_name = attr.get("name")
         props = attr.get("properties", {})
         context = self.build_attribute_context(self.current_entity_attributes, attr_name)
@@ -797,6 +822,12 @@ Return JSON ONLY:
             return None
 
     def infer_domain_concept(self, entity_name: str, attr: dict) -> dict | None:
+        """Map an attribute to a canonical domain concept from the taxonomy via LLM.
+
+        Skipped when ``value_semantics`` has not yet been written to the attribute
+        (VSI must run first). Returns ``None`` when the LLM is unavailable, the
+        taxonomy is empty, or the response cannot be parsed.
+        """
         if "value_semantics" not in attr.get("properties", {}):
             return None
         prompt = self.build_domain_concept_prompt(entity_name, attr.get("name"), attr.get("properties", {}))
@@ -810,6 +841,12 @@ Return JSON ONLY:
             return None
 
     def infer_interpretive_semantics(self, entity_name: str, attr: dict) -> dict | None:
+        """Infer whether categorical values carry an implicit ordering, severity, or tier (IVS).
+
+        Only runs for ``ENUM_CATEGORY`` and ``TEXT_CATEGORY`` attributes that are
+        not identifiers. Returns ``None`` when the attribute is ineligible, the
+        LLM is unavailable, confidence is below 0.6, or interpretation type is NONE.
+        """
         vsi = attr.get("properties", {}).get("value_semantics", {})
         if vsi.get("is_identifier"):
             return None
@@ -1754,6 +1791,10 @@ Return JSON ONLY:
         return table_desc
 
     def enrich_entity_metadata(self, data_registry, source, database, collection, entity, attributes, rebuild):
+        """Generate and write LLM descriptions for an entity and all its attributes.
+
+        Skips writing when a description already exists and ``rebuild`` is ``False``.
+        """
         entity_name = entity.get("name")
         if not rebuild:
             existing = data_registry.get_source_database_collection_entity_description(source, database, collection, entity_name)
@@ -1771,6 +1812,12 @@ Return JSON ONLY:
         return self._write_entity_and_attribute_descriptions(data_registry, source, database, collection, entity_name, parsed, rebuild)
 
     def enrich_attributes(self, data_registry, source, database, collection, entity_name, attributes, rebuild):
+        """Run per-attribute enrichment: VSI, SDI, DCM, IVS, quantitative VST, total/component, and safe aggregation.
+
+        Writes results directly into the registry. Returns the refreshed attribute
+        list (re-fetched after each stage so later stages see earlier results).
+        Attributes without stats are skipped for LLM-based steps.
+        """
         # VSI + SDI
         for attr in attributes:
             attr_name = attr.get("name")
@@ -1849,6 +1896,11 @@ Return JSON ONLY:
         return attributes
 
     def enrich_relations(self, data_registry, source, database, collection, entity_name, attributes, row_samples, rebuild):
+        """Infer and write cross-attribute relationships: value axes, semantic links, roles, query constraints, and conditional distributions.
+
+        Semantic links are cached in the registry when ``rebuild=False`` to avoid
+        redundant LLM calls on subsequent passes.
+        """
         # Value Axis
         if self.properties.get("enable_value_axis_inference", True):
             axes = self.infer_value_axis(attributes, row_samples)
@@ -1956,6 +2008,13 @@ Return JSON ONLY:
         return attributes
 
     def enrich_process_semantics(self, data_registry, source, database, collection, entity_name, attributes, row_samples, rebuild):
+        """Detect event-table semantics and write process-level properties to the registry.
+
+        Writes: ``process_semantics``, ``process_patterns``, ``process_trends``,
+        ``process_operators``, ``process_query_constraints``, ``time_grain_candidates``
+        (on the event-time attribute), ``derived_metric_candidates``, and per-attribute
+        ``process_vst_role``. No-ops when the entity does not qualify as an event table.
+        """
         if not self.properties.get("enable_process_semantics_inference", True):
             return
         ps = self.infer_process_semantics(entity_name, attributes, row_samples)
@@ -2040,6 +2099,7 @@ Return JSON ONLY:
     # ------------------------------------------------------------------
 
     def collect_source_database_collection_metadata(self, data_registry, source, database, collection, recursive=False, rebuild=False):
+        """Run full enrichment for every entity in a collection, then generate the collection-level description."""
         entities = data_registry.list_collection_entities(source, database, collection)
         entity_descriptions = {}
 
@@ -2064,6 +2124,7 @@ Return JSON ONLY:
                     data_registry.set_source_database_collection_description(source, database, collection, desc, rebuild=rebuild)
 
     def collect_source_database_metadata(self, data_registry, source, database, recursive=False, rebuild=False):
+        """Enrich all collections in a database (when recursive) and generate the database-level description."""
         collections = data_registry.list_database_collections(source, database)
         collection_descriptions = {}
 
