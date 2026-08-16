@@ -1,5 +1,6 @@
 [
   {
+    "dataset": "northwind",
     "id": "count_by_country",
     "category": "filter",
     "question": "How many customers are from Germany?",
@@ -11,20 +12,21 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.708,
+      "latency": 0.807,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 3.712,
+      "latency": 3.708,
       "llm_calls": 4,
       "rows": 1,
       "error": null
     }
   },
   {
+    "dataset": "northwind",
     "id": "avg_freight",
     "category": "aggregation",
     "question": "What is the average freight cost across all orders?",
@@ -36,20 +38,21 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.758,
+      "latency": 0.707,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 4.152,
+      "latency": 4.857,
       "llm_calls": 4,
       "rows": 1,
       "error": null
     }
   },
   {
+    "dataset": "northwind",
     "id": "discontinued_count",
     "category": "filter",
     "question": "How many products are discontinued?",
@@ -61,20 +64,21 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.612,
+      "latency": 0.546,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 3.889,
+      "latency": 4.581,
       "llm_calls": 4,
       "rows": 1,
       "error": null
     }
   },
   {
+    "dataset": "northwind",
     "id": "top_expensive",
     "category": "sort",
     "question": "What is the most expensive product?",
@@ -87,20 +91,21 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.888,
+      "latency": 0.681,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 7.041,
+      "latency": 4.837,
       "llm_calls": 4,
       "rows": 1,
       "error": null
     }
   },
   {
+    "dataset": "northwind",
     "id": "orders_in_july",
     "category": "temporal",
     "question": "How many orders were placed in July 1996?",
@@ -112,20 +117,21 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.863,
+      "latency": 0.86,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 4.161,
-      "llm_calls": 4,
+      "latency": 4.936,
+      "llm_calls": 5,
       "rows": 1,
       "error": null
     }
   },
   {
+    "dataset": "northwind",
     "id": "freight_by_country",
     "category": "aggregation",
     "question": "What is the total freight cost for orders shipped to the UK?",
@@ -137,20 +143,21 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.854,
+      "latency": 0.889,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 5.301,
-      "llm_calls": 5,
+      "latency": 4.779,
+      "llm_calls": 4,
       "rows": 1,
       "error": null
     }
   },
   {
+    "dataset": "northwind",
     "id": "top_employee",
     "category": "join",
     "question": "Which employee handled the most orders? Give their full name.",
@@ -163,20 +170,21 @@
     ],
     "oneshot": {
       "correct": false,
-      "latency": 0.926,
+      "latency": 0.923,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 5.835,
-      "llm_calls": 5,
-      "rows": 9,
+      "latency": 4.28,
+      "llm_calls": 4,
+      "rows": 1,
       "error": null
     }
   },
   {
+    "dataset": "northwind",
     "id": "revenue_per_category",
     "category": "join",
     "question": "What is the total revenue per product category?",
@@ -213,20 +221,21 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 1.365,
+      "latency": 1.302,
       "llm_calls": 1,
       "rows": 7,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 6.104,
-      "llm_calls": 5,
+      "latency": 4.947,
+      "llm_calls": 4,
       "rows": 7,
       "error": null
     }
   },
   {
+    "dataset": "northwind",
     "id": "customers_no_orders",
     "category": "existence",
     "question": "How many customers have never placed an order?",
@@ -238,20 +247,21 @@
     ],
     "oneshot": {
       "correct": true,
-      "latency": 0.652,
+      "latency": 0.793,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 5.169,
+      "latency": 4.388,
       "llm_calls": 4,
       "rows": 1,
       "error": null
     }
   },
   {
+    "dataset": "northwind",
     "id": "avg_order_value",
     "category": "join",
     "question": "What is the average order value?",
@@ -263,14 +273,275 @@
     ],
     "oneshot": {
       "correct": false,
-      "latency": 0.951,
+      "latency": 0.926,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "toolbased": {
       "correct": true,
-      "latency": 4.954,
+      "latency": 5.052,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "female_clients",
+    "category": "filter",
+    "question": "How many female clients are there?",
+    "note": "Basic gender filter",
+    "ground_truth": [
+      {
+        "count": 10
+      }
+    ],
+    "oneshot": {
+      "correct": true,
+      "latency": 1.04,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "toolbased": {
+      "correct": true,
+      "latency": 4.786,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "avg_loan_amount",
+    "category": "aggregation",
+    "question": "What is the average loan amount?",
+    "note": "AVG over loan table",
+    "ground_truth": [
+      {
+        "avg_amount": 236535.73
+      }
+    ],
+    "oneshot": {
+      "correct": true,
+      "latency": 1.081,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "toolbased": {
+      "correct": true,
+      "latency": 4.488,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "highest_salary_district",
+    "category": "sort",
+    "question": "Which district has the highest average salary?",
+    "note": "Opaque columns a2/a11 \u2014 requires schema grounding",
+    "ground_truth": [
+      {
+        "district_name": "Hl.m. Praha",
+        "avg_salary": 12541
+      }
+    ],
+    "oneshot": {
+      "correct": true,
+      "latency": 0.846,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "toolbased": {
+      "correct": true,
+      "latency": 7.614,
+      "llm_calls": 5,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "running_loans_ok",
+    "category": "filter",
+    "question": "How many loans are currently running with no problems?",
+    "note": "Status code C \u2014 requires domain code knowledge",
+    "ground_truth": [
+      {
+        "count": 6
+      }
+    ],
+    "oneshot": {
+      "correct": false,
+      "latency": 0.551,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "toolbased": {
+      "correct": true,
+      "latency": 9.152,
+      "llm_calls": 7,
+      "rows": 4,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "total_credit_amount",
+    "category": "aggregation",
+    "question": "What is the total amount of all credit (incoming) transactions?",
+    "note": "Czech type code PRIJEM \u2014 requires code knowledge",
+    "ground_truth": [
+      {
+        "total": 441140
+      }
+    ],
+    "oneshot": {
+      "correct": false,
+      "latency": 2.481,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "toolbased": {
+      "correct": true,
+      "latency": 7.377,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "monthly_accounts",
+    "category": "filter",
+    "question": "How many accounts have a monthly statement frequency?",
+    "note": "Czech frequency string \u2014 requires code knowledge",
+    "ground_truth": [
+      {
+        "count": 10
+      }
+    ],
+    "oneshot": {
+      "correct": false,
+      "latency": 0.811,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "toolbased": {
+      "correct": true,
+      "latency": 7.655,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "avg_loan_duration",
+    "category": "aggregation",
+    "question": "What is the average loan duration in months?",
+    "note": "Simple AVG \u2014 clean columns",
+    "ground_truth": [
+      {
+        "avg_months": 40.0
+      }
+    ],
+    "oneshot": {
+      "correct": true,
+      "latency": 0.907,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "toolbased": {
+      "correct": true,
+      "latency": 4.733,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "accounts_with_loan",
+    "category": "existence",
+    "question": "How many accounts have at least one loan?",
+    "note": "Distinct count via subquery or join",
+    "ground_truth": [
+      {
+        "count": 14
+      }
+    ],
+    "oneshot": {
+      "correct": true,
+      "latency": 0.954,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "toolbased": {
+      "correct": true,
+      "latency": 3.949,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "largest_transaction",
+    "category": "sort",
+    "question": "What is the largest single transaction amount?",
+    "note": "MAX over trans table",
+    "ground_truth": [
+      {
+        "max_amount": 50000
+      }
+    ],
+    "oneshot": {
+      "correct": true,
+      "latency": 0.671,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "toolbased": {
+      "correct": true,
+      "latency": 5.507,
+      "llm_calls": 5,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "accounts_no_transactions",
+    "category": "existence",
+    "question": "How many accounts have no transactions at all?",
+    "note": "NOT IN subquery \u2014 existence check",
+    "ground_truth": [
+      {
+        "count": 0
+      }
+    ],
+    "oneshot": {
+      "correct": true,
+      "latency": 0.895,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "toolbased": {
+      "correct": true,
+      "latency": 4.912,
       "llm_calls": 4,
       "rows": 1,
       "error": null

@@ -1,7 +1,8 @@
 """
 NL2Q Benchmark — 1-shot NL2SQL vs Tool-based NL2Q.
 
-Runs a fixed set of Northwind questions through both approaches and compares:
+Runs fixed question sets across multiple datasets (Northwind, Finance) through
+both approaches and compares:
   - accuracy   (result matches ground truth)
   - latency    (wall-clock seconds per question)
   - LLM calls  (round trips to the model)
@@ -21,6 +22,10 @@ Usage
     # override output paths (defaults write alongside this script)
     python3 lib/tests/benchmarks/nl2q_benchmark.py --out path/to/nl2q.json
     python3 lib/tests/benchmarks/nl2q_benchmark.py --report path/to/NL2Q_RESULTS.md
+
+    # run a single dataset
+    python3 lib/tests/benchmarks/nl2q_benchmark.py --dataset northwind
+    python3 lib/tests/benchmarks/nl2q_benchmark.py --dataset finance
 """
 from __future__ import annotations
 
@@ -46,20 +51,17 @@ from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 # Config
 # ---------------------------------------------------------------------------
 
-MODEL   = "claude-haiku-4-5-20251001"
-DB_NAME = "northwind"
-COLL    = "public"
+MODEL = "claude-haiku-4-5-20251001"
+COLL  = "public"
 
-_ROOT   = Path(__file__).resolve().parents[3]
-SQL_FILE = _ROOT / "data" / "northwind_sqlite.sql"
+_ROOT = Path(__file__).resolve().parents[3]
 
 DIV  = "=" * 72
 DIV2 = "-" * 72
 
 
 # ---------------------------------------------------------------------------
-# Test cases
-# Each has: id, category, question, ground_truth_sql, checker
+# Checkers
 # checker(gt_rows, result_rows) -> bool
 # ---------------------------------------------------------------------------
 
@@ -102,7 +104,11 @@ def _top1_match(gt_rows: list, res_rows: list) -> bool:
     return bool(gt_vals & res_vals)
 
 
-TEST_CASES = [
+# ---------------------------------------------------------------------------
+# Northwind test cases
+# ---------------------------------------------------------------------------
+
+NORTHWIND_CASES = [
     {
         "id":       "count_by_country",
         "category": "filter",
@@ -171,8 +177,8 @@ TEST_CASES = [
             SELECT c.category_name,
                    ROUND(SUM(od.unit_price * od.quantity * (1 - od.discount)), 2) as revenue
             FROM order_details od
-            JOIN products p  ON od.product_id  = p.product_id
-            JOIN categories c ON p.category_id = c.category_id
+            JOIN products p   ON od.product_id  = p.product_id
+            JOIN categories c ON p.category_id  = c.category_id
             GROUP BY c.category_name
             ORDER BY revenue DESC
         """,
@@ -202,6 +208,125 @@ TEST_CASES = [
         """,
         "check":    lambda g, r: _scalar(g, r, tol=5.0),
         "note":     "Subquery + AVG",
+    },
+]
+
+
+# ---------------------------------------------------------------------------
+# Finance test cases
+#
+# The Czech banking dataset (BIRD benchmark) deliberately uses opaque column
+# names (a2-a16 in district) and Czech domain codes (PRIJEM/VYDAJ, status
+# A/B/C/D, Czech frequency strings).  This stress-tests schema grounding for
+# 1-shot (raw column names, no hints) vs tool-based (can sample rows to
+# disambiguate).
+# ---------------------------------------------------------------------------
+
+FINANCE_CASES = [
+    {
+        "id":       "female_clients",
+        "category": "filter",
+        "question": "How many female clients are there?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM client WHERE gender = 'F'",
+        "check":    _scalar,
+        "note":     "Basic gender filter",
+    },
+    {
+        "id":       "avg_loan_amount",
+        "category": "aggregation",
+        "question": "What is the average loan amount?",
+        "gt_sql":   "SELECT ROUND(AVG(amount), 2) as avg_amount FROM loan",
+        "check":    lambda g, r: _scalar(g, r, tol=100.0),
+        "note":     "AVG over loan table",
+    },
+    {
+        "id":       "highest_salary_district",
+        "category": "sort",
+        "question": "Which district has the highest average salary?",
+        "gt_sql":   "SELECT a2 as district_name, a11 as avg_salary FROM district ORDER BY a11 DESC LIMIT 1",
+        "check":    _top1_match,
+        "note":     "Opaque columns a2/a11 — requires schema grounding",
+    },
+    {
+        "id":       "running_loans_ok",
+        "category": "filter",
+        "question": "How many loans are currently running with no problems?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM loan WHERE status = 'C'",
+        "check":    _scalar,
+        "note":     "Status code C — requires domain code knowledge",
+    },
+    {
+        "id":       "total_credit_amount",
+        "category": "aggregation",
+        "question": "What is the total amount of all credit (incoming) transactions?",
+        "gt_sql":   "SELECT SUM(amount) as total FROM trans WHERE type = 'PRIJEM'",
+        "check":    lambda g, r: _scalar(g, r, tol=100.0),
+        "note":     "Czech type code PRIJEM — requires code knowledge",
+    },
+    {
+        "id":       "monthly_accounts",
+        "category": "filter",
+        "question": "How many accounts have a monthly statement frequency?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM account WHERE frequency = 'POPLATEK MESICNE'",
+        "check":    _scalar,
+        "note":     "Czech frequency string — requires code knowledge",
+    },
+    {
+        "id":       "avg_loan_duration",
+        "category": "aggregation",
+        "question": "What is the average loan duration in months?",
+        "gt_sql":   "SELECT ROUND(AVG(duration), 1) as avg_months FROM loan",
+        "check":    lambda g, r: _scalar(g, r, tol=2.0),
+        "note":     "Simple AVG — clean columns",
+    },
+    {
+        "id":       "accounts_with_loan",
+        "category": "existence",
+        "question": "How many accounts have at least one loan?",
+        "gt_sql":   "SELECT COUNT(DISTINCT account_id) as count FROM loan",
+        "check":    _scalar,
+        "note":     "Distinct count via subquery or join",
+    },
+    {
+        "id":       "largest_transaction",
+        "category": "sort",
+        "question": "What is the largest single transaction amount?",
+        "gt_sql":   "SELECT MAX(amount) as max_amount FROM trans",
+        "check":    _scalar,
+        "note":     "MAX over trans table",
+    },
+    {
+        "id":       "accounts_no_transactions",
+        "category": "existence",
+        "question": "How many accounts have no transactions at all?",
+        "gt_sql":   """
+            SELECT COUNT(*) as count FROM account
+            WHERE account_id NOT IN (SELECT DISTINCT account_id FROM trans)
+        """,
+        "check":    _scalar,
+        "note":     "NOT IN subquery — existence check",
+    },
+]
+
+
+# ---------------------------------------------------------------------------
+# Dataset configs
+# ---------------------------------------------------------------------------
+
+DATASETS = [
+    {
+        "name":       "northwind",
+        "db_name":    "northwind",
+        "coll":       COLL,
+        "sql_file":   _ROOT / "data" / "northwind_sqlite.sql",
+        "test_cases": NORTHWIND_CASES,
+    },
+    {
+        "name":       "finance",
+        "db_name":    "finance",
+        "coll":       COLL,
+        "sql_file":   _ROOT / "data" / "finance_sqlite.sql",
+        "test_cases": FINANCE_CASES,
     },
 ]
 
@@ -247,15 +372,13 @@ def make_tools_llm(client: anthropic.Anthropic, call_counter: list) -> Any:
 
 
 # ---------------------------------------------------------------------------
-# Runner
+# Runners
 # ---------------------------------------------------------------------------
 
-def run_oneshot(source: SQLiteDBSource, question: str, call_counter: list, client) -> dict:
+def run_oneshot(source: SQLiteDBSource, question: str, cfg: dict, call_counter: list, client) -> dict:
     llm_fn = make_oneshot_llm(client, call_counter)
 
-    # get_entities() returns a dict keyed by entity name; convert to the list
-    # format expected by _format_schema_for_nl: [{"name": ..., "attributes": {...}}]
-    entities_dict = source.fetch_database_collection_entities(DB_NAME, COLL)
+    entities_dict = source.fetch_database_collection_entities(cfg["db_name"], cfg["coll"])
     entities_list = [
         {
             "name": e["name"],
@@ -269,8 +392,8 @@ def run_oneshot(source: SQLiteDBSource, question: str, call_counter: list, clien
     try:
         rows = source.execute_query_nl(
             question,
-            database=DB_NAME,
-            collection=COLL,
+            database=cfg["db_name"],
+            collection=cfg["coll"],
             schema=schema_dict,
             llm_fn=llm_fn,
         )
@@ -281,15 +404,15 @@ def run_oneshot(source: SQLiteDBSource, question: str, call_counter: list, clien
         return {"rows": [], "latency": elapsed, "error": str(e)}
 
 
-def run_tools(source: SQLiteDBSource, question: str, call_counter: list, client) -> dict:
+def run_tools(source: SQLiteDBSource, question: str, cfg: dict, call_counter: list, client) -> dict:
     llm_fn = make_tools_llm(client, call_counter)
 
     t0 = time.perf_counter()
     try:
         rows = source.execute_query_nl_tools(
             question,
-            database=DB_NAME,
-            collection=COLL,
+            database=cfg["db_name"],
+            collection=cfg["coll"],
             llm_fn=llm_fn,
         )
         elapsed = time.perf_counter() - t0
@@ -299,63 +422,72 @@ def run_tools(source: SQLiteDBSource, question: str, call_counter: list, client)
         return {"rows": [], "latency": elapsed, "error": str(e)}
 
 
-def run_benchmark(client: anthropic.Anthropic, source: SQLiteDBSource, conn: sqlite3.Connection) -> list[dict]:
+def run_dataset(client: anthropic.Anthropic, cfg: dict) -> list[dict]:
+    """Set up the dataset, run all questions, return per-question result dicts."""
+    tmp, conn, source = setup_dataset(cfg)
     results = []
 
-    for tc in TEST_CASES:
+    print(f"\n{DIV}")
+    print(f"  Dataset: {cfg['name'].upper()}  ({len(cfg['test_cases'])} questions)")
+    print(DIV)
+
+    for tc in cfg["test_cases"]:
         print(f"\n{DIV2}")
         print(f"  [{tc['id']}]  {tc['question']}")
         print(f"  ({tc['note']})")
 
-        # ground truth
         cur = conn.cursor()
         cur.execute(tc["gt_sql"])
         cols = [d[0] for d in cur.description]
         gt_rows = [dict(zip(cols, row)) for row in cur.fetchall()]
         print(f"  GT  → {gt_rows[:3]}")
 
-        # 1-shot
         calls_1s: list = [0]
-        r1 = run_oneshot(source, tc["question"], calls_1s, client)
+        r1 = run_oneshot(source, tc["question"], cfg, calls_1s, client)
         acc_1s = tc["check"](gt_rows, r1["rows"]) if not r1["error"] else False
-        print(f"  1-shot  → calls={calls_1s[0]}  latency={r1['latency']:.2f}s  "
-              f"correct={'✓' if acc_1s else '✗'}  rows={len(r1['rows'])}  "
-              f"{'ERR: ' + r1['error'] if r1['error'] else ''}")
+        print(
+            f"  1-shot  → calls={calls_1s[0]}  latency={r1['latency']:.2f}s  "
+            f"correct={'✓' if acc_1s else '✗'}  rows={len(r1['rows'])}  "
+            f"{'ERR: ' + r1['error'] if r1['error'] else ''}"
+        )
         if r1["rows"]:
             print(f"           result sample: {r1['rows'][:2]}")
 
-        # tool-based
         calls_tb: list = [0]
-        r2 = run_tools(source, tc["question"], calls_tb, client)
+        r2 = run_tools(source, tc["question"], cfg, calls_tb, client)
         acc_tb = tc["check"](gt_rows, r2["rows"]) if not r2["error"] else False
-        print(f"  tool    → calls={calls_tb[0]}  latency={r2['latency']:.2f}s  "
-              f"correct={'✓' if acc_tb else '✗'}  rows={len(r2['rows'])}  "
-              f"{'ERR: ' + r2['error'] if r2['error'] else ''}")
+        print(
+            f"  tool    → calls={calls_tb[0]}  latency={r2['latency']:.2f}s  "
+            f"correct={'✓' if acc_tb else '✗'}  rows={len(r2['rows'])}  "
+            f"{'ERR: ' + r2['error'] if r2['error'] else ''}"
+        )
         if r2["rows"]:
             print(f"           result sample: {r2['rows'][:2]}")
 
         results.append({
+            "dataset":      cfg["name"],
             "id":           tc["id"],
             "category":     tc["category"],
             "question":     tc["question"],
             "note":         tc["note"],
             "ground_truth": gt_rows,
             "oneshot": {
-                "correct": acc_1s,
-                "latency": round(r1["latency"], 3),
+                "correct":   acc_1s,
+                "latency":   round(r1["latency"], 3),
                 "llm_calls": calls_1s[0],
-                "rows": len(r1["rows"]),
-                "error": r1["error"],
+                "rows":      len(r1["rows"]),
+                "error":     r1["error"],
             },
             "toolbased": {
-                "correct": acc_tb,
-                "latency": round(r2["latency"], 3),
+                "correct":   acc_tb,
+                "latency":   round(r2["latency"], 3),
                 "llm_calls": calls_tb[0],
-                "rows": len(r2["rows"]),
-                "error": r2["error"],
+                "rows":      len(r2["rows"]),
+                "error":     r2["error"],
             },
         })
 
+    conn.close()
     return results
 
 
@@ -363,97 +495,143 @@ def run_benchmark(client: anthropic.Anthropic, source: SQLiteDBSource, conn: sql
 # Reporting
 # ---------------------------------------------------------------------------
 
-def print_summary(results: list[dict]) -> None:
-    print(f"\n{DIV}")
-    print("SUMMARY")
-    print(DIV)
+def _dataset_stats(results: list[dict]) -> dict:
+    n = len(results)
+    if n == 0:
+        return {}
+    return {
+        "n":      n,
+        "o_acc":  sum(r["oneshot"]["correct"]   for r in results),
+        "t_acc":  sum(r["toolbased"]["correct"] for r in results),
+        "o_lat":  sum(r["oneshot"]["latency"]   for r in results) / n,
+        "t_lat":  sum(r["toolbased"]["latency"] for r in results) / n,
+        "o_call": sum(r["oneshot"]["llm_calls"]   for r in results) / n,
+        "t_call": sum(r["toolbased"]["llm_calls"] for r in results) / n,
+    }
 
-    header = f"{'Question':<35} {'1-shot':>8} {'Tool':>8} {'1-shot lat':>11} {'Tool lat':>10} {'1-shot calls':>13} {'Tool calls':>11}"
-    print(header)
-    print("-" * len(header))
 
-    for r in results:
-        o, t = r["oneshot"], r["toolbased"]
-        q = r["question"][:34]
+def print_summary(all_results: list[dict]) -> None:
+    datasets = {}
+    for r in all_results:
+        datasets.setdefault(r["dataset"], []).append(r)
+
+    header = (
+        f"{'Question':<35} {'1-shot':>8} {'Tool':>8} "
+        f"{'1-shot lat':>11} {'Tool lat':>10} "
+        f"{'1-shot calls':>13} {'Tool calls':>11}"
+    )
+
+    for ds_name, ds_results in datasets.items():
+        print(f"\n{DIV}")
+        print(f"  {ds_name.upper()}")
+        print(DIV)
+        print(header)
+        print("-" * len(header))
+        for r in ds_results:
+            o, t = r["oneshot"], r["toolbased"]
+            q = r["question"][:34]
+            print(
+                f"{q:<35} "
+                f"{'✓' if o['correct'] else '✗':>8} "
+                f"{'✓' if t['correct'] else '✗':>8} "
+                f"{o['latency']:>10.2f}s "
+                f"{t['latency']:>9.2f}s "
+                f"{o['llm_calls']:>13} "
+                f"{t['llm_calls']:>11}"
+            )
+        s = _dataset_stats(ds_results)
+        o_label = f"{s['o_acc']}/{s['n']}"
+        t_label = f"{s['t_acc']}/{s['n']}"
+        print("-" * len(header))
         print(
-            f"{q:<35} "
-            f"{'✓' if o['correct'] else '✗':>8} "
-            f"{'✓' if t['correct'] else '✗':>8} "
-            f"{o['latency']:>10.2f}s "
-            f"{t['latency']:>9.2f}s "
-            f"{o['llm_calls']:>13} "
-            f"{t['llm_calls']:>11}"
+            f"{'DATASET TOTALS':<35} "
+            f"{o_label:>8} "
+            f"{t_label:>8} "
+            f"{s['o_lat']:>10.2f}s "
+            f"{s['t_lat']:>9.2f}s "
+            f"{s['o_call']:>13.1f} "
+            f"{s['t_call']:>11.1f}"
         )
 
-    n = len(results)
-    o_acc  = sum(r["oneshot"]["correct"]   for r in results)
-    t_acc  = sum(r["toolbased"]["correct"] for r in results)
-    o_lat  = sum(r["oneshot"]["latency"]   for r in results) / n
-    t_lat  = sum(r["toolbased"]["latency"] for r in results) / n
-    o_call = sum(r["oneshot"]["llm_calls"]   for r in results) / n
-    t_call = sum(r["toolbased"]["llm_calls"] for r in results) / n
-
-    print("-" * len(header))
+    # overall
+    s = _dataset_stats(all_results)
+    print(f"\n{DIV}")
+    print(f"OVERALL  ({s['n']} questions across {len(datasets)} datasets)")
+    print(DIV)
     print(
-        f"{'TOTALS / AVERAGES':<35} "
-        f"{f'{o_acc}/{n}':>8} "
-        f"{f'{t_acc}/{n}':>8} "
-        f"{o_lat:>10.2f}s "
-        f"{t_lat:>9.2f}s "
-        f"{o_call:>13.1f} "
-        f"{t_call:>11.1f}"
+        f"  1-shot   accuracy  {s['o_acc']}/{s['n']} ({100 * s['o_acc'] // s['n']}%)   "
+        f"avg latency {s['o_lat']:.2f}s   avg calls {s['o_call']:.1f}"
+    )
+    print(
+        f"  tool     accuracy  {s['t_acc']}/{s['n']} ({100 * s['t_acc'] // s['n']}%)   "
+        f"avg latency {s['t_lat']:.2f}s   avg calls {s['t_call']:.1f}"
     )
     print(DIV)
 
 
-def write_report(results: list[dict], path: str) -> None:
-    n = len(results)
-    o_acc  = sum(r["oneshot"]["correct"]   for r in results)
-    t_acc  = sum(r["toolbased"]["correct"] for r in results)
-    o_lat  = sum(r["oneshot"]["latency"]   for r in results) / n
-    t_lat  = sum(r["toolbased"]["latency"] for r in results) / n
-    o_call = sum(r["oneshot"]["llm_calls"]   for r in results) / n
-    t_call = sum(r["toolbased"]["llm_calls"] for r in results) / n
+def write_report(all_results: list[dict], path: str) -> None:
+    datasets = {}
+    for r in all_results:
+        datasets.setdefault(r["dataset"], []).append(r)
+
+    overall = _dataset_stats(all_results)
+    n_ds = len(datasets)
 
     lines = [
         "# NL2Q Benchmark — 1-shot vs Tool-based",
         "",
-        f"Model: `{MODEL}`  |  Dataset: Northwind SQLite  |  Questions: {n}",
+        f"Model: `{MODEL}`  |  Datasets: {', '.join(datasets)}  |  Questions: {overall['n']}",
         "",
-        "## Summary",
+        "## Overall summary",
         "",
-        f"| Metric | 1-shot | Tool-based |",
-        f"|---|---|---|",
-        f"| Accuracy | {o_acc}/{n} ({100*o_acc//n}%) | {t_acc}/{n} ({100*t_acc//n}%) |",
-        f"| Avg latency | {o_lat:.2f}s | {t_lat:.2f}s |",
-        f"| Avg LLM calls | {o_call:.1f} | {t_call:.1f} |",
+        "| Metric | 1-shot | Tool-based |",
+        "|---|---|---|",
+        f"| Accuracy | {overall['o_acc']}/{overall['n']} ({100 * overall['o_acc'] // overall['n']}%) "
+        f"| {overall['t_acc']}/{overall['n']} ({100 * overall['t_acc'] // overall['n']}%) |",
+        f"| Avg latency | {overall['o_lat']:.2f}s | {overall['t_lat']:.2f}s |",
+        f"| Avg LLM calls | {overall['o_call']:.1f} | {overall['t_call']:.1f} |",
         "",
-        "## Per-question results",
-        "",
-        "| # | Question | Category | 1-shot | Tool | 1-shot lat | Tool lat | 1-shot calls | Tool calls |",
-        "|---|---|---|---|---|---|---|---|---|",
     ]
-    for i, r in enumerate(results, 1):
-        o, t = r["oneshot"], r["toolbased"]
-        lines.append(
-            f"| {i} | {r['question']} | {r['category']} "
-            f"| {'✓' if o['correct'] else '✗'} "
-            f"| {'✓' if t['correct'] else '✗'} "
-            f"| {o['latency']:.2f}s "
-            f"| {t['latency']:.2f}s "
-            f"| {o['llm_calls']} "
-            f"| {t['llm_calls']} |"
-        )
+
+    for ds_name, ds_results in datasets.items():
+        s = _dataset_stats(ds_results)
+        lines += [
+            f"## {ds_name.capitalize()} ({s['n']} questions)",
+            "",
+            "| Metric | 1-shot | Tool-based |",
+            "|---|---|---|",
+            f"| Accuracy | {s['o_acc']}/{s['n']} ({100 * s['o_acc'] // s['n']}%) "
+            f"| {s['t_acc']}/{s['n']} ({100 * s['t_acc'] // s['n']}%) |",
+            f"| Avg latency | {s['o_lat']:.2f}s | {s['t_lat']:.2f}s |",
+            f"| Avg LLM calls | {s['o_call']:.1f} | {s['t_call']:.1f} |",
+            "",
+            "| # | Question | Category | Note | 1-shot | Tool | 1-shot lat | Tool lat | 1-shot calls | Tool calls |",
+            "|---|---|---|---|---|---|---|---|---|---|",
+        ]
+        for i, r in enumerate(ds_results, 1):
+            o, t = r["oneshot"], r["toolbased"]
+            lines.append(
+                f"| {i} | {r['question']} | {r['category']} | {r['note']} "
+                f"| {'✓' if o['correct'] else '✗'} "
+                f"| {'✓' if t['correct'] else '✗'} "
+                f"| {o['latency']:.2f}s "
+                f"| {t['latency']:.2f}s "
+                f"| {o['llm_calls']} "
+                f"| {t['llm_calls']} |"
+            )
+        lines.append("")
 
     lines += [
-        "",
         "## Notes",
         "",
-        "- **1-shot**: schema injected into a single prompt; LLM returns SQL; one round trip.",
+        "- **1-shot**: full schema injected into a single prompt; LLM returns SQL; one round trip.",
         "- **Tool-based**: LLM drives a tool loop (`list_databases`, `get_schema`, `execute_query`, …); "
-          "multiple round trips allowed.",
-        f"- Accuracy checker: scalar queries use ±0.5–5 tolerance; "
-          "ranking queries check top-1 match; join queries check value presence.",
+          "multiple round trips; can explore schema and sample data before answering.",
+        "- **Finance dataset**: uses opaque column names (`a2`–`a16`) and Czech domain codes "
+          "(`PRIJEM`/`VYDAJ`, `POPLATEK MESICNE`, status `A`/`B`/`C`/`D`). "
+          "1-shot receives raw column names with no hints; tool-based can query sample rows to disambiguate.",
+        "- Accuracy checkers: scalar queries use ±0.5–100 tolerance; ranking queries check top-1 match; "
+          "join queries check value presence.",
     ]
 
     Path(path).parent.mkdir(parents=True, exist_ok=True)
@@ -465,14 +643,15 @@ def write_report(results: list[dict], path: str) -> None:
 # Setup
 # ---------------------------------------------------------------------------
 
-def setup_db() -> tuple[str, sqlite3.Connection]:
-    tmp = tempfile.mkdtemp(prefix="blue-nl2q-bench-")
-    db_path = os.path.join(tmp, f"{DB_NAME}.db")
-    sql = SQL_FILE.read_text()
+def setup_dataset(cfg: dict) -> tuple[str, sqlite3.Connection, SQLiteDBSource]:
+    tmp = tempfile.mkdtemp(prefix=f"blue-nl2q-{cfg['name']}-")
+    db_path = os.path.join(tmp, f"{cfg['db_name']}.db")
+    sql = Path(cfg["sql_file"]).read_text()
     conn = sqlite3.connect(db_path)
     conn.executescript(sql)
     conn.commit()
-    return tmp, conn
+    source = SQLiteDBSource(cfg["db_name"], properties={"connection": {"database_directory": tmp}})
+    return tmp, conn, source
 
 
 # ---------------------------------------------------------------------------
@@ -486,36 +665,39 @@ def main() -> None:
 
     p = argparse.ArgumentParser(description="NL2Q benchmark: 1-shot vs tool-based")
     _here = Path(__file__).parent
-    p.add_argument("--out",    default=str(_here / "nl2q.json"),
+    p.add_argument("--out",     default=str(_here / "nl2q.json"),
                    help="Save raw JSON results to this path")
-    p.add_argument("--report", default=str(_here / "NL2Q_RESULTS.md"),
+    p.add_argument("--report",  default=str(_here / "NL2Q_RESULTS.md"),
                    help="Write markdown report to this path")
+    p.add_argument("--dataset", default=None,
+                   help="Run only this dataset (northwind or finance). Default: all.")
     args = p.parse_args()
 
     client = anthropic.Anthropic(api_key=api_key)
 
+    datasets = DATASETS
+    if args.dataset:
+        datasets = [d for d in DATASETS if d["name"] == args.dataset]
+        if not datasets:
+            raise SystemExit(f"Unknown dataset '{args.dataset}'. Choose: {[d['name'] for d in DATASETS]}")
+
+    total_q = sum(len(d["test_cases"]) for d in datasets)
     print(DIV)
     print(f"NL2Q Benchmark  —  model: {MODEL}")
-    print(f"Dataset: {SQL_FILE}")
-    print(f"Questions: {len(TEST_CASES)}")
+    print(f"Datasets: {[d['name'] for d in datasets]}  |  Questions: {total_q}")
     print(DIV)
 
-    tmp, conn = setup_db()
-    source = SQLiteDBSource(DB_NAME, properties={
-        "connection": {"database_directory": tmp}
-    })
+    all_results: list[dict] = []
+    for cfg in datasets:
+        all_results.extend(run_dataset(client, cfg))
 
-    results = run_benchmark(client, source, conn)
-    conn.close()
-
-    print_summary(results)
+    print_summary(all_results)
 
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
-    Path(args.out).write_text(json.dumps(results, indent=2))
+    Path(args.out).write_text(json.dumps(all_results, indent=2))
     print(f"Raw results → {args.out}")
 
-    write_report(results, args.report)
-    print(f"Report written → {args.report}")
+    write_report(all_results, args.report)
 
 
 if __name__ == "__main__":
