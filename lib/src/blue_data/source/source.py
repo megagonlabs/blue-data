@@ -234,8 +234,8 @@ class DataSource:
             _extract_native_query(raw)      → native query (str or dict)
 
         To plug in rule-based or DSL translation, override this method directly
-        and ignore *llm_fn*. Returns ``None`` when *llm_fn* is absent or the LLM
-        returns an empty response.
+        and ignore *llm_fn*. Returns ``None`` when *llm_fn* is absent (default
+        LLM path) or the LLM returns an empty response.
         """
         if llm_fn is None:
             return None
@@ -257,12 +257,13 @@ class DataSource:
 
         Calls ``translate_nl_to_native_query`` to produce the dialect-specific
         query, then passes it to ``execute_query``.  Returns ``[]`` when
-        *llm_fn* is absent or translation yields nothing.
+        translation yields nothing.
 
         Override this method (not ``translate_nl_to_native_query``) only when
         the execution shape differs from a plain ``execute_query`` call — for
         example, MongoDB wraps the filter in a ``FIND`` op dict.  Sources that
-        only need a different *translation* strategy should override
+        only need a different *translation* strategy (including rule-based
+        translation that does not require *llm_fn*) should override
         ``translate_nl_to_native_query`` instead.
 
         Parameters:
@@ -272,12 +273,12 @@ class DataSource:
             schema:             Schema dict (``entities``, ``relations``) used to
                                 ground the LLM prompt.  Built by DataRegistry.
             llm_fn:             ``(prompt: str) -> str`` backed by an LLM.
-                                Optional — returns ``[]`` when absent.
+                                Optional — the default implementation returns
+                                ``None`` when absent; rule-based overrides may
+                                ignore it entirely.
             optional_properties: Extra driver-specific options passed through to
                                 ``execute_query``.
         """
-        if llm_fn is None:
-            return []
         native_query = self.translate_nl_to_native_query(query, schema, llm_fn)
         if not native_query:
             return []
