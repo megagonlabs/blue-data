@@ -109,6 +109,54 @@ def test_sql_execute_nl_tool_unknown_raises(sqlite_src):
         sqlite_src.execute_nl_tool("nonexistent_tool", {})
 
 
+def test_sql_get_nl_tools_has_sample_and_stats_tools(sqlite_src):
+    tools = sqlite_src.get_nl_tools(database="sales")
+    names = {t["name"] for t in tools}
+    assert {"get_sample", "get_column_stats", "get_relations"} <= names
+
+
+def test_sql_execute_nl_tool_get_sample(sqlite_src):
+    result = sqlite_src.execute_nl_tool(
+        "get_sample", {"database": "sales", "entity": "orders", "sample_size": 2}
+    )
+    assert "row_count" in result
+    assert result["row_count"] == 2
+    assert len(result["row_samples"]) == 2
+
+
+def test_sql_execute_nl_tool_get_column_stats(sqlite_src):
+    result = sqlite_src.execute_nl_tool(
+        "get_column_stats",
+        {"database": "sales", "entity": "orders", "column": "customer"},
+    )
+    assert "distinct_count" in result
+    assert "sample_values" in result
+    assert result["distinct_count"] == 2
+
+
+def test_sql_execute_nl_tool_get_relations(sqlite_src):
+    result = sqlite_src.execute_nl_tool("get_relations", {"database": "sales"})
+    assert isinstance(result, (dict, list))
+
+
+def test_sql_nl_tools_uses_sample_before_query(sqlite_src):
+    """LLM calls get_sample to inspect data, then executes a targeted query."""
+    llm = make_scripted_llm(
+        _tool_use_response("t1", "get_sample", {"database": "sales", "entity": "orders", "sample_size": 5}),
+        _tool_use_response("t2", "execute_query", {
+            "query": "SELECT customer, SUM(amount) FROM orders GROUP BY customer",
+            "database": "sales",
+        }),
+        _text_response("Alice spent 100, Bob spent 250."),
+    )
+    result = sqlite_src.execute_query_nl_tools(
+        "what did each customer spend?",
+        database="sales",
+        llm_fn=llm,
+    )
+    assert len(result) == 2
+
+
 # ---------------------------------------------------------------------------
 # SQLiteDBSource — full tool loop scenarios
 # ---------------------------------------------------------------------------

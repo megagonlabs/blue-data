@@ -659,3 +659,110 @@ def test_sync_all_covers_multiple_sources(tmp_path):
         dbs = [r["name"] for r in reg.list_source_databases(src)]
         assert "alpha" in dbs
         assert "beta" in dbs
+
+
+# ---------- execute_query_nl_tools ----------
+
+def _tool_use_response(tool_id, name, input_dict):
+    return {
+        "stop_reason": "tool_use",
+        "content": [{"type": "tool_use", "id": tool_id, "name": name, "input": input_dict}],
+    }
+
+
+def _text_response(text):
+    return {
+        "stop_reason": "end_turn",
+        "content": [{"type": "text", "text": text}],
+    }
+
+
+def make_scripted_llm(*responses):
+    queue = list(responses)
+    def llm_fn(messages, tools, system=None):
+        return queue.pop(0)
+    return llm_fn
+
+
+def test_registry_execute_query_nl_tools_raises_for_missing_source():
+    reg = DataRegistry(store=MemoryJSONSource())
+    with pytest.raises(ValueError, match="not registered"):
+        reg.execute_query_nl_tools("ghost", "how many rows?")
+
+
+def test_registry_execute_query_nl_tools_no_llm_fn_returns_empty():
+    reg = DataRegistry(store=MemoryJSONSource())
+    reg.register_source(StubSource("src"))
+    result = reg.execute_query_nl_tools("src", "how many rows?")
+    assert result == []
+
+
+def test_registry_execute_query_nl_tools_exposes_get_enriched_metadata_tool():
+    captured_tools = {}
+
+    def llm_fn(messages, tools, system=None):
+        captured_tools["names"] = {t["name"] for t in tools}
+        return _text_response("done")
+
+    reg = DataRegistry(store=MemoryJSONSource())
+    reg.register_source(StubSource("src"))
+
+    class FakeEnricher:
+        pass
+
+    enricher = FakeEnricher()
+    enricher._llm_fn = llm_fn
+    reg.metadata_enricher = enricher
+    reg.execute_query_nl_tools("src", "test query")
+    assert "get_enriched_metadata" in captured_tools["names"]
+
+
+def test_registry_execute_query_nl_tools_get_enriched_metadata_returns_registry_data(tmp_path):
+    import sqlite3, os
+
+    db_path = os.path.join(str(tmp_path), "sales.db")
+    conn = sqlite3.connect(db_path)
+    conn.execute("CREATE TABLE orders (id INTEGER, customer TEXT, amount REAL)")
+    conn.execute("INSERT INTO orders VALUES (1, 'Alice', 100.0)")
+    conn.commit()
+    conn.close()
+
+    from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
+
+    reg = DataRegistry(store=MemoryJSONSource())
+    src = SQLiteDBSource("sales_src", properties={"connection": {"database_directory": str(tmp_path)}})
+    reg.register_source(src)
+    reg.sync_source("sales_src", recursive=True)
+
+    # Manually store enriched metadata on the orders entity
+    reg.set_record_property(
+        "orders", "entity",
+        "/source/sales_src/database/sales/collection/public",
+        "metadata",
+        {"semantic_type": "TRANSACTION", "description": "Customer order records"},
+    )
+
+    captured = {}
+
+    def llm_fn(messages, tools, system=None):
+        # First turn: call get_enriched_metadata
+        if not captured.get("meta_called"):
+            captured["meta_called"] = True
+            return _tool_use_response("t1", "get_enriched_metadata", {"entity": "orders"})
+        # Second turn: inspect what the tool returned and end
+        for msg in messages:
+            if isinstance(msg.get("content"), list):
+                for block in msg["content"]:
+                    if isinstance(block, dict) and block.get("type") == "tool_result":
+                        captured["meta_result"] = block["content"]
+        return _text_response("done")
+
+    class FakeEnricher:
+        pass
+
+    enricher = FakeEnricher()
+    enricher._llm_fn = llm_fn
+    reg.metadata_enricher = enricher
+    reg.execute_query_nl_tools("sales_src", "describe orders", database="sales", collection="public")
+
+    assert "TRANSACTION" in captured.get("meta_result", "")

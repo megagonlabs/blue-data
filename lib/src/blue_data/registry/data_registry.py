@@ -283,6 +283,82 @@ class DataRegistry(Registry):
             optional_properties=props,
         )
 
+    def execute_query_nl_tools(
+        self,
+        source: str,
+        query: str,
+        database: str | None = None,
+        collection: str | None = None,
+        optional_properties: dict | None = None,
+        max_iterations: int = 10,
+    ) -> list[dict]:
+        """Drive a tool-based NL2Q loop against *source*, injecting a registry-aware
+        ``get_enriched_metadata`` tool so the LLM can access semantic types,
+        descriptions, and value semantics stored in the registry.
+
+        Raises ``ValueError`` if the source is not registered or connectable.
+        """
+        source_obj = self.connect_source(source)
+        if source_obj is None:
+            raise ValueError(f"Source not registered or connectable: {source}")
+
+        llm_fn = (
+            self.metadata_enricher._llm_fn
+            if self.metadata_enricher is not None
+            else None
+        )
+
+        extra_tools = [
+            {
+                "name": "get_enriched_metadata",
+                "description": (
+                    "Get enriched metadata stored in the registry for a table/entity or "
+                    "a specific column/attribute: semantic types, descriptions, value "
+                    "semantics, domain concepts, and aggregation hints. Use this to "
+                    "understand column meaning before writing a query."
+                ),
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "entity": {"type": "string", "description": "Table or entity name"},
+                        "attribute": {
+                            "type": "string",
+                            "description": "Column or attribute name (omit for entity-level metadata)",
+                        },
+                    },
+                    "required": ["entity"],
+                },
+            }
+        ]
+
+        def extra_tool_fn(name, tool_input):
+            if name != "get_enriched_metadata":
+                raise ValueError(f"Unknown registry tool: {name!r}")
+            entity = tool_input["entity"]
+            attribute = tool_input.get("attribute")
+            if attribute:
+                record = self.get_source_database_collection_entity_attribute(
+                    source, database, collection, entity, attribute
+                )
+            else:
+                record = self.get_source_database_collection_entity(
+                    source, database, collection, entity
+                )
+            if record is None:
+                return {}
+            return record.get("properties", {}).get("metadata", {})
+
+        return source_obj.execute_query_nl_tools(
+            query=query,
+            database=database,
+            collection=collection,
+            llm_fn=llm_fn,
+            optional_properties=optional_properties,
+            max_iterations=max_iterations,
+            extra_tools=extra_tools,
+            extra_tool_fn=extra_tool_fn,
+        )
+
     def build_schema_for_nl(self, source: str, database: str, collection: str) -> dict:
         entity_records = self.list_collection_entities(source, database, collection)
         entities = []

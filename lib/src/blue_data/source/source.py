@@ -350,6 +350,46 @@ class DataSource:
                     "required": ["query"],
                 },
             },
+            {
+                "name": "get_sample",
+                "description": "Get a sample of rows from a table/entity along with its total row count.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database": {"type": "string"},
+                        "collection": {"type": "string"},
+                        "entity": {"type": "string", "description": "Table or entity name"},
+                        "sample_size": {"type": "integer", "description": "Number of rows to sample (default 10)"},
+                    },
+                    "required": ["database", "entity"],
+                },
+            },
+            {
+                "name": "get_column_stats",
+                "description": "Get statistics for a specific column: distinct count, min, max, null count, and sample values.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database": {"type": "string"},
+                        "collection": {"type": "string"},
+                        "entity": {"type": "string", "description": "Table or entity name"},
+                        "column": {"type": "string", "description": "Column name"},
+                    },
+                    "required": ["database", "entity", "column"],
+                },
+            },
+            {
+                "name": "get_relations",
+                "description": "Get foreign key relationships for a collection.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database": {"type": "string"},
+                        "collection": {"type": "string"},
+                    },
+                    "required": ["database"],
+                },
+            },
         ]
 
     def execute_nl_tool(
@@ -381,6 +421,22 @@ class DataSource:
                 collection=coll,
                 optional_properties=optional_properties,
             )
+        if name == "get_sample":
+            return self.fetch_entity_stats(
+                db,
+                coll,
+                tool_input["entity"],
+                row_sample_size=tool_input.get("sample_size", 10),
+            )
+        if name == "get_column_stats":
+            return self.fetch_property_stats(
+                db,
+                coll,
+                tool_input["entity"],
+                tool_input["column"],
+            )
+        if name == "get_relations":
+            return self.fetch_database_collection_relations(db, coll)
         raise ValueError(f"Unknown tool: {name!r}")
 
     def _build_nl_tools_system_prompt(
@@ -405,6 +461,8 @@ class DataSource:
         llm_fn=None,
         optional_properties: dict | None = None,
         max_iterations: int = 10,
+        extra_tools: list[dict] | None = None,
+        extra_tool_fn=None,
     ) -> list[dict]:
         """Tool-based NL2Q: drive an LLM tool loop to answer *query*.
 
@@ -419,6 +477,11 @@ class DataSource:
                 ]
             }
 
+        ``extra_tools`` / ``extra_tool_fn`` let callers (e.g. DataRegistry) inject
+        additional tools into the loop without subclassing. ``extra_tool_fn`` receives
+        ``(tool_name, tool_input)`` and should raise ``ValueError`` for tools it does
+        not own so dispatch falls through to ``execute_nl_tool``.
+
         Returns the rows from the last ``execute_query`` tool call, or wraps the
         LLM's final text answer as ``[{"answer": text}]``.
         """
@@ -426,6 +489,8 @@ class DataSource:
             return []
 
         tools = self.get_nl_tools(database=database, collection=collection)
+        if extra_tools:
+            tools = tools + extra_tools
         system = self._build_nl_tools_system_prompt(database, collection)
         messages = [{"role": "user", "content": query}]
         last_query_result = None
@@ -450,11 +515,21 @@ class DataSource:
                 tool_input = block.get("input", {})
                 tool_id = block["id"]
                 try:
-                    result = self.execute_nl_tool(
-                        tool_name, tool_input,
-                        database=database, collection=collection,
-                        optional_properties=optional_properties,
-                    )
+                    if extra_tool_fn is not None:
+                        try:
+                            result = extra_tool_fn(tool_name, tool_input)
+                        except ValueError:
+                            result = self.execute_nl_tool(
+                                tool_name, tool_input,
+                                database=database, collection=collection,
+                                optional_properties=optional_properties,
+                            )
+                    else:
+                        result = self.execute_nl_tool(
+                            tool_name, tool_input,
+                            database=database, collection=collection,
+                            optional_properties=optional_properties,
+                        )
                     if tool_name == "execute_query" and isinstance(result, list):
                         last_query_result = result
                 except Exception as e:
