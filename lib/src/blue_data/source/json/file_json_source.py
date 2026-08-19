@@ -24,12 +24,15 @@ class FileJSONSource(JSONSource):
         self.properties["connection"] = conn
 
     def _read(self) -> dict:
-        with open(self.path, "r") as f:
-            return json.load(f)
+        with open(self.path, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+        return json.loads(content) if content else {}
 
     def _write(self, data: dict) -> None:
-        with open(self.path, "w") as f:
-            json.dump(data, f, indent=2)
+        tmp = self.path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        os.replace(tmp, self.path)
 
     def get(self, path: str | None = None) -> Any:
         data = self._read()
