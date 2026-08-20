@@ -30,6 +30,10 @@ all = [
     "pymongo",
     "neo4j",
     "redis",
+    "chromadb",
+    "pgmpy",
+    "networkx",
+    "pyarrow",
     "anthropic",
 ]
 

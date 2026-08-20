@@ -18,14 +18,19 @@ neo4j     = ["neo4j"]
 redis     = ["redis"]
 chromadb  = ["chromadb"]
 bn        = ["pgmpy", "networkx"]
+parquet   = ["pyarrow"]
 llm       = ["anthropic"]
-dev       = ["pytest"]
+dev       = ["pytest", "pytest-cov"]
 all = [
     "psycopg2-binary",
     "mysql-connector-python",
     "pymongo",
     "neo4j",
     "redis",
+    "chromadb",
+    "pgmpy",
+    "networkx",
+    "pyarrow",
     "anthropic",
 ]
 
