@@ -66,6 +66,10 @@ DataSource(name: str, properties: dict | None = None)
 | Method | Returns | Description |
 |---|---|---|
 | `execute_query(query, database, collection, optional_properties)` | `list[dict]` | Run an ad-hoc query and return rows as dicts |
+| `execute_query_nl(query, database, collection, schema, llm_fn, optional_properties)` | `list[dict]` | Translate NL query to native and execute (one-shot) |
+| `execute_query_nl_tools(query, database, collection, llm_fn, optional_properties, max_iterations, extra_tools, extra_tool_fn)` | `list[dict]` | Drive a multi-turn LLM tool loop to answer a NL query |
+| `get_nl_tools(database, collection)` | `list[dict]` | Return Anthropic-format tool definitions for the tool loop; override per dialect |
+| `execute_nl_tool(name, tool_input, database, collection, optional_properties)` | `Any` | Dispatch a single named tool call; override per dialect |
 
 **Entity dict format** returned by `fetch_database_collection_entities`:
 

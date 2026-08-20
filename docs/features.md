@@ -7,6 +7,10 @@ Consistent API across heterogeneous backends. Register once, query uniformly.
 - **SQL** — SQLite, PostgreSQL, MySQL
 - **Document** — MongoDB
 - **Graph** — Neo4j
+- **File** — CSV, JSON, JSONL, Parquet (directory of files as a source)
+- **Vector** — MemoryVectorSource, RedisVectorSource, ChromaDB
+- **Stream** — Redis Streams, MemoryStreamSource
+- **Network** — BayesianNetworkSource (probabilistic graphical models via pgmpy)
 
 Consistent operations across all: list databases / collections / entities, execute queries, collect stats, introspect schema.
 
@@ -151,7 +155,11 @@ Omit `vector_source` and `embedding_fn` to fall back to keyword-only search. Sea
 
 ## Natural language querying
 
-Translates natural language questions into native queries via pluggable LLM functions. Supported dialects: SQL (SQLite, PostgreSQL, MySQL), Cypher (Neo4j), MongoDB filters, and vector KNN (MemoryVectorSource, ChromaDB, Redis, File).
+Two complementary modes for translating natural language questions into native queries.
+
+### One-shot (`execute_query_nl`)
+
+Translates a question into a native query in a single LLM call, using schema context from the registry. Supported dialects: SQL (SQLite, PostgreSQL, MySQL), Cypher (Neo4j), MongoDB filters. Vector sources embed the query and run KNN — no LLM required.
 
 **SQL and graph sources** — schema context from the registry is automatically injected into the LLM prompt:
 
@@ -174,6 +182,47 @@ results = registry.execute_query_nl(
     optional_properties={"k": 10},
 )
 ```
+
+### Tool-based (`execute_query_nl_tools`)
+
+Drives a multi-turn LLM tool loop where the model explores the source before writing a query. The LLM calls whichever tools it needs — it can inspect schema, sample rows, check column statistics, and (when called through the registry) fetch enriched metadata — then issues the final query.
+
+Available tools in the loop:
+
+| Tool | What it returns |
+|---|---|
+| `list_databases` | Database names |
+| `list_collections` | Collection / schema names |
+| `get_schema` | Entity and attribute list with types |
+| `get_sample` | Sample rows + row count for a table |
+| `get_column_stats` | Distinct count, min, max, null count, sample values |
+| `get_relations` | Foreign key relationships |
+| `execute_query` | Run a native query and return rows |
+| `get_enriched_metadata` | Semantic types, descriptions, value semantics from the enrichment pipeline (registry path only) |
+
+`get_enriched_metadata` is only available when calling through `DataRegistry.execute_query_nl_tools` — it reads from what the enrichment pipeline stored in the registry.
+
+```python
+# Source-level — no registry needed, no enriched metadata
+rows = source.execute_query_nl_tools(
+    query="which customers placed orders over $100?",
+    database="sales",
+    collection="public",
+    llm_fn=llm_fn,   # (messages, tools, system=None) -> response dict
+)
+
+# Registry-level — includes get_enriched_metadata tool
+rows = registry.execute_query_nl_tools(
+    source="mydb",
+    query="which customers placed orders over $100?",
+    database="sales",
+    collection="public",
+)
+```
+
+`llm_fn` for the tool loop must accept `(messages, tools, system=None)` and return a response dict — the Anthropic tool-use API shape. The LLM used by the registry is pulled from the configured `metadata_enricher`.
+
+See `examples/feature-demos/nl_tools_demo.py` for a full walkthrough.
 
 ---
 

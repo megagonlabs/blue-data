@@ -201,7 +201,7 @@ Returns `[]` when no `llm_fn` is configured.
 
 ### Vector sources — embedding pipeline
 
-For `VectorSource` backends (MemoryVectorSource, ChromaDBVectorSource, RedisVectorSource, FileVectorSource) **no LLM is needed**. The NL query is embedded into a vector and run as a KNN search:
+For `VectorSource` backends (MemoryVectorSource, ChromaDBVectorSource, RedisVectorSource) **no LLM is needed**. The NL query is embedded into a vector and run as a KNN search:
 
 ```
 NL query
@@ -240,3 +240,64 @@ results = registry.execute_query_nl(
 ```
 
 Returns `[]` when no embedding function is configured on the registry.
+
+---
+
+### Tool-based NL2Q — multi-turn tool loop
+
+`execute_query_nl_tools` drives a multi-turn LLM tool loop. Instead of packing the full schema into a single prompt, the LLM calls whichever tools it needs — exploring schema, sampling data, checking column statistics — then issues the final query.
+
+**Source-level** (no registry required):
+
+```python
+def llm_fn(messages, tools, system=None):
+    resp = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        tools=tools,
+        messages=messages,
+        **({"system": system} if system else {}),
+    )
+    return {"stop_reason": resp.stop_reason, "content": [b.model_dump() for b in resp.content]}
+
+rows = source.execute_query_nl_tools(
+    query="which customers placed orders over $100?",
+    database="sales",
+    collection="public",
+    llm_fn=llm_fn,
+)
+```
+
+**Registry-level** (adds `get_enriched_metadata` — reads semantic types, descriptions, and value semantics stored by the enrichment pipeline):
+
+```python
+registry = DataRegistry(
+    store=MemoryJSONSource(),
+    metadata_enricher=MetaData(llm_fn=llm_fn_single_turn),
+)
+registry.sync_source("mydb", recursive=True)
+registry.collect_source_stats("mydb", recursive=True)
+registry.enrich_source_metadata("mydb", recursive=True)
+
+rows = registry.execute_query_nl_tools(
+    source="mydb",
+    query="which customers placed orders over $100?",
+    database="sales",
+    collection="public",
+)
+```
+
+The registry pulls its tool-loop LLM from `metadata_enricher._llm_fn`. Tools available in the loop:
+
+| Tool | Returns |
+|---|---|
+| `list_databases` | Database names |
+| `list_collections` | Collection / schema names |
+| `get_schema` | Entities and attribute types |
+| `get_sample` | Sample rows + row count |
+| `get_column_stats` | Distinct count, min, max, null count, sample values |
+| `get_relations` | Foreign key relationships |
+| `execute_query` | Run native query, return rows |
+| `get_enriched_metadata` | Registry enrichment metadata (registry path only) |
+
+Graph sources replace `execute_query` with graph-native traversal tools (`match_nodes`, `get_node`, `get_neighbors`, `match_edges`). Tool definitions are overridable per dialect via `get_nl_tools()`.

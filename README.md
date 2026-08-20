@@ -183,7 +183,7 @@ Source config file format:
 }
 ```
 
-Supported source types: `sqlite`, `postgres`, `mysql`, `mongodb`.
+Supported source types: `sqlite`, `postgres`, `mysql`, `mongodb`, `neo4j`, `file`.
 
 ---
 
