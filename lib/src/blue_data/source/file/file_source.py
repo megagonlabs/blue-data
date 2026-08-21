@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import re
 import os
+from typing import Any
 
 import pandas as pd
 
@@ -9,6 +11,11 @@ from blue_data.core.schema import DataSchema
 from blue_data.source.source import DataSource
 
 _FORMATS = ("csv", "json", "jsonl", "parquet")
+
+# Keys that identify a structured query dict (vs. old equality-filter dict).
+_STRUCTURED_KEYS = frozenset(
+    {"filter", "group_by", "aggregate", "select", "sort_by", "sort_desc", "limit"}
+)
 
 
 class FileSource(DataSource):
@@ -107,9 +114,64 @@ class FileSource(DataSource):
             schema.add_entity_attribute(collection, key, self._infer_python_type(value))
         return schema.get_entities()
 
+    def _apply_structured_query(self, df: "pd.DataFrame", q: dict) -> list[dict]:
+        """Apply a structured query dict to *df* and return matching records."""
+        # 1. filter (pandas query expression string)
+        filter_expr = q.get("filter")
+        if filter_expr and isinstance(filter_expr, str):
+            df = df.query(filter_expr)
+
+        # 2. group_by + aggregate
+        group_by = q.get("group_by")
+        agg = q.get("aggregate")
+
+        if agg is not None:
+            if group_by is not None:
+                cols = [group_by] if isinstance(group_by, str) else list(group_by)
+                df = df.groupby(cols).agg(agg).reset_index()
+            else:
+                # whole-table aggregation → single-row result
+                row: dict = {}
+                if isinstance(agg, dict):
+                    for col, func in agg.items():
+                        if col not in df.columns:
+                            continue
+                        fn = "mean" if func == "avg" else func
+                        if func == "count":
+                            row[f"count_{col}"] = int(df[col].count())
+                        elif fn in ("sum", "mean", "min", "max"):
+                            row[f"{func}_{col}"] = float(getattr(df[col], fn)())
+                elif isinstance(agg, str):
+                    func = agg.strip()
+                    if func == "count":
+                        row = {"count": len(df)}
+                return [row] if row else []
+
+        # 3. select
+        select = q.get("select")
+        if select:
+            cols = [c for c in select if c in df.columns]
+            if cols:
+                df = df[cols]
+
+        # 4. sort
+        sort_by = q.get("sort_by")
+        if sort_by:
+            sort_cols = [sort_by] if isinstance(sort_by, str) else list(sort_by)
+            valid = [c for c in sort_cols if c in df.columns]
+            if valid:
+                df = df.sort_values(valid, ascending=not q.get("sort_desc", False))
+
+        # 5. limit
+        limit = q.get("limit")
+        if limit:
+            df = df.head(int(limit))
+
+        return df.to_dict(orient="records")
+
     def execute_query(
         self,
-        query,
+        query: Any,
         database: str | None = None,
         collection: str | None = None,
         optional_properties: dict | None = None,
@@ -117,8 +179,13 @@ class FileSource(DataSource):
         """Return rows from *collection*.
 
         ``query`` can be:
-        - ``None`` — return all rows
-        - ``dict`` — equality filter ``{column: value, ...}``
+        - ``None``  — return all rows
+        - ``str``   — JSON-encoded structured query (see below) or pandas filter expression
+        - ``dict``  — structured query dict OR legacy equality filter ``{col: val, ...}``
+
+        Structured query keys: ``filter`` (pandas query string), ``group_by``,
+        ``aggregate`` (dict of ``{col: func}`` where func is count/sum/mean/min/max),
+        ``select``, ``sort_by``, ``sort_desc``, ``limit``.
         """
         if collection is None:
             raise ValueError("collection is required for FileSource.execute_query")
@@ -127,8 +194,27 @@ class FileSource(DataSource):
         except FileNotFoundError:
             return []
         rows = self._read_file(path, fmt)
-        if query and isinstance(query, dict):
+
+        if query is None:
+            return rows
+
+        # Normalise string → dict when it looks like JSON.
+        if isinstance(query, str):
+            stripped = query.strip()
+            if stripped.startswith("{"):
+                try:
+                    query = json.loads(stripped)
+                except json.JSONDecodeError:
+                    pass
+
+        if isinstance(query, dict):
+            if query.keys() & _STRUCTURED_KEYS:
+                if not rows:
+                    return []
+                return self._apply_structured_query(pd.DataFrame(rows), query)
+            # Legacy equality filter.
             rows = [r for r in rows if all(r.get(k) == v for k, v in query.items())]
+
         return rows
 
     def fetch_source_stats(self) -> dict:
@@ -147,6 +233,7 @@ class FileSource(DataSource):
         database: str,
         collection: str,
         entity: str,
+        row_sample_size: int = 10,
     ) -> dict:
         try:
             path, fmt = self._resolve_file(collection)
@@ -158,13 +245,151 @@ class FileSource(DataSource):
                 "row_sample_size": 0,
                 "row_samples_aligned": False,
             }
-        sample = rows[:10]
+        sample = rows[:row_sample_size]
         return {
             "row_count": len(rows),
             "row_samples": sample,
             "row_sample_size": len(sample),
             "row_samples_aligned": len(rows) >= 2,
         }
+
+    def fetch_property_stats(
+        self,
+        database: str,
+        collection: str,
+        entity: str,
+        property_name: str,
+        sample_limit: int | None = None,
+    ) -> dict:
+        try:
+            path, fmt = self._resolve_file(collection)
+            rows = self._read_file(path, fmt)
+        except FileNotFoundError:
+            return {}
+        if not rows:
+            return {}
+        values = [r.get(property_name) for r in rows]
+        non_null = [v for v in values if v is not None]
+        limit = sample_limit or 10
+        seen: dict = {}
+        for v in non_null:
+            k = str(v)
+            if k not in seen:
+                seen[k] = v
+            if len(seen) >= limit:
+                break
+        sample_values = list(seen.values())
+        result: dict = {
+            "total_count": len(values),
+            "null_count": len(values) - len(non_null),
+            "distinct_count": len({str(v) for v in non_null}),
+            "sample_values": sample_values,
+        }
+        numeric = [v for v in non_null if isinstance(v, (int, float))]
+        if numeric:
+            result["min"] = min(numeric)
+            result["max"] = max(numeric)
+        return result
+
+    # ---------- NL2Q ----------
+
+    def _format_schema_for_nl(self, schema: dict | None) -> str:
+        if not schema:
+            return "(no schema available)"
+        lines = []
+        for entity in schema.get("entities", []):
+            name = entity.get("name", "")
+            lines.append(f"File: {name}")
+            for attr_name, attr_props in entity.get("attributes", {}).items():
+                col_type = attr_props.get("type", "str") if isinstance(attr_props, dict) else "str"
+                vs = attr_props.get("value_semantics", {}) if isinstance(attr_props, dict) else {}
+                sem_type = vs.get("semantic_type", "") if vs else ""
+                examples = vs.get("examples", []) if vs else []
+                skip_ann = sem_type in ("UNKNOWN", "STRING") or sem_type.upper() == col_type.upper()
+                ann = f"; {sem_type}" if sem_type and not skip_ann else ""
+                line = f"  - {attr_name} ({col_type}{ann})"
+                if examples:
+                    sample = ", ".join(str(v) for v in examples[:5])
+                    line += f"  [values: {sample}]"
+                lines.append(line)
+        return "\n".join(lines) or "(no schema available)"
+
+    def _build_nl_prompt(self, query: str, schema_text: str) -> str:
+        return (
+            "You are a data analyst. Given a file schema, translate the natural language "
+            "query into a structured JSON query object.\n\n"
+            f"File schema:\n{schema_text}\n\n"
+            f"Natural language query: {query}\n\n"
+            "Output a JSON object with these optional fields:\n"
+            '  "filter"    : pandas query expression string (e.g. "age > 30 and country == \'USA\'")\n'
+            '  "group_by"  : column name or list of column names to group by\n'
+            '  "aggregate" : dict mapping column → function (count / sum / mean / min / max)\n'
+            '  "select"    : list of column names to return\n'
+            '  "sort_by"   : column name to sort by\n'
+            '  "sort_desc" : true for descending order (default false)\n'
+            '  "limit"     : maximum number of rows to return\n\n'
+            "Rules:\n"
+            "- For simple row retrieval use \"filter\" only.\n"
+            "- For whole-table aggregations (count, sum, …) use \"aggregate\" without \"group_by\".\n"
+            "- For grouped aggregations use both \"group_by\" and \"aggregate\".\n"
+            "- Use only columns that exist in the schema.\n"
+            "- Return ONLY valid JSON, no explanation or markdown fences.\n\n"
+            "JSON:"
+        )
+
+    def _extract_native_query(self, raw: str):
+        if not raw:
+            return None
+        cleaned = re.sub(r"```(?:json)?\s*", "", raw, flags=re.IGNORECASE).strip().rstrip("`").strip()
+        try:
+            parsed = json.loads(cleaned)
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError:
+            pass
+        return cleaned or None
+
+    def get_nl_tools(self, database: str | None = None, collection: str | None = None) -> list[dict]:
+        base = super().get_nl_tools(database=database, collection=collection)
+        # Files have no database concept and no FK relations.
+        tools = [t for t in base if t["name"] not in ("list_databases", "get_relations")]
+        for tool in tools:
+            if tool["name"] == "execute_query":
+                tool["description"] = (
+                    "Query the file using a structured JSON object. "
+                    "Optional fields: "
+                    "\"filter\" (pandas query string, e.g. \"age > 30 and country == 'USA'\"), "
+                    "\"group_by\" (column or list), "
+                    "\"aggregate\" (dict of {column: func} — func is count/sum/mean/min/max), "
+                    "\"select\" (list of columns), "
+                    "\"sort_by\" (column), \"sort_desc\" (bool), \"limit\" (int). "
+                    "Pass an empty object {} to return all rows."
+                )
+                tool["input_schema"]["properties"]["query"] = {
+                    "type": "object",
+                    "description": "Structured query object (see tool description)",
+                }
+        return tools
+
+    def execute_nl_tool(
+        self,
+        name: str,
+        tool_input: dict,
+        database: str | None = None,
+        collection: str | None = None,
+        optional_properties: dict | None = None,
+    ):
+        if name == "execute_query":
+            db = tool_input.get("database", database)
+            coll = tool_input.get("collection", collection)
+            query = tool_input.get("query", {})
+            return self.execute_query(query, database=db, collection=coll,
+                                      optional_properties=optional_properties)
+        return super().execute_nl_tool(
+            name, tool_input,
+            database=database, collection=collection,
+            optional_properties=optional_properties,
+        )
 
     # ---------- import ----------
 
