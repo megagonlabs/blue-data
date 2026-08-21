@@ -207,6 +207,101 @@ FINANCE_CASES = [
         "note":     "NOT IN subquery — existence check",
         "enrichment_sensitive": False,
     },
+    # --- process semantics: loan lifecycle ---
+    {
+        "id":       "loans_in_trouble",
+        "category": "filter",
+        "question": "How many loans have problems — either currently running with debt or finished but not fully paid off?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM loan WHERE status IN ('B', 'D')",
+        "check":    _scalar,
+        "note":     "Status B (finished unpaid) + D (running in debt) — process semantics",
+        "enrichment_sensitive": True,
+    },
+    {
+        "id":       "finished_loans_loss",
+        "category": "filter",
+        "question": "How many loans were finished but the debt was not paid off?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM loan WHERE status = 'B'",
+        "check":    _scalar,
+        "note":     "Status B — finished with unpaid balance, process semantics",
+        "enrichment_sensitive": True,
+    },
+    # --- process semantics: transaction operation codes ---
+    {
+        "id":       "card_withdrawals",
+        "category": "filter",
+        "question": "How many credit card withdrawal transactions are there?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM trans WHERE operation = 'VYBER KARTOU'",
+        "check":    _scalar,
+        "note":     "Czech operation code VYBER KARTOU — process semantics",
+        "enrichment_sensitive": True,
+    },
+    {
+        "id":       "outgoing_transfers",
+        "category": "filter",
+        "question": "How many outgoing bank transfer transactions are there?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM trans WHERE operation = 'PREVOD NA UCET'",
+        "check":    _scalar,
+        "note":     "Czech operation code PREVOD NA UCET — process semantics",
+        "enrichment_sensitive": True,
+    },
+    # --- process semantics: payment category (k_symbol) ---
+    {
+        "id":       "total_loan_repayments",
+        "category": "aggregation",
+        "question": "What is the total amount of loan repayment transactions?",
+        "gt_sql":   "SELECT SUM(amount) as total FROM trans WHERE k_symbol = 'UVER'",
+        "check":    lambda g, r: _scalar(g, r, tol=500.0),
+        "note":     "k_symbol UVER (loan payment) — process semantics",
+        "enrichment_sensitive": True,
+    },
+    {
+        "id":       "penalty_interest_accounts",
+        "category": "existence",
+        "question": "How many accounts have ever been charged penalty interest?",
+        "gt_sql":   "SELECT COUNT(DISTINCT account_id) as count FROM trans WHERE k_symbol = 'SANKC. UROK'",
+        "check":    _scalar,
+        "note":     "k_symbol SANKC. UROK (penalty interest) — process semantics",
+        "enrichment_sensitive": True,
+    },
+    {
+        "id":       "pension_credits",
+        "category": "filter",
+        "question": "How many transactions are pension income credits?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM trans WHERE k_symbol = 'DUCHOD' AND type = 'PRIJEM'",
+        "check":    _scalar,
+        "note":     "k_symbol DUCHOD + type PRIJEM — double process semantics",
+        "enrichment_sensitive": True,
+    },
+    # --- opaque district columns ---
+    {
+        "id":       "avg_unemployment_1996",
+        "category": "aggregation",
+        "question": "What is the average unemployment rate across districts in 1996?",
+        "gt_sql":   "SELECT ROUND(AVG(a13), 2) as avg_unemployment FROM district",
+        "check":    lambda g, r: _scalar(g, r, tol=0.5),
+        "note":     "Opaque column a13 (unemployment 1996) — requires schema grounding",
+        "enrichment_sensitive": True,
+    },
+    {
+        "id":       "total_population",
+        "category": "aggregation",
+        "question": "What is the total population across all districts?",
+        "gt_sql":   "SELECT SUM(a4) as total_population FROM district",
+        "check":    lambda g, r: _scalar(g, r, tol=1000.0),
+        "note":     "Opaque column a4 (number of inhabitants) — requires schema grounding",
+        "enrichment_sensitive": True,
+    },
+    # --- non-sensitive control ---
+    {
+        "id":       "male_clients",
+        "category": "filter",
+        "question": "How many male clients are there?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM client WHERE gender = 'M'",
+        "check":    _scalar,
+        "note":     "Basic gender filter — control (no enrichment needed)",
+        "enrichment_sensitive": False,
+    },
 ]
 
 
@@ -258,6 +353,108 @@ NORTHWIND_CASES = [
         """,
         "check":    _top1_match,
         "note":     "JOIN + GROUP BY + ORDER BY",
+        "enrichment_sensitive": False,
+    },
+    {
+        "id":       "beverages_count",
+        "category": "join",
+        "question": "How many products are in the Beverages category?",
+        "gt_sql":   """
+            SELECT COUNT(*) as count FROM products p
+            JOIN categories c ON p.category_id = c.category_id
+            WHERE c.category_name = 'Beverages'
+        """,
+        "check":    _scalar,
+        "note":     "JOIN + category filter",
+        "enrichment_sensitive": False,
+    },
+    {
+        "id":       "uk_suppliers",
+        "category": "filter",
+        "question": "How many suppliers are from the UK?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM suppliers WHERE country = 'UK'",
+        "check":    _scalar,
+        "note":     "Simple country filter on suppliers",
+        "enrichment_sensitive": False,
+    },
+    {
+        "id":       "london_employees",
+        "category": "filter",
+        "question": "How many employees are based in London?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM employees WHERE city = 'London'",
+        "check":    _scalar,
+        "note":     "City filter on employees",
+        "enrichment_sensitive": False,
+    },
+    {
+        "id":       "orders_to_france",
+        "category": "filter",
+        "question": "How many orders were shipped to France?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM orders WHERE ship_country = 'France'",
+        "check":    _scalar,
+        "note":     "Ship country filter",
+        "enrichment_sensitive": False,
+    },
+    {
+        "id":       "avg_discount",
+        "category": "aggregation",
+        "question": "What is the average discount applied across all order lines?",
+        "gt_sql":   "SELECT ROUND(AVG(discount), 4) as avg_discount FROM order_details",
+        "check":    lambda g, r: _scalar(g, r, tol=0.05),
+        "note":     "AVG on order_details discount",
+        "enrichment_sensitive": False,
+    },
+    {
+        "id":       "most_ordered_product",
+        "category": "join",
+        "question": "Which product appears in the most orders?",
+        "gt_sql":   """
+            SELECT p.product_name, COUNT(*) as order_count
+            FROM order_details od JOIN products p ON od.product_id = p.product_id
+            GROUP BY od.product_id ORDER BY order_count DESC LIMIT 1
+        """,
+        "check":    _top1_match,
+        "note":     "JOIN + GROUP BY + top-1",
+        "enrichment_sensitive": False,
+    },
+    {
+        "id":       "total_quantity_sold",
+        "category": "aggregation",
+        "question": "What is the total quantity of items sold across all orders?",
+        "gt_sql":   "SELECT SUM(quantity) as total_quantity FROM order_details",
+        "check":    _scalar,
+        "note":     "SUM on order_details quantity",
+        "enrichment_sensitive": False,
+    },
+    {
+        "id":       "japan_suppliers",
+        "category": "filter",
+        "question": "How many suppliers are from Japan?",
+        "gt_sql":   "SELECT COUNT(*) as count FROM suppliers WHERE country = 'Japan'",
+        "check":    _scalar,
+        "note":     "Country filter on suppliers",
+        "enrichment_sensitive": False,
+    },
+    {
+        "id":       "seafood_products",
+        "category": "join",
+        "question": "How many seafood products are there?",
+        "gt_sql":   """
+            SELECT COUNT(*) as count FROM products p
+            JOIN categories c ON p.category_id = c.category_id
+            WHERE c.category_name = 'Seafood'
+        """,
+        "check":    _scalar,
+        "note":     "JOIN + category filter",
+        "enrichment_sensitive": False,
+    },
+    {
+        "id":       "highest_stock_product",
+        "category": "sort",
+        "question": "Which product has the most units in stock?",
+        "gt_sql":   "SELECT product_name, units_in_stock FROM products ORDER BY units_in_stock DESC LIMIT 1",
+        "check":    _top1_match,
+        "note":     "ORDER BY + LIMIT 1 on stock",
         "enrichment_sensitive": False,
     },
 ]
@@ -715,9 +912,9 @@ def main() -> None:
     )
     p.add_argument(
         "--dataset",
-        default="finance",
+        default="all",
         choices=["finance", "northwind", "all"],
-        help="Dataset to run (default: finance)",
+        help="Dataset to run (default: all)",
     )
     p.add_argument(
         "--out",
