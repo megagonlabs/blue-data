@@ -116,6 +116,133 @@ class VectorSource(DataSource, ABC):
             "Supported: VECTOR.CREATE_INDEX, VECTOR.UPSERT, VECTOR.DELETE, VECTOR.KNN"
         )
 
+    # ---------- index introspection (override per backend) ----------
+
+    def list_indexes(self) -> list[dict]:
+        """List all available vector indexes with their configuration."""
+        return []
+
+    def fetch_index_info(self, index_name: str) -> dict:
+        """Return configuration and stats for *index_name*: collection, dim, metric, doc_count, fields."""
+        return {}
+
+    def fetch_index_sample(self, index_name: str, k: int = 3) -> list[dict]:
+        """Return up to *k* sample documents from *index_name* (embedding field excluded)."""
+        return []
+
+    # ---------- NL tool loop ----------
+
+    def get_nl_tools(self, database: str | None = None, collection: str | None = None) -> list[dict]:
+        return [
+            {
+                "name": "list_indexes",
+                "description": (
+                    "List all available vector indexes with their configuration "
+                    "(collection, dimension, distance metric, document count)."
+                ),
+                "input_schema": {"type": "object", "properties": {}, "required": []},
+            },
+            {
+                "name": "get_index_info",
+                "description": (
+                    "Get detailed information about a specific vector index: "
+                    "collection name, dimension, distance metric, document count, and field names."
+                ),
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "index": {"type": "string", "description": "Index name"},
+                    },
+                    "required": ["index"],
+                },
+            },
+            {
+                "name": "get_sample_docs",
+                "description": (
+                    "Retrieve a small sample of documents from an index to understand "
+                    "the document structure and available fields."
+                ),
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "index": {"type": "string", "description": "Index name"},
+                        "k": {"type": "integer", "description": "Number of sample documents (default 3)"},
+                    },
+                    "required": ["index"],
+                },
+            },
+            {
+                "name": "search_similar",
+                "description": (
+                    "Perform a semantic similarity search. Pass a natural language text query — "
+                    "the source embeds it and returns the k most similar documents. "
+                    "Optionally filter by field values using filter expressions "
+                    "(TAG: '@field:{value}', NUMERIC: '@field:[lo hi]')."
+                ),
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "index":  {"type": "string", "description": "Index name to search"},
+                        "query":  {"type": "string", "description": "Natural language search query text"},
+                        "k":      {"type": "integer", "description": "Number of results to return (default 5)"},
+                        "filter": {"type": "string", "description": "Optional filter expression"},
+                        "return_fields": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Fields to include in results (omit for all fields)",
+                        },
+                    },
+                    "required": ["index", "query"],
+                },
+            },
+        ]
+
+    def execute_nl_tool(
+        self,
+        name: str,
+        tool_input: dict,
+        database: str | None = None,
+        collection: str | None = None,
+        optional_properties: dict | None = None,
+    ):
+        if name == "list_indexes":
+            return self.list_indexes()
+
+        if name == "get_index_info":
+            return self.fetch_index_info(tool_input["index"])
+
+        if name == "get_sample_docs":
+            return self.fetch_index_sample(tool_input["index"], k=int(tool_input.get("k", 3)))
+
+        if name == "search_similar":
+            props = optional_properties or {}
+            embedding_fn = props.get("embedding_fn") or self._embedding_fn
+            if embedding_fn is None:
+                raise ValueError("search_similar requires an embedding function")
+            query_vector = embedding_fn(tool_input["query"])
+            return self.knn(
+                index_name=tool_input["index"],
+                query_vector=query_vector,
+                k=int(tool_input.get("k", 5)),
+                score_alias="score",
+                return_fields=list(tool_input.get("return_fields") or []),
+                filter_expr=tool_input.get("filter", "*"),
+            )
+
+        raise ValueError(f"Unknown vector tool: {name!r}")
+
+    def _build_nl_tools_system_prompt(
+        self, database: str | None = None, collection: str | None = None
+    ) -> str:
+        return (
+            f"You are a data assistant with access to vector indexes in '{self.name}'. "
+            "Use list_indexes to discover available indexes, "
+            "get_index_info and get_sample_docs to understand their structure, "
+            "then search_similar to find relevant documents by semantic similarity. "
+            "Always list indexes first if you do not know what is available. "
+            "Return the final answer as plain text, including relevant fields from the search results."
+        )
+
     # ---------- NL query ----------
 
     def execute_query_nl(

@@ -112,6 +112,52 @@ class MemoryVectorSource(VectorSource):
             result = self._apply_one_clause(result, clause)
         return result
 
+    # ---------- index introspection ----------
+
+    def list_indexes(self) -> list[dict]:
+        result = []
+        for idx_name, cfg in self._indices.items():
+            coll = cfg["collection"]
+            result.append({
+                "index":      idx_name,
+                "collection": coll,
+                "dim":        cfg["dim"],
+                "metric":     cfg.get("metric", "COSINE"),
+                "doc_count":  len(self._store.get(coll, {})),
+            })
+        return result
+
+    def fetch_index_info(self, index_name: str) -> dict:
+        cfg = self._indices.get(index_name)
+        if not cfg:
+            return {}
+        coll = cfg["collection"]
+        docs = self._store.get(coll, {})
+        fields: list[str] = []
+        for doc in list(docs.values())[:1]:
+            fields = [k for k in doc if k != "embedding"]
+        return {
+            "index":      index_name,
+            "collection": coll,
+            "dim":        cfg["dim"],
+            "metric":     cfg.get("metric", "COSINE"),
+            "doc_count":  len(docs),
+            "fields":     fields,
+        }
+
+    def fetch_index_sample(self, index_name: str, k: int = 3) -> list[dict]:
+        cfg = self._indices.get(index_name)
+        if not cfg:
+            return []
+        coll = cfg["collection"]
+        docs = self._store.get(coll, {})
+        result = []
+        for doc_id, doc in list(docs.items())[:k]:
+            row = {"id": doc_id}
+            row.update({field: val for field, val in doc.items() if field != "embedding"})
+            result.append(row)
+        return result
+
     # ---------- primitive operations ----------
 
     def create_index(self, index_name: str, collection: str, dim: int, distance_metric: str = "COSINE", extra_fields: list | None = None) -> str:
