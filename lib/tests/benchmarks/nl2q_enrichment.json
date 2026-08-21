@@ -1,0 +1,413 @@
+[
+  {
+    "dataset": "finance",
+    "id": "female_clients",
+    "category": "filter",
+    "question": "How many female clients are there?",
+    "note": "Basic gender filter",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 10
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.864,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.71,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 4.754,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.632,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "avg_loan_amount",
+    "category": "aggregation",
+    "question": "What is the average loan amount?",
+    "note": "AVG over loan table",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "avg_amount": 236535.73
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.724,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 2.468,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 5.595,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.332,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "highest_salary_district",
+    "category": "sort",
+    "question": "Which district has the highest average salary?",
+    "note": "Opaque columns a2/a11 \u2014 enrichment reveals meaning",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "district_name": "Hl.m. Praha",
+        "avg_salary": 12541
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 0.845,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.853,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 8.916,
+      "llm_calls": 7,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 9.909,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "running_loans_ok",
+    "category": "filter",
+    "question": "How many loans are currently running with no problems?",
+    "note": "Status code C \u2014 enrichment shows enum values",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "count": 6
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 0.614,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": false,
+      "latency": 0.692,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 14.03,
+      "llm_calls": 6,
+      "rows": 4,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 9.774,
+      "llm_calls": 6,
+      "rows": 4,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "total_credit_amount",
+    "category": "aggregation",
+    "question": "What is the total amount of all credit (incoming) transactions?",
+    "note": "Czech type code PRIJEM \u2014 enrichment shows enum values",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "total": 441140
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.691,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.764,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 7.966,
+      "llm_calls": 5,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 10.581,
+      "llm_calls": 5,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "monthly_accounts",
+    "category": "filter",
+    "question": "How many accounts have a monthly statement frequency?",
+    "note": "Czech frequency string \u2014 enrichment shows enum values",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "count": 10
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 8.101,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 1.186,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 9.646,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 10.318,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "avg_loan_duration",
+    "category": "aggregation",
+    "question": "What is the average loan duration in months?",
+    "note": "Simple AVG \u2014 clean columns",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "avg_months": 40.0
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.635,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.595,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 3.933,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 5.98,
+      "llm_calls": 5,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "accounts_with_loan",
+    "category": "existence",
+    "question": "How many accounts have at least one loan?",
+    "note": "Distinct count",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 14
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.938,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.617,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 10.457,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.845,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "largest_transaction",
+    "category": "sort",
+    "question": "What is the largest single transaction amount?",
+    "note": "MAX over trans table",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "max_amount": 50000
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 1.179,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.815,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 4.294,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.518,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "accounts_no_transactions",
+    "category": "existence",
+    "question": "How many accounts have no transactions at all?",
+    "note": "NOT IN subquery \u2014 existence check",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 0
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.711,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 1.012,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 4.602,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 5.55,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  }
+]

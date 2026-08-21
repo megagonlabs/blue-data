@@ -359,7 +359,13 @@ class DataRegistry(Registry):
             extra_tool_fn=extra_tool_fn,
         )
 
-    def build_schema_for_nl(self, source: str, database: str, collection: str) -> dict:
+    def build_schema_for_nl(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        include_metadata: bool = False,
+    ) -> dict:
         entity_records = self.list_collection_entities(source, database, collection)
         entities = []
         for record in entity_records:
@@ -368,9 +374,18 @@ class DataRegistry(Registry):
             attributes = {}
             for attr in attr_records:
                 attr_name = attr["name"]
-                info = attr.get("properties", {}).get("info", {})
+                props = attr.get("properties", {})
+                info = props.get("info", {})
                 col_type = info.get("type", "TEXT") if isinstance(info, dict) else str(info)
-                attributes[attr_name] = {"type": col_type}
+                attr_entry: dict = {"type": col_type}
+                if include_metadata:
+                    vs = props.get("value_semantics")
+                    if vs:
+                        attr_entry["value_semantics"] = vs
+                    meta = props.get("metadata")
+                    if meta:
+                        attr_entry["metadata"] = meta
+                attributes[attr_name] = attr_entry
             entities.append({"name": entity_name, "attributes": attributes})
 
         relation_records = self.list_collection_relations(source, database, collection)

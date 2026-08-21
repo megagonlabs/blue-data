@@ -95,7 +95,20 @@ class SQLSource(DataSource, ABC):
             lines.append(f"Table: {name}")
             for attr_name, attr_props in entity.get("attributes", {}).items():
                 col_type = attr_props.get("type", "TEXT") if isinstance(attr_props, dict) else "TEXT"
-                lines.append(f"  - {attr_name} ({col_type})")
+                vs = attr_props.get("value_semantics", {}) if isinstance(attr_props, dict) else {}
+                meta = attr_props.get("metadata", {}) if isinstance(attr_props, dict) else {}
+                sem_type = vs.get("semantic_type", "") if vs else ""
+                examples = vs.get("examples", []) if vs else []
+                description = meta.get("description", "") if meta else ""
+                skip_ann = sem_type in ("UNKNOWN", "STRING") or sem_type.upper() == col_type.upper()
+                ann = f"; {sem_type}" if sem_type and not skip_ann else ""
+                line = f"  - {attr_name} ({col_type}{ann})"
+                if description:
+                    line += f"  — {description}"
+                if examples:
+                    sample = ", ".join(str(v) for v in examples[:5])
+                    line += f"  [values: {sample}]"
+                lines.append(line)
         return "\n".join(lines) or "(no schema available)"
 
     def _build_nl_prompt(self, query: str, schema_text: str) -> str:
