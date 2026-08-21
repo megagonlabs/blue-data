@@ -233,9 +233,34 @@ class MongoDBSource(JSONSource):
 
         if op == "FIND":
             filter_doc = query.get("filter") or {}
-            cursor = col.find(filter_doc)
+            projection = query.get("projection") or None
+            sort = query.get("sort") or None
+            limit = int(query.get("limit") or 0)
+            cursor = col.find(filter_doc, projection)
+            if sort:
+                cursor = cursor.sort(list(sort.items()))
+            if limit:
+                cursor = cursor.limit(limit)
             result = []
             for doc in cursor:
+                if "_id" in doc:
+                    doc["_id"] = str(doc["_id"])
+                result.append(doc)
+            return result
+
+        if op == "COUNT":
+            filter_doc = query.get("filter") or {}
+            return [{"count": col.count_documents(filter_doc)}]
+
+        if op == "DISTINCT":
+            field = query["field"]
+            filter_doc = query.get("filter") or {}
+            return [{"values": col.distinct(field, filter_doc)}]
+
+        if op == "AGGREGATE":
+            pipeline = query.get("pipeline") or []
+            result = []
+            for doc in col.aggregate(pipeline):
                 if "_id" in doc:
                     doc["_id"] = str(doc["_id"])
                 result.append(doc)
@@ -251,7 +276,10 @@ class MongoDBSource(JSONSource):
             res = col.delete_many(filter_doc)
             return [{"deleted_count": res.deleted_count}]
 
-        raise ValueError(f"Unsupported MongoDB operation: {op!r}. Supported: FIND, INSERT_ONE, DELETE_MANY")
+        raise ValueError(
+            f"Unsupported MongoDB operation: {op!r}. "
+            "Supported: FIND, COUNT, DISTINCT, AGGREGATE, INSERT_ONE, DELETE_MANY"
+        )
 
     def execute_query_nl(
         self,
@@ -315,6 +343,197 @@ class MongoDBSource(JSONSource):
             except json.JSONDecodeError:
                 pass
         return None
+
+    # ---------- NL tool loop ----------
+
+    def get_nl_tools(self, database=None, collection=None):
+        return [
+            {
+                "name": "list_collections",
+                "description": "List all collections in a MongoDB database.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database": {"type": "string", "description": "Database name"},
+                    },
+                    "required": ["database"],
+                },
+            },
+            {
+                "name": "get_sample",
+                "description": "Fetch a small sample of documents from a collection to understand its structure and field values.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database":   {"type": "string"},
+                        "collection": {"type": "string", "description": "MongoDB collection name"},
+                        "limit":      {"type": "integer", "description": "Number of sample documents (default 3)"},
+                    },
+                    "required": ["database", "collection"],
+                },
+            },
+            {
+                "name": "get_field_stats",
+                "description": "Get statistics for a specific field: distinct value count, sample values, null count, min, max.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database":   {"type": "string"},
+                        "collection": {"type": "string"},
+                        "field":      {"type": "string", "description": "Field name"},
+                    },
+                    "required": ["database", "collection", "field"],
+                },
+            },
+            {
+                "name": "find",
+                "description": (
+                    "Run a MongoDB find query and return matching documents. "
+                    "Use filter to select documents, projection to pick fields, "
+                    "sort to order results, and limit to cap the result size."
+                ),
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database":   {"type": "string"},
+                        "collection": {"type": "string"},
+                        "filter": {
+                            "type": "object",
+                            "description": "MongoDB filter document (e.g. {\"status\": \"active\"})",
+                        },
+                        "projection": {
+                            "type": "object",
+                            "description": "Fields to include (1) or exclude (0)",
+                        },
+                        "sort": {
+                            "type": "object",
+                            "description": "Sort specification (e.g. {\"date\": -1} for descending)",
+                        },
+                        "limit": {"type": "integer", "description": "Max documents to return"},
+                    },
+                    "required": ["database", "collection"],
+                },
+            },
+            {
+                "name": "count",
+                "description": "Count documents in a collection matching a filter.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database":   {"type": "string"},
+                        "collection": {"type": "string"},
+                        "filter": {
+                            "type": "object",
+                            "description": "MongoDB filter document",
+                        },
+                    },
+                    "required": ["database", "collection"],
+                },
+            },
+            {
+                "name": "aggregate",
+                "description": (
+                    "Run a MongoDB aggregation pipeline. "
+                    "Use for grouping, counting, summing, averaging, and multi-stage transformations."
+                ),
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database":   {"type": "string"},
+                        "collection": {"type": "string"},
+                        "pipeline": {
+                            "type": "array",
+                            "items": {"type": "object"},
+                            "description": (
+                                "Aggregation pipeline stages "
+                                "(e.g. [{\"$group\": {\"_id\": \"$status\", \"count\": {\"$sum\": 1}}}])"
+                            ),
+                        },
+                    },
+                    "required": ["database", "collection", "pipeline"],
+                },
+            },
+            {
+                "name": "distinct",
+                "description": "Get all distinct values of a field across a collection.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "database":   {"type": "string"},
+                        "collection": {"type": "string"},
+                        "field":      {"type": "string", "description": "Field name"},
+                        "filter": {
+                            "type": "object",
+                            "description": "Optional filter to scope the distinct query",
+                        },
+                    },
+                    "required": ["database", "collection", "field"],
+                },
+            },
+        ]
+
+    def execute_nl_tool(self, name, tool_input, database=None, collection=None, optional_properties=None):
+        db   = tool_input.get("database", database)
+        coll = tool_input.get("collection", collection)
+
+        if name == "list_collections":
+            return [
+                c for c in self.connection[db].list_collection_names()
+                if c != "_blue_metadata"
+            ]
+
+        if name == "get_sample":
+            return self.execute_query(
+                {"op": "FIND", "filter": {}, "limit": int(tool_input.get("limit", 3))},
+                database=db, collection=coll,
+            )
+
+        if name == "get_field_stats":
+            return self.fetch_property_stats(db, "public", coll, tool_input["field"])
+
+        if name == "find":
+            q: dict = {"op": "FIND", "filter": tool_input.get("filter") or {}}
+            for key in ("projection", "sort", "limit"):
+                if key in tool_input:
+                    q[key] = tool_input[key]
+            return self.execute_query(q, database=db, collection=coll)
+
+        if name == "count":
+            return self.execute_query(
+                {"op": "COUNT", "filter": tool_input.get("filter") or {}},
+                database=db, collection=coll,
+            )
+
+        if name == "aggregate":
+            return self.execute_query(
+                {"op": "AGGREGATE", "pipeline": tool_input["pipeline"]},
+                database=db, collection=coll,
+            )
+
+        if name == "distinct":
+            return self.execute_query(
+                {
+                    "op": "DISTINCT",
+                    "field": tool_input["field"],
+                    "filter": tool_input.get("filter") or {},
+                },
+                database=db, collection=coll,
+            )
+
+        raise ValueError(f"Unknown MongoDB tool: {name!r}")
+
+    def _build_nl_tools_system_prompt(self, database=None, collection=None):
+        parts = [f"You are a MongoDB expert data assistant for the '{self.name}' data source."]
+        if database:
+            parts.append(f"The target database is '{database}'.")
+        parts += [
+            "Use list_collections to discover available collections.",
+            "Use get_sample and get_field_stats to understand collection structure and field values.",
+            "Use find for filtered document retrieval, count for counting documents, "
+            "aggregate for grouping and summarising, and distinct for unique field values.",
+            "Always call find, count, or aggregate to produce the final answer.",
+        ]
+        return " ".join(parts)
 
     def fetch_source_stats(self):
         stats = {}
