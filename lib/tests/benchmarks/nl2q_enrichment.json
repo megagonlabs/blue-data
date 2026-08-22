@@ -13,28 +13,28 @@
     ],
     "baseline_1shot": {
       "correct": true,
-      "latency": 0.864,
+      "latency": 0.805,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "enriched_1shot": {
       "correct": true,
-      "latency": 0.71,
+      "latency": 0.679,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "baseline_tools": {
       "correct": true,
-      "latency": 4.754,
+      "latency": 4.666,
       "llm_calls": 4,
       "rows": 1,
       "error": null
     },
     "enriched_tools": {
       "correct": true,
-      "latency": 4.632,
+      "latency": 3.944,
       "llm_calls": 4,
       "rows": 1,
       "error": null
@@ -54,28 +54,28 @@
     ],
     "baseline_1shot": {
       "correct": true,
-      "latency": 0.724,
+      "latency": 0.918,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "enriched_1shot": {
       "correct": true,
-      "latency": 2.468,
+      "latency": 0.653,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "baseline_tools": {
       "correct": true,
-      "latency": 5.595,
+      "latency": 4.762,
       "llm_calls": 4,
       "rows": 1,
       "error": null
     },
     "enriched_tools": {
       "correct": true,
-      "latency": 4.332,
+      "latency": 4.857,
       "llm_calls": 4,
       "rows": 1,
       "error": null
@@ -95,29 +95,29 @@
       }
     ],
     "baseline_1shot": {
-      "correct": false,
-      "latency": 0.845,
+      "correct": true,
+      "latency": 0.961,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "enriched_1shot": {
       "correct": true,
-      "latency": 0.853,
+      "latency": 0.82,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "baseline_tools": {
       "correct": true,
-      "latency": 8.916,
-      "llm_calls": 7,
+      "latency": 7.205,
+      "llm_calls": 5,
       "rows": 1,
       "error": null
     },
     "enriched_tools": {
       "correct": true,
-      "latency": 9.909,
+      "latency": 8.107,
       "llm_calls": 6,
       "rows": 1,
       "error": null
@@ -137,29 +137,29 @@
     ],
     "baseline_1shot": {
       "correct": false,
-      "latency": 0.614,
+      "latency": 0.59,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "enriched_1shot": {
       "correct": false,
-      "latency": 0.692,
+      "latency": 0.677,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "baseline_tools": {
-      "correct": true,
-      "latency": 14.03,
+      "correct": false,
+      "latency": 9.35,
       "llm_calls": 6,
       "rows": 4,
       "error": null
     },
     "enriched_tools": {
       "correct": true,
-      "latency": 9.774,
-      "llm_calls": 6,
+      "latency": 9.919,
+      "llm_calls": 7,
       "rows": 4,
       "error": null
     }
@@ -178,28 +178,28 @@
     ],
     "baseline_1shot": {
       "correct": true,
-      "latency": 0.691,
+      "latency": 0.753,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "enriched_1shot": {
       "correct": true,
-      "latency": 0.764,
+      "latency": 0.617,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "baseline_tools": {
       "correct": true,
-      "latency": 7.966,
+      "latency": 7.264,
       "llm_calls": 5,
       "rows": 1,
       "error": null
     },
     "enriched_tools": {
       "correct": true,
-      "latency": 10.581,
+      "latency": 7.494,
       "llm_calls": 5,
       "rows": 1,
       "error": null
@@ -219,28 +219,28 @@
     ],
     "baseline_1shot": {
       "correct": false,
-      "latency": 8.101,
+      "latency": 0.596,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "enriched_1shot": {
       "correct": true,
-      "latency": 1.186,
+      "latency": 0.879,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "baseline_tools": {
       "correct": true,
-      "latency": 9.646,
-      "llm_calls": 6,
+      "latency": 5.582,
+      "llm_calls": 5,
       "rows": 1,
       "error": null
     },
     "enriched_tools": {
       "correct": true,
-      "latency": 10.318,
+      "latency": 6.915,
       "llm_calls": 6,
       "rows": 1,
       "error": null
@@ -260,29 +260,29 @@
     ],
     "baseline_1shot": {
       "correct": true,
-      "latency": 0.635,
+      "latency": 0.639,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "enriched_1shot": {
       "correct": true,
-      "latency": 0.595,
+      "latency": 0.802,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "baseline_tools": {
       "correct": true,
-      "latency": 3.933,
+      "latency": 4.122,
       "llm_calls": 4,
       "rows": 1,
       "error": null
     },
     "enriched_tools": {
       "correct": true,
-      "latency": 5.98,
-      "llm_calls": 5,
+      "latency": 6.159,
+      "llm_calls": 6,
       "rows": 1,
       "error": null
     }
@@ -301,7 +301,7 @@
     ],
     "baseline_1shot": {
       "correct": true,
-      "latency": 0.938,
+      "latency": 0.827,
       "llm_calls": 1,
       "rows": 1,
       "error": null
@@ -315,14 +315,14 @@
     },
     "baseline_tools": {
       "correct": true,
-      "latency": 10.457,
+      "latency": 4.537,
       "llm_calls": 4,
       "rows": 1,
       "error": null
     },
     "enriched_tools": {
       "correct": true,
-      "latency": 4.845,
+      "latency": 5.737,
       "llm_calls": 4,
       "rows": 1,
       "error": null
@@ -342,28 +342,28 @@
     ],
     "baseline_1shot": {
       "correct": true,
-      "latency": 1.179,
+      "latency": 0.645,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "enriched_1shot": {
       "correct": true,
-      "latency": 0.815,
+      "latency": 0.647,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "baseline_tools": {
       "correct": true,
-      "latency": 4.294,
+      "latency": 5.053,
       "llm_calls": 4,
       "rows": 1,
       "error": null
     },
     "enriched_tools": {
       "correct": true,
-      "latency": 4.518,
+      "latency": 3.974,
       "llm_calls": 4,
       "rows": 1,
       "error": null
@@ -383,28 +383,1057 @@
     ],
     "baseline_1shot": {
       "correct": true,
-      "latency": 0.711,
+      "latency": 0.752,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "enriched_1shot": {
       "correct": true,
-      "latency": 1.012,
+      "latency": 0.816,
       "llm_calls": 1,
       "rows": 1,
       "error": null
     },
     "baseline_tools": {
       "correct": true,
-      "latency": 4.602,
+      "latency": 5.301,
       "llm_calls": 4,
       "rows": 1,
       "error": null
     },
     "enriched_tools": {
       "correct": true,
-      "latency": 5.55,
+      "latency": 5.021,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "loans_in_trouble",
+    "category": "filter",
+    "question": "How many loans have problems \u2014 either currently running with debt or finished but not fully paid off?",
+    "note": "Status B (finished unpaid) + D (running in debt) \u2014 process semantics",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "count": 5
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.751,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": false,
+      "latency": 0.894,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 11.941,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 11.233,
+      "llm_calls": 7,
+      "rows": 15,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "finished_loans_loss",
+    "category": "filter",
+    "question": "How many loans were finished but the debt was not paid off?",
+    "note": "Status B \u2014 finished with unpaid balance, process semantics",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "count": 2
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 0.715,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": false,
+      "latency": 0.769,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": false,
+      "latency": 10.557,
+      "llm_calls": 7,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 10.641,
+      "llm_calls": 7,
+      "rows": 3,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "card_withdrawals",
+    "category": "filter",
+    "question": "How many credit card withdrawal transactions are there?",
+    "note": "Czech operation code VYBER KARTOU \u2014 process semantics",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "count": 11
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 0.858,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.969,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 6.667,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 5.91,
+      "llm_calls": 5,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "outgoing_transfers",
+    "category": "filter",
+    "question": "How many outgoing bank transfer transactions are there?",
+    "note": "Czech operation code PREVOD NA UCET \u2014 process semantics",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "count": 24
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 0.677,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.895,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 6.674,
+      "llm_calls": 5,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 8.53,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "total_loan_repayments",
+    "category": "aggregation",
+    "question": "What is the total amount of loan repayment transactions?",
+    "note": "k_symbol UVER (loan payment) \u2014 process semantics",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "total": 130131
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 0.754,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": false,
+      "latency": 0.823,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 8.385,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 8.644,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "penalty_interest_accounts",
+    "category": "existence",
+    "question": "How many accounts have ever been charged penalty interest?",
+    "note": "k_symbol SANKC. UROK (penalty interest) \u2014 process semantics",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "count": 2
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 0.7,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": false,
+      "latency": 1.137,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 6.84,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 9.744,
+      "llm_calls": 8,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "pension_credits",
+    "category": "filter",
+    "question": "How many transactions are pension income credits?",
+    "note": "k_symbol DUCHOD + type PRIJEM \u2014 double process semantics",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "count": 3
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 0.627,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 1.056,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 8.48,
+      "llm_calls": 7,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 8.112,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "avg_unemployment_1996",
+    "category": "aggregation",
+    "question": "What is the average unemployment rate across districts in 1996?",
+    "note": "Opaque column a13 (unemployment 1996) \u2014 requires schema grounding",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "avg_unemployment": 3.3
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 0.879,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.826,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 12.302,
+      "llm_calls": 7,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 11.335,
+      "llm_calls": 8,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "total_population",
+    "category": "aggregation",
+    "question": "What is the total population across all districts?",
+    "note": "Opaque column a4 (number of inhabitants) \u2014 requires schema grounding",
+    "enrichment_sensitive": true,
+    "ground_truth": [
+      {
+        "total_population": 2567429
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 0.674,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.828,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 5.533,
+      "llm_calls": 5,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 6.843,
+      "llm_calls": 6,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "finance",
+    "id": "male_clients",
+    "category": "filter",
+    "question": "How many male clients are there?",
+    "note": "Basic gender filter \u2014 control (no enrichment needed)",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 10
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.588,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.692,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 4.392,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.131,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "count_by_country",
+    "category": "filter",
+    "question": "How many customers are from Germany?",
+    "note": "Simple WHERE + COUNT",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 2
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.538,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.574,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 4.428,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 5.052,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "avg_freight",
+    "category": "aggregation",
+    "question": "What is the average freight cost across all orders?",
+    "note": "AVG aggregation",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "avg_freight": 51.87
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.556,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.755,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 4.324,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.756,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "discontinued_count",
+    "category": "filter",
+    "question": "How many products are discontinued?",
+    "note": "Boolean filter + COUNT",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 3
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.712,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.614,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 3.588,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.273,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "top_expensive",
+    "category": "sort",
+    "question": "What is the most expensive product?",
+    "note": "ORDER BY + LIMIT 1",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "product_name": "Mishi Kobe Niku",
+        "unit_price": 97.0
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.628,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.762,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 3.677,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.104,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "top_employee",
+    "category": "join",
+    "question": "Which employee handled the most orders? Give their full name.",
+    "note": "JOIN + GROUP BY + ORDER BY",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "name": "Margaret Peacock",
+        "order_count": 6
+      }
+    ],
+    "baseline_1shot": {
+      "correct": false,
+      "latency": 0.85,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.895,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 5.424,
+      "llm_calls": 5,
+      "rows": 9,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 8.213,
+      "llm_calls": 6,
+      "rows": 9,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "beverages_count",
+    "category": "join",
+    "question": "How many products are in the Beverages category?",
+    "note": "JOIN + category filter",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 2
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.854,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.678,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 4.038,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": false,
+      "latency": 5.484,
+      "llm_calls": 5,
+      "rows": 2,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "uk_suppliers",
+    "category": "filter",
+    "question": "How many suppliers are from the UK?",
+    "note": "Simple country filter on suppliers",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 2
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.591,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.584,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 3.815,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.28,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "london_employees",
+    "category": "filter",
+    "question": "How many employees are based in London?",
+    "note": "City filter on employees",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 4
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.651,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.717,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 4.264,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.343,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "orders_to_france",
+    "category": "filter",
+    "question": "How many orders were shipped to France?",
+    "note": "Ship country filter",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 2
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.496,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.6,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 4.466,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 3.737,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "avg_discount",
+    "category": "aggregation",
+    "question": "What is the average discount applied across all order lines?",
+    "note": "AVG on order_details discount",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "avg_discount": 0.04
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.636,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 1.117,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 3.796,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 6.929,
+      "llm_calls": 5,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "most_ordered_product",
+    "category": "join",
+    "question": "Which product appears in the most orders?",
+    "note": "JOIN + GROUP BY + top-1",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "product_name": "Sir Rodneys Marmalade",
+        "order_count": 1
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 1.097,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.842,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 15.186,
+      "llm_calls": 9,
+      "rows": 20,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 15.096,
+      "llm_calls": 10,
+      "rows": 20,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "total_quantity_sold",
+    "category": "aggregation",
+    "question": "What is the total quantity of items sold across all orders?",
+    "note": "SUM on order_details quantity",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "total_quantity": 441
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.856,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.677,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 5.464,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 3.899,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "japan_suppliers",
+    "category": "filter",
+    "question": "How many suppliers are from Japan?",
+    "note": "Country filter on suppliers",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 2
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.626,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.785,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 4.539,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.261,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "seafood_products",
+    "category": "join",
+    "question": "How many seafood products are there?",
+    "note": "JOIN + category filter",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "count": 3
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.805,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.735,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 5.621,
+      "llm_calls": 5,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 5.576,
+      "llm_calls": 5,
+      "rows": 1,
+      "error": null
+    }
+  },
+  {
+    "dataset": "northwind",
+    "id": "highest_stock_product",
+    "category": "sort",
+    "question": "Which product has the most units in stock?",
+    "note": "ORDER BY + LIMIT 1 on stock",
+    "enrichment_sensitive": false,
+    "ground_truth": [
+      {
+        "product_name": "Grandmas Boysenberry Spread",
+        "units_in_stock": 120
+      }
+    ],
+    "baseline_1shot": {
+      "correct": true,
+      "latency": 0.641,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_1shot": {
+      "correct": true,
+      "latency": 0.604,
+      "llm_calls": 1,
+      "rows": 1,
+      "error": null
+    },
+    "baseline_tools": {
+      "correct": true,
+      "latency": 4.08,
+      "llm_calls": 4,
+      "rows": 1,
+      "error": null
+    },
+    "enriched_tools": {
+      "correct": true,
+      "latency": 4.658,
       "llm_calls": 4,
       "rows": 1,
       "error": null
