@@ -1,0 +1,3291 @@
+{
+  "run_at": "2026-08-25T03:59:38.009059Z",
+  "title": "Northwind Data Discovery Benchmark",
+  "embed_model": "text-embedding-3-small",
+  "conditions": [
+    "keyword",
+    "keyword_enriched",
+    "hybrid",
+    "hybrid_enriched"
+  ],
+  "n": 45,
+  "results": [
+    {
+      "id": "nw_disc_01",
+      "intent": "How many products are no longer sold?",
+      "category": "filter",
+      "primary_name": "discontinued",
+      "relevant_names": [
+        "products",
+        "discontinued"
+      ],
+      "enrichment_sensitive": true,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "discontinued",
+          "discount",
+          "product_id",
+          "product_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "discontinued",
+          "discount",
+          "product_id",
+          "product_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_02",
+      "intent": "Which supplier provides the most products in our catalog?",
+      "category": "join",
+      "primary_name": "suppliers",
+      "relevant_names": [
+        "products",
+        "supplier_id",
+        "suppliers",
+        "company_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "suppliers",
+          "supplier_id",
+          "supplier_id",
+          "units_in_stock"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "suppliers",
+          "supplier_id",
+          "supplier_id",
+          "units_in_stock"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_03",
+      "intent": "What is the average order value for each destination country?",
+      "category": "join",
+      "primary_name": "ship_country",
+      "relevant_names": [
+        "orders",
+        "order_details",
+        "ship_country",
+        "unit_price",
+        "quantity",
+        "discount"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "ship_country",
+          "order_id",
+          "order_id",
+          "unit_price",
+          "unit_price"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "ship_country",
+          "order_id",
+          "order_id",
+          "unit_price",
+          "unit_price"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_04",
+      "intent": "Which employee processed the most customer orders?",
+      "category": "join",
+      "primary_name": "employees",
+      "relevant_names": [
+        "orders",
+        "employee_id",
+        "employees",
+        "first_name",
+        "last_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "customers",
+          "customer_id",
+          "customer_id",
+          "orders",
+          "order_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "customers",
+          "customer_id",
+          "customer_id",
+          "orders",
+          "order_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_05",
+      "intent": "What product category generates the most total revenue?",
+      "category": "join",
+      "primary_name": "categories",
+      "relevant_names": [
+        "products",
+        "category_id",
+        "categories",
+        "order_details",
+        "unit_price",
+        "quantity",
+        "discount",
+        "category_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "category_id",
+          "category_id",
+          "category_name",
+          "product_id",
+          "product_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "category_id",
+          "category_id",
+          "category_name",
+          "product_id",
+          "product_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_06",
+      "intent": "Which customers have never placed an order?",
+      "category": "existence",
+      "primary_name": "customers",
+      "relevant_names": [
+        "customers",
+        "orders",
+        "customer_id"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "customer_id",
+          "customer_id",
+          "public",
+          "order_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "customer_id",
+          "customer_id",
+          "public",
+          "order_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_07",
+      "intent": "What is the total shipping cost collected by destination country?",
+      "category": "aggregation",
+      "primary_name": "freight",
+      "relevant_names": [
+        "orders",
+        "freight",
+        "ship_country"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "ship_country",
+          "freight",
+          "unit_price",
+          "unit_price",
+          "order_details"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "ship_country",
+          "freight",
+          "unit_price",
+          "unit_price",
+          "order_details"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_08",
+      "intent": "Which products are nearly out of stock?",
+      "category": "filter",
+      "primary_name": "units_in_stock",
+      "relevant_names": [
+        "products",
+        "units_in_stock",
+        "product_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "units_in_stock",
+          "quantity",
+          "discount",
+          "discontinued"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "units_in_stock",
+          "quantity",
+          "discount",
+          "discontinued"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_09",
+      "intent": "What is the total revenue generated by each sales employee?",
+      "category": "join",
+      "primary_name": "employees",
+      "relevant_names": [
+        "orders",
+        "order_details",
+        "employees",
+        "employee_id",
+        "unit_price",
+        "quantity",
+        "discount"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "employee_id",
+          "employee_id",
+          "unit_price",
+          "unit_price"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "employee_id",
+          "employee_id",
+          "unit_price",
+          "unit_price"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_10",
+      "intent": "Which country has the largest number of customers?",
+      "category": "aggregation",
+      "primary_name": "country",
+      "relevant_names": [
+        "customers",
+        "country"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "northwind",
+          "northwind"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "northwind",
+          "northwind"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "customer_id",
+          "customer_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "customer_id",
+          "customer_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_11",
+      "intent": "What is the best-selling product by total quantity ordered?",
+      "category": "join",
+      "primary_name": "order_details",
+      "relevant_names": [
+        "order_details",
+        "product_id",
+        "quantity",
+        "products",
+        "product_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "quantity",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "quantity",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "quantity",
+          "order_id",
+          "order_id",
+          "units_in_stock",
+          "product_name"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "quantity",
+          "order_id",
+          "order_id",
+          "units_in_stock",
+          "product_name"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_12",
+      "intent": "How many orders were placed each year?",
+      "category": "temporal",
+      "primary_name": "order_date",
+      "relevant_names": [
+        "orders",
+        "order_date"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "order_date",
+          "public"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "order_date",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_13",
+      "intent": "Which products have never appeared in any order?",
+      "category": "existence",
+      "primary_name": "products",
+      "relevant_names": [
+        "products",
+        "order_details",
+        "product_id",
+        "product_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "public",
+          "order_id",
+          "order_id",
+          "discontinued"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "public",
+          "order_id",
+          "order_id",
+          "discontinued"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_14",
+      "intent": "What is the average discount percentage applied per product category?",
+      "category": "join",
+      "primary_name": "discount",
+      "relevant_names": [
+        "order_details",
+        "discount",
+        "products",
+        "category_id",
+        "categories",
+        "category_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "discount",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "discount",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "discount",
+          "category_id",
+          "category_id",
+          "category_name",
+          "product_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "discount",
+          "category_id",
+          "category_id",
+          "category_name",
+          "product_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_15",
+      "intent": "What is the total inventory value for each product category?",
+      "category": "join",
+      "primary_name": "unit_price",
+      "relevant_names": [
+        "products",
+        "unit_price",
+        "units_in_stock",
+        "category_id",
+        "categories",
+        "category_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "units_in_stock",
+          "quantity",
+          "category_id",
+          "category_id",
+          "category_name"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "units_in_stock",
+          "quantity",
+          "category_id",
+          "category_id",
+          "category_name"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_16",
+      "intent": "What is the average product price offered by each supplier country?",
+      "category": "join",
+      "primary_name": "unit_price",
+      "relevant_names": [
+        "products",
+        "unit_price",
+        "supplier_id",
+        "suppliers",
+        "country"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "unit_price",
+          "unit_price",
+          "suppliers",
+          "supplier_id",
+          "supplier_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "unit_price",
+          "unit_price",
+          "suppliers",
+          "supplier_id",
+          "supplier_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_17",
+      "intent": "Which employees were hired most recently?",
+      "category": "temporal",
+      "primary_name": "hire_date",
+      "relevant_names": [
+        "employees",
+        "hire_date",
+        "first_name",
+        "last_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "hire_date",
+          "employee_id",
+          "employee_id",
+          "public"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "hire_date",
+          "employee_id",
+          "employee_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_18",
+      "intent": "How many orders include at least one discounted item?",
+      "category": "filter",
+      "primary_name": "discount",
+      "relevant_names": [
+        "order_details",
+        "discount",
+        "orders"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "discount",
+          "order_id",
+          "order_id",
+          "quantity"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "discount",
+          "order_id",
+          "order_id",
+          "quantity"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_19",
+      "intent": "Which customer has spent the most money across all their orders?",
+      "category": "join",
+      "primary_name": "customers",
+      "relevant_names": [
+        "orders",
+        "order_details",
+        "customers",
+        "customer_id",
+        "unit_price",
+        "quantity",
+        "discount",
+        "company_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customer_id",
+          "customer_id",
+          "customers",
+          "order_id",
+          "order_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customer_id",
+          "customer_id",
+          "customers",
+          "order_id",
+          "order_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_20",
+      "intent": "What are the top five most expensive products still available for sale?",
+      "category": "filter",
+      "primary_name": "unit_price",
+      "relevant_names": [
+        "products",
+        "unit_price",
+        "discontinued",
+        "product_name"
+      ],
+      "enrichment_sensitive": true,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "product_name",
+          "discontinued",
+          "unit_price",
+          "unit_price"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "product_name",
+          "discontinued",
+          "unit_price",
+          "unit_price"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_21",
+      "intent": "How many different countries do our customers come from?",
+      "category": "aggregation",
+      "primary_name": "country",
+      "relevant_names": [
+        "customers",
+        "country"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "ship_country",
+          "customer_id",
+          "customer_id",
+          "public"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "ship_country",
+          "customer_id",
+          "customer_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_22",
+      "intent": "What is the average number of items per order line?",
+      "category": "aggregation",
+      "primary_name": "quantity",
+      "relevant_names": [
+        "order_details",
+        "quantity"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "order_id",
+          "order_id",
+          "quantity",
+          "units_in_stock",
+          "order_details"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "order_id",
+          "order_id",
+          "quantity",
+          "units_in_stock",
+          "order_details"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_23",
+      "intent": "How many distinct products have ever been ordered?",
+      "category": "aggregation",
+      "primary_name": "order_details",
+      "relevant_names": [
+        "order_details",
+        "product_id",
+        "products"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "order_id",
+          "order_id",
+          "product_id",
+          "product_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "order_id",
+          "order_id",
+          "product_id",
+          "product_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_24",
+      "intent": "Which employees are based in London?",
+      "category": "filter",
+      "primary_name": "city",
+      "relevant_names": [
+        "employees",
+        "city",
+        "first_name",
+        "last_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "employee_id",
+          "employee_id",
+          "public",
+          "suppliers"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "employee_id",
+          "employee_id",
+          "public",
+          "suppliers"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_25",
+      "intent": "Which orders were shipped to France?",
+      "category": "filter",
+      "primary_name": "ship_country",
+      "relevant_names": [
+        "orders",
+        "ship_country"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "public",
+          "freight"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "public",
+          "freight"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_26",
+      "intent": "Which year had the highest total shipping costs?",
+      "category": "temporal",
+      "primary_name": "freight",
+      "relevant_names": [
+        "orders",
+        "order_date",
+        "freight"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "freight",
+          "unit_price",
+          "unit_price",
+          "ship_country",
+          "order_date"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "freight",
+          "unit_price",
+          "unit_price",
+          "ship_country",
+          "order_date"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_27",
+      "intent": "How many orders were placed each calendar month across all years?",
+      "category": "temporal",
+      "primary_name": "order_date",
+      "relevant_names": [
+        "orders",
+        "order_date"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "order_date",
+          "public"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "order_date",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_28",
+      "intent": "What was the date of the very first order ever placed?",
+      "category": "temporal",
+      "primary_name": "order_date",
+      "relevant_names": [
+        "orders",
+        "order_date"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "order_date",
+          "order_id",
+          "order_id",
+          "orders",
+          "public"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "order_date",
+          "order_id",
+          "order_id",
+          "orders",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_29",
+      "intent": "Which product categories have no products assigned to them?",
+      "category": "existence",
+      "primary_name": "categories",
+      "relevant_names": [
+        "categories",
+        "products",
+        "category_id",
+        "category_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "categories",
+          "northwind",
+          "northwind",
+          "public"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "categories",
+          "northwind",
+          "northwind",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "categories",
+          "category_id",
+          "category_id",
+          "public"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "categories",
+          "category_id",
+          "category_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_30",
+      "intent": "Which employees have never handled any order?",
+      "category": "existence",
+      "primary_name": "employees",
+      "relevant_names": [
+        "employees",
+        "orders",
+        "employee_id",
+        "first_name",
+        "last_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "public",
+          "customers",
+          "order_id",
+          "order_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "public",
+          "customers",
+          "order_id",
+          "order_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_31",
+      "intent": "What is the total revenue generated from each customer city?",
+      "category": "join",
+      "primary_name": "city",
+      "relevant_names": [
+        "orders",
+        "order_details",
+        "customers",
+        "customer_id",
+        "city",
+        "unit_price",
+        "quantity",
+        "discount"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customer_id",
+          "customer_id",
+          "city",
+          "city",
+          "city"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customer_id",
+          "customer_id",
+          "city",
+          "city",
+          "city"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_32",
+      "intent": "Which supplier country offers the widest product variety?",
+      "category": "join",
+      "primary_name": "suppliers",
+      "relevant_names": [
+        "products",
+        "supplier_id",
+        "suppliers",
+        "country"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "northwind",
+          "northwind"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "northwind",
+          "northwind"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "suppliers",
+          "ship_country"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "suppliers",
+          "ship_country"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_33",
+      "intent": "What data do we store about product inventory and pricing?",
+      "category": "schema",
+      "primary_name": "products",
+      "relevant_names": [
+        "products",
+        "units_in_stock",
+        "unit_price",
+        "product_name"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "quantity",
+          "product_id",
+          "product_id",
+          "units_in_stock"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "quantity",
+          "product_id",
+          "product_id",
+          "units_in_stock"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_34",
+      "intent": "What information is recorded about each employee?",
+      "category": "schema",
+      "primary_name": "employees",
+      "relevant_names": [
+        "employees",
+        "first_name",
+        "last_name",
+        "title",
+        "hire_date",
+        "city"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "employee_id",
+          "employee_id",
+          "employees",
+          "hire_date",
+          "customer_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "employee_id",
+          "employee_id",
+          "employees",
+          "hire_date",
+          "customer_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_35",
+      "intent": "Which entities capture the full lifecycle of a customer order?",
+      "category": "schema",
+      "primary_name": "orders",
+      "relevant_names": [
+        "orders",
+        "order_details",
+        "customers",
+        "products"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "customers",
+          "public",
+          "products",
+          "suppliers"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "customers",
+          "public",
+          "products",
+          "suppliers"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_36",
+      "intent": "What details are stored about suppliers?",
+      "category": "schema",
+      "primary_name": "suppliers",
+      "relevant_names": [
+        "suppliers",
+        "company_name",
+        "contact_name",
+        "country",
+        "city"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "suppliers",
+          "supplier_id",
+          "supplier_id",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "suppliers",
+          "supplier_id",
+          "supplier_id",
+          "public",
+          "order_details"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_37",
+      "intent": "Which column records whether a product is still being sold?",
+      "category": "attribute",
+      "primary_name": "discontinued",
+      "relevant_names": [
+        "products",
+        "discontinued"
+      ],
+      "enrichment_sensitive": true,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "units_in_stock",
+          "discontinued",
+          "product_id",
+          "product_id",
+          "order_date"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "units_in_stock",
+          "discontinued",
+          "product_id",
+          "product_id",
+          "order_date"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_38",
+      "intent": "Where is the shipment destination country stored?",
+      "category": "attribute",
+      "primary_name": "ship_country",
+      "relevant_names": [
+        "orders",
+        "ship_country"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "northwind",
+          "northwind"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "northwind",
+          "northwind"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "ship_country",
+          "freight"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "ship_country",
+          "freight"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_39",
+      "intent": "What field contains the price charged per unit in an order line?",
+      "category": "attribute",
+      "primary_name": "unit_price",
+      "relevant_names": [
+        "order_details",
+        "unit_price"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "unit_price",
+          "unit_price",
+          "order_id",
+          "order_id",
+          "quantity"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "unit_price",
+          "unit_price",
+          "order_id",
+          "order_id",
+          "quantity"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_40",
+      "intent": "Which attribute records the date an employee joined the company?",
+      "category": "attribute",
+      "primary_name": "hire_date",
+      "relevant_names": [
+        "employees",
+        "hire_date"
+      ],
+      "enrichment_sensitive": false,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "hire_date",
+          "employee_id",
+          "employee_id",
+          "order_date",
+          "company_name"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "hire_date",
+          "employee_id",
+          "employee_id",
+          "order_date",
+          "company_name"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_41",
+      "intent": "find binary flag columns that signal whether a product is active or retired",
+      "category": "enrichment_sensitive",
+      "primary_name": "discontinued",
+      "relevant_names": [
+        "products",
+        "discontinued"
+      ],
+      "enrichment_sensitive": true,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "units_in_stock",
+          "discontinued",
+          "product_id",
+          "product_id",
+          "discount"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "units_in_stock",
+          "discontinued",
+          "product_id",
+          "product_id",
+          "discount"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_42",
+      "intent": "which fields across the database store stock quantity or unit count measurements",
+      "category": "enrichment_sensitive",
+      "primary_name": "units_in_stock",
+      "relevant_names": [
+        "products",
+        "units_in_stock",
+        "units_on_order",
+        "quantity"
+      ],
+      "enrichment_sensitive": true,
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "quantity",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "quantity",
+          "northwind",
+          "northwind",
+          "public",
+          "order_details"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "quantity",
+          "units_in_stock",
+          "unit_price",
+          "unit_price",
+          "supplier_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "quantity",
+          "units_in_stock",
+          "unit_price",
+          "unit_price",
+          "supplier_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_43",
+      "intent": "find the attribute that acts as a product availability toggle or status switch",
+      "category": "enrichment_sensitive",
+      "primary_name": "discontinued",
+      "relevant_names": [
+        "products",
+        "discontinued"
+      ],
+      "enrichment_sensitive": true,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "product_id",
+          "product_id",
+          "product_name",
+          "supplier_id",
+          "supplier_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "product_id",
+          "product_id",
+          "product_name",
+          "supplier_id",
+          "supplier_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_44",
+      "intent": "which columns capture reorder thresholds and current inventory levels",
+      "category": "enrichment_sensitive",
+      "primary_name": "reorder_level",
+      "relevant_names": [
+        "products",
+        "units_in_stock",
+        "reorder_level",
+        "units_on_order"
+      ],
+      "enrichment_sensitive": true,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "units_in_stock",
+          "quantity",
+          "order_id",
+          "order_id",
+          "order_date"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "units_in_stock",
+          "quantity",
+          "order_id",
+          "order_id",
+          "order_date"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_45",
+      "intent": "find fields that encode percentage-based price adjustments applied to order lines",
+      "category": "enrichment_sensitive",
+      "primary_name": "discount",
+      "relevant_names": [
+        "order_details",
+        "discount"
+      ],
+      "enrichment_sensitive": true,
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "keyword_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "order_details",
+          "products"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "unit_price",
+          "unit_price",
+          "discount",
+          "order_date",
+          "order_id"
+        ]
+      },
+      "hybrid_enriched": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "unit_price",
+          "unit_price",
+          "discount",
+          "order_date",
+          "order_id"
+        ]
+      }
+    }
+  ]
+}

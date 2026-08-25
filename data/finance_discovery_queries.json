@@ -3,320 +3,617 @@
     "id": "fin_disc_01",
     "intent": "How many clients defaulted on their loans?",
     "category": "filter",
-    "relevant_names": ["loan", "status", "client"],
+    "relevant_names": [
+      "loan",
+      "status",
+      "client"
+    ],
     "primary_name": "status",
-    "description": "Requires loan.status (B=finished/default, D=running/debt) joined to client"
+    "description": "Requires loan.status (B=finished/default, D=running/debt) joined to client",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_02",
     "intent": "What is the average monthly payment amount for active loans?",
     "category": "aggregation",
-    "relevant_names": ["loan", "payments", "status"],
+    "relevant_names": [
+      "loan",
+      "payments",
+      "status"
+    ],
     "primary_name": "payments",
-    "description": "Requires loan.payments and filtering on loan.status for active loans (C or D)"
+    "description": "Requires loan.payments and filtering on loan.status for active loans (C or D)",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_03",
     "intent": "Which district has the highest average loan amount?",
     "category": "join",
-    "relevant_names": ["loan", "amount", "client", "district", "district_id"],
+    "relevant_names": [
+      "loan",
+      "amount",
+      "client",
+      "district",
+      "district_id"
+    ],
     "primary_name": "district",
-    "description": "Requires joining loan → account → client → district to group by region"
+    "description": "Requires joining loan → account → client → district to group by region",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_04",
     "intent": "How many transactions were cash withdrawals?",
     "category": "filter",
-    "relevant_names": ["trans", "operation", "type"],
+    "relevant_names": [
+      "trans",
+      "operation",
+      "type"
+    ],
     "primary_name": "operation",
-    "description": "trans.operation contains VYBER (cash withdrawal), trans.type contains VYDAJ"
+    "description": "trans.operation contains VYBER (cash withdrawal), trans.type contains VYDAJ",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_05",
     "intent": "What is the current account balance for each client?",
     "category": "concept",
-    "relevant_names": ["trans", "balance", "account_id"],
+    "relevant_names": [
+      "trans",
+      "balance",
+      "account_id"
+    ],
     "primary_name": "balance",
-    "description": "balance is a running total (STATE_VARIABLE) — latest row per account gives current balance"
+    "description": "balance is a running total (STATE_VARIABLE) — latest row per account gives current balance",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_06",
     "intent": "Which accounts have more than one hundred transactions?",
     "category": "aggregation",
-    "relevant_names": ["trans", "account_id", "account"],
+    "relevant_names": [
+      "trans",
+      "account_id",
+      "account"
+    ],
     "primary_name": "trans",
-    "description": "Count trans rows grouped by account_id, filter by count > 100"
+    "description": "Count trans rows grouped by account_id, filter by count > 100",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_07",
     "intent": "What is the total amount paid as pension income across all transactions?",
     "category": "concept",
-    "relevant_names": ["trans", "k_symbol", "amount"],
+    "relevant_names": [
+      "trans",
+      "k_symbol",
+      "amount"
+    ],
     "primary_name": "k_symbol",
-    "description": "k_symbol = DUCHOD encodes pension payments; amount sums the value"
+    "description": "k_symbol = DUCHOD encodes pension payments; amount sums the value",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_08",
     "intent": "How old is the youngest client at the bank?",
     "category": "concept",
-    "relevant_names": ["client", "birth_date"],
+    "relevant_names": [
+      "client",
+      "birth_date"
+    ],
     "primary_name": "birth_date",
-    "description": "Age is derived from client.birth_date — the column encodes birth year"
+    "description": "Age is derived from client.birth_date — the column encodes birth year",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_09",
     "intent": "Which accounts belong to clients living in the Prague region?",
     "category": "join",
-    "relevant_names": ["account", "client", "district", "district_id", "a3"],
+    "relevant_names": [
+      "account",
+      "client",
+      "district",
+      "district_id",
+      "a3"
+    ],
     "primary_name": "district",
-    "description": "Requires client.district_id → district.a3 (region column) to filter by Prague"
+    "description": "Requires client.district_id → district.a3 (region column) to filter by Prague",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_10",
     "intent": "What percentage of loans are fully repaid with no issues?",
     "category": "filter",
-    "relevant_names": ["loan", "status"],
+    "relevant_names": [
+      "loan",
+      "status"
+    ],
     "primary_name": "status",
-    "description": "loan.status = A means finished and repaid OK; status is the single required column"
+    "description": "loan.status = A means finished and repaid OK; status is the single required column",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_11",
     "intent": "What is the average loan duration in months grouped by region?",
     "category": "join",
-    "relevant_names": ["loan", "duration", "client", "district", "district_id"],
+    "relevant_names": [
+      "loan",
+      "duration",
+      "client",
+      "district",
+      "district_id"
+    ],
     "primary_name": "duration",
-    "description": "loan.duration holds term in months; group by district via client.district_id"
+    "description": "loan.duration holds term in months; group by district via client.district_id",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_12",
     "intent": "How many distinct external banks received wire transfers?",
     "category": "aggregation",
-    "relevant_names": ["trans", "bank"],
+    "relevant_names": [
+      "trans",
+      "bank"
+    ],
     "primary_name": "bank",
-    "description": "trans.bank stores the destination bank for outgoing wire transfers"
+    "description": "trans.bank stores the destination bank for outgoing wire transfers",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_13",
     "intent": "How many loans were issued in each calendar year?",
     "category": "temporal",
-    "relevant_names": ["loan", "date"],
+    "relevant_names": [
+      "loan",
+      "date"
+    ],
     "primary_name": "loan",
-    "description": "Group loan records by year extracted from loan.date"
+    "description": "Group loan records by year extracted from loan.date",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_14",
     "intent": "What is the maximum outstanding debt amount currently owed?",
     "category": "concept",
-    "relevant_names": ["loan", "amount", "status"],
+    "relevant_names": [
+      "loan",
+      "amount",
+      "status"
+    ],
     "primary_name": "amount",
-    "description": "Outstanding debt = loan.amount where status is D (running/in debt)"
+    "description": "Outstanding debt = loan.amount where status is D (running/in debt)",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_15",
     "intent": "Which accounts receive their statements on a monthly basis?",
     "category": "filter",
-    "relevant_names": ["account", "frequency"],
+    "relevant_names": [
+      "account",
+      "frequency"
+    ],
     "primary_name": "frequency",
-    "description": "account.frequency encodes statement issuance cadence (monthly, weekly, etc.)"
+    "description": "account.frequency encodes statement issuance cadence (monthly, weekly, etc.)",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_16",
     "intent": "How many male versus female clients does the bank have?",
     "category": "aggregation",
-    "relevant_names": ["client", "gender"],
+    "relevant_names": [
+      "client",
+      "gender"
+    ],
     "primary_name": "gender",
-    "description": "client.gender stores M/F; simple count grouped by gender"
+    "description": "client.gender stores M/F; simple count grouped by gender",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_17",
     "intent": "What is the average transaction amount per calendar month?",
     "category": "temporal",
-    "relevant_names": ["trans", "amount", "date"],
+    "relevant_names": [
+      "trans",
+      "amount",
+      "date"
+    ],
     "primary_name": "amount",
-    "description": "Group trans.amount by month from trans.date"
+    "description": "Group trans.amount by month from trans.date",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_18",
     "intent": "What is the total amount paid for insurance across all transactions?",
     "category": "concept",
-    "relevant_names": ["trans", "k_symbol", "amount"],
+    "relevant_names": [
+      "trans",
+      "k_symbol",
+      "amount"
+    ],
     "primary_name": "k_symbol",
-    "description": "k_symbol = POJISTNE encodes insurance payments — opaque code requires discovery"
+    "description": "k_symbol = POJISTNE encodes insurance payments — opaque code requires discovery",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_19",
     "intent": "Which clients have an account in one district but live in another?",
     "category": "join",
-    "relevant_names": ["client", "account", "district_id"],
+    "relevant_names": [
+      "client",
+      "account",
+      "district_id"
+    ],
     "primary_name": "client",
-    "description": "Compare client.district_id with account.district_id — requires both entities"
+    "description": "Compare client.district_id with account.district_id — requires both entities",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_20",
     "intent": "What is the total loan amount taken out by clients in each city?",
     "category": "join",
-    "relevant_names": ["loan", "amount", "client", "district", "district_id", "a2"],
+    "relevant_names": [
+      "loan",
+      "amount",
+      "client",
+      "district",
+      "district_id",
+      "a2"
+    ],
     "primary_name": "loan",
-    "description": "Sum loan.amount grouped by district city via client.district_id → district.a2"
+    "description": "Sum loan.amount grouped by district city via client.district_id → district.a2",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_21",
     "intent": "What is the total number of transaction records in the database?",
     "category": "aggregation",
-    "relevant_names": ["trans"],
+    "relevant_names": [
+      "trans"
+    ],
     "primary_name": "trans",
-    "description": "COUNT(*) from trans"
+    "description": "COUNT(*) from trans",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_22",
     "intent": "How many distinct accounts have taken out at least one loan?",
     "category": "aggregation",
-    "relevant_names": ["loan", "account_id"],
+    "relevant_names": [
+      "loan",
+      "account_id"
+    ],
     "primary_name": "loan",
-    "description": "COUNT(DISTINCT account_id) from loan"
+    "description": "COUNT(DISTINCT account_id) from loan",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_23",
     "intent": "Which transactions are debits — money leaving the account?",
     "category": "filter",
-    "relevant_names": ["trans", "type"],
+    "relevant_names": [
+      "trans",
+      "type"
+    ],
     "primary_name": "type",
-    "description": "trans.type = 'VYDAJ' means debit/outgoing payment"
+    "description": "trans.type = 'VYDAJ' means debit/outgoing payment",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_24",
     "intent": "Which loans are currently active with no repayment problems?",
     "category": "filter",
-    "relevant_names": ["loan", "status"],
+    "relevant_names": [
+      "loan",
+      "status"
+    ],
     "primary_name": "status",
-    "description": "loan.status = 'C' means loan is running with no issues"
+    "description": "loan.status = 'C' means loan is running with no issues",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_25",
     "intent": "How many bank accounts were opened each year?",
     "category": "temporal",
-    "relevant_names": ["account", "date"],
+    "relevant_names": [
+      "account",
+      "date"
+    ],
     "primary_name": "account",
-    "description": "Group account records by year extracted from account.date"
+    "description": "Group account records by year extracted from account.date",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_26",
     "intent": "Which loans were issued most recently?",
     "category": "temporal",
-    "relevant_names": ["loan", "date"],
+    "relevant_names": [
+      "loan",
+      "date"
+    ],
     "primary_name": "loan",
-    "description": "Sort loan records by loan.date descending to find most recent"
+    "description": "Sort loan records by loan.date descending to find most recent",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_27",
     "intent": "How many transactions occurred each calendar month?",
     "category": "temporal",
-    "relevant_names": ["trans", "date"],
+    "relevant_names": [
+      "trans",
+      "date"
+    ],
     "primary_name": "trans",
-    "description": "Group trans records by month from trans.date, count per month"
+    "description": "Group trans records by month from trans.date, count per month",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_28",
     "intent": "Which field in the transaction table indicates money in versus money out?",
     "category": "concept",
-    "relevant_names": ["trans", "type"],
+    "relevant_names": [
+      "trans",
+      "type"
+    ],
     "primary_name": "type",
-    "description": "trans.type encodes PRIJEM (credit/incoming) vs VYDAJ (debit/outgoing)"
+    "description": "trans.type encodes PRIJEM (credit/incoming) vs VYDAJ (debit/outgoing)",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_29",
     "intent": "What column stores a client's geographic region?",
     "category": "concept",
-    "relevant_names": ["district", "a3", "client", "district_id"],
+    "relevant_names": [
+      "district",
+      "a3",
+      "client",
+      "district_id"
+    ],
     "primary_name": "a3",
-    "description": "district.a3 encodes the region name (e.g. Prague, central Bohemia); reached via client.district_id"
+    "description": "district.a3 encodes the region name (e.g. Prague, central Bohemia); reached via client.district_id",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_30",
     "intent": "What is the average loan amount for male versus female clients?",
     "category": "join",
-    "relevant_names": ["loan", "amount", "account", "client", "gender"],
+    "relevant_names": [
+      "loan",
+      "amount",
+      "account",
+      "client",
+      "gender"
+    ],
     "primary_name": "loan",
-    "description": "Join loan → account → client to group loan.amount by client.gender"
+    "description": "Join loan → account → client to group loan.amount by client.gender",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_31",
     "intent": "Which district has the most bank accounts opened?",
     "category": "join",
-    "relevant_names": ["account", "district_id", "district", "a2"],
+    "relevant_names": [
+      "account",
+      "district_id",
+      "district",
+      "a2"
+    ],
     "primary_name": "district",
-    "description": "Count accounts grouped by district_id, join district for city name (a2)"
+    "description": "Count accounts grouped by district_id, join district for city name (a2)",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_32",
     "intent": "How many loans are held by female clients?",
     "category": "join",
-    "relevant_names": ["loan", "account", "client", "gender"],
+    "relevant_names": [
+      "loan",
+      "account",
+      "client",
+      "gender"
+    ],
     "primary_name": "client",
-    "description": "Join loan → account → client, filter client.gender = 'F', count distinct loans"
+    "description": "Join loan → account → client, filter client.gender = 'F', count distinct loans",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_33",
     "intent": "What is the total inflow transaction volume per account?",
     "category": "join",
-    "relevant_names": ["trans", "amount", "account_id", "type"],
+    "relevant_names": [
+      "trans",
+      "amount",
+      "account_id",
+      "type"
+    ],
     "primary_name": "amount",
-    "description": "Sum trans.amount where type = PRIJEM grouped by account_id"
+    "description": "Sum trans.amount where type = PRIJEM grouped by account_id",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_34",
     "intent": "What data do we store about each bank client?",
     "category": "schema",
-    "relevant_names": ["client", "gender", "birth_date", "district_id"],
+    "relevant_names": [
+      "client",
+      "gender",
+      "birth_date",
+      "district_id"
+    ],
     "primary_name": "client",
-    "description": "Schema discovery: client entity and its demographic attributes"
+    "description": "Schema discovery: client entity and its demographic attributes",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_35",
     "intent": "Which entities in the database represent financial transactions?",
     "category": "schema",
-    "relevant_names": ["trans", "loan", "amount"],
+    "relevant_names": [
+      "trans",
+      "loan",
+      "amount"
+    ],
     "primary_name": "trans",
-    "description": "Schema discovery: trans records day-to-day movements, loan records credit events"
+    "description": "Schema discovery: trans records day-to-day movements, loan records credit events",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_36",
     "intent": "What information does a loan record contain?",
     "category": "schema",
-    "relevant_names": ["loan", "amount", "duration", "payments", "status", "date"],
+    "relevant_names": [
+      "loan",
+      "amount",
+      "duration",
+      "payments",
+      "status",
+      "date"
+    ],
     "primary_name": "loan",
-    "description": "Schema discovery: loan entity and its key attributes (term, amount, status, repayments)"
+    "description": "Schema discovery: loan entity and its key attributes (term, amount, status, repayments)",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_37",
     "intent": "Which column stores the monthly repayment amount for a loan?",
     "category": "attribute",
-    "relevant_names": ["loan", "payments"],
+    "relevant_names": [
+      "loan",
+      "payments"
+    ],
     "primary_name": "payments",
-    "description": "Attribute discovery: loan.payments holds the monthly instalment amount"
+    "description": "Attribute discovery: loan.payments holds the monthly instalment amount",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_38",
     "intent": "Where is the type of a bank transaction stored?",
     "category": "attribute",
-    "relevant_names": ["trans", "type", "operation"],
+    "relevant_names": [
+      "trans",
+      "type",
+      "operation"
+    ],
     "primary_name": "type",
-    "description": "Attribute discovery: trans.type stores PRIJEM/VYDAJ (credit/debit direction)"
+    "description": "Attribute discovery: trans.type stores PRIJEM/VYDAJ (credit/debit direction)",
+    "enrichment_sensitive": true
   },
   {
     "id": "fin_disc_39",
     "intent": "Which field encodes a client's date of birth?",
     "category": "attribute",
-    "relevant_names": ["client", "birth_date"],
+    "relevant_names": [
+      "client",
+      "birth_date"
+    ],
     "primary_name": "birth_date",
-    "description": "Attribute discovery: client.birth_date stores birth year as integer"
+    "description": "Attribute discovery: client.birth_date stores birth year as integer",
+    "enrichment_sensitive": false
   },
   {
     "id": "fin_disc_40",
     "intent": "What attribute stores the purpose code for a bank transaction?",
     "category": "attribute",
-    "relevant_names": ["trans", "k_symbol"],
+    "relevant_names": [
+      "trans",
+      "k_symbol"
+    ],
     "primary_name": "k_symbol",
-    "description": "Attribute discovery: trans.k_symbol encodes transaction purpose (salary, pension, insurance, etc.)"
+    "description": "Attribute discovery: trans.k_symbol encodes transaction purpose (salary, pension, insurance, etc.)",
+    "enrichment_sensitive": true
+  },
+  {
+    "id": "fin_disc_41",
+    "intent": "which column classifies a loan as defaulted, running with debt, or successfully repaid",
+    "category": "enrichment_sensitive",
+    "enrichment_sensitive": true,
+    "relevant_names": [
+      "loan",
+      "status"
+    ],
+    "primary_name": "status",
+    "description": "status encodes A=running OK, B=finished/unpaid, C=finished OK, D=running/debt — enum values only visible after enrichment"
+  },
+  {
+    "id": "fin_disc_42",
+    "intent": "find the field that records the coded reason or purpose behind each bank payment",
+    "category": "enrichment_sensitive",
+    "enrichment_sensitive": true,
+    "relevant_names": [
+      "trans",
+      "k_symbol"
+    ],
+    "primary_name": "k_symbol",
+    "description": "k_symbol stores payment purpose codes: UVER, SANKC. UROK, DUCHOD, etc."
+  },
+  {
+    "id": "fin_disc_43",
+    "intent": "which district attribute stores the total number of inhabitants",
+    "category": "enrichment_sensitive",
+    "enrichment_sensitive": true,
+    "relevant_names": [
+      "district",
+      "a4"
+    ],
+    "primary_name": "a4",
+    "description": "a4 is opaque column name for number of inhabitants — findable via enrichment annotation"
+  },
+  {
+    "id": "fin_disc_44",
+    "intent": "find the district column that records unemployment statistics from 1996",
+    "category": "enrichment_sensitive",
+    "enrichment_sensitive": true,
+    "relevant_names": [
+      "district",
+      "a13"
+    ],
+    "primary_name": "a13",
+    "description": "a13 = unemployment rate 1996 — opaque column name, requires enrichment"
+  },
+  {
+    "id": "fin_disc_45",
+    "intent": "which column distinguishes card withdrawals from bank wire transfers in the transaction table",
+    "category": "enrichment_sensitive",
+    "enrichment_sensitive": true,
+    "relevant_names": [
+      "trans",
+      "operation"
+    ],
+    "primary_name": "operation",
+    "description": "operation stores VYBER KARTOU, PREVOD NA UCET, etc. — Czech operation codes"
+  },
+  {
+    "id": "fin_disc_46",
+    "intent": "find the field in the district table that stores the name of the municipality or city",
+    "category": "enrichment_sensitive",
+    "enrichment_sensitive": true,
+    "relevant_names": [
+      "district",
+      "a2"
+    ],
+    "primary_name": "a2",
+    "description": "a2 = district name — opaque key for the geographic name column"
+  },
+  {
+    "id": "fin_disc_47",
+    "intent": "which column marks whether a bank transaction is income flowing into the account",
+    "category": "enrichment_sensitive",
+    "enrichment_sensitive": true,
+    "relevant_names": [
+      "trans",
+      "type"
+    ],
+    "primary_name": "type",
+    "description": "type=PRIJEM means credit/income, VYDAJ means debit — Czech codes indexed only after enrichment"
+  },
+  {
+    "id": "fin_disc_48",
+    "intent": "find the attribute that encodes how often the bank sends account statements to customers",
+    "category": "enrichment_sensitive",
+    "enrichment_sensitive": true,
+    "relevant_names": [
+      "account",
+      "frequency"
+    ],
+    "primary_name": "frequency",
+    "description": "frequency stores MESICNE (monthly), TYDENNI (weekly) etc — Czech frequency codes"
   }
 ]
