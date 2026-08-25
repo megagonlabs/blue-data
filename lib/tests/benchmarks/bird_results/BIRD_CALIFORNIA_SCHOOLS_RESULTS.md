@@ -2,7 +2,7 @@
 
 **Conditions:** `keyword`  
 **Queries:** 89  
-**Last run:** 2026-08-25 09:35 UTC
+**Last run:** 2026-08-25 09:56 UTC
 
 > Two evaluation levels: **attribute-level** Hit@K (which column/table?) and **entity-level** P/R/F1 (which set of tables?). Entity-level is comparable to MEW, CORE-T, DMRAL.
 
@@ -37,12 +37,12 @@ Hit@5 (% of 89 queries)
 | F1@3 | 0.326 |
 | P@3 | 0.416 |
 | R@3 | 0.281 |
-| F1@5 | 0.390 |
-| P@5 | 0.483 |
-| R@5 | 0.343 |
-| F1@10 | 0.435 |
-| P@10 | 0.438 |
-| R@10 | 0.500 |
+| F1@5 | 0.378 |
+| P@5 | 0.472 |
+| R@5 | 0.331 |
+| F1@10 | 0.440 |
+| P@10 | 0.444 |
+| R@10 | 0.506 |
 | F1@Ideal-K | 0.255 |
 | P@Ideal-K | 0.326 |
 | R@Ideal-K | 0.219 |
@@ -82,7 +82,7 @@ Hit@5 (% of 89 queries)
 | bird_california_schools_019 | bird | How many schools in Fresno (directly funded) have nu… | ❌ | 0.17 | 0.00 |
 | bird_california_schools_020 | bird | What is the phone number of the school that has the … | ❌ | 0.00 | 0.00 |
 | bird_california_schools_021 | bird | How many schools in Amador which the Low Grade is 9 … | ❌ | 0.33 | 0.00 |
-| bird_california_schools_022 | bird | In Los Angeles how many schools have more than 500 f… | ❌ | 0.10 | 0.00 |
+| bird_california_schools_022 | bird | In Los Angeles how many schools have more than 500 f… | ❌ | 0.11 | 0.00 |
 | bird_california_schools_023 | bird | Which school in Contra Costa has the highest number … | ❌ | 0.00 | 0.00 |
 | bird_california_schools_024 | bird | List the names of schools with more than 30 differen… | ✅ | 1.00 | 0.67 |
 | bird_california_schools_025 | bird | Give the names of the schools with the percent eligi… | ❌ | 0.00 | 0.00 |

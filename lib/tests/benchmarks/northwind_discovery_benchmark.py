@@ -62,7 +62,7 @@ def main() -> None:
     args = p.parse_args()
 
     report = args.report
-    if report == "auto":
+    if report is None or report == "auto":
         report = DEFAULT_REPORT
 
     run(

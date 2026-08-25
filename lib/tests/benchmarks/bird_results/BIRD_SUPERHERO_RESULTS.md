@@ -2,7 +2,7 @@
 
 **Conditions:** `keyword`  
 **Queries:** 129  
-**Last run:** 2026-08-25 09:35 UTC
+**Last run:** 2026-08-25 09:56 UTC
 
 > Two evaluation levels: **attribute-level** Hit@K (which column/table?) and **entity-level** P/R/F1 (which set of tables?). Entity-level is comparable to MEW, CORE-T, DMRAL.
 
@@ -16,13 +16,13 @@
 |--------|---------|
 | Hit@1 | 91% |
 | Hit@3 | 94% |
-| Hit@5 | 94% |
-| MRR | 92% |
+| Hit@5 | 96% |
+| MRR | 93% |
 
 ```
 Hit@5 (% of 129 queries)
 
-  keyword         ██████████████░   94%
+  keyword         ██████████████░   96%
 ```
 
 ---
@@ -37,12 +37,12 @@ Hit@5 (% of 129 queries)
 | F1@3 | 0.202 |
 | P@3 | 0.322 |
 | R@3 | 0.153 |
-| F1@5 | 0.297 |
+| F1@5 | 0.292 |
 | P@5 | 0.354 |
-| R@5 | 0.269 |
-| F1@10 | 0.426 |
-| P@10 | 0.308 |
-| R@10 | 0.806 |
+| R@5 | 0.262 |
+| F1@10 | 0.307 |
+| P@10 | 0.230 |
+| R@10 | 0.532 |
 | F1@Ideal-K | 0.137 |
 | P@Ideal-K | 0.229 |
 | R@Ideal-K | 0.101 |
@@ -53,7 +53,7 @@ Hit@5 (% of 129 queries)
 
 | Category | n | keyword Hit@1 | keyword MRR | keyword F1@Ideal |
 |---|---|---|---|---|
-| bird | 129 | 91% | 0.92 | 0.14 |
+| bird | 129 | 91% | 0.93 | 0.14 |
 
 ---
 
@@ -62,7 +62,7 @@ Hit@5 (% of 129 queries)
 | ID | Cat | Intent | keyword H@1 | keyword MRR | keyword F1@Ideal |
 |---|---|--- |---|--- |--- |
 | bird_superhero_001 | bird | Please list all the superpowers of 3-D Man. | ✅ | 1.00 | 0.00 |
-| bird_superhero_002 | bird | How many superheroes have the super power of "Super … | ❌ | 0.14 | 0.00 |
+| bird_superhero_002 | bird | How many superheroes have the super power of "Super … | ❌ | 0.20 | 0.00 |
 | bird_superhero_003 | bird | Among the superheroes with the super power of "Super… | ✅ | 1.00 | 0.00 |
 | bird_superhero_004 | bird | Please list the full names of all the superheroes wi… | ✅ | 1.00 | 0.00 |
 | bird_superhero_005 | bird | How many superheroes have blue eyes? | ✅ | 1.00 | 0.00 |
@@ -106,10 +106,10 @@ Hit@5 (% of 129 queries)
 | bird_superhero_043 | bird | What is the eye clolour of the heaviest superhero? | ✅ | 1.00 | 0.00 |
 | bird_superhero_044 | bird | In superheroes with height between 150 to 180, what … | ✅ | 1.00 | 0.00 |
 | bird_superhero_045 | bird | Among the male superheroes, list the super hero name… | ✅ | 1.00 | 0.00 |
-| bird_superhero_046 | bird | Which power do superheroes have the most of? | ❌ | 0.14 | 0.00 |
+| bird_superhero_046 | bird | Which power do superheroes have the most of? | ❌ | 0.20 | 0.00 |
 | bird_superhero_047 | bird | Indicate the attribute value of superhero Abominatio… | ✅ | 1.00 | 0.00 |
 | bird_superhero_048 | bird | What are the superpowers of heroes with ID 1? | ❌ | 0.00 | 0.00 |
-| bird_superhero_049 | bird | How many heroes have stealth power? | ❌ | 0.14 | 0.00 |
+| bird_superhero_049 | bird | How many heroes have stealth power? | ❌ | 0.20 | 0.00 |
 | bird_superhero_050 | bird | What is the hero's full name with the highest attrib… | ✅ | 1.00 | 0.50 |
 | bird_superhero_051 | bird | What is the average of superheroes with no skin colo… | ✅ | 1.00 | 0.00 |
 | bird_superhero_052 | bird | How many superheroes were published by Dark Horse Co… | ✅ | 1.00 | 0.00 |

@@ -2,7 +2,7 @@
 
 **Conditions:** `keyword`  
 **Queries:** 163  
-**Last run:** 2026-08-25 09:35 UTC
+**Last run:** 2026-08-25 09:56 UTC
 
 > Two evaluation levels: **attribute-level** Hit@K (which column/table?) and **entity-level** P/R/F1 (which set of tables?). Entity-level is comparable to MEW, CORE-T, DMRAL.
 
@@ -16,13 +16,13 @@
 |--------|---------|
 | Hit@1 | 35% |
 | Hit@3 | 37% |
-| Hit@5 | 79% |
+| Hit@5 | 80% |
 | MRR | 48% |
 
 ```
 Hit@5 (% of 163 queries)
 
-  keyword         ████████████░░░   79%
+  keyword         ████████████░░░   80%
 ```
 
 ---
@@ -37,9 +37,9 @@ Hit@5 (% of 163 queries)
 | F1@3 | 0.268 |
 | P@3 | 0.367 |
 | R@3 | 0.223 |
-| F1@5 | 0.485 |
-| P@5 | 0.551 |
-| R@5 | 0.465 |
+| F1@5 | 0.503 |
+| P@5 | 0.566 |
+| R@5 | 0.487 |
 | F1@10 | 0.773 |
 | P@10 | 0.650 |
 | R@10 | 0.994 |
@@ -61,10 +61,10 @@ Hit@5 (% of 163 queries)
 
 | ID | Cat | Intent | keyword H@1 | keyword MRR | keyword F1@Ideal |
 |---|---|--- |---|--- |--- |
-| bird_thrombosis_prediction_001 | bird | Are there more in-patient or outpatient who were mal… | ❌ | 0.17 | 0.00 |
+| bird_thrombosis_prediction_001 | bird | Are there more in-patient or outpatient who were mal… | ❌ | 0.20 | 0.00 |
 | bird_thrombosis_prediction_002 | bird | What is the percentage of female patient were born a… | ✅ | 1.00 | 1.00 |
 | bird_thrombosis_prediction_003 | bird | For patient born between Year 1930 to 1940, how many… | ✅ | 1.00 | 1.00 |
-| bird_thrombosis_prediction_004 | bird | What is the ratio of outpatient to inpatient followe… | ❌ | 0.17 | 0.00 |
+| bird_thrombosis_prediction_004 | bird | What is the ratio of outpatient to inpatient followe… | ❌ | 0.20 | 0.00 |
 | bird_thrombosis_prediction_005 | bird | What is the disease patient '30609' diagnosed with. … | ✅ | 1.00 | 1.00 |
 | bird_thrombosis_prediction_006 | bird | State the sex and birthday of patient ID '163109'. W… | ✅ | 1.00 | 1.00 |
 | bird_thrombosis_prediction_007 | bird | List the patient ID, sex and birthday of patient wit… | ✅ | 1.00 | 0.67 |
@@ -74,7 +74,7 @@ Hit@5 (% of 163 queries)
 | bird_thrombosis_prediction_011 | bird | For patient with albumin level lower than 3.5, list … | ✅ | 1.00 | 0.67 |
 | bird_thrombosis_prediction_012 | bird | What is the percentage of female patient had total p… | ✅ | 1.00 | 0.67 |
 | bird_thrombosis_prediction_013 | bird | For in-patient age 50 and above, what is their avera… | ❌ | 0.25 | 0.00 |
-| bird_thrombosis_prediction_014 | bird | How many female patients who came at the hospital in… | ❌ | 0.17 | 0.00 |
+| bird_thrombosis_prediction_014 | bird | How many female patients who came at the hospital in… | ❌ | 0.20 | 0.00 |
 | bird_thrombosis_prediction_015 | bird | What was the age of the youngest patient when they i… | ✅ | 1.00 | 1.00 |
 | bird_thrombosis_prediction_016 | bird | How many of the patients with the most serious throm… | ❌ | 0.20 | 0.00 |
 | bird_thrombosis_prediction_017 | bird | What is the age gap between the youngest and oldest … | ✅ | 1.00 | 0.67 |
@@ -90,7 +90,7 @@ Hit@5 (% of 163 queries)
 | bird_thrombosis_prediction_027 | bird | How old was the patient who had the highest hemoglob… | ✅ | 1.00 | 0.67 |
 | bird_thrombosis_prediction_028 | bird | What was the anti-nucleus antibody concentration lev… | ❌ | 0.12 | 0.00 |
 | bird_thrombosis_prediction_029 | bird | Was the total cholesterol status for the patient id … | ❌ | 0.11 | 0.00 |
-| bird_thrombosis_prediction_030 | bird | What was the gender of the first AORTITIS diagnosed … | ❌ | 0.14 | 0.00 |
+| bird_thrombosis_prediction_030 | bird | What was the gender of the first AORTITIS diagnosed … | ❌ | 0.17 | 0.00 |
 | bird_thrombosis_prediction_031 | bird | For the patient who was diagnosed with SLE on 1994/2… | ✅ | 1.00 | 0.67 |
 | bird_thrombosis_prediction_032 | bird | Was the patient a man or a women whose ALT glutamic … | ✅ | 1.00 | 0.67 |
 | bird_thrombosis_prediction_033 | bird | For the patient who got the laboratory test of uric … | ✅ | 1.00 | 1.00 |
@@ -99,30 +99,30 @@ Hit@5 (% of 163 queries)
 | bird_thrombosis_prediction_036 | bird | For the patient whose birthday was 1959/3/1, what sy… | ✅ | 1.00 | 1.00 |
 | bird_thrombosis_prediction_037 | bird | For the patient who was born on 1959/2/18, what is t… | ✅ | 1.00 | 0.67 |
 | bird_thrombosis_prediction_038 | bird | Lists all patients by ID who were diagnosed with Beh… | ❌ | 0.14 | 0.00 |
-| bird_thrombosis_prediction_039 | bird | How many patients who were examined between 1987/7/6… | ❌ | 0.14 | 0.00 |
-| bird_thrombosis_prediction_040 | bird | How many female patients born in 1964 were admitted … | ❌ | 0.17 | 0.00 |
+| bird_thrombosis_prediction_039 | bird | How many patients who were examined between 1987/7/6… | ❌ | 0.12 | 0.00 |
+| bird_thrombosis_prediction_040 | bird | How many female patients born in 1964 were admitted … | ❌ | 0.20 | 0.00 |
 | bird_thrombosis_prediction_041 | bird | What number of patients with a degree of thrombosis … | ❌ | 0.14 | 0.00 |
-| bird_thrombosis_prediction_042 | bird | What percentage of patients with a proteinuria level… | ❌ | 0.20 | 0.00 |
-| bird_thrombosis_prediction_043 | bird | What percentage of male patients who first presented… | ❌ | 0.14 | 0.00 |
+| bird_thrombosis_prediction_042 | bird | What percentage of patients with a proteinuria level… | ❌ | 0.17 | 0.00 |
+| bird_thrombosis_prediction_043 | bird | What percentage of male patients who first presented… | ❌ | 0.17 | 0.00 |
 | bird_thrombosis_prediction_044 | bird | List all patients who were followed up at the outpat… | ✅ | 1.00 | 0.67 |
 | bird_thrombosis_prediction_045 | bird | Excluding all P only ANA Pattern patients, how many … | ❌ | 0.17 | 0.00 |
 | bird_thrombosis_prediction_046 | bird | What sex is the patient who in a medical examination… | ✅ | 1.00 | 1.00 |
 | bird_thrombosis_prediction_047 | bird | What is the average blood albumin level for female p… | ❌ | 0.17 | 0.00 |
 | bird_thrombosis_prediction_048 | bird | What is the most common sign of patients with SLE di… | ❌ | 0.25 | 0.00 |
 | bird_thrombosis_prediction_049 | bird | When was the medical information on patient number 4… | ✅ | 1.00 | 1.00 |
-| bird_thrombosis_prediction_050 | bird | How many female patients were given an APS diagnosis… | ❌ | 0.17 | 0.00 |
-| bird_thrombosis_prediction_051 | bird | How many patients who underwent testing in 1997 had … | ❌ | 0.20 | 0.00 |
+| bird_thrombosis_prediction_050 | bird | How many female patients were given an APS diagnosis… | ❌ | 0.20 | 0.00 |
+| bird_thrombosis_prediction_051 | bird | How many patients who underwent testing in 1997 had … | ❌ | 0.17 | 0.00 |
 | bird_thrombosis_prediction_052 | bird | What proportion of patients who had signs of thrombo… | ❌ | 0.25 | 0.00 |
-| bird_thrombosis_prediction_053 | bird | What percentage of patients who were born in 1980 an… | ❌ | 0.14 | 0.00 |
+| bird_thrombosis_prediction_053 | bird | What percentage of patients who were born in 1980 an… | ❌ | 0.17 | 0.00 |
 | bird_thrombosis_prediction_054 | bird | How many male patients who underwent testing between… | ❌ | 0.25 | 0.00 |
 | bird_thrombosis_prediction_055 | bird | How many patients who were female got white blood ce… | ❌ | 0.17 | 0.00 |
 | bird_thrombosis_prediction_056 | bird | How long did it take after patient number 821298 arr… | ✅ | 1.00 | 0.67 |
 | bird_thrombosis_prediction_057 | bird | Was the patient with the number 57266's uric acid wi… | ✅ | 1.00 | 0.67 |
-| bird_thrombosis_prediction_058 | bird | When is the laboratory examination of patient '48473… | ❌ | 0.50 | 0.00 |
+| bird_thrombosis_prediction_058 | bird | When is the laboratory examination of patient '48473… | ❌ | 0.33 | 0.00 |
 | bird_thrombosis_prediction_059 | bird | List all patients with their sex and date of birthda… | ❌ | 0.11 | 0.00 |
 | bird_thrombosis_prediction_060 | bird | Provide IDs for male patients with ALT glutamic pylv… | ❌ | 0.20 | 0.00 |
 | bird_thrombosis_prediction_061 | bird | Please provide the diagnosis of patients with ALT gl… | ❌ | 0.10 | 0.00 |
-| bird_thrombosis_prediction_062 | bird | What is the average index of the lactate dehydrogena… | ❌ | 0.20 | 0.00 |
+| bird_thrombosis_prediction_062 | bird | What is the average index of the lactate dehydrogena… | ❌ | 0.17 | 0.00 |
 | bird_thrombosis_prediction_063 | bird | Provide the ID and age of patient with lactate dehyd… | ✅ | 1.00 | 0.67 |
 | bird_thrombosis_prediction_064 | bird | For patients with alkaliphophatase (ALP) within norm… | ❌ | 0.20 | 0.00 |
 | bird_thrombosis_prediction_065 | bird | Name the ID of the patient who is born on the April … | ✅ | 1.00 | 0.67 |
