@@ -1,0 +1,3289 @@
+{
+  "run_at": "2026-08-25T07:34:41.877482Z",
+  "title": "Finance Data Discovery Benchmark",
+  "embed_model": "text-embedding-3-small",
+  "conditions": [
+    "keyword",
+    "hybrid"
+  ],
+  "n": 80,
+  "results": [
+    {
+      "id": "fin_disc_01",
+      "intent": "How many clients defaulted on their loans?",
+      "category": "filter",
+      "primary_name": "status",
+      "relevant_names": [
+        "loan",
+        "status",
+        "client"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "loan_id",
+          "client",
+          "public",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_02",
+      "intent": "What is the average monthly payment amount for active loans?",
+      "category": "aggregation",
+      "primary_name": "payments",
+      "relevant_names": [
+        "loan",
+        "payments",
+        "status"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "finance",
+          "finance",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "loan_id",
+          "payments",
+          "loan"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_03",
+      "intent": "Which district has the highest average loan amount?",
+      "category": "join",
+      "primary_name": "district",
+      "relevant_names": [
+        "loan",
+        "amount",
+        "client",
+        "district",
+        "district_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "district",
+          "finance",
+          "finance",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "district",
+          "loan_id",
+          "finance",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_04",
+      "intent": "How many transactions were cash withdrawals?",
+      "category": "filter",
+      "primary_name": "operation",
+      "relevant_names": [
+        "trans",
+        "operation",
+        "type"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "bank",
+          "payments",
+          "finance",
+          "public",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_05",
+      "intent": "What is the current account balance for each client?",
+      "category": "concept",
+      "primary_name": "balance",
+      "relevant_names": [
+        "trans",
+        "balance",
+        "account_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "account",
+          "balance",
+          "account",
+          "finance",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "account",
+          "balance",
+          "account",
+          "bank",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_06",
+      "intent": "Which accounts have more than one hundred transactions?",
+      "category": "aggregation",
+      "primary_name": "trans",
+      "relevant_names": [
+        "trans",
+        "account_id",
+        "account"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "public",
+          "account_id",
+          "account_id",
+          "account_id",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_07",
+      "intent": "What is the total amount paid as pension income across all transactions?",
+      "category": "concept",
+      "primary_name": "k_symbol",
+      "relevant_names": [
+        "trans",
+        "k_symbol",
+        "amount"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "finance",
+          "finance",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "payments",
+          "finance",
+          "bank"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_08",
+      "intent": "How old is the youngest client at the bank?",
+      "category": "concept",
+      "primary_name": "birth_date",
+      "relevant_names": [
+        "client",
+        "birth_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "client",
+          "finance",
+          "finance",
+          "public",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "client",
+          "bank",
+          "client_id",
+          "finance",
+          "loan"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_09",
+      "intent": "Which accounts belong to clients living in the Prague region?",
+      "category": "join",
+      "primary_name": "district",
+      "relevant_names": [
+        "account",
+        "client",
+        "district",
+        "district_id",
+        "a3"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "client_id",
+          "account_id",
+          "account_id",
+          "account_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_10",
+      "intent": "What percentage of loans are fully repaid with no issues?",
+      "category": "filter",
+      "primary_name": "status",
+      "relevant_names": [
+        "loan",
+        "status"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "loan_id",
+          "finance",
+          "finance",
+          "payments"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_11",
+      "intent": "What is the average loan duration in months grouped by region?",
+      "category": "join",
+      "primary_name": "duration",
+      "relevant_names": [
+        "loan",
+        "duration",
+        "client",
+        "district",
+        "district_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "duration",
+          "finance",
+          "finance",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "duration",
+          "loan_id",
+          "finance",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_12",
+      "intent": "How many distinct external banks received wire transfers?",
+      "category": "aggregation",
+      "primary_name": "bank",
+      "relevant_names": [
+        "trans",
+        "bank"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "finance",
+          "public",
+          "payments"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_13",
+      "intent": "How many loans were issued in each calendar year?",
+      "category": "temporal",
+      "primary_name": "loan",
+      "relevant_names": [
+        "loan",
+        "date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "loan_id",
+          "loan",
+          "finance",
+          "finance",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_14",
+      "intent": "What is the maximum outstanding debt amount currently owed?",
+      "category": "concept",
+      "primary_name": "amount",
+      "relevant_names": [
+        "loan",
+        "amount",
+        "status"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "finance",
+          "finance",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "loan",
+          "loan_id",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_15",
+      "intent": "Which accounts receive their statements on a monthly basis?",
+      "category": "filter",
+      "primary_name": "frequency",
+      "relevant_names": [
+        "account",
+        "frequency"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "payments",
+          "bank",
+          "finance",
+          "account_id",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_16",
+      "intent": "How many male versus female clients does the bank have?",
+      "category": "aggregation",
+      "primary_name": "gender",
+      "relevant_names": [
+        "client",
+        "gender"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "gender",
+          "public",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_17",
+      "intent": "What is the average transaction amount per calendar month?",
+      "category": "temporal",
+      "primary_name": "amount",
+      "relevant_names": [
+        "trans",
+        "amount",
+        "date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "finance",
+          "finance",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "payments",
+          "finance",
+          "bank"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_18",
+      "intent": "What is the total amount paid for insurance across all transactions?",
+      "category": "concept",
+      "primary_name": "k_symbol",
+      "relevant_names": [
+        "trans",
+        "k_symbol",
+        "amount"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "finance",
+          "finance",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "payments",
+          "bank",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_19",
+      "intent": "Which clients have an account in one district but live in another?",
+      "category": "join",
+      "primary_name": "client",
+      "relevant_names": [
+        "client",
+        "account",
+        "district_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "account",
+          "district",
+          "account",
+          "finance",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "district",
+          "account",
+          "account",
+          "public",
+          "client_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_20",
+      "intent": "What is the total loan amount taken out by clients in each city?",
+      "category": "join",
+      "primary_name": "loan",
+      "relevant_names": [
+        "loan",
+        "amount",
+        "client",
+        "district",
+        "district_id",
+        "a2"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "amount",
+          "amount",
+          "finance",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "amount",
+          "amount",
+          "loan_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_21",
+      "intent": "What is the total number of transaction records in the database?",
+      "category": "aggregation",
+      "primary_name": "trans",
+      "relevant_names": [
+        "trans"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1
+        },
+        "top5": [
+          "finance",
+          "trans_id",
+          "account_id",
+          "account_id",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_22",
+      "intent": "How many distinct accounts have taken out at least one loan?",
+      "category": "aggregation",
+      "primary_name": "loan",
+      "relevant_names": [
+        "loan",
+        "account_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "loan_id",
+          "loan",
+          "public",
+          "finance",
+          "bank"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_23",
+      "intent": "Which transactions are debits \u2014 money leaving the account?",
+      "category": "filter",
+      "primary_name": "type",
+      "relevant_names": [
+        "trans",
+        "type"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "payments",
+          "bank",
+          "finance",
+          "account",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_24",
+      "intent": "Which loans are currently active with no repayment problems?",
+      "category": "filter",
+      "primary_name": "status",
+      "relevant_names": [
+        "loan",
+        "status"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "loan_id",
+          "bank",
+          "finance",
+          "payments"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_25",
+      "intent": "How many bank accounts were opened each year?",
+      "category": "temporal",
+      "primary_name": "account",
+      "relevant_names": [
+        "account",
+        "date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "account_id",
+          "account_id",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_26",
+      "intent": "Which loans were issued most recently?",
+      "category": "temporal",
+      "primary_name": "loan",
+      "relevant_names": [
+        "loan",
+        "date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "loan_id",
+          "finance",
+          "finance",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_27",
+      "intent": "How many transactions occurred each calendar month?",
+      "category": "temporal",
+      "primary_name": "trans",
+      "relevant_names": [
+        "trans",
+        "date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "payments",
+          "finance",
+          "bank",
+          "public",
+          "account"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_28",
+      "intent": "Which field in the transaction table indicates money in versus money out?",
+      "category": "concept",
+      "primary_name": "type",
+      "relevant_names": [
+        "trans",
+        "type"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1
+        },
+        "top5": [
+          "payments",
+          "finance",
+          "bank",
+          "finance",
+          "trans_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_29",
+      "intent": "What column stores a client's geographic region?",
+      "category": "concept",
+      "primary_name": "a3",
+      "relevant_names": [
+        "district",
+        "a3",
+        "client",
+        "district_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "client_id",
+          "district_id",
+          "district_id",
+          "district_id",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_30",
+      "intent": "What is the average loan amount for male versus female clients?",
+      "category": "join",
+      "primary_name": "loan",
+      "relevant_names": [
+        "loan",
+        "amount",
+        "account",
+        "client",
+        "gender"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "amount",
+          "amount",
+          "finance",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "amount",
+          "amount",
+          "loan_id",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_31",
+      "intent": "Which district has the most bank accounts opened?",
+      "category": "join",
+      "primary_name": "district",
+      "relevant_names": [
+        "account",
+        "district_id",
+        "district",
+        "a2"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "district",
+          "bank",
+          "finance",
+          "finance",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "bank",
+          "district",
+          "finance",
+          "public",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_32",
+      "intent": "How many loans are held by female clients?",
+      "category": "join",
+      "primary_name": "client",
+      "relevant_names": [
+        "loan",
+        "account",
+        "client",
+        "gender"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "loan_id",
+          "loan",
+          "finance",
+          "finance",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_33",
+      "intent": "What is the total inflow transaction volume per account?",
+      "category": "join",
+      "primary_name": "amount",
+      "relevant_names": [
+        "trans",
+        "amount",
+        "account_id",
+        "type"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "account_id",
+          "account_id",
+          "account_id",
+          "payments",
+          "bank"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_34",
+      "intent": "What data do we store about each bank client?",
+      "category": "schema",
+      "primary_name": "client",
+      "relevant_names": [
+        "client",
+        "gender",
+        "birth_date",
+        "district_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "bank",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "finance",
+          "client_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_35",
+      "intent": "Which entities in the database represent financial transactions?",
+      "category": "schema",
+      "primary_name": "trans",
+      "relevant_names": [
+        "trans",
+        "loan",
+        "amount"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "public",
+          "finance",
+          "account",
+          "finance",
+          "trans"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_36",
+      "intent": "What information does a loan record contain?",
+      "category": "schema",
+      "primary_name": "loan",
+      "relevant_names": [
+        "loan",
+        "amount",
+        "duration",
+        "payments",
+        "status",
+        "date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "loan_id",
+          "finance",
+          "finance",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_37",
+      "intent": "Which column stores the monthly repayment amount for a loan?",
+      "category": "attribute",
+      "primary_name": "payments",
+      "relevant_names": [
+        "loan",
+        "payments"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "finance",
+          "finance",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "amount",
+          "amount",
+          "loan_id",
+          "payments",
+          "loan"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_38",
+      "intent": "Where is the type of a bank transaction stored?",
+      "category": "attribute",
+      "primary_name": "type",
+      "relevant_names": [
+        "trans",
+        "type",
+        "operation"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "type",
+          "bank",
+          "finance",
+          "finance",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "bank",
+          "type",
+          "finance",
+          "payments",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_39",
+      "intent": "Which field encodes a client's date of birth?",
+      "category": "attribute",
+      "primary_name": "birth_date",
+      "relevant_names": [
+        "client",
+        "birth_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "date",
+          "date",
+          "date",
+          "finance",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "date",
+          "date",
+          "date",
+          "birth_date",
+          "client_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_40",
+      "intent": "What attribute stores the purpose code for a bank transaction?",
+      "category": "attribute",
+      "primary_name": "k_symbol",
+      "relevant_names": [
+        "trans",
+        "k_symbol"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "bank",
+          "account",
+          "payments",
+          "account_id",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_41",
+      "intent": "What records the credit card type issued to a bank client \u2014 junior, classic, or gold?",
+      "category": "concept",
+      "primary_name": "card",
+      "relevant_names": [
+        "card",
+        "type"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "client",
+          "type",
+          "bank",
+          "finance",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "bank",
+          "type",
+          "client",
+          "client_id",
+          "payments"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_42",
+      "intent": "Which entity represents a recurring payment order set up by a client for regular transfers?",
+      "category": "concept",
+      "primary_name": "order",
+      "relevant_names": [
+        "order",
+        "k_symbol",
+        "bank_to",
+        "account_to"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "client",
+          "finance",
+          "finance",
+          "public",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "client",
+          "payments",
+          "account",
+          "public",
+          "loan"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_43",
+      "intent": "What entity links a client to a bank account \u2014 recording whether they are the owner or a secondary user?",
+      "category": "concept",
+      "primary_name": "disp",
+      "relevant_names": [
+        "disp",
+        "type",
+        "client_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "client",
+          "account",
+          "bank",
+          "account",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "account",
+          "bank",
+          "client",
+          "account",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_44",
+      "intent": "Which attribute stores the coded purpose of a standing payment order \u2014 such as rent or household expenses?",
+      "category": "concept",
+      "primary_name": "k_symbol",
+      "relevant_names": [
+        "order",
+        "k_symbol"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "payments",
+          "account",
+          "amount",
+          "amount",
+          "loan_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_45",
+      "intent": "What field encodes both a client's birthdate and gender in a single numeric code?",
+      "category": "concept",
+      "primary_name": "birth_date",
+      "relevant_names": [
+        "client",
+        "birth_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "gender",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "gender",
+          "birth_date",
+          "client_id",
+          "date",
+          "date"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_46",
+      "intent": "Which field stores the destination account number for an outbound bank transfer?",
+      "category": "concept",
+      "primary_name": "account_to",
+      "relevant_names": [
+        "order",
+        "account_to",
+        "bank_to"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "account",
+          "bank",
+          "account",
+          "finance",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "bank",
+          "account",
+          "account",
+          "account_id",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_47",
+      "intent": "Which accounts are configured to receive bank statements on a weekly basis?",
+      "category": "filter",
+      "primary_name": "frequency",
+      "relevant_names": [
+        "account",
+        "frequency"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "payments",
+          "finance",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_48",
+      "intent": "Which loans have a repayment term longer than 60 months?",
+      "category": "filter",
+      "primary_name": "duration",
+      "relevant_names": [
+        "loan",
+        "duration"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "loan_id",
+          "duration",
+          "finance",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_49",
+      "intent": "Which credit cards were issued to junior tier clients?",
+      "category": "filter",
+      "primary_name": "card",
+      "relevant_names": [
+        "card",
+        "type"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "payments",
+          "bank",
+          "client_id",
+          "public",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_50",
+      "intent": "Which transactions have a purpose code indicating a loan repayment?",
+      "category": "filter",
+      "primary_name": "k_symbol",
+      "relevant_names": [
+        "trans",
+        "k_symbol"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "loan",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "loan",
+          "loan_id",
+          "payments",
+          "public",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_51",
+      "intent": "Which transactions have no recorded operation type?",
+      "category": "filter",
+      "primary_name": "operation",
+      "relevant_names": [
+        "trans",
+        "operation"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "operation",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "operation",
+          "public",
+          "trans",
+          "payments",
+          "trans_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_52",
+      "intent": "Which standing payment orders involve transfers to an external bank?",
+      "category": "filter",
+      "primary_name": "bank_to",
+      "relevant_names": [
+        "order",
+        "bank_to"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "bank",
+          "payments",
+          "loan",
+          "finance",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_53",
+      "intent": "What is the total number of transactions recorded for each account?",
+      "category": "aggregation",
+      "primary_name": "trans",
+      "relevant_names": [
+        "trans",
+        "account_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "account_id",
+          "account_id",
+          "account_id",
+          "bank",
+          "payments"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_54",
+      "intent": "What is the average loan amount across all issued loans?",
+      "category": "aggregation",
+      "primary_name": "amount",
+      "relevant_names": [
+        "loan",
+        "amount"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "amount",
+          "amount",
+          "finance",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "amount",
+          "amount",
+          "loan_id",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_55",
+      "intent": "Which district has the highest average salary?",
+      "category": "aggregation",
+      "primary_name": "a11",
+      "relevant_names": [
+        "district",
+        "a11"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "district",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "district",
+          "district_id",
+          "district_id",
+          "district_id",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_56",
+      "intent": "How many clients are registered in each district?",
+      "category": "aggregation",
+      "primary_name": "client",
+      "relevant_names": [
+        "client",
+        "district_id",
+        "district"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "district_id",
+          "district_id",
+          "district_id",
+          "district",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_57",
+      "intent": "How many transactions of each operation type exist in the database?",
+      "category": "aggregation",
+      "primary_name": "operation",
+      "relevant_names": [
+        "trans",
+        "operation"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "type",
+          "operation",
+          "finance",
+          "finance",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "operation",
+          "type",
+          "finance",
+          "public",
+          "trans_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_58",
+      "intent": "What is the total loan amount outstanding for loans currently in debt?",
+      "category": "aggregation",
+      "primary_name": "amount",
+      "relevant_names": [
+        "loan",
+        "amount",
+        "status"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "amount",
+          "amount",
+          "finance",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "amount",
+          "amount",
+          "loan_id",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_59",
+      "intent": "Which credit cards were issued most recently?",
+      "category": "temporal",
+      "primary_name": "issued",
+      "relevant_names": [
+        "card",
+        "issued"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "bank",
+          "payments",
+          "finance",
+          "finance",
+          "loan_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_60",
+      "intent": "How many loans were issued in each calendar month?",
+      "category": "temporal",
+      "primary_name": "loan",
+      "relevant_names": [
+        "loan",
+        "date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "loan_id",
+          "loan",
+          "finance",
+          "finance",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_61",
+      "intent": "How many clients were born in each decade?",
+      "category": "temporal",
+      "primary_name": "birth_date",
+      "relevant_names": [
+        "client",
+        "birth_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "client_id",
+          "birth_date",
+          "client",
+          "public",
+          "date"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_62",
+      "intent": "Which calendar month had the highest total transaction monetary volume?",
+      "category": "temporal",
+      "primary_name": "amount",
+      "relevant_names": [
+        "trans",
+        "amount",
+        "date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "payments",
+          "finance",
+          "bank",
+          "finance",
+          "amount"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_63",
+      "intent": "When was the most recent transaction recorded for each account?",
+      "category": "temporal",
+      "primary_name": "date",
+      "relevant_names": [
+        "trans",
+        "date",
+        "account_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "bank",
+          "account_id",
+          "account_id",
+          "account_id",
+          "payments"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_64",
+      "intent": "What is the purpose of the disposition table \u2014 how does it connect clients to accounts?",
+      "category": "schema",
+      "primary_name": "disp",
+      "relevant_names": [
+        "disp",
+        "client",
+        "account",
+        "type"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "account_id",
+          "account_id",
+          "account_id",
+          "public",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_65",
+      "intent": "Which tables are involved in tracking credit card issuance to clients?",
+      "category": "schema",
+      "primary_name": "card",
+      "relevant_names": [
+        "card",
+        "disp",
+        "client"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "finance",
+          "payments",
+          "bank",
+          "client_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_66",
+      "intent": "How is the many-to-many relationship between clients and bank accounts modeled?",
+      "category": "schema",
+      "primary_name": "disp",
+      "relevant_names": [
+        "disp",
+        "client",
+        "account",
+        "client_id",
+        "account_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "bank",
+          "public",
+          "client_id",
+          "account_id",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_67",
+      "intent": "What is the structure of a standing payment order and how does it relate to accounts?",
+      "category": "schema",
+      "primary_name": "order",
+      "relevant_names": [
+        "order",
+        "account",
+        "k_symbol",
+        "bank_to",
+        "account_to"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "payments",
+          "account_id",
+          "account_id",
+          "account_id",
+          "bank"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_68",
+      "intent": "What demographic and economic data does the district table contain?",
+      "category": "schema",
+      "primary_name": "district",
+      "relevant_names": [
+        "district",
+        "a11",
+        "a2",
+        "a3"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "finance",
+          "district",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "district",
+          "finance",
+          "finance",
+          "district_id",
+          "district_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_69",
+      "intent": "Which tables would you need to reconstruct the full activity history of a specific client?",
+      "category": "schema",
+      "primary_name": "client",
+      "relevant_names": [
+        "client",
+        "account",
+        "trans",
+        "loan",
+        "disp"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "public",
+          "client_id",
+          "finance",
+          "account_id",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_70",
+      "intent": "What tables and fields are needed to determine whether a loan is being repaid on schedule?",
+      "category": "schema",
+      "primary_name": "loan",
+      "relevant_names": [
+        "loan",
+        "status",
+        "payments",
+        "amount"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "loan",
+          "loan_id",
+          "finance",
+          "finance",
+          "payments"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_71",
+      "intent": "Which column in the disposition table indicates whether a client is the primary account owner or a secondary user?",
+      "category": "attribute",
+      "primary_name": "type",
+      "relevant_names": [
+        "disp",
+        "type"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "client",
+          "account",
+          "account",
+          "finance",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "account",
+          "account",
+          "client",
+          "account_id",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_72",
+      "intent": "Which field records when a credit card was issued to a client?",
+      "category": "attribute",
+      "primary_name": "issued",
+      "relevant_names": [
+        "card",
+        "issued"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "client_id",
+          "finance",
+          "payments",
+          "bank",
+          "account_id"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_73",
+      "intent": "Which attribute in the account table stores the date the account was opened?",
+      "category": "attribute",
+      "primary_name": "date",
+      "relevant_names": [
+        "account",
+        "date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "account",
+          "date",
+          "account",
+          "date",
+          "date"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "account",
+          "date",
+          "date",
+          "date",
+          "account"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_74",
+      "intent": "Which column in the district table holds the unemployment rate?",
+      "category": "attribute",
+      "primary_name": "a12",
+      "relevant_names": [
+        "district",
+        "a12",
+        "a13"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "district",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "district",
+          "district_id",
+          "district_id",
+          "district_id",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_75",
+      "intent": "Which field in the transaction table records the external bank involved in a wire transfer?",
+      "category": "attribute",
+      "primary_name": "bank",
+      "relevant_names": [
+        "trans",
+        "bank"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "bank",
+          "finance",
+          "trans",
+          "finance",
+          "payments"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_76",
+      "intent": "What column stores the average salary for residents of a district?",
+      "category": "attribute",
+      "primary_name": "a11",
+      "relevant_names": [
+        "district",
+        "a11"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.125
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "district_id",
+          "district_id",
+          "district_id",
+          "district",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_77",
+      "intent": "Which clients have both a credit card and an active loan?",
+      "category": "join",
+      "primary_name": "client",
+      "relevant_names": [
+        "client",
+        "card",
+        "loan",
+        "disp",
+        "account"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "loan_id",
+          "loan",
+          "public",
+          "client",
+          "finance"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_78",
+      "intent": "What is the total transaction volume for accounts whose loans went into default?",
+      "category": "join",
+      "primary_name": "trans",
+      "relevant_names": [
+        "trans",
+        "loan",
+        "status",
+        "account_id",
+        "amount"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "finance",
+          "finance",
+          "public",
+          "client",
+          "trans"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "loan_id",
+          "loan",
+          "finance",
+          "finance",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_79",
+      "intent": "Which district has the most credit cards issued to its residents?",
+      "category": "join",
+      "primary_name": "district",
+      "relevant_names": [
+        "district",
+        "card",
+        "client",
+        "disp"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "district",
+          "finance",
+          "finance",
+          "public",
+          "client"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "district",
+          "district_id",
+          "district_id",
+          "district_id",
+          "bank"
+        ]
+      }
+    },
+    {
+      "id": "fin_disc_80",
+      "intent": "What is the average account balance per geographic region?",
+      "category": "join",
+      "primary_name": "balance",
+      "relevant_names": [
+        "account",
+        "district",
+        "a3",
+        "trans",
+        "balance"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "account",
+          "balance",
+          "account",
+          "finance",
+          "finance"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "balance",
+          "account",
+          "account",
+          "bank",
+          "account_id"
+        ]
+      }
+    }
+  ]
+}

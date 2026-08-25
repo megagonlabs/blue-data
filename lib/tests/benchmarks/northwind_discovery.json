@@ -1,0 +1,3350 @@
+{
+  "run_at": "2026-08-25T07:36:06.427418Z",
+  "title": "Northwind Data Discovery Benchmark",
+  "embed_model": "text-embedding-3-small",
+  "conditions": [
+    "keyword",
+    "hybrid"
+  ],
+  "n": 80,
+  "results": [
+    {
+      "id": "nw_disc_01",
+      "intent": "How many products are no longer sold?",
+      "category": "filter",
+      "primary_name": "discontinued",
+      "relevant_names": [
+        "products",
+        "discontinued"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "discontinued",
+          "discount",
+          "product_id",
+          "product_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_02",
+      "intent": "Which supplier provides the most products in our catalog?",
+      "category": "join",
+      "primary_name": "suppliers",
+      "relevant_names": [
+        "products",
+        "supplier_id",
+        "suppliers",
+        "company_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "suppliers",
+          "supplier_id",
+          "supplier_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_03",
+      "intent": "What is the average order value for each destination country?",
+      "category": "join",
+      "primary_name": "ship_country",
+      "relevant_names": [
+        "orders",
+        "order_details",
+        "ship_country",
+        "unit_price",
+        "quantity",
+        "discount"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "ship_country",
+          "order_id",
+          "order_id",
+          "unit_price",
+          "unit_price"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_04",
+      "intent": "Which employee processed the most customer orders?",
+      "category": "join",
+      "primary_name": "employees",
+      "relevant_names": [
+        "orders",
+        "employee_id",
+        "employees",
+        "first_name",
+        "last_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "customers",
+          "customer_id",
+          "customer_id",
+          "orders",
+          "order_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_05",
+      "intent": "What product category generates the most total revenue?",
+      "category": "join",
+      "primary_name": "categories",
+      "relevant_names": [
+        "products",
+        "category_id",
+        "categories",
+        "order_details",
+        "unit_price",
+        "quantity",
+        "discount",
+        "category_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "category_id",
+          "category_id",
+          "category_name",
+          "product_id",
+          "product_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_06",
+      "intent": "Which customers have never placed an order?",
+      "category": "existence",
+      "primary_name": "customers",
+      "relevant_names": [
+        "customers",
+        "orders",
+        "customer_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "customer_id",
+          "customer_id",
+          "public",
+          "order_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_07",
+      "intent": "What is the total shipping cost collected by destination country?",
+      "category": "aggregation",
+      "primary_name": "freight",
+      "relevant_names": [
+        "orders",
+        "freight",
+        "ship_country"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "ship_country",
+          "freight",
+          "unit_price",
+          "unit_price",
+          "order_details"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_08",
+      "intent": "Which products are nearly out of stock?",
+      "category": "filter",
+      "primary_name": "units_in_stock",
+      "relevant_names": [
+        "products",
+        "units_in_stock",
+        "product_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "units_in_stock",
+          "quantity",
+          "discount",
+          "discontinued"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_09",
+      "intent": "What is the total revenue generated by each sales employee?",
+      "category": "join",
+      "primary_name": "employees",
+      "relevant_names": [
+        "orders",
+        "order_details",
+        "employees",
+        "employee_id",
+        "unit_price",
+        "quantity",
+        "discount"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "employee_id",
+          "employee_id",
+          "unit_price",
+          "unit_price"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_10",
+      "intent": "Which country has the largest number of customers?",
+      "category": "aggregation",
+      "primary_name": "country",
+      "relevant_names": [
+        "customers",
+        "country"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "northwind",
+          "northwind"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "customer_id",
+          "customer_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_11",
+      "intent": "What is the best-selling product by total quantity ordered?",
+      "category": "join",
+      "primary_name": "order_details",
+      "relevant_names": [
+        "order_details",
+        "product_id",
+        "quantity",
+        "products",
+        "product_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "quantity",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "quantity",
+          "order_id",
+          "order_id",
+          "units_in_stock",
+          "product_name"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_12",
+      "intent": "How many orders were placed each year?",
+      "category": "temporal",
+      "primary_name": "order_date",
+      "relevant_names": [
+        "orders",
+        "order_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "public",
+          "order_date"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_13",
+      "intent": "Which products have never appeared in any order?",
+      "category": "existence",
+      "primary_name": "products",
+      "relevant_names": [
+        "products",
+        "order_details",
+        "product_id",
+        "product_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "public",
+          "order_id",
+          "order_id",
+          "discontinued"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_14",
+      "intent": "What is the average discount percentage applied per product category?",
+      "category": "join",
+      "primary_name": "discount",
+      "relevant_names": [
+        "order_details",
+        "discount",
+        "products",
+        "category_id",
+        "categories",
+        "category_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "discount",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "discount",
+          "category_id",
+          "category_id",
+          "category_name",
+          "product_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_15",
+      "intent": "What is the total inventory value for each product category?",
+      "category": "join",
+      "primary_name": "unit_price",
+      "relevant_names": [
+        "products",
+        "unit_price",
+        "units_in_stock",
+        "category_id",
+        "categories",
+        "category_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "units_in_stock",
+          "quantity",
+          "category_id",
+          "category_id",
+          "category_name"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_16",
+      "intent": "What is the average product price offered by each supplier country?",
+      "category": "join",
+      "primary_name": "unit_price",
+      "relevant_names": [
+        "products",
+        "unit_price",
+        "supplier_id",
+        "suppliers",
+        "country"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "unit_price",
+          "unit_price",
+          "suppliers",
+          "supplier_id",
+          "supplier_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_17",
+      "intent": "Which employees were hired most recently?",
+      "category": "temporal",
+      "primary_name": "hire_date",
+      "relevant_names": [
+        "employees",
+        "hire_date",
+        "first_name",
+        "last_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "hire_date",
+          "employee_id",
+          "employee_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_18",
+      "intent": "How many orders include at least one discounted item?",
+      "category": "filter",
+      "primary_name": "discount",
+      "relevant_names": [
+        "order_details",
+        "discount",
+        "orders"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "discount",
+          "order_id",
+          "order_id",
+          "quantity"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_19",
+      "intent": "Which customer has spent the most money across all their orders?",
+      "category": "join",
+      "primary_name": "customers",
+      "relevant_names": [
+        "orders",
+        "order_details",
+        "customers",
+        "customer_id",
+        "unit_price",
+        "quantity",
+        "discount",
+        "company_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customer_id",
+          "customer_id",
+          "customers",
+          "order_id",
+          "order_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_20",
+      "intent": "What are the top five most expensive products still available for sale?",
+      "category": "filter",
+      "primary_name": "unit_price",
+      "relevant_names": [
+        "products",
+        "unit_price",
+        "discontinued",
+        "product_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "product_name",
+          "discontinued",
+          "unit_price",
+          "unit_price"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_21",
+      "intent": "How many different countries do our customers come from?",
+      "category": "aggregation",
+      "primary_name": "country",
+      "relevant_names": [
+        "customers",
+        "country"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "ship_country",
+          "customer_id",
+          "customer_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_22",
+      "intent": "What is the average number of items per order line?",
+      "category": "aggregation",
+      "primary_name": "quantity",
+      "relevant_names": [
+        "order_details",
+        "quantity"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "order_id",
+          "order_id",
+          "quantity",
+          "units_in_stock",
+          "order_details"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_23",
+      "intent": "How many distinct products have ever been ordered?",
+      "category": "aggregation",
+      "primary_name": "order_details",
+      "relevant_names": [
+        "order_details",
+        "product_id",
+        "products"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "order_id",
+          "order_id",
+          "product_id",
+          "product_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_24",
+      "intent": "Which employees are based in London?",
+      "category": "filter",
+      "primary_name": "city",
+      "relevant_names": [
+        "employees",
+        "city",
+        "first_name",
+        "last_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "employee_id",
+          "employee_id",
+          "public",
+          "suppliers"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_25",
+      "intent": "Which orders were shipped to France?",
+      "category": "filter",
+      "primary_name": "ship_country",
+      "relevant_names": [
+        "orders",
+        "ship_country"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "public",
+          "freight"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_26",
+      "intent": "Which year had the highest total shipping costs?",
+      "category": "temporal",
+      "primary_name": "freight",
+      "relevant_names": [
+        "orders",
+        "order_date",
+        "freight"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "freight",
+          "unit_price",
+          "unit_price",
+          "ship_country",
+          "order_date"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_27",
+      "intent": "How many orders were placed each calendar month across all years?",
+      "category": "temporal",
+      "primary_name": "order_date",
+      "relevant_names": [
+        "orders",
+        "order_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "order_date",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_28",
+      "intent": "What was the date of the very first order ever placed?",
+      "category": "temporal",
+      "primary_name": "order_date",
+      "relevant_names": [
+        "orders",
+        "order_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "order_date",
+          "order_id",
+          "order_id",
+          "orders",
+          "order_details"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_29",
+      "intent": "Which product categories have no products assigned to them?",
+      "category": "existence",
+      "primary_name": "categories",
+      "relevant_names": [
+        "categories",
+        "products",
+        "category_id",
+        "category_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "categories",
+          "northwind",
+          "northwind",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "categories",
+          "category_id",
+          "category_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_30",
+      "intent": "Which employees have never handled any order?",
+      "category": "existence",
+      "primary_name": "employees",
+      "relevant_names": [
+        "employees",
+        "orders",
+        "employee_id",
+        "first_name",
+        "last_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "customers",
+          "public",
+          "order_id",
+          "order_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_31",
+      "intent": "What is the total revenue generated from each customer city?",
+      "category": "join",
+      "primary_name": "city",
+      "relevant_names": [
+        "orders",
+        "order_details",
+        "customers",
+        "customer_id",
+        "city",
+        "unit_price",
+        "quantity",
+        "discount"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customer_id",
+          "customer_id",
+          "city",
+          "city",
+          "city"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_32",
+      "intent": "Which supplier country offers the widest product variety?",
+      "category": "join",
+      "primary_name": "suppliers",
+      "relevant_names": [
+        "products",
+        "supplier_id",
+        "suppliers",
+        "country"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "northwind",
+          "northwind"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "suppliers",
+          "ship_country"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_33",
+      "intent": "What data do we store about product inventory and pricing?",
+      "category": "schema",
+      "primary_name": "products",
+      "relevant_names": [
+        "products",
+        "units_in_stock",
+        "unit_price",
+        "product_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "quantity",
+          "product_id",
+          "product_id",
+          "units_in_stock"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_34",
+      "intent": "What information is recorded about each employee?",
+      "category": "schema",
+      "primary_name": "employees",
+      "relevant_names": [
+        "employees",
+        "first_name",
+        "last_name",
+        "title",
+        "hire_date",
+        "city"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.125
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "employee_id",
+          "employee_id",
+          "employees",
+          "hire_date",
+          "customer_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_35",
+      "intent": "Which entities capture the full lifecycle of a customer order?",
+      "category": "schema",
+      "primary_name": "orders",
+      "relevant_names": [
+        "orders",
+        "order_details",
+        "customers",
+        "products"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "customers",
+          "public",
+          "products",
+          "suppliers"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_36",
+      "intent": "What details are stored about suppliers?",
+      "category": "schema",
+      "primary_name": "suppliers",
+      "relevant_names": [
+        "suppliers",
+        "company_name",
+        "contact_name",
+        "country",
+        "city"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "suppliers",
+          "supplier_id",
+          "supplier_id",
+          "public",
+          "order_details"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_37",
+      "intent": "Which column records whether a product is still being sold?",
+      "category": "attribute",
+      "primary_name": "discontinued",
+      "relevant_names": [
+        "products",
+        "discontinued"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "units_in_stock",
+          "discontinued",
+          "product_id",
+          "product_id",
+          "order_date"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_38",
+      "intent": "Where is the shipment destination country stored?",
+      "category": "attribute",
+      "primary_name": "ship_country",
+      "relevant_names": [
+        "orders",
+        "ship_country"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.14285714285714285
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "northwind",
+          "northwind"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "country",
+          "country",
+          "country",
+          "ship_country",
+          "freight"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_39",
+      "intent": "What field contains the price charged per unit in an order line?",
+      "category": "attribute",
+      "primary_name": "unit_price",
+      "relevant_names": [
+        "order_details",
+        "unit_price"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "unit_price",
+          "unit_price",
+          "order_id",
+          "order_id",
+          "quantity"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_40",
+      "intent": "Which attribute records the date an employee joined the company?",
+      "category": "attribute",
+      "primary_name": "hire_date",
+      "relevant_names": [
+        "employees",
+        "hire_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.125
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "hire_date",
+          "employee_id",
+          "employee_id",
+          "order_date",
+          "company_name"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_41",
+      "intent": "Which products belong to the Beverages category?",
+      "category": "filter",
+      "primary_name": "products",
+      "relevant_names": [
+        "products",
+        "category_id",
+        "categories",
+        "category_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "category_id",
+          "category_id",
+          "category_name",
+          "product_name"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_42",
+      "intent": "Which orders were placed during the year 1997?",
+      "category": "filter",
+      "primary_name": "orders",
+      "relevant_names": [
+        "orders",
+        "order_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "public",
+          "order_date"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_43",
+      "intent": "Which employees report directly to a manager?",
+      "category": "filter",
+      "primary_name": "reports_to",
+      "relevant_names": [
+        "employees",
+        "reports_to"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "employee_id",
+          "employee_id",
+          "public",
+          "customers"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_44",
+      "intent": "Which products have a unit price higher than 50?",
+      "category": "filter",
+      "primary_name": "unit_price",
+      "relevant_names": [
+        "products",
+        "unit_price",
+        "product_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "unit_price",
+          "unit_price",
+          "quantity",
+          "units_in_stock"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_45",
+      "intent": "Which customers are based in the United States?",
+      "category": "filter",
+      "primary_name": "customers",
+      "relevant_names": [
+        "customers",
+        "country",
+        "company_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "customer_id",
+          "customer_id",
+          "public",
+          "suppliers"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_46",
+      "intent": "Which orders were shipped after their required delivery date?",
+      "category": "filter",
+      "primary_name": "orders",
+      "relevant_names": [
+        "orders",
+        "shipped_date",
+        "required_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_date",
+          "order_id",
+          "order_id",
+          "freight"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_47",
+      "intent": "What is the total revenue generated from customers in each country?",
+      "category": "join",
+      "primary_name": "customers",
+      "relevant_names": [
+        "customers",
+        "orders",
+        "order_details",
+        "country",
+        "unit_price",
+        "quantity",
+        "discount"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customers",
+          "ship_country",
+          "customer_id",
+          "customer_id",
+          "unit_price"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_48",
+      "intent": "Which product category has the highest average unit price?",
+      "category": "join",
+      "primary_name": "categories",
+      "relevant_names": [
+        "products",
+        "categories",
+        "unit_price",
+        "category_id",
+        "category_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "unit_price",
+          "unit_price",
+          "quantity",
+          "product_name",
+          "category_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_49",
+      "intent": "How many orders has each shipping company delivered?",
+      "category": "join",
+      "primary_name": "shippers",
+      "relevant_names": [
+        "orders",
+        "shippers",
+        "ship_via",
+        "company_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "freight",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_50",
+      "intent": "What is the total discount given by each employee across all their orders?",
+      "category": "join",
+      "primary_name": "employees",
+      "relevant_names": [
+        "employees",
+        "orders",
+        "order_details",
+        "discount",
+        "employee_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "discount",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "discount",
+          "order_id",
+          "order_id",
+          "unit_price",
+          "unit_price"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_51",
+      "intent": "Which supplier provides products across the most different categories?",
+      "category": "join",
+      "primary_name": "suppliers",
+      "relevant_names": [
+        "suppliers",
+        "products",
+        "categories",
+        "supplier_id",
+        "category_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "suppliers",
+          "supplier_id",
+          "supplier_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_52",
+      "intent": "What is the total freight cost handled by each shipping company?",
+      "category": "join",
+      "primary_name": "shippers",
+      "relevant_names": [
+        "orders",
+        "shippers",
+        "freight",
+        "ship_via"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "freight",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "freight",
+          "unit_price",
+          "unit_price",
+          "orders",
+          "suppliers"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_53",
+      "intent": "What is the total revenue generated by each individual product?",
+      "category": "join",
+      "primary_name": "products",
+      "relevant_names": [
+        "order_details",
+        "products",
+        "unit_price",
+        "quantity",
+        "discount",
+        "product_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.16666666666666666
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "unit_price",
+          "unit_price",
+          "product_id",
+          "product_id",
+          "product_name"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_54",
+      "intent": "How many orders did each employee process per calendar year?",
+      "category": "join",
+      "primary_name": "employees",
+      "relevant_names": [
+        "employees",
+        "orders",
+        "order_date",
+        "employee_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "employees",
+          "public",
+          "employee_id",
+          "employee_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_55",
+      "intent": "What is the total number of individual order line items across all orders?",
+      "category": "aggregation",
+      "primary_name": "order_details",
+      "relevant_names": [
+        "order_details",
+        "order_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "order_id",
+          "order_id",
+          "units_in_stock",
+          "order_details",
+          "quantity"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_56",
+      "intent": "How many products are in each product category?",
+      "category": "aggregation",
+      "primary_name": "products",
+      "relevant_names": [
+        "products",
+        "categories",
+        "category_id",
+        "category_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "category_id",
+          "category_id",
+          "category_name",
+          "product_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_57",
+      "intent": "What is the highest freight charge recorded on any single order?",
+      "category": "aggregation",
+      "primary_name": "freight",
+      "relevant_names": [
+        "orders",
+        "freight"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "freight",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "freight",
+          "order_id",
+          "order_id",
+          "unit_price",
+          "unit_price"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_58",
+      "intent": "What is the average unit price across all products in the catalog?",
+      "category": "aggregation",
+      "primary_name": "unit_price",
+      "relevant_names": [
+        "products",
+        "unit_price"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "unit_price",
+          "unit_price",
+          "units_in_stock",
+          "quantity"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_59",
+      "intent": "How many employees are assigned to each sales region?",
+      "category": "aggregation",
+      "primary_name": "employees",
+      "relevant_names": [
+        "employees",
+        "employee_territories",
+        "territories",
+        "regions",
+        "region_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "employee_id",
+          "employee_id",
+          "public",
+          "orders"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_60",
+      "intent": "Which sales territories have no employees assigned to them?",
+      "category": "existence",
+      "primary_name": "territories",
+      "relevant_names": [
+        "territories",
+        "employee_territories",
+        "territory_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "employees",
+          "public",
+          "orders",
+          "discontinued",
+          "units_in_stock"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_61",
+      "intent": "Which shipping companies have never delivered an order?",
+      "category": "existence",
+      "primary_name": "shippers",
+      "relevant_names": [
+        "shippers",
+        "orders",
+        "ship_via"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "freight",
+          "discontinued",
+          "suppliers",
+          "orders",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_62",
+      "intent": "Which product categories have all their products discontinued?",
+      "category": "existence",
+      "primary_name": "categories",
+      "relevant_names": [
+        "categories",
+        "products",
+        "discontinued",
+        "category_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "categories",
+          "northwind",
+          "northwind",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "products",
+          "categories",
+          "discontinued",
+          "public",
+          "category_name"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_63",
+      "intent": "Which employees have no sales territory assignments?",
+      "category": "existence",
+      "primary_name": "employees",
+      "relevant_names": [
+        "employees",
+        "employee_territories",
+        "employee_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "public",
+          "employee_id",
+          "employee_id",
+          "customers"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_64",
+      "intent": "Which month of the year historically receives the most orders?",
+      "category": "temporal",
+      "primary_name": "order_date",
+      "relevant_names": [
+        "orders",
+        "order_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "order_date",
+          "order_id",
+          "order_id",
+          "orders",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_65",
+      "intent": "How many orders were placed in each quarter of each year?",
+      "category": "temporal",
+      "primary_name": "orders",
+      "relevant_names": [
+        "orders",
+        "order_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_id",
+          "order_id",
+          "order_date",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_66",
+      "intent": "Which employees were hired before 1994?",
+      "category": "temporal",
+      "primary_name": "hire_date",
+      "relevant_names": [
+        "employees",
+        "hire_date",
+        "first_name",
+        "last_name"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "hire_date",
+          "employee_id",
+          "employee_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_67",
+      "intent": "When was each customer's most recent order shipped?",
+      "category": "temporal",
+      "primary_name": "orders",
+      "relevant_names": [
+        "orders",
+        "shipped_date",
+        "customer_id",
+        "customers"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "customer_id",
+          "customer_id",
+          "order_date",
+          "order_id",
+          "order_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_68",
+      "intent": "What is the total freight cost for each calendar month?",
+      "category": "temporal",
+      "primary_name": "freight",
+      "relevant_names": [
+        "orders",
+        "freight",
+        "order_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "freight",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "freight",
+          "unit_price",
+          "unit_price",
+          "quantity",
+          "order_date"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_69",
+      "intent": "How is the many-to-many relationship between employees and sales territories modeled?",
+      "category": "schema",
+      "primary_name": "employee_territories",
+      "relevant_names": [
+        "employee_territories",
+        "employees",
+        "territories",
+        "employee_id",
+        "territory_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "employee_id",
+          "employee_id",
+          "public",
+          "orders"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_70",
+      "intent": "How are products linked to categories and suppliers in the data model?",
+      "category": "schema",
+      "primary_name": "products",
+      "relevant_names": [
+        "products",
+        "categories",
+        "suppliers",
+        "category_id",
+        "supplier_id"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.5
+        },
+        "top5": [
+          "northwind",
+          "suppliers",
+          "products",
+          "categories",
+          "northwind"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "suppliers",
+          "categories",
+          "products",
+          "northwind",
+          "supplier_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_71",
+      "intent": "Which tables make up a complete order record including individual line items and shipping?",
+      "category": "schema",
+      "primary_name": "order_details",
+      "relevant_names": [
+        "orders",
+        "order_details",
+        "customers",
+        "shippers"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.25
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "order_details",
+          "order_id",
+          "order_id",
+          "public",
+          "orders"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_72",
+      "intent": "What does the order_details table represent and how does it differ from the orders table?",
+      "category": "schema",
+      "primary_name": "order_details",
+      "relevant_names": [
+        "order_details",
+        "orders",
+        "product_id",
+        "quantity",
+        "unit_price"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_details",
+          "northwind",
+          "northwind",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "order_details",
+          "orders",
+          "order_id",
+          "order_id",
+          "public"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_73",
+      "intent": "Which column stores the name or description of a sales territory?",
+      "category": "attribute",
+      "primary_name": "territory_description",
+      "relevant_names": [
+        "territories",
+        "territory_description"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "description",
+          "name",
+          "northwind",
+          "northwind",
+          "public"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "description",
+          "name",
+          "company_name",
+          "company_name",
+          "ship_country"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_74",
+      "intent": "Which field in the orders table records the expected delivery deadline?",
+      "category": "attribute",
+      "primary_name": "required_date",
+      "relevant_names": [
+        "orders",
+        "required_date"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "northwind",
+          "northwind",
+          "public",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "orders",
+          "order_date",
+          "order_id",
+          "order_id",
+          "hire_date"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_75",
+      "intent": "Which attribute in the employees table records who their direct supervisor is?",
+      "category": "attribute",
+      "primary_name": "reports_to",
+      "relevant_names": [
+        "employees",
+        "reports_to"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 1.0
+        },
+        "top5": [
+          "employees",
+          "employee_id",
+          "employee_id",
+          "last_name",
+          "description"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_76",
+      "intent": "Where is the fax number of a supplier stored in the database?",
+      "category": "attribute",
+      "primary_name": "fax",
+      "relevant_names": [
+        "suppliers",
+        "fax"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "supplier_id",
+          "supplier_id",
+          "suppliers",
+          "units_in_stock",
+          "customer_id"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_77",
+      "intent": "What entity represents a single line item within a customer order?",
+      "category": "concept",
+      "primary_name": "order_details",
+      "relevant_names": [
+        "order_details",
+        "quantity",
+        "unit_price",
+        "discount"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.1111111111111111
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 1.0,
+          "mrr": 0.2
+        },
+        "top5": [
+          "orders",
+          "products",
+          "customers",
+          "public",
+          "order_details"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_78",
+      "intent": "Where is the employee management hierarchy \u2014 who reports to whom \u2014 recorded in the database?",
+      "category": "concept",
+      "primary_name": "reports_to",
+      "relevant_names": [
+        "employees",
+        "reports_to"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.125
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "mrr": 0.3333333333333333
+        },
+        "top5": [
+          "employee_id",
+          "employee_id",
+          "employees",
+          "public",
+          "hire_date"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_79",
+      "intent": "Which entity tracks the geographic sales territories that employees are responsible for?",
+      "category": "concept",
+      "primary_name": "territories",
+      "relevant_names": [
+        "territories",
+        "employee_territories",
+        "regions"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "employees",
+          "northwind",
+          "northwind",
+          "public",
+          "orders"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "employees",
+          "orders",
+          "customers",
+          "products",
+          "categories"
+        ]
+      }
+    },
+    {
+      "id": "nw_disc_80",
+      "intent": "What entity groups multiple sales territories into broader geographic regions?",
+      "category": "concept",
+      "primary_name": "regions",
+      "relevant_names": [
+        "regions",
+        "territories",
+        "region_id",
+        "region_description"
+      ],
+      "keyword": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "northwind",
+          "northwind",
+          "public",
+          "orders",
+          "suppliers"
+        ]
+      },
+      "hybrid": {
+        "metrics": {
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "mrr": 0.0
+        },
+        "top5": [
+          "orders",
+          "products",
+          "categories",
+          "suppliers",
+          "customers"
+        ]
+      }
+    }
+  ]
+}

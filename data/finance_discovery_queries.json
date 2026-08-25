@@ -318,5 +318,325 @@
     "relevant_names": ["trans", "k_symbol"],
     "primary_name": "k_symbol",
     "description": "Attribute discovery: trans.k_symbol encodes transaction purpose (salary, pension, insurance, etc.)"
+  },
+  {
+    "id": "fin_disc_41",
+    "intent": "What records the credit card type issued to a bank client — junior, classic, or gold?",
+    "category": "concept",
+    "relevant_names": ["card", "type"],
+    "primary_name": "card",
+    "description": "card.type encodes the card tier: junior / classic / gold"
+  },
+  {
+    "id": "fin_disc_42",
+    "intent": "Which entity represents a recurring payment order set up by a client for regular transfers?",
+    "category": "concept",
+    "relevant_names": ["order", "k_symbol", "bank_to", "account_to"],
+    "primary_name": "order",
+    "description": "The order table stores standing payment orders — regular outbound transfers set by the account holder"
+  },
+  {
+    "id": "fin_disc_43",
+    "intent": "What entity links a client to a bank account — recording whether they are the owner or a secondary user?",
+    "category": "concept",
+    "relevant_names": ["disp", "type", "client_id"],
+    "primary_name": "disp",
+    "description": "disp (disposition) bridges client and account, with type OWNER or DISPONENT"
+  },
+  {
+    "id": "fin_disc_44",
+    "intent": "Which attribute stores the coded purpose of a standing payment order — such as rent or household expenses?",
+    "category": "concept",
+    "relevant_names": ["order", "k_symbol"],
+    "primary_name": "k_symbol",
+    "description": "order.k_symbol encodes the payment purpose code (same coding scheme as trans.k_symbol)"
+  },
+  {
+    "id": "fin_disc_45",
+    "intent": "What field encodes both a client's birthdate and gender in a single numeric code?",
+    "category": "concept",
+    "relevant_names": ["client", "birth_date"],
+    "primary_name": "birth_date",
+    "description": "birth_date encodes date of birth; gender is derived by checking if month > 50 (female convention)"
+  },
+  {
+    "id": "fin_disc_46",
+    "intent": "Which field stores the destination account number for an outbound bank transfer?",
+    "category": "concept",
+    "relevant_names": ["order", "account_to", "bank_to"],
+    "primary_name": "account_to",
+    "description": "order.account_to stores the destination account number; bank_to identifies the receiving bank"
+  },
+  {
+    "id": "fin_disc_47",
+    "intent": "Which accounts are configured to receive bank statements on a weekly basis?",
+    "category": "filter",
+    "relevant_names": ["account", "frequency"],
+    "primary_name": "frequency",
+    "description": "Filter account where frequency encodes weekly statement issuance"
+  },
+  {
+    "id": "fin_disc_48",
+    "intent": "Which loans have a repayment term longer than 60 months?",
+    "category": "filter",
+    "relevant_names": ["loan", "duration"],
+    "primary_name": "duration",
+    "description": "Filter loan where duration > 60"
+  },
+  {
+    "id": "fin_disc_49",
+    "intent": "Which credit cards were issued to junior tier clients?",
+    "category": "filter",
+    "relevant_names": ["card", "type"],
+    "primary_name": "card",
+    "description": "card.type = 'junior' — filter for lowest card tier"
+  },
+  {
+    "id": "fin_disc_50",
+    "intent": "Which transactions have a purpose code indicating a loan repayment?",
+    "category": "filter",
+    "relevant_names": ["trans", "k_symbol"],
+    "primary_name": "k_symbol",
+    "description": "trans.k_symbol = 'UVER' encodes loan repayment transactions"
+  },
+  {
+    "id": "fin_disc_51",
+    "intent": "Which transactions have no recorded operation type?",
+    "category": "filter",
+    "relevant_names": ["trans", "operation"],
+    "primary_name": "operation",
+    "description": "Filter trans where operation IS NULL — credit/incoming transactions often carry no operation code"
+  },
+  {
+    "id": "fin_disc_52",
+    "intent": "Which standing payment orders involve transfers to an external bank?",
+    "category": "filter",
+    "relevant_names": ["order", "bank_to"],
+    "primary_name": "bank_to",
+    "description": "order.bank_to is populated when the transfer destination is an external bank"
+  },
+  {
+    "id": "fin_disc_53",
+    "intent": "What is the total number of transactions recorded for each account?",
+    "category": "aggregation",
+    "relevant_names": ["trans", "account_id"],
+    "primary_name": "trans",
+    "description": "COUNT(*) from trans grouped by account_id"
+  },
+  {
+    "id": "fin_disc_54",
+    "intent": "What is the average loan amount across all issued loans?",
+    "category": "aggregation",
+    "relevant_names": ["loan", "amount"],
+    "primary_name": "amount",
+    "description": "AVG(loan.amount)"
+  },
+  {
+    "id": "fin_disc_55",
+    "intent": "Which district has the highest average salary?",
+    "category": "aggregation",
+    "relevant_names": ["district", "a11"],
+    "primary_name": "a11",
+    "description": "district.a11 stores average salary — MAX(a11) identifies the highest-earning district"
+  },
+  {
+    "id": "fin_disc_56",
+    "intent": "How many clients are registered in each district?",
+    "category": "aggregation",
+    "relevant_names": ["client", "district_id", "district"],
+    "primary_name": "client",
+    "description": "COUNT(client_id) from client grouped by district_id"
+  },
+  {
+    "id": "fin_disc_57",
+    "intent": "How many transactions of each operation type exist in the database?",
+    "category": "aggregation",
+    "relevant_names": ["trans", "operation"],
+    "primary_name": "operation",
+    "description": "COUNT(*) from trans grouped by operation (VKLAD, VYBER, PREVOD NA UCTU, etc.)"
+  },
+  {
+    "id": "fin_disc_58",
+    "intent": "What is the total loan amount outstanding for loans currently in debt?",
+    "category": "aggregation",
+    "relevant_names": ["loan", "amount", "status"],
+    "primary_name": "amount",
+    "description": "SUM(loan.amount) where status = 'D' (running but in debt)"
+  },
+  {
+    "id": "fin_disc_59",
+    "intent": "Which credit cards were issued most recently?",
+    "category": "temporal",
+    "relevant_names": ["card", "issued"],
+    "primary_name": "issued",
+    "description": "Sort card records by issued date descending"
+  },
+  {
+    "id": "fin_disc_60",
+    "intent": "How many loans were issued in each calendar month?",
+    "category": "temporal",
+    "relevant_names": ["loan", "date"],
+    "primary_name": "loan",
+    "description": "Group loan records by month extracted from loan.date, count per month"
+  },
+  {
+    "id": "fin_disc_61",
+    "intent": "How many clients were born in each decade?",
+    "category": "temporal",
+    "relevant_names": ["client", "birth_date"],
+    "primary_name": "birth_date",
+    "description": "Derive decade from client.birth_date, count clients per decade"
+  },
+  {
+    "id": "fin_disc_62",
+    "intent": "Which calendar month had the highest total transaction monetary volume?",
+    "category": "temporal",
+    "relevant_names": ["trans", "amount", "date"],
+    "primary_name": "amount",
+    "description": "SUM(trans.amount) grouped by month from trans.date, return max month"
+  },
+  {
+    "id": "fin_disc_63",
+    "intent": "When was the most recent transaction recorded for each account?",
+    "category": "temporal",
+    "relevant_names": ["trans", "date", "account_id"],
+    "primary_name": "date",
+    "description": "MAX(trans.date) grouped by account_id"
+  },
+  {
+    "id": "fin_disc_64",
+    "intent": "What is the purpose of the disposition table — how does it connect clients to accounts?",
+    "category": "schema",
+    "relevant_names": ["disp", "client", "account", "type"],
+    "primary_name": "disp",
+    "description": "Schema discovery: disp models the N:M client-account relationship with an ownership role"
+  },
+  {
+    "id": "fin_disc_65",
+    "intent": "Which tables are involved in tracking credit card issuance to clients?",
+    "category": "schema",
+    "relevant_names": ["card", "disp", "client"],
+    "primary_name": "card",
+    "description": "Schema discovery: card is issued to a disp record (which links client to account)"
+  },
+  {
+    "id": "fin_disc_66",
+    "intent": "How is the many-to-many relationship between clients and bank accounts modeled?",
+    "category": "schema",
+    "relevant_names": ["disp", "client", "account", "client_id", "account_id"],
+    "primary_name": "disp",
+    "description": "Schema discovery: disp is the junction table between client and account"
+  },
+  {
+    "id": "fin_disc_67",
+    "intent": "What is the structure of a standing payment order and how does it relate to accounts?",
+    "category": "schema",
+    "relevant_names": ["order", "account", "k_symbol", "bank_to", "account_to"],
+    "primary_name": "order",
+    "description": "Schema discovery: order entity stores recurring outbound payment instructions for an account"
+  },
+  {
+    "id": "fin_disc_68",
+    "intent": "What demographic and economic data does the district table contain?",
+    "category": "schema",
+    "relevant_names": ["district", "a11", "a2", "a3"],
+    "primary_name": "district",
+    "description": "Schema discovery: district holds socioeconomic data — salary, unemployment, population, crime rates"
+  },
+  {
+    "id": "fin_disc_69",
+    "intent": "Which tables would you need to reconstruct the full activity history of a specific client?",
+    "category": "schema",
+    "relevant_names": ["client", "account", "trans", "loan", "disp"],
+    "primary_name": "client",
+    "description": "Schema discovery: client → disp → account → trans; plus loan if applicable"
+  },
+  {
+    "id": "fin_disc_70",
+    "intent": "What tables and fields are needed to determine whether a loan is being repaid on schedule?",
+    "category": "schema",
+    "relevant_names": ["loan", "status", "payments", "amount"],
+    "primary_name": "loan",
+    "description": "Schema discovery: loan entity with status (A/B/C/D) and payments for repayment tracking"
+  },
+  {
+    "id": "fin_disc_71",
+    "intent": "Which column in the disposition table indicates whether a client is the primary account owner or a secondary user?",
+    "category": "attribute",
+    "relevant_names": ["disp", "type"],
+    "primary_name": "type",
+    "description": "Attribute discovery: disp.type = OWNER (primary) or DISPONENT (secondary)"
+  },
+  {
+    "id": "fin_disc_72",
+    "intent": "Which field records when a credit card was issued to a client?",
+    "category": "attribute",
+    "relevant_names": ["card", "issued"],
+    "primary_name": "issued",
+    "description": "Attribute discovery: card.issued stores the card issuance date"
+  },
+  {
+    "id": "fin_disc_73",
+    "intent": "Which attribute in the account table stores the date the account was opened?",
+    "category": "attribute",
+    "relevant_names": ["account", "date"],
+    "primary_name": "date",
+    "description": "Attribute discovery: account.date is the account creation date"
+  },
+  {
+    "id": "fin_disc_74",
+    "intent": "Which column in the district table holds the unemployment rate?",
+    "category": "attribute",
+    "relevant_names": ["district", "a12", "a13"],
+    "primary_name": "a12",
+    "description": "Attribute discovery: district.a12 (unemployment '95) and a13 (unemployment '96) store unemployment rates"
+  },
+  {
+    "id": "fin_disc_75",
+    "intent": "Which field in the transaction table records the external bank involved in a wire transfer?",
+    "category": "attribute",
+    "relevant_names": ["trans", "bank"],
+    "primary_name": "bank",
+    "description": "Attribute discovery: trans.bank stores the identifier of the destination bank for transfers"
+  },
+  {
+    "id": "fin_disc_76",
+    "intent": "What column stores the average salary for residents of a district?",
+    "category": "attribute",
+    "relevant_names": ["district", "a11"],
+    "primary_name": "a11",
+    "description": "Attribute discovery: district.a11 is the average salary in the district"
+  },
+  {
+    "id": "fin_disc_77",
+    "intent": "Which clients have both a credit card and an active loan?",
+    "category": "join",
+    "relevant_names": ["client", "card", "loan", "disp", "account"],
+    "primary_name": "client",
+    "description": "Join client → disp → card (for card) and client → disp → account → loan (for active loan)"
+  },
+  {
+    "id": "fin_disc_78",
+    "intent": "What is the total transaction volume for accounts whose loans went into default?",
+    "category": "join",
+    "relevant_names": ["trans", "loan", "status", "account_id", "amount"],
+    "primary_name": "trans",
+    "description": "Join loan (status D or B) to trans via account_id, SUM(trans.amount)"
+  },
+  {
+    "id": "fin_disc_79",
+    "intent": "Which district has the most credit cards issued to its residents?",
+    "category": "join",
+    "relevant_names": ["district", "card", "client", "disp"],
+    "primary_name": "district",
+    "description": "Join card → disp → client → district, COUNT(card_id) grouped by district_id"
+  },
+  {
+    "id": "fin_disc_80",
+    "intent": "What is the average account balance per geographic region?",
+    "category": "join",
+    "relevant_names": ["account", "district", "a3", "trans", "balance"],
+    "primary_name": "balance",
+    "description": "Join trans (latest balance per account) → account → district, AVG(balance) grouped by district.a3"
   }
 ]
