@@ -1,0 +1,2197 @@
+[
+  {
+    "id": "bird_codebase_community_001",
+    "intent": "Which user has a higher reputation, Harlan or Jarrod Dixon?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "\"Harlan\" and \"Jarrod Dixon\" are both DisplayName; highest reputation refers to Max(Reputation)",
+    "source_sql": "SELECT DisplayName FROM users WHERE DisplayName IN ('Harlan', 'Jarrod Dixon') AND Reputation = ( SELECT MAX(Reputation) FROM users WHERE DisplayName IN ('Harlan', 'Jarrod Dixon') )"
+  },
+  {
+    "id": "bird_codebase_community_002",
+    "intent": "Please list the display names of all the users whose accounts were created in the year 2011.",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "account created in the year 2011 refers to year(CreationDate) = 2011",
+    "source_sql": "SELECT DisplayName FROM users WHERE STRFTIME('%Y', CreationDate) = '2011'"
+  },
+  {
+    "id": "bird_codebase_community_003",
+    "intent": "How many users last accessed the website after 2014/9/1?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "last accessed after 2014/9/1 refers to LastAccessDate > '2014-09-01'",
+    "source_sql": "SELECT COUNT(Id) FROM users WHERE date(LastAccessDate) > '2014-09-01'"
+  },
+  {
+    "id": "bird_codebase_community_004",
+    "intent": "What is the display name of the user who has the most number of views?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "user who has the most number of view refers to Max(Views)",
+    "source_sql": "SELECT DisplayName FROM users WHERE Views = ( SELECT MAX(Views) FROM users )"
+  },
+  {
+    "id": "bird_codebase_community_005",
+    "intent": "Among the users who have more than 100 upvotes, how many of them have more then 1 downvotes?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "more than 100 upvotes refers to Upvotes > 100; more than 1 downvotes refers to Downvotes > 1",
+    "source_sql": "SELECT COUNT(Id) FROM users WHERE Upvotes > 100 AND Downvotes > 1"
+  },
+  {
+    "id": "bird_codebase_community_006",
+    "intent": "How many users with more than 10 views created their account after the year 2013?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "more than 10 views refers to Views > 10; created after the year 2013 refers to year (CreationDate) > 2013",
+    "source_sql": "SELECT COUNT(id) FROM users WHERE STRFTIME('%Y', CreationDate) > '2013' AND Views > 10"
+  },
+  {
+    "id": "bird_codebase_community_007",
+    "intent": "How many posts does the user csgillespie own?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "\"csgillespie\" is the DisplayName of user",
+    "source_sql": "SELECT COUNT(T1.id) FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T2.DisplayName = 'csgillespie'"
+  },
+  {
+    "id": "bird_codebase_community_008",
+    "intent": "Please list the titles of the posts owned by the user csgillespie?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "\"csgillespie\" is the DisplayName of user",
+    "source_sql": "SELECT T1.Title FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T2.DisplayName = 'csgillespie'"
+  },
+  {
+    "id": "bird_codebase_community_009",
+    "intent": "Who is the owner of the post \"Eliciting priors from experts\"?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "experts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "\"Eliciting priors from experts\" is the Title of post; owner refers to DisplayName",
+    "source_sql": "SELECT T2.DisplayName FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T1.Title = 'Eliciting priors from experts'"
+  },
+  {
+    "id": "bird_codebase_community_010",
+    "intent": "What is the title of the post that is owned by csgillespie and has the highest popularity?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "\"csgillespie\" is the DisplayName of user; highest popularity refers to Max(ViewCount)",
+    "source_sql": "SELECT T1.Title FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T2.DisplayName = 'csgillespie' ORDER BY T1.ViewCount DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_011",
+    "intent": "What is the display name of the user who is the owner of the most valuable post?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "most valuable post refers to Max(FavoriteCount)",
+    "source_sql": "SELECT T2.DisplayName FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id ORDER BY T1.FavoriteCount DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_012",
+    "intent": "What is the total number of comments of all the posts owned by csgillespie?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "\"csgillespie\" is the DisplayName of user; total number of comments refers to Sum(CommentCount)",
+    "source_sql": "SELECT SUM(T1.CommentCount) FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T2.DisplayName = 'csgillespie'"
+  },
+  {
+    "id": "bird_codebase_community_013",
+    "intent": "For the post that got the most number of answers owned by csgillespie, how many answers did it get?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "\"csgillespie\" is the DisplayName of user; the most number of answer refers to Max(AnswerCount)",
+    "source_sql": "SELECT MAX(T1.AnswerCount) FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T2.DisplayName = 'csgillespie'"
+  },
+  {
+    "id": "bird_codebase_community_014",
+    "intent": "What is the display name of the user who last edited the post \"Examples for teaching: Correlation does not mean causation\"?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "\"Examples for teaching: Correlation does not mean causation\" is the Title of post; user who last edited refers to LastEditorUserId",
+    "source_sql": "SELECT T2.DisplayName FROM posts AS T1 INNER JOIN users AS T2 ON T1.LastEditorUserId = T2.Id WHERE T1.Title = 'Examples for teaching: Correlation does not mean causation'"
+  },
+  {
+    "id": "bird_codebase_community_015",
+    "intent": "Among the posts owned by csgillespie, how many of them are root posts?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "\"csgillespie\" is the DisplayName of user; root post refers to ParentId IS Null",
+    "source_sql": "SELECT COUNT(T1.Id) FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T2.DisplayName = 'csgillespie' AND T1.ParentId IS NULL"
+  },
+  {
+    "id": "bird_codebase_community_016",
+    "intent": "Please list the display names of all the users who owns a post that is well-finished.",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "the post that is well-finished refers to ClosedDate IS NOT Null",
+    "source_sql": "SELECT T2.DisplayName FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T1.ClosedDate IS NOT NULL"
+  },
+  {
+    "id": "bird_codebase_community_017",
+    "intent": "Among the posts owned by an elder user, how many of them have a score of over 19?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "elder users refers to Age > 65; Score of over 19 refers to Score > = 20",
+    "source_sql": "SELECT COUNT(T1.Id) FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T1.Score >= 20 AND T2.Age > 65"
+  },
+  {
+    "id": "bird_codebase_community_018",
+    "intent": "What is the location of the owner of the post \"Eliciting priors from experts\"?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "experts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "Owner refers to OwnerUserId; 'Eliciting priors from experts' is the Title of post",
+    "source_sql": "SELECT T2.Location FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T1.Title = 'Eliciting priors from experts'"
+  },
+  {
+    "id": "bird_codebase_community_019",
+    "intent": "From which post is the tag \"bayesian\" excerpted from? Please give the body of the post.",
+    "category": "bird",
+    "relevant_names": [
+      "tags",
+      "posts"
+    ],
+    "primary_name": "tags",
+    "description": "\"bayesian\" is the TagName; excerpt from refers to ExcerptPostId",
+    "source_sql": "SELECT T2.Body FROM tags AS T1 INNER JOIN posts AS T2 ON T2.Id = T1.ExcerptPostId WHERE T1.TagName = 'bayesian'"
+  },
+  {
+    "id": "bird_codebase_community_020",
+    "intent": "From which post is the most popular tag excerpted from? Please give the body of the post.",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "tags"
+    ],
+    "primary_name": "posts",
+    "description": "most popular tag refers to Max(Count); excerpt from refer to ExcerptPostId",
+    "source_sql": "SELECT Body FROM posts WHERE id = ( SELECT ExcerptPostId FROM tags ORDER BY Count DESC LIMIT 1 )"
+  },
+  {
+    "id": "bird_codebase_community_021",
+    "intent": "How many badges has the user csgillespie obtained?",
+    "category": "bird",
+    "relevant_names": [
+      "badges",
+      "users"
+    ],
+    "primary_name": "badges",
+    "description": "\"csgillespie\" is the DisplayName of user",
+    "source_sql": "SELECT COUNT(T1.Id) FROM badges AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T2.DisplayName = 'csgillespie'"
+  },
+  {
+    "id": "bird_codebase_community_022",
+    "intent": "Please list the names of the badges obtained by csgillespie.",
+    "category": "bird",
+    "relevant_names": [
+      "badges",
+      "users"
+    ],
+    "primary_name": "badges",
+    "description": "\"csgillespie\" is the DisplayName of user",
+    "source_sql": "SELECT T1.`Name` FROM badges AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T2.DisplayName = 'csgillespie'"
+  },
+  {
+    "id": "bird_codebase_community_023",
+    "intent": "Among the badges obtained by csgillespie, how many of them were obtained in the year 2011?",
+    "category": "bird",
+    "relevant_names": [
+      "badges",
+      "users"
+    ],
+    "primary_name": "badges",
+    "description": "\"csgillespie\" is the DisplayName of user; obtained in 2011 refers to YEAR (Date) = 2011",
+    "source_sql": "SELECT COUNT(T1.Id) FROM badges AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE STRFTIME('%Y', T1.Date) = '2011' AND T2.DisplayName = 'csgillespie'"
+  },
+  {
+    "id": "bird_codebase_community_024",
+    "intent": "What is the display name of the user who has obtained the most number of badges?",
+    "category": "bird",
+    "relevant_names": [
+      "badges",
+      "users"
+    ],
+    "primary_name": "badges",
+    "description": "who obtained the most number of badges refers to UserID with Max(Count(Id))",
+    "source_sql": "SELECT T2.DisplayName FROM badges AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id GROUP BY T2.DisplayName ORDER BY COUNT(T1.Id) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_025",
+    "intent": "What is the average score of the posts owned by the user csgillespie?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "\"csgillespie\" is the DisplayName of user; average score refers to AVG(Score)",
+    "source_sql": "SELECT AVG(T1.Score) FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T2.DisplayName = 'csgillespie'"
+  },
+  {
+    "id": "bird_codebase_community_026",
+    "intent": "What is the average number of badges obtained by a user with over 200 views?",
+    "category": "bird",
+    "relevant_names": [
+      "badges",
+      "users"
+    ],
+    "primary_name": "badges",
+    "description": "user with over 200 views refers to Views > 200; average number of badges = Divide (Count(Id), Count(DisplayName))",
+    "source_sql": "SELECT CAST(COUNT(T1.Id) AS REAL) / COUNT(DISTINCT T2.DisplayName) FROM badges AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T2.Views > 200"
+  },
+  {
+    "id": "bird_codebase_community_027",
+    "intent": "Among the posts with a score of over 5, what is the percentage of them being owned by an elder user?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "score of over 5 refers to Score > 5; elder user refers to Age > 65; percentage = Divide (Count(Id where Age>65), Count(Id)) * 100",
+    "source_sql": "SELECT CAST(SUM(IIF(T2.Age > 65, 1, 0)) AS REAL) * 100 / COUNT(T1.Id) FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T1.Score > 5"
+  },
+  {
+    "id": "bird_codebase_community_028",
+    "intent": "How many votes did the user No.58 take on 2010/7/19?",
+    "category": "bird",
+    "relevant_names": [
+      "votes"
+    ],
+    "primary_name": "votes",
+    "description": "user no. 58 refers to UserId = 58; on 2010/7/19 refers to CreationDate = '2010-07-19'",
+    "source_sql": "SELECT COUNT(Id) FROM votes WHERE UserId = 58 AND CreationDate = '2010-07-19'"
+  },
+  {
+    "id": "bird_codebase_community_029",
+    "intent": "Indicate the creation date of the maximum number of votes.",
+    "category": "bird",
+    "relevant_names": [
+      "votes"
+    ],
+    "primary_name": "votes",
+    "description": "the creation date of the maximum number of votes refers to CreationDate where Max(Count(Id))",
+    "source_sql": "SELECT CreationDate FROM votes GROUP BY CreationDate ORDER BY COUNT(Id) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_030",
+    "intent": "Give the number of \"Revival\" badges.",
+    "category": "bird",
+    "relevant_names": [
+      "badges"
+    ],
+    "primary_name": "badges",
+    "description": "number refers to Id; 'Revival' is the Name of badge",
+    "source_sql": "SELECT COUNT(Id) FROM badges WHERE Name = 'Revival'"
+  },
+  {
+    "id": "bird_codebase_community_031",
+    "intent": "What is the title for the post which got the highest score comment?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "comments"
+    ],
+    "primary_name": "posts",
+    "description": "highest score comment refers to Max(comments.Score)",
+    "source_sql": "SELECT Title FROM posts WHERE Id = ( SELECT PostId FROM comments ORDER BY Score DESC LIMIT 1 )"
+  },
+  {
+    "id": "bird_codebase_community_032",
+    "intent": "For the post which got 1910 view counts, how many comments does it get?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "comments"
+    ],
+    "primary_name": "posts",
+    "description": "",
+    "source_sql": "SELECT COUNT(T1.Id) FROM posts AS T1 INNER JOIN comments AS T2 ON T1.Id = T2.PostId WHERE T1.ViewCount = 1910"
+  },
+  {
+    "id": "bird_codebase_community_033",
+    "intent": "User No.3025 gave a comment at 20:29:39 on 2014/4/23 to a post, how many favorite counts did that post get?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "comments"
+    ],
+    "primary_name": "posts",
+    "description": "user no. 3025 refers to UserId = '3025'; comment at 20:29:39 on 2014/4/23 refers to CreationDate = '2014/4/23 20:29:39.0'",
+    "source_sql": "SELECT T1.FavoriteCount FROM posts AS T1 INNER JOIN comments AS T2 ON T1.Id = T2.PostId WHERE T2.CreationDate = '2014-04-23 20:29:39.0' AND T2.UserId = 3025"
+  },
+  {
+    "id": "bird_codebase_community_034",
+    "intent": "Give the only one comment text of the post with parent id 107829.",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "comments"
+    ],
+    "primary_name": "posts",
+    "description": "one comment refers to CommentCount = '1'",
+    "source_sql": "SELECT T2.Text FROM posts AS T1 INNER JOIN comments AS T2 ON T1.Id = T2.PostId WHERE T1.ParentId = 107829 AND T1.CommentCount = 1"
+  },
+  {
+    "id": "bird_codebase_community_035",
+    "intent": "User No.23853 gave a comment to a post at 9:08:18 on 2013/7/12, was that post well-finished?",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "posts"
+    ],
+    "primary_name": "comments",
+    "description": "user no. 23853 refers to UserId = '23853'; at 9:08:18 on 2013/7/12 refers to CreationDate = '2013-07-12 09:08:18.0'; not well-finished refers to ClosedDate IS NULL and vice versa",
+    "source_sql": "SELECT IIF(T2.ClosedDate IS NULL, 'NOT well-finished', 'well-finished') AS resylt FROM comments AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T1.UserId = 23853 AND T1.CreationDate = '2013-07-12 09:08:18.0'"
+  },
+  {
+    "id": "bird_codebase_community_036",
+    "intent": "For the owner user of post No. 65041, what is his/her reputation points?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "post no. 65041 refers to Id = '65041'; reputation point refers to Reputation",
+    "source_sql": "SELECT T1.Reputation FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE T2.Id = 65041"
+  },
+  {
+    "id": "bird_codebase_community_037",
+    "intent": "For the user with the display name of \"Tiago Pasqualini\", how many posts did he/she own?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "\"Tiago Pasqualini\" is the DisplayName;",
+    "source_sql": "SELECT COUNT(T1.Id) FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE T1.DisplayName = 'Tiago Pasqualini'"
+  },
+  {
+    "id": "bird_codebase_community_038",
+    "intent": "Provide the display name of the user who made the vote No.6347.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "votes"
+    ],
+    "primary_name": "users",
+    "description": "vote no. 6347 refers to Id = '6347'",
+    "source_sql": "SELECT T1.DisplayName FROM users AS T1 INNER JOIN votes AS T2 ON T1.Id = T2.UserId WHERE T2.Id = 6347"
+  },
+  {
+    "id": "bird_codebase_community_039",
+    "intent": "Give the number of votes for the post about data visualization.",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "votes"
+    ],
+    "primary_name": "posts",
+    "description": "About data visualization is the Title that contains 'data visualization';",
+    "source_sql": "SELECT COUNT(T1.Id) FROM posts AS T1 INNER JOIN votes AS T2 ON T1.Id = T2.PostId WHERE T1.Title LIKE '%data visualization%'"
+  },
+  {
+    "id": "bird_codebase_community_040",
+    "intent": "For the user whose display name is \"DatEpicCoderGuyWhoPrograms\", what is his/her badge's name?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "\"DatEpicCoderGuyWhoPrograms\" is the DisplayName;",
+    "source_sql": "SELECT T2.Name FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T1.DisplayName = 'DatEpicCoderGuyWhoPrograms'"
+  },
+  {
+    "id": "bird_codebase_community_041",
+    "intent": "For the user No.24, how many times is the number of his/her posts compared to his/her votes?",
+    "category": "bird",
+    "relevant_names": [
+      "votes",
+      "posts"
+    ],
+    "primary_name": "votes",
+    "description": "user no. 24 refers to UserId = OwnerUserId = '24'; times of his/her post than votes = Divide (Count(post.Id), Count(votes.Id))",
+    "source_sql": "SELECT CAST(COUNT(T2.Id) AS REAL) / COUNT(DISTINCT T1.Id) FROM votes AS T1 INNER JOIN posts AS T2 ON T1.UserId = T2.OwnerUserId WHERE T1.UserId = 24"
+  },
+  {
+    "id": "bird_codebase_community_042",
+    "intent": "How many views did the post titled 'Integration of Weka and/or RapidMiner into Informatica PowerCenter/Developer' get?",
+    "category": "bird",
+    "relevant_names": [
+      "posts"
+    ],
+    "primary_name": "posts",
+    "description": "\"Integration of Weka and/or RapidMiner into Informatica PowerCenter/Developer\" is the Title of post; views refers to ViewCount",
+    "source_sql": "SELECT ViewCount FROM posts WHERE Title = 'Integration of Weka and/or RapidMiner into Informatica PowerCenter/Developer'"
+  },
+  {
+    "id": "bird_codebase_community_043",
+    "intent": "Write the contents of comments with a score of 17.",
+    "category": "bird",
+    "relevant_names": [
+      "comments"
+    ],
+    "primary_name": "comments",
+    "description": "score of 17 refers to Score = 17; contents of comments refers to Text",
+    "source_sql": "SELECT Text FROM comments WHERE Score = 17"
+  },
+  {
+    "id": "bird_codebase_community_044",
+    "intent": "Which user has the website URL listed at 'http://stackoverflow.com'",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "\"http://stackoverflow.com\" is the WebsiteUrl; user refers to DisplayName",
+    "source_sql": "SELECT DisplayName FROM users WHERE WebsiteUrl = 'http://stackoverflow.com'"
+  },
+  {
+    "id": "bird_codebase_community_045",
+    "intent": "What is the badge name that user 'SilentGhost' obtained?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "\"SilentGhost\" is the DisplayName of user;",
+    "source_sql": "SELECT T2.Name FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T1.DisplayName = 'SilentGhost'"
+  },
+  {
+    "id": "bird_codebase_community_046",
+    "intent": "Name the user that commented 'thank you user93!'",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "comments"
+    ],
+    "primary_name": "users",
+    "description": "\"thank you user93\" is the Text of comment; user refers to DisplayName",
+    "source_sql": "SELECT T1.DisplayName FROM users AS T1 INNER JOIN comments AS T2 ON T1.Id = T2.UserId WHERE T2.Text = 'thank you user93!'"
+  },
+  {
+    "id": "bird_codebase_community_047",
+    "intent": "Write all comments made by user 'A Lion.'",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "comments"
+    ],
+    "primary_name": "users",
+    "description": "\"A Lion\" is the DisplayName of user; comment refers to Text",
+    "source_sql": "SELECT T2.Text FROM users AS T1 INNER JOIN comments AS T2 ON T1.Id = T2.UserId WHERE T1.DisplayName = 'A Lion'"
+  },
+  {
+    "id": "bird_codebase_community_048",
+    "intent": "Which user made a post titled 'Understanding what Dassault iSight is doing?' and how much is the reputation of the user?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "\"Understanding what Dassault iSight is doing?\" is the Title of post; user refers to DisplayName;",
+    "source_sql": "SELECT T1.DisplayName, T1.Reputation FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE T2.Title = 'Understanding what Dassault iSight is doing?'"
+  },
+  {
+    "id": "bird_codebase_community_049",
+    "intent": "Write all comments made on the post titled 'How does gentle boosting differ from AdaBoost?'",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "adaboost",
+      "posts"
+    ],
+    "primary_name": "comments",
+    "description": "\"How does gentle boosting differ from AdaBoost?\" is the Title of post; comments refers to Text",
+    "source_sql": "SELECT T1.Text FROM comments AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T2.Title = 'How does gentle boosting differ from AdaBoost?'"
+  },
+  {
+    "id": "bird_codebase_community_050",
+    "intent": "Name 10 users with the badge name 'Necromancer.'",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "\"Necromancer\" is the Name of badge; users refers to DisplayName",
+    "source_sql": "SELECT T1.DisplayName FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T2.Name = 'Necromancer' LIMIT 10"
+  },
+  {
+    "id": "bird_codebase_community_051",
+    "intent": "Who is the editor of the post titled 'Open source tools for visualizing multi-dimensional data?'",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "'Open source tools for visualizing multi-dimensional data' is the Title of Post; editor refers to DisplayName;",
+    "source_sql": "SELECT T2.DisplayName FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T1.Title = 'Open source tools for visualizing multi-dimensional data?'"
+  },
+  {
+    "id": "bird_codebase_community_052",
+    "intent": "List the title of posts which were edited by Vebjorn Ljosa.",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "\"Vebjorn Ljosa\" is the DisplayName; last edited refers to LastEditorUserId",
+    "source_sql": "SELECT T1.Title FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T2.DisplayName = 'Vebjorn Ljosa'"
+  },
+  {
+    "id": "bird_codebase_community_053",
+    "intent": "What is the total score of the posts edited by Yevgeny and include the user's website URL.",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "\"Yevgeny\" is the DisplayName; edited refers to LastEditorUserId",
+    "source_sql": "SELECT SUM(T1.Score), T2.WebsiteUrl FROM posts AS T1 INNER JOIN users AS T2 ON T1.LastEditorUserId = T2.Id WHERE T2.DisplayName = 'Yevgeny' GROUP BY T2.WebsiteUrl"
+  },
+  {
+    "id": "bird_codebase_community_054",
+    "intent": "Write all the comments left by users who edited the post titled 'Why square the difference instead of taking the absolute value in standard deviation?'",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "posthistory"
+    ],
+    "primary_name": "posts",
+    "description": "\"Why square the difference instead of taking the absolute value in standard deviation?\" is the Title of post;",
+    "source_sql": "SELECT T2.Comment FROM posts AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.PostId WHERE T1.Title = 'Why square the difference instead of taking the absolute value in standard deviation?'"
+  },
+  {
+    "id": "bird_codebase_community_055",
+    "intent": "How much is the total bounty amount of the post titled about 'data'",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "votes"
+    ],
+    "primary_name": "posts",
+    "description": "About data means the title contains 'data'; total bounty Amount refers to Sum(BountyAmount)",
+    "source_sql": "SELECT SUM(T2.BountyAmount) FROM posts AS T1 INNER JOIN votes AS T2 ON T1.Id = T2.PostId WHERE T1.Title LIKE '%data%'"
+  },
+  {
+    "id": "bird_codebase_community_056",
+    "intent": "Which user added a bounty amount of 50 to the post title mentioning variance?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "votes",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "bounty amount of 50 refers to BountyAmount = 50; user refers to DisplayName; title mentioning variance refers to Title include 'variance'",
+    "source_sql": "SELECT T3.DisplayName, T1.Title FROM posts AS T1 INNER JOIN votes AS T2 ON T1.Id = T2.PostId INNER JOIN users AS T3 ON T3.Id = T2.UserId WHERE T2.BountyAmount = 50 AND T1.Title LIKE '%variance%'"
+  },
+  {
+    "id": "bird_codebase_community_057",
+    "intent": "Calculate the average view count of each post tagged as 'humor' and list the title and the comment of each post.",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "posts"
+    ],
+    "primary_name": "comments",
+    "description": "tagged as  'humor' refers to tag = '<humor>'; comment of the post refers to Text; average view count = AVG(ViewCount)",
+    "source_sql": "SELECT AVG(T2.ViewCount), T2.Title, T1.Text FROM comments AS T1 INNER JOIN posts AS T2 ON T2.Id = T1.PostId  WHERE T2.Tags = '<humor>' GROUP BY T2.Title, T1.Text "
+  },
+  {
+    "id": "bird_codebase_community_058",
+    "intent": "Give the total number of comments posted by user ID 13.",
+    "category": "bird",
+    "relevant_names": [
+      "comments"
+    ],
+    "primary_name": "comments",
+    "description": "",
+    "source_sql": "SELECT COUNT(Id) FROM comments WHERE UserId = 13"
+  },
+  {
+    "id": "bird_codebase_community_059",
+    "intent": "Which user ID has the highest reputation?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "highest reputation refers to Max(Reputation)",
+    "source_sql": "SELECT Id FROM users WHERE Reputation = ( SELECT MAX(Reputation) FROM users )"
+  },
+  {
+    "id": "bird_codebase_community_060",
+    "intent": "Which user ID has the lowest view?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "lowest views refers to Min(Views)",
+    "source_sql": "SELECT Id FROM users WHERE Views = ( SELECT MIN(Views) FROM users )"
+  },
+  {
+    "id": "bird_codebase_community_061",
+    "intent": "How many users are awarded with supporter badge during year 2011?",
+    "category": "bird",
+    "relevant_names": [
+      "badges"
+    ],
+    "primary_name": "badges",
+    "description": "\"Supporter\" is the Name of badge; in year 2011 refers to year(Date) = 2011",
+    "source_sql": "SELECT COUNT(Id) FROM badges WHERE STRFTIME('%Y', Date) = '2011' AND Name = 'Supporter'"
+  },
+  {
+    "id": "bird_codebase_community_062",
+    "intent": "How many users are awarded with more than 5 badges?",
+    "category": "bird",
+    "relevant_names": [
+      "badges"
+    ],
+    "primary_name": "badges",
+    "description": "more than 5 badges refers to Count (Name) > 5; user refers to UserId",
+    "source_sql": "SELECT COUNT(UserId) FROM ( SELECT UserId, COUNT(Name) AS num FROM badges GROUP BY UserId ) T WHERE T.num > 5"
+  },
+  {
+    "id": "bird_codebase_community_063",
+    "intent": "How many users from New York have a teacher and supporter badge?",
+    "category": "bird",
+    "relevant_names": [
+      "badges",
+      "users"
+    ],
+    "primary_name": "badges",
+    "description": "\"Supporter\" and \"Teachers\" are both Name of badge; 'New York' is the Location; user refers to UserId",
+    "source_sql": "SELECT COUNT(DISTINCT T1.Id) FROM badges AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T1.Name IN ('Supporter', 'Teacher') AND T2.Location = 'New York'"
+  },
+  {
+    "id": "bird_codebase_community_064",
+    "intent": "Which user created post ID 1 and what is the reputation of this user?",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "users"
+    ],
+    "primary_name": "comments",
+    "description": "",
+    "source_sql": "SELECT T2.Id, T2.Reputation FROM comments AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T1.PostId = 1"
+  },
+  {
+    "id": "bird_codebase_community_065",
+    "intent": "Which user have only one post history per post and having at least 1000 views?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posthistory",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "having at least 1000 view refers to Views > = 1000; user refers to UserId",
+    "source_sql": "SELECT T2.UserId FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN posts AS T3 ON T2.PostId = T3.Id WHERE T3.ViewCount >= 1000 GROUP BY T2.UserId HAVING COUNT(DISTINCT T2.PostHistoryTypeId) = 1"
+  },
+  {
+    "id": "bird_codebase_community_066",
+    "intent": "Which users have posted the most comments. List out the user's badge?",
+    "category": "bird",
+    "relevant_names": [
+      "badges",
+      "comments"
+    ],
+    "primary_name": "badges",
+    "description": "user with the most comments refers to UserId where Max(Count(Id)",
+    "source_sql": "SELECT Name FROM badges AS T1 INNER JOIN comments AS T2 ON T1.UserId = t2.UserId GROUP BY T2.UserId ORDER BY COUNT(T2.UserId) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_067",
+    "intent": "How many users from India have the teacher badges?",
+    "category": "bird",
+    "relevant_names": [
+      "badges",
+      "users"
+    ],
+    "primary_name": "badges",
+    "description": "\"India\" is the Location; \"Teacher\" is the Name of badge",
+    "source_sql": "SELECT COUNT(T1.Id) FROM badges AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T2.Location = 'India' AND T1.Name = 'Teacher'"
+  },
+  {
+    "id": "bird_codebase_community_068",
+    "intent": "What is the percentage difference of student badges given during 2010 and 2011?",
+    "category": "bird",
+    "relevant_names": [
+      "badges"
+    ],
+    "primary_name": "badges",
+    "description": "student badges refers to badge's name = 'Student'; during 2010 refers to Year(Date) = 2010; during 2011 refers to Year(Date) = 2011; percentage difference = Subtract (Divide(Count(Name where Year(Date) = 2010), Count (Name)) *100, Divide(Count(Name where Year(Date) = 2011), Count(Name)) * 100)",
+    "source_sql": "SELECT CAST(SUM(IIF(STRFTIME('%Y', Date) = '2010', 1, 0)) AS REAL) * 100 / COUNT(Id) - CAST(SUM(IIF(STRFTIME('%Y', Date) = '2011', 1, 0)) AS REAL) * 100 / COUNT(Id) FROM badges WHERE Name = 'Student'"
+  },
+  {
+    "id": "bird_codebase_community_069",
+    "intent": "What are the post history type IDs for post ID 3720 and how many unique users have commented on the post?",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "posthistory"
+    ],
+    "primary_name": "comments",
+    "description": "",
+    "source_sql": "SELECT T1.PostHistoryTypeId, (SELECT COUNT(DISTINCT UserId) FROM comments WHERE PostId = 3720) AS NumberOfUsers FROM postHistory AS T1 WHERE T1.PostId = 3720"
+  },
+  {
+    "id": "bird_codebase_community_070",
+    "intent": "List out all post that are related to post ID 61217 and what is the popularity of this post?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "postlinks"
+    ],
+    "primary_name": "posts",
+    "description": "post related refers to RelatedPostId; popularity refers to ViewCount",
+    "source_sql": "SELECT T1.ViewCount FROM posts AS T1 INNER JOIN postLinks AS T2 ON T1.Id = T2.PostId WHERE T2.PostId = 61217"
+  },
+  {
+    "id": "bird_codebase_community_071",
+    "intent": "What is the score and the link type ID for post ID 395?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "postlinks"
+    ],
+    "primary_name": "posts",
+    "description": "",
+    "source_sql": "SELECT T1.Score, T2.LinkTypeId FROM posts AS T1 INNER JOIN postLinks AS T2 ON T1.Id = T2.PostId WHERE T2.PostId = 395"
+  },
+  {
+    "id": "bird_codebase_community_072",
+    "intent": "List out all post ID with score more than 60 and list out all the user ID that created these post.",
+    "category": "bird",
+    "relevant_names": [
+      "posthistory",
+      "posts"
+    ],
+    "primary_name": "posthistory",
+    "description": "score more than 60 refers to Score > 60",
+    "source_sql": "SELECT PostId, UserId FROM postHistory WHERE PostId IN ( SELECT Id FROM posts WHERE Score > 60 )"
+  },
+  {
+    "id": "bird_codebase_community_073",
+    "intent": "What is the sum of favourite count gained by user ID 686 in 2011?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "posthistory"
+    ],
+    "primary_name": "posts",
+    "description": "in 2011 refers to year (CreatinDate) = 2011",
+    "source_sql": "SELECT SUM(DISTINCT FavoriteCount) FROM posts WHERE Id IN ( SELECT PostId FROM postHistory WHERE UserId = 686 AND STRFTIME('%Y', CreationDate) = '2011' )"
+  },
+  {
+    "id": "bird_codebase_community_074",
+    "intent": "What is the average of the up votes and the average user age for users creating more than 10 posts?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "creating more than 10 post refers to Count (UserId) > 10; average of the up votes = Divide (Sum(UpVotes), Count (UserId)); average age = Divide (Sum(Age), Count(UserId))",
+    "source_sql": "SELECT AVG(T1.UpVotes), AVG(T1.Age) FROM users AS T1 INNER JOIN ( SELECT OwnerUserId, COUNT(*) AS post_count FROM posts GROUP BY OwnerUserId HAVING post_count > 10) AS T2 ON T1.Id = T2.OwnerUserId"
+  },
+  {
+    "id": "bird_codebase_community_075",
+    "intent": "How many users obtained the \"Announcer\" badge?",
+    "category": "bird",
+    "relevant_names": [
+      "badges"
+    ],
+    "primary_name": "badges",
+    "description": "\"Announcer\" is the Name of badge; user refers to UserId",
+    "source_sql": "SELECT COUNT(id) FROM badges WHERE Name = 'Announcer'"
+  },
+  {
+    "id": "bird_codebase_community_076",
+    "intent": "List out the name of badges that users obtained on 7/19/2010 7:39:08 PM.",
+    "category": "bird",
+    "relevant_names": [
+      "badges"
+    ],
+    "primary_name": "badges",
+    "description": "on 7/19/2010 7:39:08 PM refers to Date = '2010-07-19 19:39:08.0'",
+    "source_sql": "SELECT Name FROM badges WHERE Date = '2010-07-19 19:39:08.0'"
+  },
+  {
+    "id": "bird_codebase_community_077",
+    "intent": "How many positive comments are there on the list?",
+    "category": "bird",
+    "relevant_names": [
+      "comments"
+    ],
+    "primary_name": "comments",
+    "description": "Positive comment refers to score > 60",
+    "source_sql": "SELECT COUNT(id) FROM comments WHERE score > 60"
+  },
+  {
+    "id": "bird_codebase_community_078",
+    "intent": "State the detailed content of the comment which was created on 7/19/2010 7:25:47 PM.",
+    "category": "bird",
+    "relevant_names": [
+      "comments"
+    ],
+    "primary_name": "comments",
+    "description": "detailed content of the comment refers to Text; created on 7/19/2010 7:16:14 PM refers to CreationDate = '2010-07-19 19:16:14.0'",
+    "source_sql": "SELECT Text FROM comments WHERE CreationDate = '2010-07-19 19:16:14.0'"
+  },
+  {
+    "id": "bird_codebase_community_079",
+    "intent": "How many posts have a score of 10 on the list?",
+    "category": "bird",
+    "relevant_names": [
+      "posts"
+    ],
+    "primary_name": "posts",
+    "description": "score of 10 refers to Score = 10; post refers to Id",
+    "source_sql": "SELECT COUNT(id) FROM posts WHERE Score = 10"
+  },
+  {
+    "id": "bird_codebase_community_080",
+    "intent": "What are the name of badge that users who have the highest reputation obtained?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "highest reputation refers to Max(Reputation); user refers to UserId",
+    "source_sql": "SELECT T2.name FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId ORDER BY T1.Reputation DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_081",
+    "intent": "Mention the reputation of users who had obtained the badge on 7/19/2010 7:39:08 PM.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "on 7/19/2010 7:39:08 PM refers to Date = '2010-07-19 19:39:08.0'",
+    "source_sql": "SELECT T1.Reputation FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T2.Date = '2010-07-19 19:39:08.0'"
+  },
+  {
+    "id": "bird_codebase_community_082",
+    "intent": "What is the name of badge that the user whose display name is \"Pierre\" obtained?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "",
+    "source_sql": "SELECT T2.Name FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T1.DisplayName = 'Pierre'"
+  },
+  {
+    "id": "bird_codebase_community_083",
+    "intent": "List out the dates that users who are located in Rochester, NY obtained their badges?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "\"Rochester, NY\" is the Location of user; user refers to UserId",
+    "source_sql": "SELECT T2.Date FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T1.Location = 'Rochester, NY'"
+  },
+  {
+    "id": "bird_codebase_community_084",
+    "intent": "Among the users who obtained the \"Teacher\" badge, calculate their percentage of users",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "\"Teacher\" is the Name of badge;  percentage = Divide (Count(UserId where it's \"Teacher\"), Count(UserId)) * 100",
+    "source_sql": "SELECT CAST(COUNT(T1.Id) AS REAL) * 100 / (SELECT COUNT(Id) FROM users) FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T2.Name = 'Teacher'"
+  },
+  {
+    "id": "bird_codebase_community_085",
+    "intent": "Among the users who obtained the \"Organizer\" badges, calculate the percentage of users who are teenagers.",
+    "category": "bird",
+    "relevant_names": [
+      "badges",
+      "users"
+    ],
+    "primary_name": "badges",
+    "description": "\"Organizer\" is the Name of badge; teenager refers to Age BETWEEN 13 AND 18; percentage = Divide (Count(UserId where Age BETWEEN 13 AND 18), Count(UserId)) *100",
+    "source_sql": "SELECT CAST(SUM(IIF(T2.Age BETWEEN 13 AND 18, 1, 0)) AS REAL) * 100 / COUNT(T1.Id) FROM badges AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T1.`Name` = 'Organizer'"
+  },
+  {
+    "id": "bird_codebase_community_086",
+    "intent": "What is the comment's rating score of the post which was created on 7/19/2010 7:19:56 PM",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "posts"
+    ],
+    "primary_name": "comments",
+    "description": "created on 7/19/2010 7:19:56 PM refers to CreationDate = '2010-07-19 19:19:56.0'",
+    "source_sql": "SELECT T1.Score FROM comments AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T1.CreationDate = '2010-07-19 19:19:56.0'"
+  },
+  {
+    "id": "bird_codebase_community_087",
+    "intent": "What is the detailed content of the comment of the post which was created on 7/19/2010 7:37:33 PM?",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "posts"
+    ],
+    "primary_name": "comments",
+    "description": "detailed content of the comment refers to Text; created on 7/19/2010 7:37:33 PM CreationDate = 2010-07-19 19:37:33.0'",
+    "source_sql": "SELECT T1.Text FROM comments AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T1.CreationDate = '2010-07-19 19:37:33.0'"
+  },
+  {
+    "id": "bird_codebase_community_088",
+    "intent": "List out the age of users who located in Vienna, Austria obtained the badge?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "\"Vienna, Austria\" is the Location",
+    "source_sql": "SELECT T1.Age FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T1.Location = 'Vienna, Austria'"
+  },
+  {
+    "id": "bird_codebase_community_089",
+    "intent": "How many adults who obtained the badge Supporter?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "Supporter is the Name of badge; adult refers to Age BETWEEN 19 AND 65",
+    "source_sql": "SELECT COUNT(T1.Id) FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T2.Name = 'Supporter' AND T1.Age BETWEEN 19 AND 65"
+  },
+  {
+    "id": "bird_codebase_community_090",
+    "intent": "State the number of views of users who obtained the badge on 7/19/2010 7:39:08 PM.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "on 7/19/2010 7:39:08 PM refers to Date = '2010-07-19 19:39:08.0'",
+    "source_sql": "SELECT T1.Views FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T2.Date = '2010-07-19 19:39:08.0'"
+  },
+  {
+    "id": "bird_codebase_community_091",
+    "intent": "What are the name of badges that users who have the lowest reputation obtained?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "lowest reputation refers to Min(Reputation); user refers to UserId",
+    "source_sql": "SELECT T2.Name FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T1.Reputation = (SELECT MIN(Reputation) FROM users)"
+  },
+  {
+    "id": "bird_codebase_community_092",
+    "intent": "State the name of badge that the user whose display name is \"Sharpie\" obtained.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "\"Sharpie\" is the DisplayName of user; user refers to UserId",
+    "source_sql": "SELECT T2.Name FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T1.DisplayName = 'Sharpie'"
+  },
+  {
+    "id": "bird_codebase_community_093",
+    "intent": "How many elders obtained the \"Supporter\" badge?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "\"Supporter\" is the Name of badge;\u00a0 elders refers to Age > 65",
+    "source_sql": "SELECT COUNT(T1.Id) FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T1.Age > 65 AND T2.Name = 'Supporter'"
+  },
+  {
+    "id": "bird_codebase_community_094",
+    "intent": "What is the name of user with the ID of 30?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "name of user refers to DisplayName;",
+    "source_sql": "SELECT DisplayName FROM users WHERE Id = 30"
+  },
+  {
+    "id": "bird_codebase_community_095",
+    "intent": "How many users were from New York?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "New York refers to Location;",
+    "source_sql": "SELECT COUNT(Id) FROM users WHERE Location = 'New York'"
+  },
+  {
+    "id": "bird_codebase_community_096",
+    "intent": "How many votes were made in 2010?",
+    "category": "bird",
+    "relevant_names": [
+      "votes"
+    ],
+    "primary_name": "votes",
+    "description": "YEAR(CreationDate) = 2010;",
+    "source_sql": "SELECT COUNT(id) FROM votes WHERE STRFTIME('%Y', CreationDate) = '2010'"
+  },
+  {
+    "id": "bird_codebase_community_097",
+    "intent": "How many users were adult?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "adult refers to user where Age BETWEEN 19 and 65;",
+    "source_sql": "SELECT COUNT(id) FROM users WHERE Age BETWEEN 19 AND 65"
+  },
+  {
+    "id": "bird_codebase_community_098",
+    "intent": "Which users have the highest number of views?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "users have the highest number of views refer to DisplayName where MAX(Views);",
+    "source_sql": "SELECT Id, DisplayName FROM users WHERE Views = ( SELECT MAX(Views) FROM users )"
+  },
+  {
+    "id": "bird_codebase_community_099",
+    "intent": "Calculate the ratio of votes in 2010 and 2011.",
+    "category": "bird",
+    "relevant_names": [
+      "votes"
+    ],
+    "primary_name": "votes",
+    "description": "DIVIDE(COUNT(Id where YEAR(CreationDate) = 2010), COUNT(Id where YEAR(CreationDate) = 2011)) FROM votes;",
+    "source_sql": "SELECT CAST(SUM(IIF(STRFTIME('%Y', CreationDate) = '2010', 1, 0)) AS REAL) / SUM(IIF(STRFTIME('%Y', CreationDate) = '2011', 1, 0)) FROM votes"
+  },
+  {
+    "id": "bird_codebase_community_100",
+    "intent": "What is the name of tags used by John Salvatier's?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posthistory",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "DisplayName = 'John Salvatier';",
+    "source_sql": "SELECT T3.Tags FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN posts AS T3 ON T2.PostId = T3.Id WHERE T1.DisplayName = 'John Salvatier'"
+  },
+  {
+    "id": "bird_codebase_community_101",
+    "intent": "How many posts were created by Daniel Vassallo?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posthistory"
+    ],
+    "primary_name": "users",
+    "description": "DisplayName = 'Daniel Vassallo';",
+    "source_sql": "SELECT COUNT(T1.Id) FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId WHERE T1.DisplayName = 'Daniel Vassallo'"
+  },
+  {
+    "id": "bird_codebase_community_102",
+    "intent": "How many votes were made by Harlan?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posthistory",
+      "votes"
+    ],
+    "primary_name": "users",
+    "description": "DisplayName = 'Harlan';",
+    "source_sql": "SELECT COUNT(T1.Id) FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN votes AS T3 ON T3.PostId = T2.PostId WHERE T1.DisplayName = 'Harlan'"
+  },
+  {
+    "id": "bird_codebase_community_103",
+    "intent": "Which post by slashnick has the most answers count? State the post ID.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posthistory",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "most answers count refers to MAX(AnswerCount); post by slashnick refers to DisplayName = 'slashnick';",
+    "source_sql": "SELECT T2.PostId FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN posts AS T3 ON T2.PostId = T3.Id WHERE T1.DisplayName = 'slashnick' ORDER BY T3.AnswerCount DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_104",
+    "intent": "Among posts by Harvey Motulsky and Noah Snyder, which one has higher popularity?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posthistory",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "Has higher popularity means the post has higher view count ; calculation = MAX(SUM(ViewCount)) where DisplayName = 'Harvey Motulsky' OR DisplayName = 'Noah Snyder';",
+    "source_sql": "SELECT T1.DisplayName FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN posts AS T3 ON T2.PostId = T3.Id WHERE T1.DisplayName = 'Harvey Motulsky' OR T1.DisplayName = 'Noah Snyder' GROUP BY T1.DisplayName ORDER BY SUM(T3.ViewCount) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_105",
+    "intent": "How many posts by Matt Parker have more than 4 votes?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posthistory",
+      "posts",
+      "votes"
+    ],
+    "primary_name": "users",
+    "description": "more than 4 votes refer to PostId > 4; DisplayName = 'Matt Parker';",
+    "source_sql": "SELECT COUNT(T1.Id) FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN posts AS T3 ON T2.PostId = T3.Id INNER JOIN votes AS T4 ON T4.PostId = T3.Id WHERE T1.DisplayName = 'Matt Parker' GROUP BY T2.PostId, T4.Id HAVING COUNT(T4.Id) > 4"
+  },
+  {
+    "id": "bird_codebase_community_106",
+    "intent": "How many negative comments did Neil McGuigan get in his posts?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts",
+      "comments"
+    ],
+    "primary_name": "users",
+    "description": "Negative comment refers to score < 60; DisplayName = 'Neil McGuigan';",
+    "source_sql": "SELECT COUNT(T3.Id) FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId INNER JOIN comments AS T3 ON T2.Id = T3.PostId WHERE T1.DisplayName = 'Neil McGuigan' AND T3.Score < 60"
+  },
+  {
+    "id": "bird_codebase_community_107",
+    "intent": "State all the tags used by Mark Meckes in his posts that doesn't have comments.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posthistory",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "used by Mark Meckes refers to DisplayName = 'Mark Meckes'; Doen't have comments refers to CommentCount = 0;",
+    "source_sql": "SELECT T3.Tags FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN posts AS T3 ON T3.Id = T2.PostId WHERE T1.DisplayName = 'Mark Meckes' AND T3.CommentCount = 0"
+  },
+  {
+    "id": "bird_codebase_community_108",
+    "intent": "List all the name of users that obtained the Organizer Badges.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "name of users refers to DisplayName; the Organizer Badges refer to badges where Name = 'Organizer';",
+    "source_sql": "SELECT T1.DisplayName FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T2.`Name` = 'Organizer'"
+  },
+  {
+    "id": "bird_codebase_community_109",
+    "intent": "Based on posts posted by Community, calculate the percentage of posts that use the R language.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posthistory",
+      "tags"
+    ],
+    "primary_name": "users",
+    "description": "DIVIDE(COUNT(PostId WHERE TagName = 'r')), (COUNT(PostId WHERE DisplayName = 'Community')) as percentage; R language refers to tagname = 'r'",
+    "source_sql": "SELECT CAST(SUM(IIF(T3.TagName = 'r', 1, 0)) AS REAL) * 100 / COUNT(T1.Id) FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN tags AS T3 ON T3.ExcerptPostId = T2.PostId WHERE T1.DisplayName = 'Community'"
+  },
+  {
+    "id": "bird_codebase_community_110",
+    "intent": "Calculate the difference in view count from post posted by Mornington and view count from posts posted by Amos.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posthistory",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "calculation = SUBTRACT(SUM(ViewCount where DisplayName = 'Mornington'), SUM(ViewCount where DisplayName = 'Amos'));",
+    "source_sql": "SELECT SUM(IIF(T1.DisplayName = 'Mornington', T3.ViewCount, 0)) - SUM(IIF(T1.DisplayName = 'Amos', T3.ViewCount, 0)) AS diff FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN posts AS T3 ON T3.Id = T2.PostId"
+  },
+  {
+    "id": "bird_codebase_community_111",
+    "intent": "How many users received commentator badges in 2014?",
+    "category": "bird",
+    "relevant_names": [
+      "badges"
+    ],
+    "primary_name": "badges",
+    "description": "Commentator is the name of the badge; year(Date) = 2014;",
+    "source_sql": "SELECT COUNT(Id) FROM badges WHERE Name = 'Commentator' AND STRFTIME('%Y', Date) = '2014'"
+  },
+  {
+    "id": "bird_codebase_community_112",
+    "intent": "How many posts were created on 21st July, 2010?",
+    "category": "bird",
+    "relevant_names": [
+      "posthistory"
+    ],
+    "primary_name": "posthistory",
+    "description": "created on 21st July, 2010 refers to CreationDate BETWEEN '2010-07-21 00:00:00' and '2012-07-21 23:59:59';",
+    "source_sql": "SELECT COUNT(id) FROM postHistory WHERE date(CreationDate) = '2010-07-21'"
+  },
+  {
+    "id": "bird_codebase_community_113",
+    "intent": "What are the display names and ages of user who got the highest in views?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "the highest in views refers to MAX(Views);",
+    "source_sql": "SELECT DisplayName, Age FROM users WHERE Views = ( SELECT MAX(Views) FROM users )"
+  },
+  {
+    "id": "bird_codebase_community_114",
+    "intent": "Provide the last edit date and last edit user ID for the post \"Detecting a given face in a database of facial images\".",
+    "category": "bird",
+    "relevant_names": [
+      "posts"
+    ],
+    "primary_name": "posts",
+    "description": "Title = 'Detecting a given face in a database of facial images';",
+    "source_sql": "SELECT LastEditDate, LastEditorUserId FROM posts WHERE Title = 'Detecting a given face in a database of facial images'"
+  },
+  {
+    "id": "bird_codebase_community_115",
+    "intent": "How many negative comments were given by user ID 13?",
+    "category": "bird",
+    "relevant_names": [
+      "comments"
+    ],
+    "primary_name": "comments",
+    "description": "negative comments refer to Score < 60;",
+    "source_sql": "SELECT COUNT(Id) FROM comments WHERE UserId = 13 AND Score < 60"
+  },
+  {
+    "id": "bird_codebase_community_116",
+    "intent": "Describe the post title which got positive comments and display names of the users who posted those comments.",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "comments"
+    ],
+    "primary_name": "posts",
+    "description": "positive comments refer to Score > 60;",
+    "source_sql": "SELECT T1.Title, T2.UserDisplayName FROM posts AS T1 INNER JOIN comments AS T2 ON T2.PostId = T2.Id WHERE T1.Score > 60"
+  },
+  {
+    "id": "bird_codebase_community_117",
+    "intent": "Provide the badge names received in 2011 for the user whose location is in the North Pole.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "received in 2011 refers to year(Date) = 2011;",
+    "source_sql": "SELECT T2.Name FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE STRFTIME('%Y', T2.Date) = '2011' AND T1.Location = 'North Pole'"
+  },
+  {
+    "id": "bird_codebase_community_118",
+    "intent": "Provide the users' display names and available website URLs of the post with favorite count of more than 150.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "favorite count of more than 150 refers to FavoriteCount > 150;",
+    "source_sql": "SELECT T1.DisplayName, T1.WebsiteUrl FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE T2.FavoriteCount > 150"
+  },
+  {
+    "id": "bird_codebase_community_119",
+    "intent": "Describe the post history counts and last edit date of the post title \"What is the best introductory Bayesian statistics textbook?\"",
+    "category": "bird",
+    "relevant_names": [
+      "posthistory",
+      "posts"
+    ],
+    "primary_name": "posthistory",
+    "description": "",
+    "source_sql": "SELECT T1.Id, T2.LastEditDate FROM postHistory AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T2.Title = 'What is the best introductory Bayesian statistics textbook?'"
+  },
+  {
+    "id": "bird_codebase_community_120",
+    "intent": "Describe the last accessed date and location of the users who received the outliers badge.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "Outliers is the name of the badge;",
+    "source_sql": "SELECT T1.LastAccessDate, T1.Location FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T2.Name = 'outliers'"
+  },
+  {
+    "id": "bird_codebase_community_121",
+    "intent": "Provide the related post title of \"How to tell if something happened in a data set which monitors a value over time\".",
+    "category": "bird",
+    "relevant_names": [
+      "postlinks",
+      "posts"
+    ],
+    "primary_name": "postlinks",
+    "description": "",
+    "source_sql": "SELECT T3.Title FROM postLinks AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id INNER JOIN posts AS T3 ON T1.RelatedPostId = T3.Id WHERE T2.Title = 'How to tell if something happened in a data set which monitors a value over time'"
+  },
+  {
+    "id": "bird_codebase_community_122",
+    "intent": "List the post IDs and badge names of the user Samuel in 2013.",
+    "category": "bird",
+    "relevant_names": [
+      "posthistory",
+      "badges"
+    ],
+    "primary_name": "posthistory",
+    "description": "Samuel refers to UserDisplayName; YEAR(CreationDate) = 2013 relates to PostId; YEAR(Date) = 2013 relates to the badge;",
+    "source_sql": "SELECT T1.PostId, T2.Name FROM postHistory AS T1 INNER JOIN badges AS T2 ON T1.UserId = T2.UserId WHERE T1.UserDisplayName = 'Samuel' AND STRFTIME('%Y', T1.CreationDate) = '2013' AND STRFTIME('%Y', T2.Date) = '2013'"
+  },
+  {
+    "id": "bird_codebase_community_123",
+    "intent": "What is the owner's display name of the most popular post?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "Higher view count means the post has higher popularity; the most popular post refers to MAX(ViewCount);",
+    "source_sql": "SELECT DisplayName FROM users WHERE Id = ( SELECT OwnerUserId FROM posts ORDER BY ViewCount DESC LIMIT 1 )"
+  },
+  {
+    "id": "bird_codebase_community_124",
+    "intent": "Mention the display name and location of the user who owned the excerpt post with hypothesis-testing tag.",
+    "category": "bird",
+    "relevant_names": [
+      "tags",
+      "posts",
+      "users"
+    ],
+    "primary_name": "tags",
+    "description": "user who owned the excerpt post with hypothesis-testing tag refers to OwnerUserId WHERE TagName = 'hypothesis-testing';",
+    "source_sql": "SELECT T3.DisplayName, T3.Location FROM tags AS T1 INNER JOIN posts AS T2 ON T1.ExcerptPostId = T2.Id INNER JOIN users AS T3 ON T3.Id = T2.OwnerUserId WHERE T1.TagName = 'hypothesis-testing'"
+  },
+  {
+    "id": "bird_codebase_community_125",
+    "intent": "Write down the related posts titles and link type IDs of the post \"What are principal component scores?\".",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "postlinks"
+    ],
+    "primary_name": "posts",
+    "description": "Title = 'What are principal component scores?';",
+    "source_sql": "SELECT T3.Title, T2.LinkTypeId FROM posts AS T1 INNER JOIN postLinks AS T2 ON T1.Id = T2.PostId INNER JOIN posts AS T3 ON T2.RelatedPostId = T3.Id WHERE T1.Title = 'What are principal component scores?'"
+  },
+  {
+    "id": "bird_codebase_community_126",
+    "intent": "Describe the display name of the parent ID for child post with the highest score.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "If the parent id is not null, the post is the child post; the highest score refers to MAX(Score);",
+    "source_sql": "SELECT DisplayName FROM users WHERE Id = ( SELECT OwnerUserId FROM posts WHERE ParentId IS NOT NULL ORDER BY Score DESC LIMIT 1 )"
+  },
+  {
+    "id": "bird_codebase_community_127",
+    "intent": "Under the vote type of 8, provide the display names and websites URLs of the user who got the highest bounty amount.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "votes"
+    ],
+    "primary_name": "users",
+    "description": "vote type of 8 refers to VoteTypeId = 8; the highest bounty amount refers to MAX(BountyAmount);",
+    "source_sql": "SELECT DisplayName, WebsiteUrl FROM users WHERE Id = ( SELECT UserId FROM votes WHERE VoteTypeId = 8 ORDER BY BountyAmount DESC LIMIT 1 )"
+  },
+  {
+    "id": "bird_codebase_community_128",
+    "intent": "What are the titles of the top 5 posts with the highest popularity?",
+    "category": "bird",
+    "relevant_names": [
+      "posts"
+    ],
+    "primary_name": "posts",
+    "description": "Higher view count means the post has higher popularity; the highest popularity refers to MAX(ViewCount);",
+    "source_sql": "SELECT Title FROM posts ORDER BY ViewCount DESC LIMIT 5"
+  },
+  {
+    "id": "bird_codebase_community_129",
+    "intent": "How many tags have post count between 5,000 to 7,000?",
+    "category": "bird",
+    "relevant_names": [
+      "tags"
+    ],
+    "primary_name": "tags",
+    "description": "post count between 5,000 to 7,000 refers to Count BETWEEN 5000 and 7000;",
+    "source_sql": "SELECT COUNT(Id) FROM tags WHERE Count BETWEEN 5000 AND 7000"
+  },
+  {
+    "id": "bird_codebase_community_130",
+    "intent": "What is the owner user id of the most valuable post?",
+    "category": "bird",
+    "relevant_names": [
+      "posts"
+    ],
+    "primary_name": "posts",
+    "description": "the most valuable post refers to MAX(FavoriteCount);",
+    "source_sql": "SELECT OwnerUserId FROM posts WHERE FavoriteCount = ( SELECT MAX(FavoriteCount) FROM posts )"
+  },
+  {
+    "id": "bird_codebase_community_131",
+    "intent": "How old is the most influential user?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "How old describes age; the most influential refers to user where MAX(Reputation);",
+    "source_sql": "SELECT Age FROM users WHERE Reputation = ( SELECT MAX(Reputation) FROM users )"
+  },
+  {
+    "id": "bird_codebase_community_132",
+    "intent": "How many posts with votes that were created in 2011 have a bounty of 50?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "votes"
+    ],
+    "primary_name": "posts",
+    "description": "created in 2012 refers YEAR(CreationDate) = 2011; BountyAmount = 50;",
+    "source_sql": "SELECT COUNT(T1.Id) FROM posts AS T1 INNER JOIN votes AS T2 ON T1.Id = T2.PostId WHERE T2.BountyAmount = 50 AND STRFTIME('%Y', T2.CreationDate) = '2011'"
+  },
+  {
+    "id": "bird_codebase_community_133",
+    "intent": "What is the id of the youngest user?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "the youngest user refers to MIN(Age);",
+    "source_sql": "SELECT Id FROM users WHERE Age = ( SELECT MIN(Age) FROM users )"
+  },
+  {
+    "id": "bird_codebase_community_134",
+    "intent": "What is the sum of score of the post on 2010-07-19?",
+    "category": "bird",
+    "relevant_names": [
+      "posts"
+    ],
+    "primary_name": "posts",
+    "description": "on 2010-07-19 refers to LasActivityDate LIKE '2010-07-19%';",
+    "source_sql": "SELECT SUM(Score) FROM posts WHERE LasActivityDate LIKE '2010-07-19%'"
+  },
+  {
+    "id": "bird_codebase_community_135",
+    "intent": "What is the average monthly number of links created in 2010 for posts that have no more than 2 answers?",
+    "category": "bird",
+    "relevant_names": [
+      "postlinks",
+      "posts"
+    ],
+    "primary_name": "postlinks",
+    "description": "calculation = DIVIDE(COUNT(Id where YEAR(CreationDate) = 2010 and AnswerCount < = 2), 12)",
+    "source_sql": "SELECT CAST(COUNT(T1.Id) AS REAL) / 12 FROM postLinks AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T2.AnswerCount <= 2 AND STRFTIME('%Y', T1.CreationDate) = '2010'"
+  },
+  {
+    "id": "bird_codebase_community_136",
+    "intent": "Among the posts that were voted by user 1465, what is the id of the most valuable post?",
+    "category": "bird",
+    "relevant_names": [
+      "votes",
+      "posts"
+    ],
+    "primary_name": "votes",
+    "description": "user 1465 refers to UserId = 1465; the most valuable post refers to MAX(FavoriteCount);",
+    "source_sql": "SELECT T2.Id FROM votes AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T1.UserId = 1465 ORDER BY T2.FavoriteCount DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_137",
+    "intent": "What is the title of the post with the oldest post link?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "postlinks"
+    ],
+    "primary_name": "posts",
+    "description": "the oldest post link refers to MIN(CreaionDate);",
+    "source_sql": "SELECT T1.Title FROM posts AS T1 INNER JOIN postLinks AS T2 ON T2.PostId = T1.Id ORDER BY T1.CreaionDate LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_138",
+    "intent": "What is the display name of the user who acquired the highest amount of badges?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "highest amount of badges refers to MAX(COUNT(Name));",
+    "source_sql": "SELECT T1.DisplayName FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId GROUP BY T1.DisplayName ORDER BY COUNT(T1.Id) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_139",
+    "intent": "When did 'chl' cast its first vote in a post?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "votes"
+    ],
+    "primary_name": "users",
+    "description": "DisplayName = 'chl'; cast its first vote refers to MIN(CreationDate);",
+    "source_sql": "SELECT T2.CreationDate FROM users AS T1 INNER JOIN votes AS T2 ON T1.Id = T2.UserId WHERE T1.DisplayName = 'chl' ORDER BY T2.CreationDate LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_140",
+    "intent": "What is the date when the youngest user made his or her first post?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "the youngest user refers to MIN(Age); first post refers to MIN(CreaionDate);",
+    "source_sql": "SELECT T2.CreaionDate FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE T1.Age IS NOT NULL ORDER BY T1.Age, T2.CreaionDate LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_141",
+    "intent": "What is the display name of the user who acquired the first Autobiographer badge?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "badges"
+    ],
+    "primary_name": "users",
+    "description": "Autobiographer is the name of the badge; acquired the first refers to MIN(Date);",
+    "source_sql": "SELECT T1.DisplayName FROM users AS T1 INNER JOIN badges AS T2 ON T1.Id = T2.UserId WHERE T2.`Name` = 'Autobiographer' ORDER BY T2.Date LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_142",
+    "intent": "Among the users located in United Kingdom, how many users whose post have a total favorite amount of 4 or more?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "favorite amount of 4 or more refers to FavoriteCount > = 4; Location = 'United Kingdom';",
+    "source_sql": "SELECT COUNT(T1.Id) FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE T1.Location = 'United Kingdom' AND T2.FavoriteCount >= 4"
+  },
+  {
+    "id": "bird_codebase_community_143",
+    "intent": "What is the average number of posts voted by the oldest users?",
+    "category": "bird",
+    "relevant_names": [
+      "votes",
+      "users"
+    ],
+    "primary_name": "votes",
+    "description": "average number of posts voted refers to AVG(PostId) FROM votes; the oldest users refer to MAX(Age);",
+    "source_sql": "SELECT AVG(PostId) FROM votes WHERE UserId IN ( SELECT Id FROM users WHERE Age = ( SELECT MAX(Age) FROM users ) )"
+  },
+  {
+    "id": "bird_codebase_community_144",
+    "intent": "Who has the highest reputation? Please give the display name.",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "the highest reputation refers to MAX(Reputation);",
+    "source_sql": "SELECT DisplayName FROM users WHERE Reputation = ( SELECT MAX(Reputation) FROM users )"
+  },
+  {
+    "id": "bird_codebase_community_145",
+    "intent": "How many users whose reputations are higher than 2000 and the number of views is higher than 1000?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "reputations are higher than 2000 refer to Reputation > 2000; number of views is higher than 1000 refers to Views > 1000;",
+    "source_sql": "SELECT COUNT(id) FROM users WHERE Reputation > 2000 AND Views > 1000"
+  },
+  {
+    "id": "bird_codebase_community_146",
+    "intent": "Please list all display names of users who are adults.",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "adults refer to users where Age BETWEEN 19 and 65;",
+    "source_sql": "SELECT DisplayName FROM users WHERE Age BETWEEN 19 AND 65"
+  },
+  {
+    "id": "bird_codebase_community_147",
+    "intent": "How many posts did Jay Stevens have in 2010?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "DisplayName = 'Jay Stevens'; in 2010 refers to YEAR(CreationDate) = 2010;",
+    "source_sql": "SELECT COUNT(T1.Id) FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE STRFTIME('%Y', T2.CreaionDate) = '2010' AND T1.DisplayName = 'Jay Stevens'"
+  },
+  {
+    "id": "bird_codebase_community_148",
+    "intent": "Which post by Harvey Motulsky has the most views? Please give the id and title of this post.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "DisplayName = 'Harvey Motulsky'; the most views refer to MAX(ViewCount);",
+    "source_sql": "SELECT T2.Id, T2.Title FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE T1.DisplayName = 'Harvey Motulsky' ORDER BY T2.ViewCount DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_149",
+    "intent": "Which post has the highest score? Please give its id and title's name.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "the highest score refers to MAX(Score); owner's name refers to DisplayName;",
+    "source_sql": "SELECT T1.Id, T2.Title FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId ORDER BY T2.Score DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_150",
+    "intent": "What is the average score of Stephen Turner's posts?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "DisplayName = 'Stephen Turner'; average score refers to AVG(Score);",
+    "source_sql": "SELECT AVG(T2.Score) FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE T1.DisplayName = 'Stephen Turner'"
+  },
+  {
+    "id": "bird_codebase_community_151",
+    "intent": "Please list the users' display names whose posts had over 20000 views in 2011.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "had over 20000 views in 2011 refers to ViewCount > 20000 where YEAR(CreationDate) = 2011;",
+    "source_sql": "SELECT T1.DisplayName FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE STRFTIME('%Y', T2.CreaionDate) = '2011' AND T2.ViewCount > 20000"
+  },
+  {
+    "id": "bird_codebase_community_152",
+    "intent": "Which is the most valuable post in 2010? Please give its id and the owner's display name.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "the most valuable post in 2015 refers to MAX(FavoriteCount) where year(CreationDate) = 2010;",
+    "source_sql": "SELECT T2.OwnerUserId, T1.DisplayName FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE STRFTIME('%Y', T1.CreationDate) = '2010' ORDER BY T2.FavoriteCount DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_153",
+    "intent": "What is the percentage of posts whose owners had a reputation of over 1000 in 2011?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "percentage = DIVIDE(COUNT(Id where YEAR(CreationDate) = 2011 and Reputation > 1000), COUNT(Id) ) * 100;",
+    "source_sql": "SELECT CAST(SUM(IIF(STRFTIME('%Y', T2.CreaionDate) = '2011' AND T1.Reputation > 1000, 1, 0)) AS REAL) * 100 / COUNT(T1.Id) FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId"
+  },
+  {
+    "id": "bird_codebase_community_154",
+    "intent": "Identify the percentage of teenage users.",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "DIVIDE(COUNT(Id where Age BETWEEN 13 and 18), COUNT(Id)) as percentage;",
+    "source_sql": "SELECT CAST(SUM(IIF(Age BETWEEN 13 AND 18, 1, 0)) AS REAL) * 100 / COUNT(Id) FROM users"
+  },
+  {
+    "id": "bird_codebase_community_155",
+    "intent": "Identify the total views on the post 'Computer Game Datasets'. Name the user who posted it last time.",
+    "category": "bird",
+    "relevant_names": [
+      "posthistory",
+      "posts",
+      "users"
+    ],
+    "primary_name": "posthistory",
+    "description": "total views refer to ViewCount; Name the user refers to DisplayName; post 'Computer Game Datasets' refers to Text = 'Computer Game Datasets';",
+    "source_sql": "SELECT T2.ViewCount, T3.DisplayName FROM postHistory AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id INNER JOIN users AS T3 ON T2.LastEditorUserId = T3.Id WHERE T1.Text = 'Computer Game Datasets'"
+  },
+  {
+    "id": "bird_codebase_community_156",
+    "intent": "Identify the total number of posts with views above average.",
+    "category": "bird",
+    "relevant_names": [
+      "posts"
+    ],
+    "primary_name": "posts",
+    "description": "views above average refer to ViewCount > AVG(ViewCount);",
+    "source_sql": "SELECT Id FROM posts WHERE ViewCount > ( SELECT AVG(ViewCount) FROM posts )"
+  },
+  {
+    "id": "bird_codebase_community_157",
+    "intent": "How many comments were added to the post with the highest score?",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "comments"
+    ],
+    "primary_name": "posts",
+    "description": "the highest score refers to MAX(Score);",
+    "source_sql": "SELECT COUNT(T2.Id) FROM posts AS T1 INNER JOIN comments AS T2 ON T1.Id = T2.PostId GROUP BY T1.Id ORDER BY SUM(T1.Score) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_158",
+    "intent": "Identify the number of posts that have been viewed over 35000 times but have received no comments from other users.",
+    "category": "bird",
+    "relevant_names": [
+      "posts"
+    ],
+    "primary_name": "posts",
+    "description": "have been viewed over 35000 times refers to ViewCount > 35000; received no comments refers to CommentCount = 0;",
+    "source_sql": "SELECT COUNT(Id) FROM posts WHERE ViewCount > 35000 AND CommentCount = 0"
+  },
+  {
+    "id": "bird_codebase_community_159",
+    "intent": "Identify the display name and location of the user, who was the last to edit the post with ID 183.",
+    "category": "bird",
+    "relevant_names": [
+      "posts",
+      "users"
+    ],
+    "primary_name": "posts",
+    "description": "last to edit refers to MAX(LastEditDate);",
+    "source_sql": "SELECT T2.DisplayName, T2.Location FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T1.Id = 183 ORDER BY T1.LastEditDate DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_160",
+    "intent": "Identify the latest badge awarded to the user with the display name Emmett.",
+    "category": "bird",
+    "relevant_names": [
+      "badges",
+      "users"
+    ],
+    "primary_name": "badges",
+    "description": "the latest badge refers to Name FROM badges where MAX(Date);",
+    "source_sql": "SELECT T1.Name FROM badges AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T2.DisplayName = 'Emmett' ORDER BY T1.Date DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_161",
+    "intent": "Identify the number of adult users who have cast over 5000 upvotes.",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "adult users refer to Age BETWEEN 19 and 65; over 5000 upvotes refer to UpVotes > 5000;",
+    "source_sql": "SELECT COUNT(Id) FROM users WHERE Age BETWEEN 19 AND 65 AND UpVotes > 5000"
+  },
+  {
+    "id": "bird_codebase_community_162",
+    "intent": "How long did it take the user, known by his or her display name 'Zolomon' to get the badge? Count from the date the user's account was created.",
+    "category": "bird",
+    "relevant_names": [
+      "badges",
+      "users"
+    ],
+    "primary_name": "badges",
+    "description": "SUBTRACT(Date from stats_badges, CreationDate) where DisplayName = 'Zolomon';",
+    "source_sql": "SELECT T1.Date - T2.CreationDate FROM badges AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T2.DisplayName = 'Zolomon'"
+  },
+  {
+    "id": "bird_codebase_community_163",
+    "intent": "Identify the number of posts and comments left by the user, who has the latest created user account.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts",
+      "comments"
+    ],
+    "primary_name": "users",
+    "description": "the latest created user account refers to MAX(CreationDate);",
+    "source_sql": "SELECT COUNT(T2.Id) FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId INNER JOIN comments AS T3 ON T3.PostId = T2.Id ORDER BY T1.CreationDate DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_164",
+    "intent": "Provide the text of the latest 10 comments to the post with the title 'Analysing wind data with R' and the display name of the user who left it.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts",
+      "comments"
+    ],
+    "primary_name": "users",
+    "description": "the latest comment refers to MAX(CreationDate);",
+    "source_sql": "SELECT T3.Text, T1.DisplayName FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId INNER JOIN comments AS T3 ON T2.Id = T3.PostId WHERE T2.Title = 'Analysing wind data with R' ORDER BY T1.CreationDate DESC LIMIT 10"
+  },
+  {
+    "id": "bird_codebase_community_165",
+    "intent": "How many users were awarded with 'Citizen Patrol' badge?",
+    "category": "bird",
+    "relevant_names": [
+      "badges"
+    ],
+    "primary_name": "badges",
+    "description": "Citizen Patrol' is the name of the badge;",
+    "source_sql": "SELECT COUNT(id) FROM badges WHERE `Name` = 'Citizen Patrol'"
+  },
+  {
+    "id": "bird_codebase_community_166",
+    "intent": "Count the number of posts with a tag specified as 'careers'.",
+    "category": "bird",
+    "relevant_names": [
+      "tags"
+    ],
+    "primary_name": "tags",
+    "description": "tag specified as 'careers' refers to TagName = 'careers';",
+    "source_sql": "SELECT COUNT(Id) FROM tags WHERE TagName = 'careers'"
+  },
+  {
+    "id": "bird_codebase_community_167",
+    "intent": "What is the reputation and view count of the user, who is known by his or her display name 'Jarrod Dixon'?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "",
+    "source_sql": "SELECT Reputation, Views FROM users WHERE DisplayName = 'Jarrod Dixon'"
+  },
+  {
+    "id": "bird_codebase_community_168",
+    "intent": "How many comments and answers were left by the users on the post with the title 'Clustering 1D data'?",
+    "category": "bird",
+    "relevant_names": [
+      "posts"
+    ],
+    "primary_name": "posts",
+    "description": "",
+    "source_sql": "SELECT CommentCount, AnswerCount FROM posts WHERE Title = 'Clustering 1D data'"
+  },
+  {
+    "id": "bird_codebase_community_169",
+    "intent": "When did the user known as 'IrishStat' create his or her account?",
+    "category": "bird",
+    "relevant_names": [
+      "users"
+    ],
+    "primary_name": "users",
+    "description": "DisplayName = 'IrishStat'; when create his or her account refers to CreationDate;",
+    "source_sql": "SELECT CreationDate FROM users WHERE DisplayName = 'IrishStat'"
+  },
+  {
+    "id": "bird_codebase_community_170",
+    "intent": "Identify the number of posts that offer a bounty amount over 30.",
+    "category": "bird",
+    "relevant_names": [
+      "votes"
+    ],
+    "primary_name": "votes",
+    "description": "bounty amount over 30 refers to BountyAmount > = 30;",
+    "source_sql": "SELECT COUNT(id) FROM votes WHERE BountyAmount >= 30"
+  },
+  {
+    "id": "bird_codebase_community_171",
+    "intent": "Among all the posts posted by the most influential user, identify the percentage with a score above 50.",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "posts"
+    ],
+    "primary_name": "users",
+    "description": "The higher reputation the user has the more influence; percentage = DIVIDE(COUNT(stats_posts.Id where Score > 50 and MAX(Reputation))), COUNT(stats_posts.Id where MAX(Reputation));",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.Score > 50 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.Id) FROM users T1 INNER JOIN posts T2 ON T1.Id = T2.OwnerUserId INNER JOIN ( SELECT MAX(Reputation) AS max_reputation FROM users ) T3 ON T1.Reputation = T3.max_reputation"
+  },
+  {
+    "id": "bird_codebase_community_172",
+    "intent": "How many posts have a score less than 20?",
+    "category": "bird",
+    "relevant_names": [
+      "posts"
+    ],
+    "primary_name": "posts",
+    "description": "score less than 20 refers to Score < 20;",
+    "source_sql": "SELECT COUNT(id) FROM posts WHERE Score < 20"
+  },
+  {
+    "id": "bird_codebase_community_173",
+    "intent": "Among the tags with tag ID below 15, how many of them have 20 count of posts and below?",
+    "category": "bird",
+    "relevant_names": [
+      "tags"
+    ],
+    "primary_name": "tags",
+    "description": "ID below 15 refers to Id < 15; have 20 count of posts and below refers to Count < = 20;",
+    "source_sql": "SELECT COUNT(id) FROM tags WHERE Count <= 20 AND Id < 15"
+  },
+  {
+    "id": "bird_codebase_community_174",
+    "intent": "What is the excerpt post ID and wiki post ID of the tag named sample?",
+    "category": "bird",
+    "relevant_names": [
+      "tags"
+    ],
+    "primary_name": "tags",
+    "description": "tag named sample refers to TagName = 'sample';",
+    "source_sql": "SELECT ExcerptPostId, WikiPostId FROM tags WHERE TagName = 'sample'"
+  },
+  {
+    "id": "bird_codebase_community_175",
+    "intent": "Give the user's reputation and up vote number of the user that commented \"fine, you win :)\".",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "users"
+    ],
+    "primary_name": "comments",
+    "description": "Text = 'fine, you win :)';",
+    "source_sql": "SELECT T2.Reputation, T2.UpVotes FROM comments AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T1.Text = 'fine, you win :)'"
+  },
+  {
+    "id": "bird_codebase_community_176",
+    "intent": "Give the texts commented on the post about linear regression.",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "posts"
+    ],
+    "primary_name": "comments",
+    "description": "about linear regression refers to Title contains 'linear regression'",
+    "source_sql": "SELECT T1.Text FROM comments AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T2.Title LIKE '%linear regression%'"
+  },
+  {
+    "id": "bird_codebase_community_177",
+    "intent": "Among the posts with views ranging from 100 to 150, what is the comment with the highest score?",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "posts"
+    ],
+    "primary_name": "comments",
+    "description": "views ranging from 100 to 150 refers to ViewCount BETWEEN 100 and 150; comment with the highest score refers to Text where MAX(Score);",
+    "source_sql": "SELECT Text FROM comments WHERE PostId IN ( SELECT Id FROM posts WHERE ViewCount BETWEEN 100 AND 150 ) ORDER BY Score DESC LIMIT 1"
+  },
+  {
+    "id": "bird_codebase_community_178",
+    "intent": "List the creation date and age of the user that commented with webiste.",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "users"
+    ],
+    "primary_name": "comments",
+    "description": "commented with webiste refers to the value contains 'http://'",
+    "source_sql": "SELECT T2.CreationDate, T2.Age FROM comments AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T1.text LIKE '%http://%'"
+  },
+  {
+    "id": "bird_codebase_community_179",
+    "intent": "In comments with 0 score, how many of the posts have view count lower than 5?",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "posts"
+    ],
+    "primary_name": "comments",
+    "description": "view count lower than 5 refers to ViewCount < 5;",
+    "source_sql": "SELECT COUNT(T1.Id) FROM comments AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T2.ViewCount < 5 AND T2.Score = 0"
+  },
+  {
+    "id": "bird_codebase_community_180",
+    "intent": "In posts with 1 comment, how many of the comments have 0 score?",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "posts"
+    ],
+    "primary_name": "comments",
+    "description": "in posts with 1 comment refers to CommentCount = 1;",
+    "source_sql": "SELECT COUNT(T1.id) FROM comments AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T2.CommentCount = 1 AND T2.Score = 0"
+  },
+  {
+    "id": "bird_codebase_community_181",
+    "intent": "Among products comments with 0 score, what is the total number of users ages 40 years old?",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "users"
+    ],
+    "primary_name": "comments",
+    "description": "",
+    "source_sql": "SELECT COUNT(DISTINCT T1.id) FROM comments AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T1.Score = 0 AND T2.Age = 40"
+  },
+  {
+    "id": "bird_codebase_community_182",
+    "intent": "What is the post ID and the comments commented in the post titled by \"Group differences on a five point Likert item\"?",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "posts"
+    ],
+    "primary_name": "comments",
+    "description": "Title = 'Group differences on a five point Likert item';",
+    "source_sql": "SELECT T2.Id, T1.Text FROM comments AS T1 INNER JOIN posts AS T2 ON T1.PostId = T2.Id WHERE T2.Title = 'Group differences on a five point Likert item'"
+  },
+  {
+    "id": "bird_codebase_community_183",
+    "intent": "What is the up vote number of the user that commented \"R is also lazy evaluated.\"?",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "users"
+    ],
+    "primary_name": "comments",
+    "description": "commented \"R is also lazy evaluated.\" refers to Text of the comment;",
+    "source_sql": "SELECT T2.UpVotes FROM comments AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T1.Text = 'R is also lazy evaluated.'"
+  },
+  {
+    "id": "bird_codebase_community_184",
+    "intent": "List the comments commented by the user with a username of Harvey Motulsky.",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "users"
+    ],
+    "primary_name": "comments",
+    "description": "comments refer to Text; username of Harvey Motulsky refers to DisplayName = 'Harvey Motulsky';",
+    "source_sql": "SELECT T1.Text FROM comments AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T2.DisplayName = 'Harvey Motulsky'"
+  },
+  {
+    "id": "bird_codebase_community_185",
+    "intent": "In comments with score between 1 to 5, list down the display names of the users with 0 down votes.",
+    "category": "bird",
+    "relevant_names": [
+      "comments",
+      "users"
+    ],
+    "primary_name": "comments",
+    "description": "DownVotes = 0; Score BETWEEN 1 and 5",
+    "source_sql": "SELECT T2.DisplayName FROM comments AS T1 INNER JOIN users AS T2 ON T1.UserId = T2.Id WHERE T1.Score BETWEEN 1 AND 5 AND T2.DownVotes = 0"
+  },
+  {
+    "id": "bird_codebase_community_186",
+    "intent": "Among the comments with scores between 5 to 10, what is the percentage of the users with 0 up votes?",
+    "category": "bird",
+    "relevant_names": [
+      "users",
+      "comments"
+    ],
+    "primary_name": "users",
+    "description": "percentage = DIVIDE(COUNT(UserId where UpVotes = 0 and Score BETWEEN 5 and 10))*100, (COUNT(UserId where Score BETWEEN 5 and 10));",
+    "source_sql": "SELECT CAST(SUM(IIF(T1.UpVotes = 0, 1, 0)) AS REAL) * 100/ COUNT(T1.Id) AS per FROM users AS T1 INNER JOIN comments AS T2 ON T1.Id = T2.UserId WHERE T2.Score BETWEEN 5 AND 10"
+  }
+]

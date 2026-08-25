@@ -1,0 +1,1950 @@
+[
+  {
+    "id": "bird_thrombosis_prediction_001",
+    "intent": "Are there more in-patient or outpatient who were male? What is the deviation in percentage?",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "male refers to SEX = 'M'; in-patient refers to Admission = '+'; outpatient refers to Admission = '-'; percentage = DIVIDE(COUNT(ID) where SEX = 'M' and Admission = '+', COUNT(ID) where SEX\u00a0 = 'M' and Admission = '-')",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN Admission = '+' THEN 1 ELSE 0 END) AS REAL) * 100 / SUM(CASE WHEN Admission = '-' THEN 1 ELSE 0 END) FROM Patient WHERE SEX = 'M'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_002",
+    "intent": "What is the percentage of female patient were born after 1930?",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "female refers to Sex = 'F'; patient who were born after 1930 refers to year(Birthday) > '1930'; calculation = DIVIDE(COUNT(ID) where year(Birthday) > '1930' and SEX = 'F'), (COUNT(ID) where SEX = 'F')",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN STRFTIME('%Y', Birthday) > '1930' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM Patient WHERE SEX = 'F'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_003",
+    "intent": "For patient born between Year 1930 to 1940, how many percent of them were inpatient?",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "patient born between Year 1930 to 1940 refers to year(Birthday) BETWEEN '1930-01-01' AND '1940-12-31'; inpatient refers to Admission = '+'",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN Admission = '+' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM Patient WHERE STRFTIME('%Y', Birthday) BETWEEN '1930' AND '1940'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_004",
+    "intent": "What is the ratio of outpatient to inpatient followed up treatment among all the 'SLE' diagnosed patient?",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "'SLE' diagnosed patient means Diagnosis = 'SLE'; inpatient refers to Admission = '+'; outpatient refers to Admission = '-'; calculation =  DIVIDE(COUNT(ID) where Diagnosis = 'SLE' and Admission = '+', COUNT(ID) where Diagnosis = 'SLE' and Admission = '-')",
+    "source_sql": "SELECT SUM(CASE WHEN Admission = '+' THEN 1.0 ELSE 0 END) / SUM(CASE WHEN Admission = '-' THEN 1 ELSE 0 END) FROM Patient WHERE Diagnosis = 'SLE'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_005",
+    "intent": "What is the disease patient '30609' diagnosed with. List all the date of laboratory tests done for this patient.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "'30609' is the Patient ID; disease means Diagnosis",
+    "source_sql": "SELECT T1.Diagnosis, T2.Date FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.ID = 30609"
+  },
+  {
+    "id": "bird_thrombosis_prediction_006",
+    "intent": "State the sex and birthday of patient ID '163109'. When was the examination taken and what symptom does the patient had.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "When was the examination taken refers to `Examination Date`",
+    "source_sql": "SELECT T1.SEX, T1.Birthday, T2.`Examination Date`, T2.Symptoms FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T1.ID = 163109"
+  },
+  {
+    "id": "bird_thrombosis_prediction_007",
+    "intent": "List the patient ID, sex and birthday of patient with LDH beyond normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "LDH beyond normal range refers to LDH > '500';",
+    "source_sql": "SELECT DISTINCT T1.ID, T1.SEX, T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.LDH > 500"
+  },
+  {
+    "id": "bird_thrombosis_prediction_008",
+    "intent": "State the ID and age of patient with positive degree of coagulation.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "age refers to SUBTRACT(year(current_timestamp), year(Birthday)); positive degree of coagulation refers to RVVT = '+';",
+    "source_sql": "SELECT DISTINCT T1.ID, STRFTIME('%Y', CURRENT_TIMESTAMP) - STRFTIME('%Y', T1.Birthday) FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T2.RVVT = '+'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_009",
+    "intent": "For patients with severe degree of thrombosis, list their ID, sex and disease the patient is diagnosed with.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "severe degree of thrombosis refers to thrombosis = 2; disease refers to diagnosis;",
+    "source_sql": "SELECT DISTINCT T1.ID, T1.SEX, T1.Diagnosis FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T2.Thrombosis = 2"
+  },
+  {
+    "id": "bird_thrombosis_prediction_010",
+    "intent": "List all patients who were born in 1937 whose total cholesterol was beyond the normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "who were born in 1937 refers to year(birthday) = '1937'; total cholesterol was beyond the normal range refers to `T-CHO` > = '250'",
+    "source_sql": "SELECT DISTINCT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE STRFTIME('%Y', T1.Birthday) = '1937' AND T2.`T-CHO` >= 250"
+  },
+  {
+    "id": "bird_thrombosis_prediction_011",
+    "intent": "For patient with albumin level lower than 3.5, list their ID, sex and diagnosis.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "albumin level lower than 3.5 refers to ALB < 3.5;",
+    "source_sql": "SELECT DISTINCT T1.ID, T1.SEX, T1.Diagnosis FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.ALB < 3.5"
+  },
+  {
+    "id": "bird_thrombosis_prediction_012",
+    "intent": "What is the percentage of female patient had total protein not within the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "female refers to sex = 'F'; total protein not within the normal range refers to TP < '6.0' or TP > '8.5'; calculation = DIVIDE((ID where sex = 'F' and TP < '6.0' or TP > '8.5'), COUNT(ID)) * 100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T1.SEX = 'F' AND (T2.TP < 6.0 OR T2.TP > 8.5) THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.SEX = 'F'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_013",
+    "intent": "For in-patient age 50 and above, what is their average anti-cardiolipin antibody (IgG) concentration?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "in-patient refers to Admission = '+'; age 50 and above refers to SUBTRACT(year(current_timestamp), year(Birthday)) >= '50'; average anti-cardiolipin antibody (IgG) concentration refers to AVG(aCL IgG)",
+    "source_sql": "SELECT AVG(T2.`aCL IgG`) FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE STRFTIME('%Y', CURRENT_TIMESTAMP) - STRFTIME('%Y', T1.Birthday) >= 50 AND T1.Admission = '+'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_014",
+    "intent": "How many female patients who came at the hospital in 1997 was immediately followed at the outpatient clinic?",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "female refers to sex = 'F'; came at the hospital in 1997 refers to year(Description) = '1997'; immediately followed at the outpatient clinic refers to Admission = '-'",
+    "source_sql": "SELECT COUNT(*) FROM Patient WHERE STRFTIME('%Y', Description) = '1997' AND SEX = 'F' AND Admission = '-'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_015",
+    "intent": "What was the age of the youngest patient when they initially arrived at the hospital?",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "age refers to SUBTRACT(YEAR(`First Date`),YEAR(Birthday))",
+    "source_sql": "SELECT MIN(STRFTIME('%Y', `First Date`) - STRFTIME('%Y', Birthday)) FROM Patient"
+  },
+  {
+    "id": "bird_thrombosis_prediction_016",
+    "intent": "How many of the patients with the most serious thrombosis cases examined in 1997 are women?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "the most serious thrombosis refers to Thrombosis = '1' (the most severe one); women refers to sex = 'F'",
+    "source_sql": "SELECT  COUNT(*) FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T1.SEX = 'F' AND STRFTIME('%Y', T2.`Examination Date`) = '1997' AND T2.Thrombosis = 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_017",
+    "intent": "What is the age gap between the youngest and oldest patient with a normal triglyceride recorded?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "age gap refers to SUBTRACT(MAX(year(Birthday)) - MIN(year(Birthday))); normal triglyceride refers to tg > = 200",
+    "source_sql": "SELECT STRFTIME('%Y', MAX(T1.Birthday)) - STRFTIME('%Y', MIN(T1.Birthday)) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.TG >= 200"
+  },
+  {
+    "id": "bird_thrombosis_prediction_018",
+    "intent": "What are the symptoms observed by the youngest patient to ever did a medical examination? Identify their diagnosis.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "The larger the birthday value, the younger the person is, and vice versa; symptoms observed refers to the symptoms is not NULL",
+    "source_sql": "SELECT T2.Symptoms, T1.Diagnosis FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T2.Symptoms IS NOT NULL ORDER BY T1.Birthday DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_019",
+    "intent": "For the year that concluded on December 31, 1998, how many male patients on average were tested in the lab each month?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "the year that concluded on December 31, 1998 refers to Date BETWEEN '1998-01-01' AND '1998-12-31'; male refers to SEX = 'M'; calculation = DIVIDE(COUNT(ID), 12)",
+    "source_sql": "SELECT CAST(COUNT(T1.ID) AS REAL) / 12 FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE STRFTIME('%Y', T2.Date) = '1998' AND T1.SEX = 'M'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_020",
+    "intent": "The oldest SJS patient's medical laboratory work was completed on what date, and what age was the patient when they initially arrived at the hospital?",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory",
+      "patient"
+    ],
+    "primary_name": "laboratory",
+    "description": "The larger the birthday value, the younger the person is, and vice versa; 'SJS' refers to diagnosis; (SUBTRACT(year(`First Date`)), year(Birthday)); age of the patients when they initially arrived at the hospital refers to year(Birthday)",
+    "source_sql": "SELECT T1.Date, STRFTIME('%Y', T2.`First Date`) - STRFTIME('%Y', T2.Birthday),T2.Birthday FROM Laboratory AS T1 INNER JOIN Patient AS T2 ON T1.ID = T2.ID WHERE T2.Diagnosis = 'SJS' AND T2.Birthday IS NOT NULL ORDER BY T2.Birthday ASC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_021",
+    "intent": "What is the ratio of male to female patients among all those with abnormal uric acid counts?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "male refers to SEX = 'M'; female refers to SEX = 'F'; abnormal uric acid refers to UA < = '8.0' where SEX = 'M', UA < = '6.5' where SEX = 'F'; calculation = DIVIDE(SUM(UA <= '8.0' and SEX = 'M'), SUM(UA <= '6.5 and SEX = 'F'))",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.UA <= 8.0 AND T1.SEX = 'M' THEN 1 ELSE 0 END) AS REAL) / SUM(CASE WHEN T2.UA <= 6.5 AND T1.SEX = 'F' THEN 1 ELSE 0 END) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID"
+  },
+  {
+    "id": "bird_thrombosis_prediction_022",
+    "intent": "How many patients hadn't undergone a medical examination until at least a year following their initial hospital visit?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "hadn't undergone a medical examination until at least a year refers to SUBTRACT(year(`Examination Date`), year(`First Date`)) > = 1",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T1.Admission = '+' AND STRFTIME('%Y', T2.`Examination Date`) - STRFTIME('%Y', T1.`First Date`) >= 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_023",
+    "intent": "How many underage patients were examined during the course of the three-year period from 1990 to 1993?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "underage patients refers to year(Birthday) < 18; three-year period from 1990 to 1993 refers to year(`Examination Date`) between '1990' and '1993'",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE STRFTIME('%Y', T2.`Examination Date`) BETWEEN '1990' AND '1993' AND STRFTIME('%Y', T2.`Examination Date`) - STRFTIME('%Y', T1.Birthday) < 18"
+  },
+  {
+    "id": "bird_thrombosis_prediction_024",
+    "intent": "How many male patients have elevated total bilirubin count?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "male refers to SEX = 'M'; elevated means above the normal range; total bilirubin above the normal range refers to `T-BIL` >= '2.0'",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.`T-BIL` >= 2.0 AND T1.SEX = 'M'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_025",
+    "intent": "What is the most common illness that doctors identified among the patients whose lab work was done between 1/1/1985, and 12/31/1995?",
+    "category": "bird",
+    "relevant_names": [
+      "examination",
+      "patient"
+    ],
+    "primary_name": "examination",
+    "description": "the most common illness refers to MAX(COUNT(Diagnosis)); lab work between 1/1/1985 and 12/31/1995 refers to `Examination Date` between '1985-01-01' and '1995-12-31 '",
+    "source_sql": "SELECT T2.Diagnosis FROM Examination AS T1 INNER JOIN Patient AS T2 ON T1.ID = T2.ID WHERE T1.`Examination Date` BETWEEN '1985-01-01' AND '1995-12-31' GROUP BY T2.Diagnosis ORDER BY COUNT(T2.Diagnosis) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_026",
+    "intent": "What is the average age of patients as of year 1999 examined in the laboratory for the October of the year 1991?",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory",
+      "patient"
+    ],
+    "primary_name": "laboratory",
+    "description": "average age of patients as of year 1999 refers to AVG(SUBTRACT('1999', year(Birthday))); October of 1991 refers to Date BETWEEN '1991-10-01' AND '1991-10-30'",
+    "source_sql": "SELECT AVG('1999'  - STRFTIME('%Y', T2.Birthday)) FROM Laboratory AS T1 INNER JOIN Patient AS T2 ON T1.ID = T2.ID WHERE T1.Date BETWEEN '1991-10-01' AND '1991-10-30'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_027",
+    "intent": "How old was the patient who had the highest hemoglobin count at the time of the examination, and what is the doctor's diagnosis?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "How old the patient refers to SUBTRACT(year(`Examination Date`), year(Birthday)); the highest hemoglobin count refers to MAX(HGB)",
+    "source_sql": "SELECT STRFTIME('%Y', T2.Date) - STRFTIME('%Y', T1.Birthday), T1.Diagnosis FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID ORDER BY T2.HGB DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_028",
+    "intent": "What was the anti-nucleus antibody concentration level for the patient id 3605340 on 1996/12/2?",
+    "category": "bird",
+    "relevant_names": [
+      "examination"
+    ],
+    "primary_name": "examination",
+    "description": "anti-nucleus antibody refers to ANA; 1996/12/2 refers to `Examination Date` = '1996-12-02'",
+    "source_sql": "SELECT ANA FROM Examination WHERE ID = 3605340 AND `Examination Date` = '1996-12-02'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_029",
+    "intent": "Was the total cholesterol status for the patient id 2927464 on 1995-9-4 at the normal level?",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory"
+    ],
+    "primary_name": "laboratory",
+    "description": "total cholesterol normal level refers to N < 250",
+    "source_sql": "SELECT CASE WHEN `T-CHO` < 250 THEN 'Normal' ELSE 'Abnormal' END FROM Laboratory WHERE ID = 2927464 AND Date = '1995-09-04'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_030",
+    "intent": "What was the gender of the first AORTITIS diagnosed patient?",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "gender means SEX; 'AORTITIS' refers to Diagnosis;",
+    "source_sql": "SELECT SEX FROM Patient WHERE Diagnosis = 'AORTITIS' AND `First Date` IS NOT NULL ORDER BY `First Date` ASC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_031",
+    "intent": "For the patient who was diagnosed with SLE on 1994/2/19, what was his/her anti-Cardiolipin antibody concentration status on 1993/11/12?",
+    "category": "bird",
+    "relevant_names": [
+      "examination",
+      "patient"
+    ],
+    "primary_name": "examination",
+    "description": "diagnosed with SLE refers to Diagnosis = 'SLE'; 1994/2/19 refers to Description = '1994-02-19'; anti-Cardiolipin refers to aCL IgM; 1993/11/12 refers to Examination Date = '1993/11/12'",
+    "source_sql": "SELECT `aCL IgA`, `aCL IgG`, `aCL IgM` FROM Examination WHERE ID IN ( SELECT ID FROM Patient WHERE Diagnosis = 'SLE' AND Description = '1994-02-19' ) AND `Examination Date` = '1993-11-12'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_032",
+    "intent": "Was the patient a man or a women whose ALT glutamic pylvic transaminase status got 9 on 1992-6-12?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "man refers to SEX = 'M'; women refers to SEX = 'F'; ALT glutamic pylvic transaminase status got 9 GPT = '9'; 1992/6/12 refers to Date = '1992-06-12'",
+    "source_sql": "SELECT T1.SEX FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.GPT = 9.0 AND T2.Date = '1992-06-12'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_033",
+    "intent": "For the patient who got the laboratory test of uric acid level as 8.4 on 1991-10-21, how old was he/she at that time?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "how old at that time refers to SUBTRACT(year(test date), year(Birthday)); uric acid level as 8.4 refers to UA = '8.4'; 1991/10/21 refers to Date = '1991-10-21'",
+    "source_sql": "SELECT STRFTIME('%Y', T2.Date) - STRFTIME('%Y', T1.Birthday) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.UA = 8.4 AND T2.Date = '1991-10-21'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_034",
+    "intent": "For the patient who first came to the hospital on 1991/6/13 who was diagnosed with SJS, what is the total number of his/her Laboratory tests in 1995?",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory",
+      "patient"
+    ],
+    "primary_name": "laboratory",
+    "description": "1991/6/13 refers to `First Date` = '1991-06-13'; 'SJS' refers to Diagnosis; total number of his/her Laboratory tests refers to COUNT(ID); 1995 refers to Date",
+    "source_sql": "SELECT COUNT(*) FROM Laboratory WHERE ID = ( SELECT ID FROM Patient WHERE `First Date` = '1991-06-13' AND Diagnosis = 'SJS' ) AND STRFTIME('%Y', Date) = '1995'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_035",
+    "intent": "For the patient who was diagnosed SLE on 1997/1/27, what was his/her original diagnose when he/she came to the hospital for the first time?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "'SLE' AND original diagnose refers to diagnosis; 1997/1/27 refer to `Examination Date` = '1997-01-27'; first came to the hospital refers to patient.`First Date`",
+    "source_sql": "SELECT T1.Diagnosis FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T1.ID = ( SELECT ID FROM Examination WHERE `Examination Date` = '1997-01-27' AND Diagnosis = 'SLE' ) AND T2.`Examination Date` = T1.`First Date`"
+  },
+  {
+    "id": "bird_thrombosis_prediction_036",
+    "intent": "For the patient whose birthday was 1959/3/1, what symptoms did he/she have during the examination on 1993/9/27?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "",
+    "source_sql": "SELECT T2.Symptoms FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T1.Birthday = '1959-03-01' AND T2.`Examination Date` = '1993-09-27'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_037",
+    "intent": "For the patient who was born on 1959/2/18, what is the decrease rate for his/her total cholesterol from November to December in 1981?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "born on 1959/2/18 refers to Birthday = '1959-02-18'; calculation = SUBTRACT(SUM(Birthday = '1959-02-18' and Date like '1981-11-%' THEN `T-CHO`), SUM(Birthday = '1959-02-18' and Date like '1981-12-%' THEN `T-CHO`))",
+    "source_sql": "SELECT CAST((SUM(CASE WHEN T2.Date LIKE '1981-11-%' THEN T2.`T-CHO` ELSE 0 END) - SUM(CASE WHEN T2.Date LIKE '1981-12-%' THEN T2.`T-CHO` ELSE 0 END)) AS REAL) / SUM(CASE WHEN T2.Date LIKE '1981-12-%' THEN T2.`T-CHO` ELSE 0 END) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.Birthday = '1959-02-18'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_038",
+    "intent": "Lists all patients by ID who were diagnosed with Behcet's and had their exams between 01/01/197 and 12/31/1997.",
+    "category": "bird",
+    "relevant_names": [
+      "examination"
+    ],
+    "primary_name": "examination",
+    "description": "'Behcet' refers to diagnosis; exam between 01/01/1997 and 12/31/1997 refers to YEAR(Description) > = '1997-1-1' AND YEAR(Description) < '1998-1-1'",
+    "source_sql": "SELECT ID FROM Examination WHERE `Examination Date` BETWEEN '1997-01-01' AND '1997-12-31' AND Diagnosis = 'Behcet'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_039",
+    "intent": "How many patients who were examined between 1987/7/6 and 1996/1/31 had a GPT level greater than 30 and an ALB level less than 4? List them by their ID.",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory"
+    ],
+    "primary_name": "laboratory",
+    "description": "examined between 1987/7/6 and 1996/1/31 refers to Date BETWEEN '1987-07-06' AND '1996-01-31'; GPT level greater than 30 refers to GPT > 30; ALB level less than 4 ALB < 4",
+    "source_sql": "SELECT DISTINCT ID FROM Laboratory WHERE Date BETWEEN '1987-07-06' AND '1996-01-31' AND GPT > 30 AND ALB < 4"
+  },
+  {
+    "id": "bird_thrombosis_prediction_040",
+    "intent": "How many female patients born in 1964 were admitted to the hospital? List them by ID.",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "female refers to SEX = 'F'; born in 1964 refers to YEAR(Birthday) = 1964; admitted to the hospital refers to Admission = '+'",
+    "source_sql": "SELECT ID FROM Patient WHERE STRFTIME('%Y', Birthday) = '1964' AND SEX = 'F' AND Admission = '+'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_041",
+    "intent": "What number of patients with a degree of thrombosis level 2 and ANA pattern of only S, have a level of anti-Cardiolip in antibody (IgM) 20% higher than average?",
+    "category": "bird",
+    "relevant_names": [
+      "examination"
+    ],
+    "primary_name": "examination",
+    "description": "thrombosis level 2 refers to Thrombosis = 2; ANA pattern of only S refers to ANA = 'S'; average anti-Cardiolip in antibody (IgM) refers to AVG(`aCL IgM`); calculation = MULTIPLY(AVG + AVG, 0.2)",
+    "source_sql": "SELECT COUNT(*) FROM Examination WHERE Thrombosis = 2 AND `ANA Pattern` = 'S' AND `aCL IgM` > (SELECT AVG(`aCL IgM`) * 1.2 FROM Examination WHERE Thrombosis = 2 AND `ANA Pattern` = 'S')"
+  },
+  {
+    "id": "bird_thrombosis_prediction_042",
+    "intent": "What percentage of patients with a proteinuria level within the normal range have a uric acid level below the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory"
+    ],
+    "primary_name": "laboratory",
+    "description": "proteinuria level within the normal range refers to `U-PRO` > 0 AND `U-PRO` < 30; uric acid level below the normal range refers to UA < = 6.5; calculation = MULTIPLY(DIVIDE(UA < = 6.5, `U-PRO` > 0 AND `U-PRO` < 30)\uff0c100)",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN UA <= 6.5 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(ID) FROM Laboratory WHERE `U-PRO` > 0 AND `U-PRO` < 30"
+  },
+  {
+    "id": "bird_thrombosis_prediction_043",
+    "intent": "What percentage of male patients who first presented to the hospital in 1981 were diagnosed with BEHCET?",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "male refers to SEX = 'M'; first presented to the hospital in 1981 refers to YEAR(`FIRST DATE`) = '1981'; BEHCET refers to diagnosis; calculation = DIVIDE(SUM(DIAGNOSIS = 'BEHCET') where YEAR(`FIRST DATE`) = '1981', MULTIPLY(COUNT(YEAR(`FIRST DATE`) = '1981')), 100)",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN Diagnosis = 'BEHCET' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(ID) FROM Patient WHERE STRFTIME('%Y', `First Date`) = '1981' AND SEX = 'M'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_044",
+    "intent": "List all patients who were followed up at the outpatient clinic who underwent a laboratory test in October 1991 and had a total blood bilirubin level within the normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "followed up at the outpatient clinic refers to Admission = '-'; laboratory test in April 1981 refers to Date like '1991-10%'; blood bilirubin level within the normal range refers to T-BIL < 2.0; ",
+    "source_sql": "SELECT DISTINCT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.Admission = '-' AND T2.`T-BIL` < 2.0 AND T2.Date LIKE '1991-10-%'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_045",
+    "intent": "Excluding all P only ANA Pattern patients, how many of the remainder are women born between 1980 and 1989?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "Excluding all P only ANA Pattern refers to `ANA Pattern`! = 'P'; women refers to SEX = 'F'; born between 1980 and 1989 refers to BIRTHDAY",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T2.`ANA Pattern` != 'P' AND STRFTIME('%Y', T1.Birthday) BETWEEN '1980' AND '1989' AND T1.SEX = 'F'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_046",
+    "intent": "What sex is the patient who in a medical examination was diagnosed with PSS and in a laboratory examination had a blood level of C-reactive protein de 2+, createnine 1 and LDH 123?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "PSS' refers to diagnosis; blood level of C-reactive protein de 2+refers to CRP > 2; createnine 1 refers to CRE = 1; LDH 123 refers to LDH = 123",
+    "source_sql": "SELECT T1.SEX FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID INNER JOIN Laboratory AS T3 ON T3.ID = T2.ID WHERE T2.Diagnosis = 'PSS' AND T3.CRP = '2+' AND T3.CRE = 1.0 AND T3.LDH = 123"
+  },
+  {
+    "id": "bird_thrombosis_prediction_047",
+    "intent": "What is the average blood albumin level for female patients with a PLT greater than 400 who have been diagnosed with SLE?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "average blood albumin level refers to AVG(ALB); female refers to SEX = 'F'; PLT greater than 400 refers to PLT > 400; diagnosed with SLE refers to Diagnosis= 'SLE'",
+    "source_sql": "SELECT AVG(T2.ALB) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.PLT > 400 AND T1.Diagnosis = 'SLE' AND T1.SEX = 'F'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_048",
+    "intent": "What is the most common sign of patients with SLE disease?",
+    "category": "bird",
+    "relevant_names": [
+      "examination"
+    ],
+    "primary_name": "examination",
+    "description": "the most common sign refers to MAX(symptoms); 'SLE' refers to diagnosis",
+    "source_sql": "SELECT Symptoms FROM Examination WHERE Diagnosis = 'SLE' GROUP BY Symptoms ORDER BY COUNT(Symptoms) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_049",
+    "intent": "When was the medical information on patient number 48473 first documented, and what disease did she have?",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "medical information first documented refers to Description; disease refers to diagnosis; patient number refers to id",
+    "source_sql": "SELECT `First Date`, Diagnosis FROM Patient WHERE ID = 48473"
+  },
+  {
+    "id": "bird_thrombosis_prediction_050",
+    "intent": "How many female patients were given an APS diagnosis?",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "female refers to SEX = 'F'; APS diagnosis refers to Diagnosis='APS'",
+    "source_sql": "SELECT COUNT(ID) FROM Patient WHERE SEX = 'F' AND Diagnosis = 'APS'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_051",
+    "intent": "How many patients who underwent testing in 1997 had protein levels outside the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory"
+    ],
+    "primary_name": "laboratory",
+    "description": "underwent testing in 1997 refers to YEAR(DATE) = '1997'; protein levels within the normal range refers to tp > 6 and tp < 8.5",
+    "source_sql": "SELECT COUNT(ID) FROM Laboratory WHERE (ALB <= 6.0 OR ALB >= 8.5) AND STRFTIME('%Y', Date) = '1997'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_052",
+    "intent": "What proportion of patients who had signs of thrombocytopenia had SLE diagnosed?",
+    "category": "bird",
+    "relevant_names": [
+      "examination"
+    ],
+    "primary_name": "examination",
+    "description": "thrombocytopenia' refers to symptoms; 'SLE' refers to diagnosis; calculation =  DIVIDE(SUM(DIAGNOSIS LIKE '%ITP%'), SUM(DIAGNOSIS LIKE '%SLE%')) MULTIPLY 100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN Diagnosis = 'SLE' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(ID) FROM Examination WHERE Symptoms = 'thrombocytopenia'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_053",
+    "intent": "What percentage of patients who were born in 1980 and were diagnosed with RA are women?",
+    "category": "bird",
+    "relevant_names": [
+      "patient"
+    ],
+    "primary_name": "patient",
+    "description": "born in 1980 refers to YEAR(BIRTHDAY) = '1980'; 'RA' refers to Diagnosis='RA' ; women refers to SEX = 'F'; calculation = DIVIDE(SUM(SEX = 'F'), COUNT(SEX)) * 100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN SEX = 'F' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(ID) FROM Patient WHERE Diagnosis = 'RA' AND STRFTIME('%Y', Birthday) = '1980'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_054",
+    "intent": "How many male patients who underwent testing between 1995 and 1997 and were subsequently diagnosed with Behcet disease did not stay in the hospital for treatment?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "male refers to SEX = 'M'; underwent testing between 1995 and 1997 refers to `Examination Date` between '1995' and '1997'; Behcet refers to diagnosis; did not stay in the hospital refers to Admission = '-'",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T2.Diagnosis = 'Behcet' AND T1.SEX = 'M' AND STRFTIME('%Y', T2.`Examination Date`) BETWEEN '1995' AND '1997' AND T1.Admission = '-'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_055",
+    "intent": "How many patients who were female got white blood cells that were below 3.5?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "female refers to SEX = 'F'; white blood cells that were below 3.5 refers to WBC < 3.5",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.WBC < 3.5 AND T1.SEX = 'F'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_056",
+    "intent": "How long did it take after patient number 821298 arrived at the hospital for the first time before her evaluation began?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "DATEDIFF(`Examination Date`, `First Date`)",
+    "source_sql": "SELECT STRFTIME('%d', T3.`Examination Date`) - STRFTIME('%d', T1.`First Date`) FROM Patient AS T1 INNER JOIN Examination AS T3 ON T1.ID = T3.ID WHERE T1.ID = 821298"
+  },
+  {
+    "id": "bird_thrombosis_prediction_057",
+    "intent": "Was the patient with the number 57266's uric acid within a normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "uric acid within a normal range refers to UA > 8.0 and SEX = 'M'OR UA > 6.5 and SEX = 'F'",
+    "source_sql": "SELECT CASE WHEN (T1.SEX = 'F' AND T2.UA > 6.5) OR (T1.SEX = 'M' AND T2.UA > 8.0) THEN true ELSE false END FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.ID = 57266"
+  },
+  {
+    "id": "bird_thrombosis_prediction_058",
+    "intent": "When is the laboratory examination of patient '48473' where his/her AST glutamic oxaloacetic transaminase (GOT) index is above the normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory"
+    ],
+    "primary_name": "laboratory",
+    "description": "AST glutamic oxaloacetic transaminase (GOT) index is above the normal range refers to GOT > = 60; when refers to DATE",
+    "source_sql": "SELECT Date FROM Laboratory WHERE ID = 48473 AND GOT >= 60"
+  },
+  {
+    "id": "bird_thrombosis_prediction_059",
+    "intent": "List all patients with their sex and date of birthday, whose AST glutamic oxaloacetic transaminase (GOT) index is within normal range for loboratory examination in 1994.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "AST glutamic oxaloacetic transaminase (GOT) index is within normal range refers to GOT < 60; examination in 1994 refers to year(Date) = 1994",
+    "source_sql": "SELECT DISTINCT T1.SEX, T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.GOT < 60 AND STRFTIME('%Y', T2.Date) = '1994'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_060",
+    "intent": "Provide IDs for male patients with ALT glutamic pylvic transaminase (GPT) that have history of ALT glutamic pylvic transaminase (GPT) exceed the normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "male refers to SEX = 'M'; ALT glutamic pylvic transaminase (GPT) exceed the normal range refers to GPT > = 60",
+    "source_sql": "SELECT DISTINCT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.SEX = 'M' AND T2.GPT >= 60"
+  },
+  {
+    "id": "bird_thrombosis_prediction_061",
+    "intent": "Please provide the diagnosis of patients with ALT glutamic pylvic transaminase beyond the normal range by ascending order of their date of birth.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "ALT glutamic pylvic transaminase beyond the normal range refers to GPT > 60; The larger the birthday value, the younger the person is, and vice versa; ",
+    "source_sql": "SELECT DISTINCT T1.Diagnosis FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.GPT > 60 ORDER BY T1.Birthday ASC"
+  },
+  {
+    "id": "bird_thrombosis_prediction_062",
+    "intent": "What is the average index of the lactate dehydrogenase (LDH) for all patients with lactate dehydrogenase (LDH) within the normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory"
+    ],
+    "primary_name": "laboratory",
+    "description": "average index of the lactate dehydrogenase (LDH) refers to AVG(LDH); (LDH) within the normal range refers to LDH < 500",
+    "source_sql": "SELECT AVG(LDH) FROM Laboratory WHERE LDH < 500"
+  },
+  {
+    "id": "bird_thrombosis_prediction_063",
+    "intent": "Provide the ID and age of patient with lactate dehydrogenase (LDH) between 100-300 index above the normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "age refers to SUBTRACT(year(current_timestamp), year(Birthday)); lactate dehydrogenase (LDH) between 100-300 index above the normal range refers to LDH between 600 and 800;",
+    "source_sql": "SELECT DISTINCT T1.ID, STRFTIME('%Y', CURRENT_TIMESTAMP) - STRFTIME('%Y', T1.Birthday) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.LDH > 600 AND T2.LDH < 800"
+  },
+  {
+    "id": "bird_thrombosis_prediction_064",
+    "intent": "For patients with alkaliphophatase (ALP) within normal range, were they treated as inpatient or outpatient?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "alkaliphophatase (ALP) within normal range refers to ALP < 300; inpatient refers to admission = '+'; outpatient refers to admission = '-'",
+    "source_sql": "SELECT T1.Admission FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.ALP < 300"
+  },
+  {
+    "id": "bird_thrombosis_prediction_065",
+    "intent": "Name the ID of the patient who is born on the April 1st, 1982. Is his/her alkaliphophatase (ALP) within normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "alkaliphophatase (ALP) within normal range refers to ALP < 300",
+    "source_sql": "SELECT T1.ID , CASE WHEN T2.ALP < 300 THEN 'normal' ELSE 'abNormal' END FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.Birthday = '1982-04-01'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_066",
+    "intent": "List ID, sex and date of birth of patient whose total protein (TP) below the lower range of the normal index.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "total protein (TP) below the lower range of the normal index refers to TP < 6.0",
+    "source_sql": "SELECT DISTINCT T1.ID, T1.SEX, T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.TP < 6.0"
+  },
+  {
+    "id": "bird_thrombosis_prediction_067",
+    "intent": "For all female patient with total protein (TP) beyond the normal index, what is the deviation of their TP idex from the normal.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "female refers to SEX = 'F'; total protein (TP) beyond the normal index refers to TP > 8.5; deviation of TP index from normal refers to SUBTRACT(TP, 8.5)",
+    "source_sql": "SELECT T2.TP - 8.5 FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.SEX = 'F' AND T2.TP > 8.5"
+  },
+  {
+    "id": "bird_thrombosis_prediction_068",
+    "intent": "Sort in descending order all patients by birthday for male patient with albumin not within range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "male = SEX = 'M'; albumin not within range refers to ALB < = 3.5 or ALB > = 5.5",
+    "source_sql": "SELECT DISTINCT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.SEX = 'M' AND (T2.ALB <= 3.5 OR T2.ALB >= 5.5) ORDER BY T1.Birthday DESC"
+  },
+  {
+    "id": "bird_thrombosis_prediction_069",
+    "intent": "For all patient born in 1982, state if their albumin is within normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "Year(Birthday) = '1982'; albumin is within normal range refers to ALB between 3.5 and 5.5",
+    "source_sql": "SELECT CASE WHEN T2.ALB >= 3.5 AND T2.ALB <= 5.5 THEN 'normal' ELSE 'abnormal' END FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE STRFTIME('%Y', T1.Birthday) = '1982'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_070",
+    "intent": "What is the percentage of the female patient whose uric acid (UA) beyond the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "uric acid (UA) beyond the normal range refers to UA > 8.0 and SEX = 'M' or UA > 6.5 and SEX = 'F'; female refers to Sex = 'F'",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.UA > 6.5 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.SEX = 'F'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_071",
+    "intent": "For all patients with normal uric acid (UA), what is the average UA index based on their latest laboratory examination result?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "uric acid (UA) with normal range refers to UA < 8.0 and SEX = 'M' or UA < 6.5 and SEX = 'F'; average UA index refers to AVG(UA)",
+    "source_sql": "SELECT AVG(T2.UA) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE (T2.UA < 6.5 AND T1.SEX = 'F') OR (T2.UA < 8.0 AND T1.SEX = 'M') AND T2.Date = ( SELECT MAX(Date) FROM Laboratory )"
+  },
+  {
+    "id": "bird_thrombosis_prediction_072",
+    "intent": "Provide all ID, sex and birthday of patients whose urea nitrogen (UN) just within the borderline of passing?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "urea nitrogen (UN) just within the borderline of passing refers to UN = 29; ",
+    "source_sql": "SELECT DISTINCT T1.ID, T1.SEX, T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.UN = 29"
+  },
+  {
+    "id": "bird_thrombosis_prediction_073",
+    "intent": "Provide the ID, sex, birthday of all patients diagnosed with 'RA' that are within the UN normal index.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "within the UN normal index refers to UN < 30; Diagnosis = 'RA'",
+    "source_sql": "SELECT DISTINCT T1.ID, T1.SEX, T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.UN < 30 AND T1.Diagnosis = 'RA'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_074",
+    "intent": "How many male patients are are with creatinine index out of the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "creatinine (CRE) out of the normal range refers to CRE > = 1.5; Male refers to Sex = 'M'",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CRE >= 1.5 AND T1.SEX = 'M'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_075",
+    "intent": "Are there more male patients with creatinine not within the normal range than female? True or False?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "creatinine (CRE) not within the normal range refers to CRE > = 1.5; male refers to Sex = 'M'; female refers to Sex = 'F'; calculation = (SUM(SEX = 'M') > SUM(SEX = 'F')) where CRE > = 1.5",
+    "source_sql": "SELECT CASE WHEN SUM(CASE WHEN T1.SEX = 'M' THEN 1 ELSE 0 END) > SUM(CASE WHEN T1.SEX = 'F' THEN 1 ELSE 0 END) THEN 'True' ELSE 'False' END FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CRE >= 1.5"
+  },
+  {
+    "id": "bird_thrombosis_prediction_076",
+    "intent": "What is the highest total bilirubin level recorded? List out the patient details with ID, sex and birthday with that index.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "the highest total bilirubin refers to MAX(T-BIL)",
+    "source_sql": "SELECT T2.`T-BIL`, T1.ID, T1.SEX, T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID ORDER BY T2.`T-BIL` DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_077",
+    "intent": "List and group all patients by sex for total bilirubin (T-BIL) level not within the normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "List refers to GROUP_CONCAT(DISTINCT ID); total bilirubin (T-BIL) not within normal range refers to T-BIL > = 2.0",
+    "source_sql": "SELECT T1.ID,T1.SEX FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.`T-BIL` >= 2.0 GROUP BY T1.SEX,T1.ID"
+  },
+  {
+    "id": "bird_thrombosis_prediction_078",
+    "intent": "Who is the oldest patient with the highest total cholesterol (T-CHO). State the patient ID and T-CHO index.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "oldest patient refers to MIN(birthday); highest total cholesterol refers to MAX(T-CHO);",
+    "source_sql": "SELECT T1.ID, T2.`T-CHO` FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID ORDER BY T2.`T-CHO` DESC, T1.Birthday ASC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_079",
+    "intent": "What is the average age of the male patient with high cholesterol?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "average age = DIVIDE(SUM(SUBTRACT(YEAR(NOW()), YEAR(birthday))), COUNT(ID)); male patient refers to sex = 'M'; high cholesterol refers to `T-CHO` > = 250;",
+    "source_sql": "SELECT AVG(STRFTIME('%Y', date('NOW')) - STRFTIME('%Y', T1.Birthday)) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.`T-CHO` >= 250 AND T1.SEX = 'M'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_080",
+    "intent": "Provide list of patients and their diagnosis with triglyceride (TG) index greater than 100 of the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "triglyceride (TG) index greater than 100 of the normal range refers to TG > 300;",
+    "source_sql": "SELECT T1.ID, T1.Diagnosis FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.TG > 300"
+  },
+  {
+    "id": "bird_thrombosis_prediction_081",
+    "intent": "For all patients with triglyceride (TG) level beyond the normal range, how many are age more than 50 years?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "triglyceride (TG) level beyond the normal range refers to TG > = 200; more than 50 years of age = SUBTRACT(year(current_timestamp), year(Birthday)) > 50; Should consider DISTINCT in the final result;",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.TG >= 200 AND STRFTIME('%Y', CURRENT_TIMESTAMP) - STRFTIME('%Y', T1.Birthday) > 50"
+  },
+  {
+    "id": "bird_thrombosis_prediction_082",
+    "intent": "List all outpatient within normal range of creatinine phosphokinase. Give me the distinct ids.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "outpatient refers to Admission = '-'; normal range of creatinine phosphokinase refers to CPK < 250;",
+    "source_sql": "SELECT DISTINCT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CPK < 250 AND T1.Admission = '-'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_083",
+    "intent": "For patient born between 1936-1956, how many male patients have creatinine phosphokinase beyond the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "born between 1936-1956 refers to year(Birthday) BETWEEN '1936' AND '1956'; male patients refers to sex = 'M'; creatinine phosphokinase beyond the normal range refers to CPK > = 250; Should consider DISTINCT in the final result;",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE STRFTIME('%Y', T1.Birthday) BETWEEN '1936' AND '1956' AND T1.SEX = 'M' AND T2.CPK >= 250"
+  },
+  {
+    "id": "bird_thrombosis_prediction_084",
+    "intent": "Provide ID, sex and age of patient who has blood glucose (GLU) not within normal range but with total cholesterol(T-CHO) within normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "age = SUBTRACT(year(current_timestamp), year(Birthday)); blood glucose (GLU) not within normal range refers to GLU > = 180; total cholesterol(T-CHO) within normal range refers to `T-CHO` < 250; ",
+    "source_sql": "SELECT DISTINCT T1.ID, T1.SEX , STRFTIME('%Y', CURRENT_TIMESTAMP) - STRFTIME('%Y', T1.Birthday) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.GLU >= 180 AND T2.`T-CHO` < 250"
+  },
+  {
+    "id": "bird_thrombosis_prediction_085",
+    "intent": "List each patient's ID and blood glucose (GLU) index that were within normal range for patient's whose data was first recorded in 1991.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "blood glucose (GLU) index that were within normal range refers to GLU < 180; data that was first recorded in 1991 refers to year(Description) = 1991;",
+    "source_sql": "SELECT DISTINCT T1.ID, T2.GLU FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE STRFTIME('%Y', T1.`First Date`) = '1991' AND T2.GLU < 180"
+  },
+  {
+    "id": "bird_thrombosis_prediction_086",
+    "intent": "List the patient ID, sex and birthday who has abnormal white blood cell count. Group them by sex and list the patient by age in ascending order.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "abnormal white blood cell count refers to WBC < = 3.5 or WBC > = 9.0;",
+    "source_sql": "SELECT DISTINCT T1.ID, T1.SEX, T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.WBC <= 3.5 OR T2.WBC >= 9.0 GROUP BY T1.SEX,T1.ID ORDER BY T1.Birthday ASC"
+  },
+  {
+    "id": "bird_thrombosis_prediction_087",
+    "intent": "What are the patient's diagnosis for those who has lower red blood blood cell? State their ID and age.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "patient's diagnosis refers to Diagnosis; lower red blood cell refers to RBC < 3.5; age = SUBTRACT(year(current_timestamp), year(Birthday)); ",
+    "source_sql": "SELECT DISTINCT T1.Diagnosis, T1.ID , STRFTIME('%Y', CURRENT_TIMESTAMP) -STRFTIME('%Y', T1.Birthday) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.RBC < 3.5"
+  },
+  {
+    "id": "bird_thrombosis_prediction_088",
+    "intent": "For all the female patient age 50 and above, who has abnormal red blood cell count. State if they were admitted to hospital.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "female patient refers to Sex = 'F'; age 50 and above = SUBTRACT(year(current_timestamp), year(Birthday)) > = 50; abnormal red blood cell count refers to RBC < = 3.5 or RBC > = 6.0; Admission = '+' means the patient was admitted to the hospital; Admission = '-' means the patient was not admitted to the hospital;",
+    "source_sql": "SELECT DISTINCT T1.ID, T1.Admission FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.SEX = 'F' AND (T2.RBC <= 3.5 OR T2.RBC >= 6.0) AND STRFTIME('%Y', CURRENT_TIMESTAMP) - STRFTIME('%Y', T1.Birthday) >= 50"
+  },
+  {
+    "id": "bird_thrombosis_prediction_089",
+    "intent": "Among all outpatients, list out those have low hemoglobin level. State the different IDs and their sex.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "outpatients refers to Admission = '-'; low hemoglobin level refers to HBG < 10;",
+    "source_sql": "SELECT DISTINCT T1.ID, T1.SEX FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.HGB < 10 AND T1.Admission = '-'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_090",
+    "intent": "Among the patients who were diagnosed with SLE, who is the oldest with normal hemoglobin level. Provide the ID and sex.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "diagnosed with SLE refers to Diagnosis = 'SLE'; The larger the birthday value, the younger the person is, and vice versa; normal hemoglobin level refers to 10 < HGB < 17;",
+    "source_sql": "SELECT T1.ID, T1.SEX FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.Diagnosis = 'SLE' AND T2.HGB > 10 AND T2.HGB < 17 ORDER BY T1.Birthday ASC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_091",
+    "intent": "Name the ID and age of patient with two or more laboratory examinations which show their hematoclit level exceeded the normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "age = SUBTRACT(year(current_timestamp), year(Birthday)); patient with two or more laboratory examinations refers to COUNT(ID) > 2; hematoclit level exceeded the normal range refers to HCT > = 52;",
+    "source_sql": "SELECT DISTINCT T1.ID, STRFTIME('%Y', CURRENT_TIMESTAMP) - STRFTIME('%Y', T1.Birthday) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.ID IN ( SELECT ID FROM Laboratory WHERE HCT >= 52 GROUP BY ID HAVING COUNT(ID) >= 2 )"
+  },
+  {
+    "id": "bird_thrombosis_prediction_092",
+    "intent": "From laboratory examinations in 1991, what is the average hematoclit level that is lower than the normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "laboratory examinations in 1991 refers to Date like '1991%'; average hematoclit level = AVG(HCT); hematoclit level that is lower than the normal range refers to HCT < 29;",
+    "source_sql": "SELECT AVG(T2.HCT) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.HCT < 29 AND STRFTIME('%Y', T2.Date) = '1991'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_093",
+    "intent": "For patients with abnormal platelet level, state the number of patients with lower than normal range. How is it compare to the number of patients with higher than normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "abnormal platelet level refers to PLT <= 100 or PLT >= 400; platelet level lower than normal range refers to PLT < 100; calculation = SUBTRACT(SUM(PLT < 100), SUM(PLT > 400)); platelet level higher than normal range refers to PLT > 400;",
+    "source_sql": "SELECT SUM(CASE WHEN T2.PLT <= 100 THEN 1 ELSE 0 END) - SUM(CASE WHEN T2.PLT >= 400 THEN 1 ELSE 0 END) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID"
+  },
+  {
+    "id": "bird_thrombosis_prediction_094",
+    "intent": "For laboratory examinations take in 1984, list all patients below 50 years old with normal platelet level.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "laboratory examinations take in 1984 refers to YEAR(Date) = '1984'; below 50 years old = SUBTRACT(year(current_timestamp), year(Birthday)) < 50; normal platelet level refers to PLT between 100 and 400; ",
+    "source_sql": "SELECT DISTINCT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.PLT BETWEEN 100 AND 400 AND STRFTIME('%Y', T2.Date) - STRFTIME('%Y', T1.Birthday) < 50 AND STRFTIME('%Y', T2.Date) = '1984'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_095",
+    "intent": "For all patients who are older than 55 years old, what is the percentage of female who has abnormal prothrombin time (PT)?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "older than 55 years old = SUBTRACT(year(current_timestamp), year(Birthday)) > 55; abnormal prothrombin time (PT) refers to PT > = 14; percentage = DIVIDE(SUM(PT > = 14 AND SEX = 'F'), SUM(PT > = 14)) * 100; female refers to sex = 'F'; ",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.PT >= 14 AND T1.SEX = 'F' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE STRFTIME('%Y', CURRENT_TIMESTAMP) - STRFTIME('%Y', T1.Birthday) > 55"
+  },
+  {
+    "id": "bird_thrombosis_prediction_096",
+    "intent": "List all patients who first came to the hospital after year 1992 with prothrombin time (PT) level that are normal.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "first came to the hospital after year 1992 refers to year(`First Date`) > 1992; prothrombin time (PT) level that are normal refers to PT < 14;",
+    "source_sql": "SELECT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE STRFTIME('%Y', T1.`First Date`) > '1992' AND T2.PT < 14"
+  },
+  {
+    "id": "bird_thrombosis_prediction_097",
+    "intent": "For the examinations done after 1997/1/1, how many of them have the result of an inactivated partial prothrom bin time?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "examinations done after 1997/1/1 refers to `Examination Date` > '1997-01-01'; normal activated partial prothrom bin time refesr to APTT < 45;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.Date > '1997-01-01' AND T2.APTT >= 45"
+  },
+  {
+    "id": "bird_thrombosis_prediction_098",
+    "intent": "For the patients with an abnormal activated partial prothrom bin time, how many of them does not have thrombosis?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "abnormal activated partial prothrom bin time refers to APTT > 45; does not have thrombosis refers to Thrombosis = 0; Only count ones without repetitive.",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE T3.Thrombosis = 0 AND T2.APTT > 45"
+  },
+  {
+    "id": "bird_thrombosis_prediction_099",
+    "intent": "Among the male patients who have a normal level of white blood cells, how many of them have an abnormal fibrinogen level?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "male patients refers to Sex = 'M'; normal level of white blood cells refers to WBC > 3.5 and WBC <9.0; abnormal fibrinogen level refers to FG < = 150 or FG > = 450; Don't compute repetitive ones.",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.FG <= 150 OR T2.FG >= 450 AND T2.WBC > 3.5 AND T2.WBC < 9.0 AND T1.SEX = 'M'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_100",
+    "intent": "How many patients born after 1980/1/1 have an abnormal fibrinogen level?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "born after 1980/1/1 refers to Birthday > '1980-01-01'; normal fibrinogen level refers to FG between 150 and 450; Should return the number of distinct patients.",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.FG <= 150 OR T2.FG >= 450 AND T1.Birthday > '1980-01-01'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_101",
+    "intent": "Please list the disease names of the patients that have a proteinuria level higher than normal.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "disease names refers to Diagnosis; proteinuria level higher than normal refers to `U-PRO` > = 30;",
+    "source_sql": "SELECT T1.Diagnosis FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.`U-PRO` >= 30"
+  },
+  {
+    "id": "bird_thrombosis_prediction_102",
+    "intent": "Which patient has a normal proteinuria level and is diagnosed with SLE? Please give his or her patient ID.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "normal proteinuria level refers to 0 < `U-PRO` < 30; diagnosed with SLE refers to Diagnosis = 'SLE';",
+    "source_sql": "SELECT DISTINCT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.`U-PRO` > 0 AND T2.`U-PRO` < 30 AND T1.Diagnosis = 'SLE'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_103",
+    "intent": "How many patients with an Ig G higher than normal?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "Ig G higher than normal refers to IGG >= 2000; Should consider DISTINCT in the final result;",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE T2.IGG >= 2000"
+  },
+  {
+    "id": "bird_thrombosis_prediction_104",
+    "intent": "Among the patients with a normal Ig G level, how many of them have symptoms?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "normal Ig G level refers to IGG > 900 and IGG < 2000; have symptoms refers to Symptoms IS NOT NULL;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE T2.IGG BETWEEN 900 AND 2000 AND T3.Symptoms IS NOT NULL"
+  },
+  {
+    "id": "bird_thrombosis_prediction_105",
+    "intent": "For the patient who has the highest Ig A within the normal range, what is his or her diagnosis?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "highest Ig A within the normal range refers to MAX(IGA BETWEEN 80 AND 500);",
+    "source_sql": "SELECT patientData.Diagnosis FROM Patient AS patientData INNER JOIN Laboratory AS labData ON patientData.ID = labData.ID WHERE labData.IGA BETWEEN 80 AND 500 ORDER BY labData.IGA DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_106",
+    "intent": "How many patients with a normal Ig A level came to the hospital after 1990/1/1?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "normal Ig A level refers to IGA > 80 AND IGA < 500; came to the hospital after 1990/1/1 refers to YEAR(`First Date`) > = 1990;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.IGA BETWEEN 80 AND 500 AND  strftime('%Y',  T1.`First Date`) > '1990'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_107",
+    "intent": "For the patients with an abnormal Ig M level, what is the most common disease they are diagnosed with?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "abnormal Ig M level refers to IGM <=40 OR IGM >= 400; most common disease refers to MAX(COUNT(Diagnosis));",
+    "source_sql": "SELECT T1.Diagnosis FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.IGM NOT BETWEEN 40 AND 400 GROUP BY T1.Diagnosis ORDER BY COUNT(T1.Diagnosis) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_108",
+    "intent": "How many patients with a abnormal C-reactive protein don't have their data recorded?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "abnormal C-reactive protein refers to CRP ='+'; don't have data recorded refers to Description IS NULL;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE (T2.CRP = '+' ) AND T1.Description IS NULL"
+  },
+  {
+    "id": "bird_thrombosis_prediction_109",
+    "intent": "Among the patients whose creatinine level is abnormal, how many of them aren't 70 yet?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "creatinine level is abnormal refers to CRE >= 1.5; aren't 70 yet refers to SUBTRACT((YEAR(CURDATE()), YEAR(Birthday))) < 70; ",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CRE >= 1.5 AND STRFTIME('%Y', Date('now')) - STRFTIME('%Y', T1.Birthday) < 70"
+  },
+  {
+    "id": "bird_thrombosis_prediction_110",
+    "intent": "How many patients with a normal Rhuematoid Factor has a positive measure of degree of coagulation?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "normal Rhuematoid Factor refers TO RA IN('-', '+-'); positive measure of degree of coagulation refers to KCT = '+'; Should compute the number of distinct ones",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE (T2.RA = '-' OR T2.RA = '+-') AND T3.KCT = '+'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_111",
+    "intent": "Please list the diseases of the patients born after 1985-1-1 and have a normal Rhuematoid Factor.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "diseases refers to Diagnosis; born after 1985/1/1 refers to YEAR(Birthday) > = 1985; normal Rhuematoid Factor refers to RA IN('-', '+-');",
+    "source_sql": "SELECT T1.Diagnosis FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE (T2.RA = '-' OR T2.RA = '+-') AND T1.Birthday > '1985-01-01'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_112",
+    "intent": "Please list the ID of the patient whose RF is normal and who is older than 60.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "RF is normal refers to RF < 20; older than 60 = SUBTRACT((YEAR(CURDATE()), YEAR(Birthday))) > 60;",
+    "source_sql": "SELECT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.RF < 20 AND STRFTIME('%Y', DATE('now')) - STRFTIME('%Y', T1.Birthday) > 60"
+  },
+  {
+    "id": "bird_thrombosis_prediction_113",
+    "intent": "How many patients with a normal RF don't have thrombosis?",
+    "category": "bird",
+    "relevant_names": [
+      "examination",
+      "laboratory"
+    ],
+    "primary_name": "examination",
+    "description": "normal RF refers to RF < 20; don't have thrombosis refers to Thrombosis = '0';",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Examination AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.RF < 20 AND T1.Thrombosis = 0"
+  },
+  {
+    "id": "bird_thrombosis_prediction_114",
+    "intent": "How many patients with a normal level of complement 3 have a P pattern observed in the sheet of ANA examination?",
+    "category": "bird",
+    "relevant_names": [
+      "examination",
+      "laboratory"
+    ],
+    "primary_name": "examination",
+    "description": "normal level of complement 3 refers to C3 > 35; have a P pattern observed in the sheet of ANA examination refers to ANA Pattern = 'P'; Should compute the number of distinct ones",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Examination AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.C3 > 35 AND T1.`ANA Pattern` = 'P'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_115",
+    "intent": "Among the patients whose level of Hematoclit isn't normal, which patient has the highest anti-Cardiolipin antibody concentration? Please list his or her ID.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "Hematoclit is normal refers to 29 < N < 52; highest anti-Cardiolipin antibody concentration refers to MAX(`aCL IgA`);",
+    "source_sql": "SELECT DISTINCT T1.ID FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID INNER JOIN Laboratory AS T3 on T1.ID = T3.ID WHERE (T3.HCT >= 52 OR T3.HCT <= 29) ORDER BY T2.`aCL IgA` DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_116",
+    "intent": "Among the patients have blood clots in veins, how many of them have a normal level of complement 4?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "APS will result in Blood Clots in veins; normal level of complement 4 refers to C4 > 10; Should compute the number of different ones",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.C4 > 10 AND T1.Diagnosis = 'APS'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_117",
+    "intent": "How many patients have a normal level of anti-ribonuclear protein and have been admitted to the hospital?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "normal level of anti-ribonuclear protein refers to RNP = '-', '+-'; And'-' means 'negative'; '+-' refers to '0'; admitted to the hospital refers to Admission = '+'; Should consider DISTINCT in the final result;",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.RNP = 'negative' OR T2.RNP = '0' AND T1.Admission = '+'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_118",
+    "intent": "Which is the youngest patient with an abnormal anti-ribonuclear protein level? Please list his or her date of birth.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "youngest patient refers to MAX(Birthday); abnormal anti-ribonuclear protein level refers to RNP NOT IN('-', '+-'); date of birth refers to Birthday;",
+    "source_sql": "SELECT T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.RNP != '-' OR '+-' ORDER BY T1.Birthday DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_119",
+    "intent": "Among the patients with normal anti-SM, how many of them does not have thrombosis?",
+    "category": "bird",
+    "relevant_names": [
+      "examination",
+      "laboratory"
+    ],
+    "primary_name": "examination",
+    "description": "normal anti-SM refers to SM IN('-', '+-'); SM = 'negative' means '-'; SM = '0' means '+-'; SM = '1' means '+'; does not have thrombosis refers to Thrombosis = 0;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Examination AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.SM IN ('negative','0') AND T1.Thrombosis = 0"
+  },
+  {
+    "id": "bird_thrombosis_prediction_120",
+    "intent": "For the patients with an abnormal anti-SM, please list the IDs of the three youngest ones.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "abnormal anti-SM refers to SM NOT IN ('negative', '0'); youngest refers to MAX(Birthday);",
+    "source_sql": "SELECT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.SM NOT IN ('negative','0') ORDER BY T1.Birthday DESC LIMIT 3"
+  },
+  {
+    "id": "bird_thrombosis_prediction_121",
+    "intent": "Please list the IDs of the patients who had the examination done after 1997/1/1 and had a normal anti-scl70.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "examination done after 1997/1/1 refers to `Examination Date` >  1997-01-01; normal anti-scl70 refers to SC170 IN('negative','0');",
+    "source_sql": "SELECT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.SC170 IN ('negative','0') AND T2.Date > 1997-01-01"
+  },
+  {
+    "id": "bird_thrombosis_prediction_122",
+    "intent": "Among the patients who has a normal anti-scl70, how many of them are female and does not have any symptom?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "normal anti-scl70 refers to SC170 IN('negative', '0'); female refers to Sex = 'F'; does not have any symptom refers to symptoms IS NULL; Should consider DISTINCT in the final result;",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE (T2.SC170 = 'negative' OR T2.SC170 = '0') AND T1.SEX = 'F' AND T3.Symptoms IS NULL"
+  },
+  {
+    "id": "bird_thrombosis_prediction_123",
+    "intent": "How many patients with a normal anti-SSA came to the hospital before 2000?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "normal anti-SSA refers to SSA IN('-','+-'); came to the hospital before 2000 refers to YEAR(`First Date`) < 2000; Should compute the number of distinct ones",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.SSA IN ('negative', '0') AND STRFTIME('%Y', T2.Date) < '2000'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_124",
+    "intent": "Which patient is the first patient with an abnormal anti-SSA to come to the hospital? Please give his or her ID.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "first patient refers to ID with MIN(`First Date`); abnormal anti-SSA refers to SSA NOT IN('negative', '0');",
+    "source_sql": "SELECT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.`First Date` IS NOT NULL AND T2.SSA NOT IN ('negative', '0') ORDER BY T1.`First Date` ASC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_125",
+    "intent": "How many patients have a normal anti-SSB and are diagnosed with SLE in the examination?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "normal anti-SSB refers to SSB IN('-', '+-'); '-' is expressed as 'negative' and '+-' is expressed as '0' in the database ; diagnosed with SLE refers to Diagnosis = 'SLE'; Should compute the number of distinct ones",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.SSB = 'negative' OR '0' AND T1.Diagnosis = 'SLE'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_126",
+    "intent": "For the patients whose anti-SSB are normal, how many of them have other symptoms observed in their examination?",
+    "category": "bird",
+    "relevant_names": [
+      "examination",
+      "laboratory"
+    ],
+    "primary_name": "examination",
+    "description": "anti-SSB are normal refers to SSB IN ('negative', '0'); have other symptoms refers to Symptoms IS NOT NULL; Should compute the number of distinct ones",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Examination AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.SSB = 'negative' OR '0' AND T1.Symptoms IS NOT NULL"
+  },
+  {
+    "id": "bird_thrombosis_prediction_127",
+    "intent": "Among the patients who has a normal level of anti-centromere and a normal level of anti-SSB, how many of them are male?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "normal level of anti-centromere refers to CENTROMEA IN('-', '+-'); normal level of anti-SSB refers to SSB IN('-', '+-'); male refers to Sex = 'M'; Should consider DISTINCT in the final result;",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CENTROMEA IN ('negative', '0') AND T2.SSB IN ('negative', '0') AND T1.SEX = 'M'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_128",
+    "intent": "For the patients who have an abnormal level of anti-DNA, please list the diseases they are diagnosed with.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "abnormal level of anti-DNA refers to DNA > = 8; diseases refers to Diagnosis;",
+    "source_sql": "SELECT DISTINCT(T1.Diagnosis) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.DNA >= 8"
+  },
+  {
+    "id": "bird_thrombosis_prediction_129",
+    "intent": "How many patients have a normal anti-DNA level, yet their data are not recorded.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "normal anti-DNA level refers to DNA < 8; data are not recorded refers to Description IS NULL; Should compute the number of unique ones",
+    "source_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.DNA < 8 AND T1.Description IS NULL"
+  },
+  {
+    "id": "bird_thrombosis_prediction_130",
+    "intent": "Of the patients with an normal level of IGG, how many of them admitted to the hospital?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "normal level of IGG refers to 900 < IGG < 2000; admitted to the hospital refers to Admission = '+';",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.IGG > 900 AND T2.IGG <2000 AND  T1.Admission = '+'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_131",
+    "intent": "What is the percentage of patient who has a abnormal level of glutamic oxaloacetic transaminase level, yet he or she is diagnosed with SLE?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "abnormal level of glutamic oxaloacetic transaminase refers to GOT > = 60; percentage = MULTIPLY(DIVIDE(COUNT(ID WHERE GOT > = 60 AND Diagnosis = 'SLE'), COUNT(ID WHERE GOT > = 60)), 1.0);",
+    "source_sql": "SELECT COUNT(CASE WHEN T1.Diagnosis LIKE '%SLE%' THEN T1.ID ELSE 0 END) / COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.`GOT` >= 60"
+  },
+  {
+    "id": "bird_thrombosis_prediction_132",
+    "intent": "How many male patients have their glutamic oxaloacetic transaminase in the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "male refers to Sex = 'M'; glutamic oxaloacetic transaminase in the normal range refers to GOT < 60;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.GOT < 60 AND T1.SEX = 'M'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_133",
+    "intent": "Among the patients who have an abnormal level of glutamic oxaloacetic transaminase, when was the youngest of them born?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "abnormal level of glutamic oxaloacetic transaminase refers to GOT > = 60; The larger the birthday value, the younger the person is, and vice versa;",
+    "source_sql": "SELECT T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.GOT >= 60 ORDER BY T1.Birthday DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_134",
+    "intent": "Please list the top three patients' birthdays with the highest glutamic pylvic transaminase in the normal range.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "highest glutamic pylvic transaminase in the normal range refers to MAX(GPT < 60);",
+    "source_sql": "SELECT T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.GPT < 60 ORDER BY T2.GPT DESC LIMIT 3"
+  },
+  {
+    "id": "bird_thrombosis_prediction_135",
+    "intent": "For the patients with the normal glutamic pylvic transaminase level, how many of them are male?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "normal glutamic pylvic transaminase level refers to GOT < 60; male refers to Sex = 'M';",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.GOT < 60 AND T1.SEX = 'M'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_136",
+    "intent": "For the patient with the highest lactate dehydrogenase in the normal range, when was his or her data first recorded?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "highest lactate dehydrogenase in the normal range refers to MAX(LDH < 500); when the data first recorded refers to MIN(First Date);",
+    "source_sql": "SELECT T1.`First Date` FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.LDH < 500 ORDER BY T2.LDH ASC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_137",
+    "intent": "When is the latest patient's medical data recorded? This patient should have an abnormal level of lactate dehydrogenase.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "latest patient refers to ID with MAX('First Date'); abnormal level of lactate dehydrogenase refers to LDH > = 500;",
+    "source_sql": "SELECT T1.`First Date` FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.LDH >= 500 ORDER BY T1.`First Date` DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_138",
+    "intent": "For the patient with an abnormal alkaliphophatase level, how many of them are admitted to the hospital?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "abnormal alkaliphophatase level refers to ALP > = 300; admitted to the hospital refers to Admission = '+';",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.ALP >= 300 AND T1.Admission = '+'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_139",
+    "intent": "Among the patients followed at the outpatient clinic, how many of them have a normal level of alkaliphophatase?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "followed at the outpatient clinic refers to Admission = '-'; normal level of alkaliphophatase refers to ALP < 300;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.ALP < 300 AND T1.Admission = '-'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_140",
+    "intent": "Please list the diagnosis of the patients whose total protein is lower than normal.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "total protein is lower than normal refers to TP < 6.0;",
+    "source_sql": "SELECT T1.Diagnosis FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.TP < 6.0"
+  },
+  {
+    "id": "bird_thrombosis_prediction_141",
+    "intent": "For the patients who are diagnosed with SJS, how many of them have a normal level of total protein?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "diagnosed with SJS refers to Diagnosis = 'SJS'; normal level of total protein refers to TP > 6.0 and TP < 8.5;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.Diagnosis = 'SJS' AND T2.TP > 6.0 AND T2.TP < 8.5"
+  },
+  {
+    "id": "bird_thrombosis_prediction_142",
+    "intent": "What is the examination date of the patient whose albumin is the highest in the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory"
+    ],
+    "primary_name": "laboratory",
+    "description": "examination date refers to Date; albumin is the highest in the normal range refers to MAX(ALB > 3.5 and ALB < 5.5);",
+    "source_sql": "SELECT Date FROM Laboratory WHERE ALB > 3.5 AND ALB < 5.5 ORDER BY ALB DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_143",
+    "intent": "How many male patients have a normal level of both albumin and total protein?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "male refers to Sex = 'M'; normal level of both albumin and total protein refers to ALB > 3.5 and ALB < 5.5 AND TP between 6.0 and 8.5;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.SEX = 'M'  AND T2.ALB > 3.5 AND T2.ALB < 5.5 AND T2.TP BETWEEN 6.0 AND 8.5"
+  },
+  {
+    "id": "bird_thrombosis_prediction_144",
+    "intent": "What is the anti Cardiolipin antibody concentration of the female patient with the highest uric acid level in the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "anti Cardiolipin antibody concentration refers to `aCL IgG`, `aCL IgM`, `aCL IgA`; female patient refers to Sex = F'; highest uric acid level in the normal range refers to MAX(UA > 6.50);",
+    "source_sql": "SELECT T3.`aCL IgG`, T3.`aCL IgM`, T3.`aCL IgA` FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE T1.SEX = 'F' AND T2.UA > 6.5 ORDER BY T2.UA DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_145",
+    "intent": "What is the highest anti-nucleus antibody concentration level of a patient with a normal creatinine level?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "examination",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "highest anti-nucleus antibody concentration level refers to MAX(ANA); normal creatinine level refers to CRE < 1.5;",
+    "source_sql": "SELECT T2.ANA FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID INNER JOIN Laboratory AS T3 ON T1.ID = T3.ID WHERE T3.CRE < 1.5 ORDER BY T2.ANA DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_146",
+    "intent": "Please list the patient's ID whose creatinine level is normal and whose anti Cardiolipin antibody concentration level is the highest.",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "laboratory",
+    "description": "creatinine level is normal refers to CRE < 1.5; anti Cardiolipin antibody concentration level is the highest refers to MAX(aCL IgA);",
+    "source_sql": "SELECT T2.ID FROM Laboratory AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T1.CRE < 1.5 ORDER BY T2.`aCL IgA` DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_147",
+    "intent": "Among the patients whose total bilirubin is over the normal range, how many of them have a peripheral pattern observed in the sheet of ANA examination?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "total bilirubin is over the normal range refers to `T-BIL` > = 2.0; peripheral pattern is observed in the sheet of ANA examination refers to that ANA Pattern contains 'P';",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T1.ID = T3.ID WHERE T2.`T-BIL` >= 2 AND T3.`ANA Pattern` LIKE '%P%'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_148",
+    "intent": "What is the anti-nucleus antibody concentration of the patient whose total bilirubin is the highest in the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "anti-nucleus antibody concentration refers to ANA; total bilirubin is the highest in the normal range refers to MAX(`T-BIL` < 2.0);",
+    "source_sql": "SELECT T3.ANA FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T1.ID = T3.ID WHERE T2.`T-BIL` < 2.0 ORDER BY T2.`T-BIL` DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_149",
+    "intent": "For the patients whose total cholesterol is higher than normal, how many of them have a negative measure of degree of coagulation?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "total cholesterol is higher than normal refers to `T-CHO` > = 250; negative measure of degree of coagulation refers to KCT = '-' ;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T1.ID = T3.ID WHERE T2.`T-CHO` >= 250 AND T3.KCT = '-'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_150",
+    "intent": "Among the patients whose total cholesterol is within the normal range, how many of them have a P pattern observed in the sheet of ANA examination?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "total cholesterol is within the normal range refers to `T-CHO` < 250; P pattern observed in the sheet of ANA examination refers to ANA Pattern = 'P';",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T1.ID = T3.ID WHERE T3.`ANA Pattern` = 'P' AND T2.`T-CHO` < 250"
+  },
+  {
+    "id": "bird_thrombosis_prediction_151",
+    "intent": "Among the patients with the normal level of triglyceride, how many of them have other symptoms observed?",
+    "category": "bird",
+    "relevant_names": [
+      "examination",
+      "laboratory"
+    ],
+    "primary_name": "examination",
+    "description": "normal level of triglyceride refers to TG < 200; have other symptoms refers to Symptoms is not null;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Examination AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.TG < 200 AND T1.Symptoms IS NOT NULL"
+  },
+  {
+    "id": "bird_thrombosis_prediction_152",
+    "intent": "What is the disease name of the patient who has the highest level of triglyceride within the normal range?",
+    "category": "bird",
+    "relevant_names": [
+      "examination",
+      "laboratory"
+    ],
+    "primary_name": "examination",
+    "description": "disease name referse to Diagnosis; highest level of triglyceride within the normal range refers to MAX(TG < 200);",
+    "source_sql": "SELECT T1.Diagnosis FROM Examination AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.TG < 200 ORDER BY T2.TG DESC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_153",
+    "intent": "Please list the IDs of the patients with no thrombosis and an abnormal level of creatinine phosphokinase.",
+    "category": "bird",
+    "relevant_names": [
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "laboratory",
+    "description": "no thrombosis refers to Thrombosis = 0 ; abnormal level of creatinine phosphokinase refers to CPK < 250;",
+    "source_sql": "SELECT DISTINCT T1.ID FROM Laboratory AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T2.Thrombosis = 0 AND T1.CPK < 250"
+  },
+  {
+    "id": "bird_thrombosis_prediction_154",
+    "intent": "For the patients with a normal range of creatinine phosphokinase, how many of them have a positive measure of degree of coagulation?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "normal range of creatinine phosphokinase refers to CPK < 250; positive measure of degree of coagulation refers to KCT = '+' or RVVT = '+' or LAC = '+' ;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T1.ID = T3.ID WHERE T2.CPK < 250 AND (T3.KCT = '+' OR T3.RVVT = '+' OR T3.LAC = '+')"
+  },
+  {
+    "id": "bird_thrombosis_prediction_155",
+    "intent": "When is the birthday of the oldest patient whose blood glucose is abnormal?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "oldest patient refers to MIN(Birthday); blood glucose is abnormal refers to GLU > 180;",
+    "source_sql": "SELECT T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.GLU > 180 ORDER BY T1.Birthday ASC LIMIT 1"
+  },
+  {
+    "id": "bird_thrombosis_prediction_156",
+    "intent": "Among the patients with a normal blood glucose, how many of them don't have thrombosis?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "normal blood glucose refers to GLU < 180; don't have thrombosis refers to Thrombosis = 0;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T1.ID = T3.ID WHERE T2.GLU < 180 AND T3.Thrombosis = 0"
+  },
+  {
+    "id": "bird_thrombosis_prediction_157",
+    "intent": "How many patients accepted to the hospital have a normal level of white blood cells?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "accepted to the hospital refers to Admission = '+'; normal level of white blood cells refers to WBC between 3.5 and 9.0;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.WBC BETWEEN 3.5 AND 9 AND T1.Admission = '+'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_158",
+    "intent": "How many patients diagnosed with SLE have a normal white blood cell level?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "diagnosed with SLE refers to Diagnosis = 'SLE'; normal white blood cell level refers to WBC between 3.5 and 9.0;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.Diagnosis = 'SLE' AND T2.WBC BETWEEN 3.5 AND 9"
+  },
+  {
+    "id": "bird_thrombosis_prediction_159",
+    "intent": "Please list the patient's ID if he or she has an abnormal level of red blood cell and is followed at the outpatient clinic.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "RBC < = 3.5 or RBC > = 6.0 means the patient has an abnormal level of red blood cell; 3.5 < RBC < 6.0 means the patient has a normal level of red blood cell; followed at the outpatient clinic refers to Admission = '-';",
+    "source_sql": "SELECT DISTINCT T1.ID FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE (T2.RBC <= 3.5 OR T2.RBC >= 6) AND T1.Admission = '-'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_160",
+    "intent": "Among the patients who have a normal platelet level, how many of them have other symptoms observed?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "normal platelet level refers to PLT > 100 and PLT < 400; have other symptoms refers to Diagnosis is not null;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.PLT > 100 AND T2.PLT < 400 AND T1.Diagnosis IS NOT NULL"
+  },
+  {
+    "id": "bird_thrombosis_prediction_161",
+    "intent": "Please list a patient's platelet level if it is within the normal range and if he or she is diagnosed with MCTD.",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "PLT > 100 and PLT < 400 means platelet level is within the normal range; PLT < 100 and PLT > 400 means platelet level is not within the normal range; diagnosed with MCTD refers to Diagnosis = 'MCTD';",
+    "source_sql": "SELECT T2.PLT FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.Diagnosis = 'MCTD' AND T2.PLT BETWEEN 100 AND 400"
+  },
+  {
+    "id": "bird_thrombosis_prediction_162",
+    "intent": "For the male patients that have a normal prothrombin time, what is their average prothrombin time?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory"
+    ],
+    "primary_name": "patient",
+    "description": "male refers to Sex = 'M'; normal prothrombin time refer to PT < 14; average prothrombin time = AVG(PT);",
+    "source_sql": "SELECT AVG(T2.PT) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.PT < 14 AND T1.SEX = 'M'"
+  },
+  {
+    "id": "bird_thrombosis_prediction_163",
+    "intent": "How many patients with severe thrombosis have a normal prothrombin time?",
+    "category": "bird",
+    "relevant_names": [
+      "patient",
+      "laboratory",
+      "examination"
+    ],
+    "primary_name": "patient",
+    "description": "severe thrombosis refers to Thrombosis = 2 or 1; normal prothrombin time refers to PT < 14;",
+    "source_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T1.ID = T3.ID WHERE T2.PT < 14 AND T3.Thrombosis < 3 AND T3.Thrombosis > 0"
+  }
+]

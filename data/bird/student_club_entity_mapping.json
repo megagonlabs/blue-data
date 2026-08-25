@@ -1,0 +1,633 @@
+{
+  "bird_student_club_001": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_002": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_003": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_004": [
+    "event",
+    "attendance"
+  ],
+  "bird_student_club_005": [
+    "event",
+    "attendance",
+    "member"
+  ],
+  "bird_student_club_006": [
+    "event",
+    "attendance",
+    "member"
+  ],
+  "bird_student_club_007": [
+    "event",
+    "attendance"
+  ],
+  "bird_student_club_008": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_009": [
+    "event",
+    "attendance",
+    "member"
+  ],
+  "bird_student_club_010": [
+    "event",
+    "attendance",
+    "member"
+  ],
+  "bird_student_club_011": [
+    "event",
+    "attendance"
+  ],
+  "bird_student_club_012": [
+    "event",
+    "attendance"
+  ],
+  "bird_student_club_013": [
+    "event",
+    "attendance"
+  ],
+  "bird_student_club_014": [
+    "expense"
+  ],
+  "bird_student_club_015": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_016": [
+    "member",
+    "attendance",
+    "event"
+  ],
+  "bird_student_club_017": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_018": [
+    "member",
+    "zip_code"
+  ],
+  "bird_student_club_019": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_020": [
+    "member",
+    "income"
+  ],
+  "bird_student_club_021": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_022": [
+    "member",
+    "zip_code"
+  ],
+  "bird_student_club_023": [
+    "member",
+    "zip_code"
+  ],
+  "bird_student_club_024": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_025": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_026": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_027": [
+    "event",
+    "budget",
+    "expense"
+  ],
+  "bird_student_club_028": [
+    "member",
+    "expense"
+  ],
+  "bird_student_club_029": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_030": [
+    "event"
+  ],
+  "bird_student_club_031": [
+    "expense"
+  ],
+  "bird_student_club_032": [
+    "budget"
+  ],
+  "bird_student_club_033": [
+    "income"
+  ],
+  "bird_student_club_034": [
+    "major"
+  ],
+  "bird_student_club_035": [
+    "member"
+  ],
+  "bird_student_club_036": [
+    "member",
+    "zip_code"
+  ],
+  "bird_student_club_037": [
+    "budget",
+    "event"
+  ],
+  "bird_student_club_038": [
+    "budget",
+    "event"
+  ],
+  "bird_student_club_039": [
+    "budget",
+    "expense"
+  ],
+  "bird_student_club_040": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_041": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_042": [
+    "member",
+    "zip_code"
+  ],
+  "bird_student_club_043": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_044": [
+    "member",
+    "zip_code"
+  ],
+  "bird_student_club_045": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_046": [
+    "member",
+    "income"
+  ],
+  "bird_student_club_047": [
+    "member",
+    "income"
+  ],
+  "bird_student_club_048": [
+    "budget",
+    "event"
+  ],
+  "bird_student_club_049": [
+    "budget",
+    "event"
+  ],
+  "bird_student_club_050": [
+    "expense"
+  ],
+  "bird_student_club_051": [
+    "zip_code"
+  ],
+  "bird_student_club_052": [
+    "major"
+  ],
+  "bird_student_club_053": [
+    "member",
+    "zip_code"
+  ],
+  "bird_student_club_054": [
+    "budget",
+    "expense"
+  ],
+  "bird_student_club_055": [
+    "event",
+    "attendance",
+    "member"
+  ],
+  "bird_student_club_056": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_057": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_058": [
+    "budget",
+    "event"
+  ],
+  "bird_student_club_059": [
+    "member",
+    "expense"
+  ],
+  "bird_student_club_060": [
+    "event",
+    "attendance"
+  ],
+  "bird_student_club_061": [
+    "member",
+    "income"
+  ],
+  "bird_student_club_062": [
+    "zip_code",
+    "member"
+  ],
+  "bird_student_club_063": [
+    "member",
+    "attendance"
+  ],
+  "bird_student_club_064": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_065": [
+    "budget",
+    "event"
+  ],
+  "bird_student_club_066": [
+    "member"
+  ],
+  "bird_student_club_067": [
+    "budget"
+  ],
+  "bird_student_club_068": [
+    "event"
+  ],
+  "bird_student_club_069": [
+    "budget"
+  ],
+  "bird_student_club_070": [
+    "member",
+    "attendance"
+  ],
+  "bird_student_club_071": [
+    "major",
+    "member",
+    "attendance",
+    "event"
+  ],
+  "bird_student_club_072": [
+    "member",
+    "zip_code"
+  ],
+  "bird_student_club_073": [
+    "member",
+    "income"
+  ],
+  "bird_student_club_074": [
+    "member",
+    "income"
+  ],
+  "bird_student_club_075": [
+    "event",
+    "budget",
+    "expense"
+  ],
+  "bird_student_club_076": [
+    "event",
+    "budget",
+    "expense",
+    "member"
+  ],
+  "bird_student_club_077": [
+    "member",
+    "income"
+  ],
+  "bird_student_club_078": [
+    "event",
+    "budget",
+    "expense"
+  ],
+  "bird_student_club_079": [
+    "event",
+    "budget",
+    "expense"
+  ],
+  "bird_student_club_080": [
+    "major"
+  ],
+  "bird_student_club_081": [
+    "income"
+  ],
+  "bird_student_club_082": [
+    "member"
+  ],
+  "bird_student_club_083": [
+    "major",
+    "member"
+  ],
+  "bird_student_club_084": [
+    "event",
+    "attendance"
+  ],
+  "bird_student_club_085": [
+    "major",
+    "member",
+    "attendance"
+  ],
+  "bird_student_club_086": [
+    "budget"
+  ],
+  "bird_student_club_087": [
+    "budget",
+    "event"
+  ],
+  "bird_student_club_088": [
+    "member",
+    "attendance",
+    "event"
+  ],
+  "bird_student_club_089": [
+    "event"
+  ],
+  "bird_student_club_090": [
+    "event",
+    "budget",
+    "expense"
+  ],
+  "bird_student_club_091": [
+    "member"
+  ],
+  "bird_student_club_092": [
+    "budget",
+    "event"
+  ],
+  "bird_student_club_093": [
+    "event",
+    "budget",
+    "expense"
+  ],
+  "bird_student_club_094": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_095": [
+    "budget"
+  ],
+  "bird_student_club_096": [
+    "budget"
+  ],
+  "bird_student_club_097": [
+    "expense"
+  ],
+  "bird_student_club_098": [
+    "expense"
+  ],
+  "bird_student_club_099": [
+    "member",
+    "expense"
+  ],
+  "bird_student_club_100": [
+    "member",
+    "expense"
+  ],
+  "bird_student_club_101": [
+    "member",
+    "expense"
+  ],
+  "bird_student_club_102": [
+    "member",
+    "expense"
+  ],
+  "bird_student_club_103": [
+    "major",
+    "member"
+  ],
+  "bird_student_club_104": [
+    "major",
+    "member"
+  ],
+  "bird_student_club_105": [
+    "major",
+    "member"
+  ],
+  "bird_student_club_106": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_107": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_108": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_109": [
+    "major",
+    "member"
+  ],
+  "bird_student_club_110": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_111": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_112": [
+    "income"
+  ],
+  "bird_student_club_113": [
+    "member"
+  ],
+  "bird_student_club_114": [
+    "major"
+  ],
+  "bird_student_club_115": [
+    "major",
+    "member"
+  ],
+  "bird_student_club_116": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_117": [
+    "member",
+    "major",
+    "zip_code"
+  ],
+  "bird_student_club_118": [
+    "attendance",
+    "event",
+    "member"
+  ],
+  "bird_student_club_119": [
+    "member",
+    "expense"
+  ],
+  "bird_student_club_120": [
+    "attendance",
+    "event",
+    "member"
+  ],
+  "bird_student_club_121": [
+    "member",
+    "income"
+  ],
+  "bird_student_club_122": [
+    "zip_code"
+  ],
+  "bird_student_club_123": [
+    "zip_code"
+  ],
+  "bird_student_club_124": [
+    "event"
+  ],
+  "bird_student_club_125": [
+    "expense",
+    "member",
+    "attendance"
+  ],
+  "bird_student_club_126": [
+    "expense",
+    "member",
+    "attendance"
+  ],
+  "bird_student_club_127": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_128": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_129": [
+    "member",
+    "expense"
+  ],
+  "bird_student_club_130": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_131": [
+    "budget"
+  ],
+  "bird_student_club_132": [
+    "event"
+  ],
+  "bird_student_club_133": [
+    "expense"
+  ],
+  "bird_student_club_134": [
+    "member"
+  ],
+  "bird_student_club_135": [
+    "zip_code"
+  ],
+  "bird_student_club_136": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_137": [
+    "event",
+    "budget",
+    "expense"
+  ],
+  "bird_student_club_138": [
+    "member",
+    "major",
+    "expense"
+  ],
+  "bird_student_club_139": [
+    "income",
+    "member",
+    "zip_code"
+  ],
+  "bird_student_club_140": [
+    "expense",
+    "member",
+    "budget",
+    "event"
+  ],
+  "bird_student_club_141": [
+    "expense",
+    "member"
+  ],
+  "bird_student_club_142": [
+    "event",
+    "expense",
+    "budget"
+  ],
+  "bird_student_club_143": [
+    "event",
+    "budget",
+    "expense"
+  ],
+  "bird_student_club_144": [
+    "expense",
+    "budget"
+  ],
+  "bird_student_club_145": [
+    "expense",
+    "budget",
+    "member"
+  ],
+  "bird_student_club_146": [
+    "expense",
+    "budget",
+    "member"
+  ],
+  "bird_student_club_147": [
+    "member",
+    "zip_code"
+  ],
+  "bird_student_club_148": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_149": [
+    "expense",
+    "member"
+  ],
+  "bird_student_club_150": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_151": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_152": [
+    "event",
+    "budget"
+  ],
+  "bird_student_club_153": [
+    "event",
+    "attendance",
+    "member",
+    "income"
+  ],
+  "bird_student_club_154": [
+    "expense",
+    "budget"
+  ],
+  "bird_student_club_155": [
+    "member",
+    "major"
+  ],
+  "bird_student_club_156": [
+    "budget",
+    "event"
+  ],
+  "bird_student_club_157": [
+    "member",
+    "zip_code"
+  ],
+  "bird_student_club_158": [
+    "member",
+    "zip_code"
+  ]
+}

@@ -1,0 +1,1897 @@
+[
+  {
+    "id": "bird_student_club_001",
+    "intent": "What's Angela Sanders's major?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "Angela Sanders is the full name; full name refers to first_name, last_name; major refers to major_name.",
+    "source_sql": "SELECT T2.major_name FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T1.first_name = 'Angela' AND T1.last_name = 'Sanders'"
+  },
+  {
+    "id": "bird_student_club_002",
+    "intent": "How many students in the Student_Club are from the College of Engineering?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "",
+    "source_sql": "SELECT COUNT(T1.member_id) FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T2.college = 'College of Engineering'"
+  },
+  {
+    "id": "bird_student_club_003",
+    "intent": "Please list the full names of the students in the Student_Club that come from the Art and Design Department.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "full name refers to first_name, last_name;",
+    "source_sql": "SELECT T1.first_name, T1.last_name FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T2.department = 'Art and Design Department'"
+  },
+  {
+    "id": "bird_student_club_004",
+    "intent": "How many students of the Student_Club have attended the event \"Women's Soccer\"?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance"
+    ],
+    "primary_name": "event",
+    "description": "Women's Soccer is an event name",
+    "source_sql": "SELECT COUNT(T1.event_id) FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event WHERE T1.event_name = 'Women''s Soccer'"
+  },
+  {
+    "id": "bird_student_club_005",
+    "intent": "Please list the phone numbers of the students from the Student_Club that has attended the event \"Women's Soccer\".",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance",
+      "member"
+    ],
+    "primary_name": "event",
+    "description": "Women's Soccer is an event name; phone numbers refers to phone",
+    "source_sql": "SELECT T3.phone FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event INNER JOIN member AS T3 ON T2.link_to_member = T3.member_id WHERE T1.event_name = 'Women''s Soccer'"
+  },
+  {
+    "id": "bird_student_club_006",
+    "intent": "Among the students from the Student_Club who attended the event \"Women's Soccer\", how many of them want a T-shirt that's in medium size?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance",
+      "member"
+    ],
+    "primary_name": "event",
+    "description": "Women's Soccer is an event name; T-shirt that is in medium size refers to t_shirt_size = 'Medium'",
+    "source_sql": "SELECT COUNT(T1.event_id) FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event INNER JOIN member AS T3 ON T2.link_to_member = T3.member_id WHERE T1.event_name = 'Women''s Soccer' AND T3.t_shirt_size = 'Medium'"
+  },
+  {
+    "id": "bird_student_club_007",
+    "intent": "What is the event that has the highest attendance of the students from the Student_Club?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance"
+    ],
+    "primary_name": "event",
+    "description": "event with highest attendance refers to MAX(COUNT(link_to_event))",
+    "source_sql": "SELECT T1.event_name FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event GROUP BY T1.event_name ORDER BY COUNT(T2.link_to_event) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_008",
+    "intent": "Which college is the vice president of the Student_Club from?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "Vice President is a position of the Student Club",
+    "source_sql": "SELECT T2.college FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T1.position LIKE 'vice president'"
+  },
+  {
+    "id": "bird_student_club_009",
+    "intent": "Please list the event names of all the events attended by Maya Mclean.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance",
+      "member"
+    ],
+    "primary_name": "event",
+    "description": "",
+    "source_sql": "SELECT T1.event_name FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event INNER JOIN member AS T3 ON T2.link_to_member = T3.member_id WHERE T3.first_name = 'Maya' AND T3.last_name = 'Mclean'"
+  },
+  {
+    "id": "bird_student_club_010",
+    "intent": "How many events of the Student_Club did Sacha Harrison attend in 2019?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance",
+      "member"
+    ],
+    "primary_name": "event",
+    "description": "events attended in 2019 refers to YEAR(event_date) = 2019",
+    "source_sql": "SELECT COUNT(T1.event_id) FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event INNER JOIN member AS T3 ON T2.link_to_member = T3.member_id WHERE T3.first_name = 'Sacha' AND T3.last_name = 'Harrison' AND SUBSTR(T1.event_date, 1, 4) = '2019'"
+  },
+  {
+    "id": "bird_student_club_011",
+    "intent": "Among the events attended by more than 10 members of the Student_Club, how many of them are meetings?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance"
+    ],
+    "primary_name": "event",
+    "description": "meetings events refers to type = 'Meeting'; attended by more than 10 members refers to COUNT(event_id) > 10",
+    "source_sql": "SELECT T1.event_name FROM event AS T1  INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event GROUP BY T1.event_id  HAVING COUNT(T2.link_to_event) > 10 EXCEPT SELECT T1.event_name  FROM event AS T1  WHERE T1.type = 'Meeting'"
+  },
+  {
+    "id": "bird_student_club_012",
+    "intent": "List all the names of events that had an attendance of over 20 students but were not fundraisers.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance"
+    ],
+    "primary_name": "event",
+    "description": "name of events refers to event_name; attendance of over 20 students COUNT(event_id) > 20.",
+    "source_sql": "SELECT T1.event_name FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event GROUP BY T1.event_id HAVING COUNT(T2.link_to_event) > 20 EXCEPT SELECT T1.event_name FROM event AS T1  WHERE T1.type = 'Fundraiser'"
+  },
+  {
+    "id": "bird_student_club_013",
+    "intent": "What is the average attendance of meetings in 2020?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance"
+    ],
+    "primary_name": "event",
+    "description": "meetings in 2020 refers to type = 'Meeting' where YEAR(event_date) = 2020; average = DIVIDE(COUNT(event_id), COUNT(DISTINCT event_name))",
+    "source_sql": "SELECT CAST(COUNT(T2.link_to_event) AS REAL) / COUNT(DISTINCT T2.link_to_event) FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event WHERE SUBSTR(T1.event_date, 1, 4) = '2020' AND T1.type = 'Meeting'"
+  },
+  {
+    "id": "bird_student_club_014",
+    "intent": "What is the most expensive item that was spent in support of club events?",
+    "category": "bird",
+    "relevant_names": [
+      "expense"
+    ],
+    "primary_name": "expense",
+    "description": "item in support of club events refers to expense_description; most expensive refers to MAX(cost)",
+    "source_sql": "SELECT expense_description FROM expense ORDER BY cost DESC LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_015",
+    "intent": "How many members of the Student_Club have majored Environmental Engineering?\n",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "'Environmental Engineering' is the major name",
+    "source_sql": "SELECT COUNT(T1.member_id) FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T2.major_name = 'Environmental Engineering'"
+  },
+  {
+    "id": "bird_student_club_016",
+    "intent": "List the full name of all the members of the Student_Club who attended the \"Laugh Out Loud\" event.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "attendance",
+      "event"
+    ],
+    "primary_name": "member",
+    "description": "full name of members refers to first_name, last_name; 'Laugh Out Loud' is an event name;",
+    "source_sql": "SELECT T1.first_name, T1.last_name FROM member AS T1 INNER JOIN attendance AS T2 ON T1.member_id = T2.link_to_member INNER JOIN event AS T3 ON T2.link_to_event = T3.event_id WHERE T3.event_name = 'Laugh Out Loud'"
+  },
+  {
+    "id": "bird_student_club_017",
+    "intent": "List the last name of all the students who majored Law and Constitutional Studies. \n",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "'Law and Constitutional Studies' is the major name",
+    "source_sql": "SELECT T1.last_name FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T2.major_name = 'Law and Constitutional Studies'"
+  },
+  {
+    "id": "bird_student_club_018",
+    "intent": "What county did Sherri Ramsey grew up?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "",
+    "source_sql": "SELECT T2.county FROM member AS T1 INNER JOIN zip_code AS T2 ON T1.zip = T2.zip_code WHERE T1.first_name = 'Sherri' AND T1.last_name = 'Ramsey'"
+  },
+  {
+    "id": "bird_student_club_019",
+    "intent": "What college offers the major that Tyler Hewitt took?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "",
+    "source_sql": "SELECT T2.college FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T1.first_name = 'Tyler' AND T1.last_name = 'Hewitt'"
+  },
+  {
+    "id": "bird_student_club_020",
+    "intent": "What is the amount of the funds that the Vice President received?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "income"
+    ],
+    "primary_name": "member",
+    "description": "'Vice President' is a position of Student Club; funds received refers to amount.",
+    "source_sql": "SELECT T2.amount FROM member AS T1 INNER JOIN income AS T2 ON T1.member_id = T2.link_to_member WHERE T1.position = 'Vice President'"
+  },
+  {
+    "id": "bird_student_club_021",
+    "intent": "How much did the Student_Club members spend on food in September Meeting?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "amount spent refers to spent; spend on food in September Meeting refers to category = 'Food' where event_name = 'September Meeting'",
+    "source_sql": "SELECT T2.spent FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T1.event_name = 'September Meeting' AND T2.category = 'Food' AND SUBSTR(T1.event_date, 6, 2) = '09'"
+  },
+  {
+    "id": "bird_student_club_022",
+    "intent": "What city and state did the President of the Student_Club grow up?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "'President' is a position of Student Club;",
+    "source_sql": "SELECT T2.city, T2.state FROM member AS T1 INNER JOIN zip_code AS T2 ON T1.zip = T2.zip_code WHERE T1.position = 'President'"
+  },
+  {
+    "id": "bird_student_club_023",
+    "intent": "List the full name of the Student_Club members that grew up in Illinois state.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "full name of member refers to first_name, last_name",
+    "source_sql": "SELECT T1.first_name, T1.last_name FROM member AS T1 INNER JOIN zip_code AS T2 ON T1.zip = T2.zip_code WHERE T2.state = 'Illinois'"
+  },
+  {
+    "id": "bird_student_club_024",
+    "intent": "How much did the Student_Club members spend on advertisement in September Meeting?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "amount spent refers to spent; spend on food in September Meeting refers to category = 'Advertisement' where event_name = 'September Meeting'",
+    "source_sql": "SELECT T2.spent FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T1.event_name = 'September Meeting' AND T2.category = 'Advertisement' AND SUBSTR(T1.event_date, 6, 2) = '09'"
+  },
+  {
+    "id": "bird_student_club_025",
+    "intent": "What department offers the major that Pierce and Guidi took?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "",
+    "source_sql": "SELECT T2.department FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T1.last_name = 'Pierce' OR T1.last_name = 'Guidi'"
+  },
+  {
+    "id": "bird_student_club_026",
+    "intent": "What is the total budgeted amount for all category in \"October Speaker\" event?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "total budgeted amount refers to SUM(amount) where event_name = 'October Speaker'",
+    "source_sql": "SELECT SUM(T2.amount) FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T1.event_name = 'October Speaker'"
+  },
+  {
+    "id": "bird_student_club_027",
+    "intent": "Was each expense in October Meeting on October 8, 2019 approved?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget",
+      "expense"
+    ],
+    "primary_name": "event",
+    "description": "event_name = 'October Meeting' where event_date = '2019-10-08'; approved = True means expenses was approved; approved = False means expenses was not approved",
+    "source_sql": "SELECT T3.approved FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget WHERE T1.event_name = 'October Meeting' AND T1.event_date LIKE '2019-10-08%'"
+  },
+  {
+    "id": "bird_student_club_028",
+    "intent": "Calculate the total average cost that Elijah Allen spent in the events on September and October.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "expense"
+    ],
+    "primary_name": "member",
+    "description": "Elijah Allen is the full name; full name refers to first_name, last_name; The 5th and 6th string of the expense_date in the expense table can refer to month; events in September and October refers to month(expense_date) = 9 OR month(expense_date) = 10",
+    "source_sql": "SELECT AVG(T2.cost) FROM member AS T1 INNER JOIN expense AS T2 ON T1.member_id = T2.link_to_member WHERE T1.last_name = 'Allen' AND T1.first_name = 'Elijah' AND (SUBSTR(T2.expense_date, 6, 2) = '09' OR SUBSTR(T2.expense_date, 6, 2) = '10')"
+  },
+  {
+    "id": "bird_student_club_029",
+    "intent": "Calculate the difference of the total amount spent in all events by the Student_Club in year 2019 and 2020.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "The first 4 strings of the event_date values in the event table can represent year; The difference of the total amount spent = SUBTRACT(spent where YEAR(event_date) = 2019, spent where YEAR(event_date) = 2020)",
+    "source_sql": "SELECT SUM(CASE WHEN SUBSTR(T1.event_date, 1, 4) = '2019' THEN T2.spent ELSE 0 END) - SUM(CASE WHEN SUBSTR(T1.event_date, 1, 4) = '2020' THEN T2.spent ELSE 0 END) AS num FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event"
+  },
+  {
+    "id": "bird_student_club_030",
+    "intent": "Give the location for \"Spring Budget Review\".",
+    "category": "bird",
+    "relevant_names": [
+      "event"
+    ],
+    "primary_name": "event",
+    "description": "'Spring Budget Review' is an event name;",
+    "source_sql": "SELECT location FROM event WHERE event_name = 'Spring Budget Review'"
+  },
+  {
+    "id": "bird_student_club_031",
+    "intent": "What was the cost for the \"Posters\" on 2019/9/4?",
+    "category": "bird",
+    "relevant_names": [
+      "expense"
+    ],
+    "primary_name": "expense",
+    "description": "'Poster' is an event description; on 2019/9/14 refers to event_date = '2019-09-04'",
+    "source_sql": "SELECT cost FROM expense WHERE expense_description = 'Posters' AND expense_date = '2019-09-04'"
+  },
+  {
+    "id": "bird_student_club_032",
+    "intent": "With the biggest budget for the \"Food\", what was the remaining of it?",
+    "category": "bird",
+    "relevant_names": [
+      "budget"
+    ],
+    "primary_name": "budget",
+    "description": "remaining of budget refers to remaining, biggest budget for 'Food' refers to MAX(budget.amount) where category = 'Food'",
+    "source_sql": "SELECT remaining FROM budget WHERE category = 'Food' AND amount = ( SELECT MAX(amount) FROM budget WHERE category = 'Food' )"
+  },
+  {
+    "id": "bird_student_club_033",
+    "intent": "What was the notes of the fundraising on 2019/9/14?",
+    "category": "bird",
+    "relevant_names": [
+      "income"
+    ],
+    "primary_name": "income",
+    "description": "fundraising on 2019/9/14 refers to source = 'Fundraising' where date_received = '2019-09-14'",
+    "source_sql": "SELECT notes FROM income WHERE source = 'Fundraising' AND date_received = '2019-09-14'"
+  },
+  {
+    "id": "bird_student_club_034",
+    "intent": "How many majors are there in \"College of Humanities and Social Sciences\"?",
+    "category": "bird",
+    "relevant_names": [
+      "major"
+    ],
+    "primary_name": "major",
+    "description": "",
+    "source_sql": "SELECT COUNT(major_name) FROM major WHERE college = 'College of Humanities and Social Sciences'"
+  },
+  {
+    "id": "bird_student_club_035",
+    "intent": "Tell the phone number of \"Carlo Jacobs\".",
+    "category": "bird",
+    "relevant_names": [
+      "member"
+    ],
+    "primary_name": "member",
+    "description": "Carlo Jacobs is the full name; full name refers to first_name, last_name;",
+    "source_sql": "SELECT phone FROM member WHERE first_name = 'Carlo' AND last_name = 'Jacobs'"
+  },
+  {
+    "id": "bird_student_club_036",
+    "intent": "Tell the hometown county for \"Adela O'Gallagher\".",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "hometown county refers to county",
+    "source_sql": "SELECT T2.county FROM member AS T1 INNER JOIN zip_code AS T2 ON T1.zip = T2.zip_code WHERE T1.first_name = 'Adela' AND T1.last_name = 'O''Gallagher'"
+  },
+  {
+    "id": "bird_student_club_037",
+    "intent": "For all the budgets for \"November Meeting\", how many of them had exceeded the budget?",
+    "category": "bird",
+    "relevant_names": [
+      "budget",
+      "event"
+    ],
+    "primary_name": "budget",
+    "description": "'November Meeting' is an event name; remaining < 0 means the cost had exceeded the budget",
+    "source_sql": "SELECT COUNT(T2.event_id) FROM budget AS T1 INNER JOIN event AS T2 ON T1.link_to_event = T2.event_id WHERE T2.event_name = 'November Meeting' AND T1.remaining < 0"
+  },
+  {
+    "id": "bird_student_club_038",
+    "intent": "Provide the total number of the budget amount for \"September Speaker\" event.",
+    "category": "bird",
+    "relevant_names": [
+      "budget",
+      "event"
+    ],
+    "primary_name": "budget",
+    "description": "'September Speaker' is an event name; total number of budget amount refers to SUM(amount)",
+    "source_sql": "SELECT SUM(T1.amount) FROM budget AS T1 INNER JOIN event AS T2 ON T1.link_to_event = T2.event_id WHERE T2.event_name = 'September Speaker'"
+  },
+  {
+    "id": "bird_student_club_039",
+    "intent": "What is the status of the event which bought \"Post Cards, Posters\" on 2019/8/20?",
+    "category": "bird",
+    "relevant_names": [
+      "budget",
+      "expense"
+    ],
+    "primary_name": "budget",
+    "description": "'Post Cards, Posters' is an expense description; on 2019/8/20 refers to expense_date = '2019-8-20'; status of event refers to event_status",
+    "source_sql": "SELECT T1.event_status FROM budget AS T1 INNER JOIN expense AS T2 ON T1.budget_id = T2.link_to_budget WHERE T2.expense_description = 'Post Cards, Posters' AND T2.expense_date = '2019-08-20'"
+  },
+  {
+    "id": "bird_student_club_040",
+    "intent": "What was Brent Thomason's major?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "Brent Thomason is the full name; full name refers to first_name, last_name; major refers to major_name",
+    "source_sql": "SELECT T2.major_name FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T1.first_name = 'Brent' AND T1.last_name = 'Thomason'"
+  },
+  {
+    "id": "bird_student_club_041",
+    "intent": "For all the club members from \"Business\" major, how many of them wear medium size t-shirt?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "'Business' is a major name; wear medium size t-shirt refers to t_shirt_size = 'Medium'",
+    "source_sql": "SELECT COUNT(T1.member_id) FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T2.major_name = 'Business' AND T1.t_shirt_size = 'Medium'"
+  },
+  {
+    "id": "bird_student_club_042",
+    "intent": "What's Christof Nielson's zip code type?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "",
+    "source_sql": "SELECT T2.type FROM member AS T1 INNER JOIN zip_code AS T2 ON T1.zip = T2.zip_code WHERE T1.first_name = 'Christof' AND T1.last_name = 'Nielson'"
+  },
+  {
+    "id": "bird_student_club_043",
+    "intent": "State the major name for the Vice President of the club.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "'Vice President' is a position of Student Club",
+    "source_sql": "SELECT T2.major_name FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T1.position = 'Vice President'"
+  },
+  {
+    "id": "bird_student_club_044",
+    "intent": "Where is the hometown state for \"Sacha Harrison\"?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "hometown state refers to state;",
+    "source_sql": "SELECT T2.state FROM member AS T1 INNER JOIN zip_code AS T2 ON T1.zip = T2.zip_code WHERE T1.first_name = 'Sacha' AND T1.last_name = 'Harrison'"
+  },
+  {
+    "id": "bird_student_club_045",
+    "intent": "Which department was the President of the club in?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "'President' is a position of Student Club",
+    "source_sql": "SELECT T2.department FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T1.position = 'President'"
+  },
+  {
+    "id": "bird_student_club_046",
+    "intent": "State the date Connor Hilton paid his/her dues.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "income"
+    ],
+    "primary_name": "member",
+    "description": "Connor Hilton is the full name; full name refers to first_name, last_name; date the dues was paid refers to date_received where source = 'Dues';",
+    "source_sql": "SELECT T2.date_received FROM member AS T1 INNER JOIN income AS T2 ON T1.member_id = T2.link_to_member WHERE T1.first_name = 'Connor' AND T1.last_name = 'Hilton' AND T2.source = 'Dues'"
+  },
+  {
+    "id": "bird_student_club_047",
+    "intent": "Who was the first one paid his/her dues? Tell the full name.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "income"
+    ],
+    "primary_name": "member",
+    "description": "full name refers to first_name, last_name; first paid dues refers to MIN(received_date) where source = 'Dues'",
+    "source_sql": "SELECT T1.first_name, T1.last_name FROM member AS T1 INNER JOIN income AS T2 ON T1.member_id = T2.link_to_member WHERE T2.source = 'Dues' ORDER BY T2.date_received LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_048",
+    "intent": "How many times was the budget in Advertisement for \"Yearly Kickoff\" meeting more than \"October Meeting\"?",
+    "category": "bird",
+    "relevant_names": [
+      "budget",
+      "event"
+    ],
+    "primary_name": "budget",
+    "description": "budget in Advertisement refer to category = 'Advertisement' in the budget table; DIVIDE(SUM(amount when event_name = 'Yearly Kickoff'), SUM(amount when event_name = 'October Meeting'))",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.event_name = 'Yearly Kickoff' THEN T1.amount ELSE 0 END) AS REAL) / SUM(CASE WHEN T2.event_name = 'October Meeting' THEN T1.amount ELSE 0 END) FROM budget AS T1 INNER JOIN event AS T2 ON T1.link_to_event = T2.event_id WHERE T1.category = 'Advertisement' AND T2.type = 'Meeting'"
+  },
+  {
+    "id": "bird_student_club_049",
+    "intent": "What percentage was the budget for Parking to the total budget for the \"November Speaker\"?",
+    "category": "bird",
+    "relevant_names": [
+      "budget",
+      "event"
+    ],
+    "primary_name": "budget",
+    "description": "DIVDE(SUM( amount where category = 'Parking' and event_name = 'November Speaker'), COUNT(event_name = 'November Speaker)) * 100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T1.category = 'Parking' THEN T1.amount ELSE 0 END) AS REAL) * 100 / SUM(T1.amount) FROM budget AS T1 INNER JOIN event AS T2 ON T1.link_to_event = T2.event_id WHERE T2.event_name = 'November Speaker'"
+  },
+  {
+    "id": "bird_student_club_050",
+    "intent": "What is the total cost of the pizzas for all the events?",
+    "category": "bird",
+    "relevant_names": [
+      "expense"
+    ],
+    "primary_name": "expense",
+    "description": "total cost of the pizzas refers to SUM(cost) where expense_description = 'Pizza'",
+    "source_sql": "SELECT SUM(cost) FROM expense WHERE expense_description = 'Pizza'"
+  },
+  {
+    "id": "bird_student_club_051",
+    "intent": "How many cities are there in Orange County, Virginia?",
+    "category": "bird",
+    "relevant_names": [
+      "zip_code"
+    ],
+    "primary_name": "zip_code",
+    "description": "Orange County is the county name, Virginia is the state name",
+    "source_sql": "SELECT COUNT(city) FROM zip_code WHERE county = 'Orange County' AND state = 'Virginia'"
+  },
+  {
+    "id": "bird_student_club_052",
+    "intent": "List all of the College of Humanities and Social Sciences' departments.",
+    "category": "bird",
+    "relevant_names": [
+      "major"
+    ],
+    "primary_name": "major",
+    "description": "",
+    "source_sql": "SELECT department FROM major WHERE college = 'College of Humanities and Social Sciences'"
+  },
+  {
+    "id": "bird_student_club_053",
+    "intent": "Where is Amy Firth's hometown?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "hometown refers to city, county, state",
+    "source_sql": "SELECT T2.city, T2.county, T2.state FROM member AS T1 INNER JOIN zip_code AS T2 ON T1.zip = T2.zip_code WHERE T1.first_name = 'Amy' AND T1.last_name = 'Firth'"
+  },
+  {
+    "id": "bird_student_club_054",
+    "intent": "What are the expenses of the budget with the lowest remaining?",
+    "category": "bird",
+    "relevant_names": [
+      "budget",
+      "expense"
+    ],
+    "primary_name": "budget",
+    "description": "expense of budget refers to expense_description; lowest remaining refers to MIN(remaining)",
+    "source_sql": "SELECT T2.expense_description FROM budget AS T1 INNER JOIN expense AS T2 ON T1.budget_id = T2.link_to_budget ORDER BY T1.remaining LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_055",
+    "intent": "List all the members who attended the event \"October Meeting\".",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance",
+      "member"
+    ],
+    "primary_name": "event",
+    "description": "'October Meeting' is an event name;",
+    "source_sql": "SELECT DISTINCT T3.member_id FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event INNER JOIN member AS T3 ON T2.link_to_member = T3.member_id WHERE T1.event_name = 'October Meeting'"
+  },
+  {
+    "id": "bird_student_club_056",
+    "intent": "Which college do most of the members go to?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "college most members go refers to MAX(COUNT(major.college))",
+    "source_sql": "SELECT T2.college FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id GROUP BY T2.major_id ORDER BY COUNT(T2.college) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_057",
+    "intent": "What does the person with the phone number \"809-555-3360\" major in?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "major in refers to major_name",
+    "source_sql": "SELECT T2.major_name FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T1.phone = '809-555-3360'"
+  },
+  {
+    "id": "bird_student_club_058",
+    "intent": "Which event has the highest budget amount?",
+    "category": "bird",
+    "relevant_names": [
+      "budget",
+      "event"
+    ],
+    "primary_name": "budget",
+    "description": "event refers to event_name; highest budget amount refers to MAX(amount)",
+    "source_sql": "SELECT T2.event_name FROM budget AS T1 INNER JOIN event AS T2 ON T1.link_to_event = T2.event_id ORDER BY T1.amount DESC LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_059",
+    "intent": "List all the expenses incurred by the vice president.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "expense"
+    ],
+    "primary_name": "member",
+    "description": "expense refers to expense_description; 'Vice President' is a position of the Student Club",
+    "source_sql": "SELECT T2.expense_id, T2.expense_description FROM member AS T1 INNER JOIN expense AS T2 ON T1.member_id = T2.link_to_member WHERE T1.position = 'Vice President'"
+  },
+  {
+    "id": "bird_student_club_060",
+    "intent": "How many members attended the \"Women's Soccer\" event?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance"
+    ],
+    "primary_name": "event",
+    "description": "'Women's Soccer' is the event name;",
+    "source_sql": "SELECT COUNT(T2.link_to_member) FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event WHERE T1.event_name = 'Women''s Soccer'"
+  },
+  {
+    "id": "bird_student_club_061",
+    "intent": "When did the member, Casey Mason, received the income?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "income"
+    ],
+    "primary_name": "member",
+    "description": "when the income was received refers to date_received",
+    "source_sql": "SELECT T2.date_received FROM member AS T1 INNER JOIN income AS T2 ON T1.member_id = T2.link_to_member WHERE T1.first_name = 'Casey' AND T1.last_name = 'Mason'"
+  },
+  {
+    "id": "bird_student_club_062",
+    "intent": "How many of the members' hometowns are from Maryland state?",
+    "category": "bird",
+    "relevant_names": [
+      "zip_code",
+      "member"
+    ],
+    "primary_name": "zip_code",
+    "description": "",
+    "source_sql": "SELECT COUNT(T2.member_id) FROM zip_code AS T1 INNER JOIN member AS T2 ON T1.zip_code = T2.zip WHERE T1.state = 'Maryland'"
+  },
+  {
+    "id": "bird_student_club_063",
+    "intent": "How many events did the member with the phone number \"954-555-6240\" attend?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "attendance"
+    ],
+    "primary_name": "member",
+    "description": "",
+    "source_sql": "SELECT COUNT(T2.link_to_event) FROM member AS T1 INNER JOIN attendance AS T2 ON T1.member_id = T2.link_to_member WHERE T1.phone = '954-555-6240'"
+  },
+  {
+    "id": "bird_student_club_064",
+    "intent": "List all the members of the \"School of Applied Sciences, Technology and Education\" department.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "list all members means to list all the full name; full name refers to first_name, last_name;",
+    "source_sql": "SELECT T1.first_name, T1.last_name FROM member AS T1 INNER JOIN major AS T2 ON T1.link_to_major = T2.major_id WHERE T2.department = 'School of Applied Sciences, Technology and Education'"
+  },
+  {
+    "id": "bird_student_club_065",
+    "intent": "Among all the closed events, which event has the highest spend-to-budget ratio?",
+    "category": "bird",
+    "relevant_names": [
+      "budget",
+      "event"
+    ],
+    "primary_name": "budget",
+    "description": "closed events refers to event_name where status = 'Closed'; highest spend-to budget ratio refers to MAX(DIVIDE(spent, amount))",
+    "source_sql": "SELECT T2.event_name FROM budget AS T1 INNER JOIN event AS T2 ON T1.link_to_event = T2.event_id WHERE T2.status = 'Closed' ORDER BY T1.spent / T1.amount DESC LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_066",
+    "intent": "How many student have the position of president?",
+    "category": "bird",
+    "relevant_names": [
+      "member"
+    ],
+    "primary_name": "member",
+    "description": "'President' is a position of Student Club",
+    "source_sql": "SELECT COUNT(member_id) FROM member WHERE position = 'President'"
+  },
+  {
+    "id": "bird_student_club_067",
+    "intent": "What is the highest amount of budget spend for an event?",
+    "category": "bird",
+    "relevant_names": [
+      "budget"
+    ],
+    "primary_name": "budget",
+    "description": "highest amount of budget spend refers to MAX(spent)",
+    "source_sql": "SELECT MAX(spent) FROM budget"
+  },
+  {
+    "id": "bird_student_club_068",
+    "intent": "How many meeting events were held in 2020?",
+    "category": "bird",
+    "relevant_names": [
+      "event"
+    ],
+    "primary_name": "event",
+    "description": "meeting events refers to type = 'Meeting'; held in 2020 refers to YEAR(event_date) = 2020",
+    "source_sql": "SELECT COUNT(event_id) FROM event WHERE type = 'Meeting' AND SUBSTR(event_date, 1, 4) = '2020'"
+  },
+  {
+    "id": "bird_student_club_069",
+    "intent": "What is the total amount of money spent for food?",
+    "category": "bird",
+    "relevant_names": [
+      "budget"
+    ],
+    "primary_name": "budget",
+    "description": "total amount of money spent refers to SUM(spent); spent for food refers to category = 'Food'",
+    "source_sql": "SELECT SUM(spent) FROM budget WHERE category = 'Food'"
+  },
+  {
+    "id": "bird_student_club_070",
+    "intent": "List the name of students that have attended more than 7 events.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "attendance"
+    ],
+    "primary_name": "member",
+    "description": "name of students means the full name; full name refers to first_name, last_name; attended more than 7 events refers to COUNT(link_to_event) > 7",
+    "source_sql": "SELECT T1.first_name, T1.last_name FROM member AS T1 INNER JOIN attendance AS T2 ON T1.member_id = T2.link_to_member GROUP BY T2.link_to_member HAVING COUNT(T2.link_to_event) > 7"
+  },
+  {
+    "id": "bird_student_club_071",
+    "intent": "Among the students majored in interior design, who have attended the Community Theater event?",
+    "category": "bird",
+    "relevant_names": [
+      "major",
+      "member",
+      "attendance",
+      "event"
+    ],
+    "primary_name": "major",
+    "description": "majored in music refers to major_name = 'Interior Design'; 'Community Theater' is the event name;",
+    "source_sql": "SELECT T2.first_name, T2.last_name FROM major AS T1 INNER JOIN member AS T2 ON T1.major_id = T2.link_to_major INNER JOIN attendance AS T3 ON T2.member_id = T3.link_to_member INNER JOIN event AS T4 ON T3.link_to_event = T4.event_id WHERE T4.event_name = 'Community Theater' AND T1.major_name = 'Interior Design'"
+  },
+  {
+    "id": "bird_student_club_072",
+    "intent": "State the name of students from Georgetown, South Carolina.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "name of students means the full name; full name refers to first_name, last_name; Georgetown is a city; South Carolina is a state",
+    "source_sql": "SELECT T1.first_name, T1.last_name FROM member AS T1 INNER JOIN zip_code AS T2 ON T1.zip = T2.zip_code WHERE T2.city = 'Georgetown' AND T2.state = 'South Carolina'"
+  },
+  {
+    "id": "bird_student_club_073",
+    "intent": "How many income generated by Grant Gilmour?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "income"
+    ],
+    "primary_name": "member",
+    "description": "income generated refers to income.amount",
+    "source_sql": "SELECT T2.amount FROM member AS T1 INNER JOIN income AS T2 ON T1.member_id = T2.link_to_member WHERE T1.first_name = 'Grant' AND T1.last_name = 'Gilmour'"
+  },
+  {
+    "id": "bird_student_club_074",
+    "intent": "Which student was able to generate income more than $40?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "income"
+    ],
+    "primary_name": "member",
+    "description": "name of students means the full name; full name refers to first_name, last_name; generate income more than $50 refers to income.amount > 40",
+    "source_sql": "SELECT T1.first_name, T1.last_name FROM member AS T1 INNER JOIN income AS T2 ON T1.member_id = T2.link_to_member WHERE T2.amount > 40"
+  },
+  {
+    "id": "bird_student_club_075",
+    "intent": "What is the total expense for the Yearly Kickoff?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget",
+      "expense"
+    ],
+    "primary_name": "event",
+    "description": "'Yearly Kickoff' is an event name; total expense refers to SUM(cost)",
+    "source_sql": "SELECT SUM(T3.cost) FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget WHERE T1.event_name = 'Yearly Kickoff'"
+  },
+  {
+    "id": "bird_student_club_076",
+    "intent": "Which student has been entrusted to manage the budget for the Yearly Kickoff?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget",
+      "expense",
+      "member"
+    ],
+    "primary_name": "event",
+    "description": "name of students means the full name; full name refers to first_name, last_name;'Yearly Kickoff' is an event name;",
+    "source_sql": "SELECT T4.first_name, T4.last_name FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget INNER JOIN member AS T4 ON T3.link_to_member = T4.member_id WHERE T1.event_name = 'Yearly Kickoff'"
+  },
+  {
+    "id": "bird_student_club_077",
+    "intent": "Which students manage to generate the highest income. State his/her full name along with the income source.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "income"
+    ],
+    "primary_name": "member",
+    "description": "name of students means the full name; full name refers to first_name, last_name; generate the highest income refers to MAX(income.amount);",
+    "source_sql": "SELECT T1.first_name, T1.last_name, T2.source FROM member AS T1 INNER JOIN income AS T2 ON T1.member_id = T2.link_to_member GROUP BY T1.first_name, T1.last_name, T2.source ORDER BY SUM(T2.amount) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_078",
+    "intent": "Which event has the lowest cost?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget",
+      "expense"
+    ],
+    "primary_name": "event",
+    "description": "event refers to event_name; lowest cost means MIN(cost)",
+    "source_sql": "SELECT T1.event_name FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget ORDER BY T3.cost LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_079",
+    "intent": "Based on the total cost for all event, what is the percentage of cost for Yearly Kickoff event?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget",
+      "expense"
+    ],
+    "primary_name": "event",
+    "description": "percentage = DIVIDE(SUM(cost where event_name = 'Yearly Kickoff'), SUM(cost)) * 100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T1.event_name = 'Yearly Kickoff' THEN T3.cost ELSE 0 END) AS REAL) * 100 / SUM(T3.cost) FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget"
+  },
+  {
+    "id": "bird_student_club_080",
+    "intent": "What is the ratio between students majored in finance and physics?",
+    "category": "bird",
+    "relevant_names": [
+      "major"
+    ],
+    "primary_name": "major",
+    "description": "DIVDE(SUM(major_name = 'Finance'), SUM(major_name = 'Physics'))",
+    "source_sql": "SELECT SUM(CASE WHEN major_name = 'Finance' THEN 1 ELSE 0 END) / SUM(CASE WHEN major_name = 'Physics' THEN 1 ELSE 0 END) AS ratio FROM major"
+  },
+  {
+    "id": "bird_student_club_081",
+    "intent": "Indicate the top source of funds received in September 2019 based on their amount.",
+    "category": "bird",
+    "relevant_names": [
+      "income"
+    ],
+    "primary_name": "income",
+    "description": "top source funds refers to MAX(source); September 2019 means date_received BETWEEN '2019-09-01' and '2019-09-30'",
+    "source_sql": "SELECT source FROM income WHERE date_received BETWEEN '2019-09-01' and '2019-09-30' ORDER BY source DESC LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_082",
+    "intent": "Provide the full name and email address of the Student_Club's Secretary.",
+    "category": "bird",
+    "relevant_names": [
+      "member"
+    ],
+    "primary_name": "member",
+    "description": "full name refers to first_name, last_name; 'Secretary' is a position of Student Club",
+    "source_sql": "SELECT first_name, last_name, email FROM member WHERE position = 'Secretary'"
+  },
+  {
+    "id": "bird_student_club_083",
+    "intent": "How many members of the Student_Club have major in 'Physics Teaching'?",
+    "category": "bird",
+    "relevant_names": [
+      "major",
+      "member"
+    ],
+    "primary_name": "major",
+    "description": "'Physics Teaching' is the major_name;",
+    "source_sql": "SELECT COUNT(T2.member_id) FROM major AS T1 INNER JOIN member AS T2 ON T1.major_id = T2.link_to_major WHERE T1.major_name = 'Physics Teaching'"
+  },
+  {
+    "id": "bird_student_club_084",
+    "intent": "How many members did attend the event 'Community Theater' in 2019?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance"
+    ],
+    "primary_name": "event",
+    "description": "event 'Community Theater' in 2019 refers to event_name = 'Community Theater' where YEAR(event_date) = 2019",
+    "source_sql": "SELECT COUNT(T2.link_to_member) FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event WHERE T1.event_name = 'Community Theater' AND SUBSTR(T1.event_date, 1, 4) = '2019'"
+  },
+  {
+    "id": "bird_student_club_085",
+    "intent": "Provide the number of events attended by Luisa Guidi. What is her major?",
+    "category": "bird",
+    "relevant_names": [
+      "major",
+      "member",
+      "attendance"
+    ],
+    "primary_name": "major",
+    "description": "major refers to major_name;",
+    "source_sql": "SELECT COUNT(T3.link_to_event), T1.major_name FROM major AS T1 INNER JOIN member AS T2 ON T1.major_id = T2.link_to_major INNER JOIN attendance AS T3 ON T2.member_id = T3.link_to_member WHERE T2.first_name = 'Luisa' AND T2.last_name = 'Guidi'"
+  },
+  {
+    "id": "bird_student_club_086",
+    "intent": "On average, how much did the Student_Club spend on food for the typical event in the past?",
+    "category": "bird",
+    "relevant_names": [
+      "budget"
+    ],
+    "primary_name": "budget",
+    "description": "DIVIDE(SUM(spent), COUNT(spent)) where category = 'Food'; 'event in the past' means event_status = 'Closed'",
+    "source_sql": "SELECT SUM(spent) / COUNT(spent) FROM budget WHERE category = 'Food' AND event_status = 'Closed'"
+  },
+  {
+    "id": "bird_student_club_087",
+    "intent": "Name the event with the highest amount spent on advertisement.",
+    "category": "bird",
+    "relevant_names": [
+      "budget",
+      "event"
+    ],
+    "primary_name": "budget",
+    "description": "Name of event refers to event_name; highest amount spent on advertisement refers to MAX(spent) where category = 'Advertisement'",
+    "source_sql": "SELECT T2.event_name FROM budget AS T1 INNER JOIN event AS T2 ON T1.link_to_event = T2.event_id WHERE T1.category = 'Advertisement' ORDER BY T1.spent DESC LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_088",
+    "intent": "Did Maya Mclean attend the 'Women's Soccer' event?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "attendance",
+      "event"
+    ],
+    "primary_name": "member",
+    "description": "Maya Mclean is the full name; full name refers to first_name, last_name; 'Women's Soccer' is an event_name",
+    "source_sql": "SELECT CASE WHEN T3.event_name = 'Women''s Soccer' THEN 'YES' END AS result FROM member AS T1 INNER JOIN attendance AS T2 ON T1.member_id = T2.link_to_member INNER JOIN event AS T3 ON T2.link_to_event = T3.event_id WHERE T1.first_name = 'Maya' AND T1.last_name = 'Mclean'"
+  },
+  {
+    "id": "bird_student_club_089",
+    "intent": "Among all events hold by the Student_Club in 2019, find the percentage share of events related to 'Community Service'",
+    "category": "bird",
+    "relevant_names": [
+      "event"
+    ],
+    "primary_name": "event",
+    "description": "DIVIDE(SUM(type = 'Community Service'), COUNT(event_id)) * 100 where event_date BETWEEN' 2019-01-01' and '2019-12-31'",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN type = 'Community Service' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(type) FROM event WHERE SUBSTR(event_date, 1, 4) = '2019'"
+  },
+  {
+    "id": "bird_student_club_090",
+    "intent": "Indicate the cost of posters for 'September Speaker' event.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget",
+      "expense"
+    ],
+    "primary_name": "event",
+    "description": "'Posters' is the expense description; 'September Speaker' is an event name",
+    "source_sql": "SELECT T3.cost FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget WHERE T1.event_name = 'September Speaker' AND T3.expense_description = 'Posters'"
+  },
+  {
+    "id": "bird_student_club_091",
+    "intent": "What is the most popular size of t-shirt ordered by the club members?",
+    "category": "bird",
+    "relevant_names": [
+      "member"
+    ],
+    "primary_name": "member",
+    "description": "most popular size of t-shirt ordered refers to MAX(COUNT(t_shirt_size))",
+    "source_sql": "SELECT t_shirt_size FROM member GROUP BY t_shirt_size ORDER BY COUNT(t_shirt_size) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_092",
+    "intent": "Indicate the name of the closed event whose cost has exceeded the budget the most.",
+    "category": "bird",
+    "relevant_names": [
+      "budget",
+      "event"
+    ],
+    "primary_name": "budget",
+    "description": "closed events refers to event_name where status = 'Closed'; exceed the budget the most refers to MIN(remaining) where remaining < 0",
+    "source_sql": "SELECT T2.event_name FROM budget AS T1 INNER JOIN event AS T2 ON T2.event_id = T1.link_to_event WHERE T1.event_status = 'Closed' AND T1.remaining < 0 ORDER BY T1.remaining LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_093",
+    "intent": "Identify the type of expenses and their total value approved for 'October Meeting' event.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget",
+      "expense"
+    ],
+    "primary_name": "event",
+    "description": "total value refers to SUM(cost); 'October Meeting' is an event name;",
+    "source_sql": "SELECT T1.type, SUM(T3.cost) FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget WHERE T1.event_name = 'October Meeting'"
+  },
+  {
+    "id": "bird_student_club_094",
+    "intent": "Calculate the amount budgeted for 'April Speaker' event. List all the budgeted categories for said event in an ascending order based on their amount budgeted.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "'April Speaker' is an event name; amount budgeted refers to SUM(amount); budget categories refers to category",
+    "source_sql": "SELECT T2.category, SUM(T2.amount) FROM event AS T1 JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T1.event_name = 'April Speaker' GROUP BY T2.category ORDER BY SUM(T2.amount) ASC"
+  },
+  {
+    "id": "bird_student_club_095",
+    "intent": "Among the budgets for Food, which one has the highest budgeted amount?",
+    "category": "bird",
+    "relevant_names": [
+      "budget"
+    ],
+    "primary_name": "budget",
+    "description": "MAX(amount) where category = 'Food'",
+    "source_sql": "SELECT budget_id FROM budget WHERE category = 'Food' AND amount = ( SELECT MAX(amount) FROM budget )"
+  },
+  {
+    "id": "bird_student_club_096",
+    "intent": "Among the budgets for Advertising, list out top three which have the most budgeted amount?",
+    "category": "bird",
+    "relevant_names": [
+      "budget"
+    ],
+    "primary_name": "budget",
+    "description": "MAX(amount) where category = 'Advertisement'",
+    "source_sql": "SELECT budget_id FROM budget WHERE category = 'Advertisement' ORDER BY amount DESC LIMIT 3"
+  },
+  {
+    "id": "bird_student_club_097",
+    "intent": "Calculate the total cost spent for Parking in the list.",
+    "category": "bird",
+    "relevant_names": [
+      "expense"
+    ],
+    "primary_name": "expense",
+    "description": "total cost spent for Parking refers to SUM(cost) where expense_description = 'Parking'",
+    "source_sql": "SELECT SUM(cost) FROM expense WHERE expense_description = 'Parking'"
+  },
+  {
+    "id": "bird_student_club_098",
+    "intent": "Mention the total expense used on 8/20/2019.",
+    "category": "bird",
+    "relevant_names": [
+      "expense"
+    ],
+    "primary_name": "expense",
+    "description": "total expense refers SUM(cost) where expense_date = '2019-08-20'",
+    "source_sql": "SELECT SUM(cost) FROM expense WHERE expense_date = '2019-08-20'"
+  },
+  {
+    "id": "bird_student_club_099",
+    "intent": "List out the full name and total cost that member id \"rec4BLdZHS2Blfp4v\" incurred?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "expense"
+    ],
+    "primary_name": "member",
+    "description": "full name refers to first_name, last name",
+    "source_sql": "SELECT T1.first_name, T1.last_name, SUM(T2.cost) FROM member AS T1 INNER JOIN expense AS T2 ON T1.member_id = T2.link_to_member WHERE T1.member_id = 'rec4BLdZHS2Blfp4v'"
+  },
+  {
+    "id": "bird_student_club_100",
+    "intent": "State what kind of expenses that Sacha Harrison incurred?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "expense"
+    ],
+    "primary_name": "member",
+    "description": "kind of expenses refers to expense_description; Sacha Harrison is the full name; full name refers to first_name, last_name;",
+    "source_sql": "SELECT T2.expense_description FROM member AS T1 INNER JOIN expense AS T2 ON T1.member_id = T2.link_to_member WHERE T1.first_name = 'Sacha' AND T1.last_name = 'Harrison'"
+  },
+  {
+    "id": "bird_student_club_101",
+    "intent": "What kind of expenses incurred by members who have X-Large in size of tee shirt?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "expense"
+    ],
+    "primary_name": "member",
+    "description": "kind of expenses refers to expense_description; t_shirt_size = 'X-Large'",
+    "source_sql": "SELECT T2.expense_description FROM member AS T1 INNER JOIN expense AS T2 ON T1.member_id = T2.link_to_member WHERE T1.t_shirt_size = 'X-Large'"
+  },
+  {
+    "id": "bird_student_club_102",
+    "intent": "Mention the zip code of member who incurred less than 50USD.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "expense"
+    ],
+    "primary_name": "member",
+    "description": "incurred less than 50USD refers to cost < 50",
+    "source_sql": "SELECT T1.zip FROM member AS T1 INNER JOIN expense AS T2 ON T1.member_id = T2.link_to_member WHERE T2.cost < 50"
+  },
+  {
+    "id": "bird_student_club_103",
+    "intent": "State the name of major that Phillip Cullen has joined.",
+    "category": "bird",
+    "relevant_names": [
+      "major",
+      "member"
+    ],
+    "primary_name": "major",
+    "description": "name of major refers to major_name",
+    "source_sql": "SELECT T1.major_name FROM major AS T1 INNER JOIN member AS T2 ON T1.major_id = T2.link_to_major WHERE T2.first_name = 'Phillip' AND T2.last_name = 'Cullen'"
+  },
+  {
+    "id": "bird_student_club_104",
+    "intent": "List out the position of members who joined major of Business.",
+    "category": "bird",
+    "relevant_names": [
+      "major",
+      "member"
+    ],
+    "primary_name": "major",
+    "description": "'Business' is the major name",
+    "source_sql": "SELECT T2.position FROM major AS T1 INNER JOIN member AS T2 ON T1.major_id = T2.link_to_major WHERE T1.major_name = 'Business'"
+  },
+  {
+    "id": "bird_student_club_105",
+    "intent": "How many members of Business have the Medium size of tee shirt?",
+    "category": "bird",
+    "relevant_names": [
+      "major",
+      "member"
+    ],
+    "primary_name": "major",
+    "description": "members of Economics refers to major_name = 'Business'; t_shirt_size = 'Medium'",
+    "source_sql": "SELECT COUNT(T2.member_id) FROM major AS T1 INNER JOIN member AS T2 ON T1.major_id = T2.link_to_major WHERE T1.major_name = 'Business' AND T2.t_shirt_size = 'Medium'"
+  },
+  {
+    "id": "bird_student_club_106",
+    "intent": "List out the type of events which have remaining budget more than 30 USD.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "remaining budget more than 30 USD refers to remaining > 30",
+    "source_sql": "SELECT T1.type FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T2.remaining > 30"
+  },
+  {
+    "id": "bird_student_club_107",
+    "intent": "Mention the category of events which were held at MU 215.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "held at MU 215 refers to location = 'MU 215'",
+    "source_sql": "SELECT T2.category FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T1.location = 'MU 215'"
+  },
+  {
+    "id": "bird_student_club_108",
+    "intent": "What is the category of event which was taken place in 2020-03-24T12:00:00?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "taken place in 2020-03-24T12:00:00 refers to event_date = '2020-03-24T12:00:00'",
+    "source_sql": "SELECT T2.category FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T1.event_date = '2020-03-24T12:00:00'"
+  },
+  {
+    "id": "bird_student_club_109",
+    "intent": "State the name of major that Vice President has joined.",
+    "category": "bird",
+    "relevant_names": [
+      "major",
+      "member"
+    ],
+    "primary_name": "major",
+    "description": "name of major refers to major_name; 'Vice President' is position of Student Club",
+    "source_sql": "SELECT T1.major_name FROM major AS T1 INNER JOIN member AS T2 ON T1.major_id = T2.link_to_major WHERE T2.position = 'Vice President'"
+  },
+  {
+    "id": "bird_student_club_110",
+    "intent": "Calculate the percentage of members who are major Business in the list?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "DIVIDE(SUM(position = 'Member' and major_name = 'Business'), COUNT(member_id)) * 100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.major_name = 'Business' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.member_id) FROM member AS T1 INNER JOIN major AS T2 ON T2.major_id = T1.link_to_major WHERE T1.position = 'Member'"
+  },
+  {
+    "id": "bird_student_club_111",
+    "intent": "State the category of events were held at MU 215.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "'MU 215' is the location of event; ",
+    "source_sql": "SELECT DISTINCT T2.category FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T1.location = 'MU 215'"
+  },
+  {
+    "id": "bird_student_club_112",
+    "intent": "How many income are received with an amount of 50?",
+    "category": "bird",
+    "relevant_names": [
+      "income"
+    ],
+    "primary_name": "income",
+    "description": "amount of 50 refers to amount = 50",
+    "source_sql": "SELECT COUNT(income_id) FROM income WHERE amount = 50"
+  },
+  {
+    "id": "bird_student_club_113",
+    "intent": "Among the members, how many of them have an extra large t-shirt size?",
+    "category": "bird",
+    "relevant_names": [
+      "member"
+    ],
+    "primary_name": "member",
+    "description": "among the members refers to position = 'Member'; extra large t-shirt size refers to t_shirt_size = 'X-Large'",
+    "source_sql": "SELECT COUNT(member_id) FROM member WHERE position = 'Member' AND t_shirt_size = 'X-Large'"
+  },
+  {
+    "id": "bird_student_club_114",
+    "intent": "In the College of Agriculture and Applied Sciences, how many majors are under the department of School of Applied Sciences, Technology and Education?",
+    "category": "bird",
+    "relevant_names": [
+      "major"
+    ],
+    "primary_name": "major",
+    "description": "",
+    "source_sql": "SELECT COUNT(major_id) FROM major WHERE department = 'School of Applied Sciences, Technology and Education' AND college = 'College of Agriculture and Applied Sciences'"
+  },
+  {
+    "id": "bird_student_club_115",
+    "intent": "List the last name of members with a major in environmental engineering and include its department and college name.",
+    "category": "bird",
+    "relevant_names": [
+      "major",
+      "member"
+    ],
+    "primary_name": "major",
+    "description": "'Environmental Engineering' is the major_name;",
+    "source_sql": "SELECT T2.last_name, T1.department, T1.college FROM major AS T1 INNER JOIN member AS T2 ON T1.major_id = T2.link_to_major WHERE T2.position = 'Member' AND T1.major_name = 'Environmental Engineering'"
+  },
+  {
+    "id": "bird_student_club_116",
+    "intent": "What are the budget category of the events located at MU 215 and a guest speaker type with a 0 budget spent?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "budget category refers to category; events located at refers to location; type = 'Guest Speaker'; 0 budget spent refers to spent = 0; ",
+    "source_sql": "SELECT DISTINCT T2.category, T1.type FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T1.location = 'MU 215' AND T2.spent = 0 AND T1.type = 'Guest Speaker'"
+  },
+  {
+    "id": "bird_student_club_117",
+    "intent": "List the city and state of members enrolled under electrical and computer engineering department.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "'Electrical and Computer Engineering Department' is the department; members enrolled refers to position = 'Member'",
+    "source_sql": "SELECT city, state FROM member AS T1 INNER JOIN major AS T2 ON T2.major_id = T1.link_to_major INNER JOIN zip_code AS T3 ON T3.zip_code = T1.zip WHERE department = 'Electrical and Computer Engineering Department' AND position = 'Member'"
+  },
+  {
+    "id": "bird_student_club_118",
+    "intent": "What is the name of the social event that was attended by the vice president of the Student_Club located at 900 E. Washington St.?",
+    "category": "bird",
+    "relevant_names": [
+      "attendance",
+      "event",
+      "member"
+    ],
+    "primary_name": "attendance",
+    "description": "name of social event refers to event_name where type = 'Social'; 'Vice President' is position; located at refers to location",
+    "source_sql": "SELECT T2.event_name FROM attendance AS T1 INNER JOIN event AS T2 ON T2.event_id = T1.link_to_event INNER JOIN member AS T3 ON T1.link_to_member = T3.member_id WHERE T3.position = 'Vice President' AND T2.location = '900 E. Washington St.' AND T2.type = 'Social'"
+  },
+  {
+    "id": "bird_student_club_119",
+    "intent": "What is the last name and position of the student that bought pizza on 09/10/2019?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "expense"
+    ],
+    "primary_name": "member",
+    "description": "bought pizza on 09/10/2019 refers to expense_description = 'Pizza' where expense_date = '2019-09-10'",
+    "source_sql": "SELECT T1.last_name, T1.position FROM member AS T1 INNER JOIN expense AS T2 ON T1.member_id = T2.link_to_member WHERE T2.expense_date = '2019-09-10' AND T2.expense_description = 'Pizza'"
+  },
+  {
+    "id": "bird_student_club_120",
+    "intent": "List the last name of the members of the club that attended the women's soccer event.",
+    "category": "bird",
+    "relevant_names": [
+      "attendance",
+      "event",
+      "member"
+    ],
+    "primary_name": "attendance",
+    "description": "members of the club refers to position = 'Member'; 'Women's Soccer' is event name;",
+    "source_sql": "SELECT T3.last_name FROM attendance AS T1 INNER JOIN event AS T2 ON T2.event_id = T1.link_to_event INNER JOIN member AS T3 ON T1.link_to_member = T3.member_id WHERE T2.event_name = 'Women''s Soccer' AND T3.position = 'Member'"
+  },
+  {
+    "id": "bird_student_club_121",
+    "intent": "Among the members with t-shirt size of medium, what is the percentage of the amount 50 received by the Student_Club?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "income"
+    ],
+    "primary_name": "member",
+    "description": "t_shirt_size = 'Medium' where position = 'Member'; percentage = DIVIDE(COUNT(amount = 50), COUNT(member_id)) * 100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.amount = 50 THEN 1.0 ELSE 0 END) AS REAL) * 100 / COUNT(T2.income_id) FROM member AS T1 INNER JOIN income AS T2 ON T1.member_id = T2.link_to_member WHERE T1.position = 'Member' AND T1.t_shirt_size = 'Medium'"
+  },
+  {
+    "id": "bird_student_club_122",
+    "intent": "Which countries have zip codes with post office boxes?",
+    "category": "bird",
+    "relevant_names": [
+      "zip_code"
+    ],
+    "primary_name": "zip_code",
+    "description": "zip codes that have post office boxes refers to type = 'PO Box'",
+    "source_sql": "SELECT DISTINCT county FROM zip_code WHERE type = 'PO Box' AND county IS NOT NULL"
+  },
+  {
+    "id": "bird_student_club_123",
+    "intent": "What are the zip codes that have post office boxes in the country of the country of San Juan Municipio whose state is Puerto Rico?",
+    "category": "bird",
+    "relevant_names": [
+      "zip_code"
+    ],
+    "primary_name": "zip_code",
+    "description": "zip codes that have post office boxes refers to type = 'PO Box'",
+    "source_sql": "SELECT zip_code FROM zip_code WHERE type = 'PO Box' AND county = 'San Juan Municipio' AND state = 'Puerto Rico'"
+  },
+  {
+    "id": "bird_student_club_124",
+    "intent": "List the names of closed event as \"game\" that was closed from 3/15/2019 to 3/20/2020.",
+    "category": "bird",
+    "relevant_names": [
+      "event"
+    ],
+    "primary_name": "event",
+    "description": "name of events refers event_name; game event that was closed refers to type = 'Game' where status = 'Closed'; event_date BETWEEN '2019-03-15' and '2020-03-20'; ",
+    "source_sql": "SELECT DISTINCT event_name FROM event WHERE type = 'Game' AND date(SUBSTR(event_date, 1, 10)) BETWEEN '2019-03-15' AND '2020-03-20' AND status = 'Closed'"
+  },
+  {
+    "id": "bird_student_club_125",
+    "intent": "Please provide links to events for members who have paid more than 50 dollar.",
+    "category": "bird",
+    "relevant_names": [
+      "expense",
+      "member",
+      "attendance"
+    ],
+    "primary_name": "expense",
+    "description": "have paid more than 50 dollar refers to cost > 50",
+    "source_sql": "SELECT DISTINCT T3.link_to_event FROM expense AS T1 INNER JOIN member AS T2 ON T1.link_to_member = T2.member_id INNER JOIN attendance AS T3 ON T2.member_id = T3.link_to_member WHERE T1.cost > 50"
+  },
+  {
+    "id": "bird_student_club_126",
+    "intent": "Which members who were approved from 1/10/2019 to 11/19/2019? Please identify the member who attended the event and the link to their event.",
+    "category": "bird",
+    "relevant_names": [
+      "expense",
+      "member",
+      "attendance"
+    ],
+    "primary_name": "expense",
+    "description": "approved from 1/10/2019 to 11/19/2019 refers to approved = 'true' and expense_date BETWEEN '2019-01-10' and '2019-11-19'",
+    "source_sql": "SELECT DISTINCT T1.link_to_member, T3.link_to_event FROM expense AS T1 INNER JOIN member AS T2 ON T1.link_to_member = T2.member_id INNER JOIN attendance AS T3 ON T2.member_id = T3.link_to_member WHERE date(SUBSTR(T1.expense_date, 1, 10)) BETWEEN '2019-01-10' AND '2019-11-19' AND T1.approved = 'true'"
+  },
+  {
+    "id": "bird_student_club_127",
+    "intent": "Please indicate the college of the person whose first name is Katy with the link to the major \"rec1N0upiVLy5esTO\".",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "",
+    "source_sql": "SELECT T2.college FROM member AS T1 INNER JOIN major AS T2 ON T2.major_id = T1.link_to_major WHERE T1.link_to_major = 'rec1N0upiVLy5esTO' AND T1.first_name = 'Katy'"
+  },
+  {
+    "id": "bird_student_club_128",
+    "intent": "Please list the phone numbers of the members who majored in business at the College of Agriculture and Applied Sciences.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "'College of Agriculture and Applied Sciences' is the college; majored in business refers to major_name = 'Business'; phone numbers refers to phone",
+    "source_sql": "SELECT T1.phone FROM member AS T1 INNER JOIN major AS T2 ON T2.major_id = T1.link_to_major WHERE T2.major_name = 'Business' AND T2.college = 'College of Agriculture and Applied Sciences'"
+  },
+  {
+    "id": "bird_student_club_129",
+    "intent": "List emails of people who paid more than 20 dollars from 9/10/2019 to 11/19/2019.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "expense"
+    ],
+    "primary_name": "member",
+    "description": "expense_date BETWEEN '2019-09-10' and '2019-11-19'; cost > 20",
+    "source_sql": "SELECT DISTINCT T1.email FROM member AS T1 INNER JOIN expense AS T2 ON T1.member_id = T2.link_to_member WHERE date(SUBSTR(T2.expense_date, 1, 10)) BETWEEN '2019-09-10' AND '2019-11-19' AND T2.cost > 20"
+  },
+  {
+    "id": "bird_student_club_130",
+    "intent": "How many members have education major in the College of Education & Human Services?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "'education' is the major name; 'Member' is a position of club;",
+    "source_sql": "SELECT COUNT(T1.member_id) FROM member AS T1 INNER JOIN major AS T2 ON T2.major_id = T1.link_to_major WHERE T1.position = 'Member' AND T2.major_name LIKE '%Education%' AND T2.college = 'College of Education & Human Services'"
+  },
+  {
+    "id": "bird_student_club_131",
+    "intent": "What is the percentage of the events that went over budget?",
+    "category": "bird",
+    "relevant_names": [
+      "budget"
+    ],
+    "primary_name": "budget",
+    "description": "went over budget refers to remaining < 0; percentage = DIVIDE(SUM(remaining < 0), COUNT(event_id)) * 100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN remaining < 0 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(budget_id) FROM budget"
+  },
+  {
+    "id": "bird_student_club_132",
+    "intent": "Give the event ID, location, and status of events conducted from November 2019 to March 2020.",
+    "category": "bird",
+    "relevant_names": [
+      "event"
+    ],
+    "primary_name": "event",
+    "description": "event_date BETWEEN '2019-11-01' and '2020-03-31'",
+    "source_sql": "SELECT event_id, location, status FROM event WHERE date(SUBSTR(event_date, 1, 10)) BETWEEN '2019-11-01' AND '2020-03-31'"
+  },
+  {
+    "id": "bird_student_club_133",
+    "intent": "List the expenses that spend more than fifty dollars on average.",
+    "category": "bird",
+    "relevant_names": [
+      "expense"
+    ],
+    "primary_name": "expense",
+    "description": "expense refers to expense_description; spend more than fifty dollars on average refers to DIVIDE( SUM(cost), COUNT(expense_id) ) > 50",
+    "source_sql": "SELECT expense_description FROM expense GROUP BY expense_description HAVING AVG(cost) > 50"
+  },
+  {
+    "id": "bird_student_club_134",
+    "intent": "Find the full name of members whose t-shirt size is extra large.",
+    "category": "bird",
+    "relevant_names": [
+      "member"
+    ],
+    "primary_name": "member",
+    "description": "full name refers to first_name, last_name; t_shirt_size = 'X-Large'",
+    "source_sql": "SELECT first_name, last_name FROM member WHERE t_shirt_size = 'X-Large'"
+  },
+  {
+    "id": "bird_student_club_135",
+    "intent": "Calculate the percentage of zip codes that are PO boxes.",
+    "category": "bird",
+    "relevant_names": [
+      "zip_code"
+    ],
+    "primary_name": "zip_code",
+    "description": "DIVIDE(SUM(type = 'PO Box'), COUNT(zip_code)) * 100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN type = 'PO Box' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(zip_code) FROM zip_code"
+  },
+  {
+    "id": "bird_student_club_136",
+    "intent": "List the name and location of events that underspend its budget.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "name of event refers to event_name; underspend its budget refers to remaining > 0",
+    "source_sql": "SELECT DISTINCT T1.event_name, T1.location FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T2.remaining > 0"
+  },
+  {
+    "id": "bird_student_club_137",
+    "intent": "Find the name and date of events with expenses for pizza that were more than fifty dollars but less than a hundred dollars.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget",
+      "expense"
+    ],
+    "primary_name": "event",
+    "description": "name of event refers to event_name; date of event refers to event_date; expenses for pizza refers to expense_description = 'Pizza' where cost > 50 and cost < 100",
+    "source_sql": "SELECT T1.event_name, T1.event_date FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget WHERE T3.expense_description = 'Pizza' AND T3.cost > 50 AND T3.cost < 100"
+  },
+  {
+    "id": "bird_student_club_138",
+    "intent": "What is the name and major of members who had to spend more than a hundred dollars on an expense?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major",
+      "expense"
+    ],
+    "primary_name": "member",
+    "description": "full name refers to first_name, last_name; major of members refers to major_name; spend more than a hundred dollars on an expense refers to cost > 100",
+    "source_sql": "SELECT DISTINCT T1.first_name, T1.last_name, T2.major_name FROM member AS T1 INNER JOIN major AS T2 ON T2.major_id = T1.link_to_major INNER JOIN expense AS T3 ON T1.member_id = T3.link_to_member WHERE T3.cost > 100"
+  },
+  {
+    "id": "bird_student_club_139",
+    "intent": "In the events with more than forty incomes, list the city and country in which the event is happening.",
+    "category": "bird",
+    "relevant_names": [
+      "income",
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "income",
+    "description": "more than fifty incomes refers to income > 40",
+    "source_sql": "SELECT DISTINCT T3.city, T3.county FROM income AS T1 INNER JOIN member AS T2 ON T1.link_to_member = T2.member_id INNER JOIN zip_code AS T3 ON T3.zip_code = T2.zip WHERE T1.amount > 40"
+  },
+  {
+    "id": "bird_student_club_140",
+    "intent": "Among the members who incurred expenses in more than one event, who paid the most amount?",
+    "category": "bird",
+    "relevant_names": [
+      "expense",
+      "member",
+      "budget",
+      "event"
+    ],
+    "primary_name": "expense",
+    "description": "paid the most amount refers to for expense incurred in more than one event refers to MAX(cost where COUNT(event_id) > 1)",
+    "source_sql": "SELECT T2.member_id FROM expense AS T1 INNER JOIN member AS T2 ON T1.link_to_member = T2.member_id INNER JOIN budget AS T3 ON T1.link_to_budget = T3.budget_id INNER JOIN event AS T4 ON T3.link_to_event = T4.event_id GROUP BY T2.member_id HAVING COUNT(DISTINCT T4.event_id) > 1 ORDER BY SUM(T1.cost) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_141",
+    "intent": "What is the average amount paid by students in a position other than a member?",
+    "category": "bird",
+    "relevant_names": [
+      "expense",
+      "member"
+    ],
+    "primary_name": "expense",
+    "description": "position other than a member refers to position ! = 'Member'; average amount paid = DIVIDE( SUM(cost), COUNT(event_id))",
+    "source_sql": "SELECT AVG(T1.cost) FROM expense AS T1 INNER JOIN member as T2 ON T1.link_to_member = T2.member_id WHERE T2.position != 'Member'"
+  },
+  {
+    "id": "bird_student_club_142",
+    "intent": "List the name of events with less than average parking cost.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "expense",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "name of events refers to event_name; less than average parking cost refers to cost < DIVIDE(SUM(cost), COUNT(event_id)) where category = 'Parking'",
+    "source_sql": "SELECT T1.event_name FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget WHERE T2.category = 'Parking' AND T3.cost < (SELECT AVG(cost) FROM expense)"
+  },
+  {
+    "id": "bird_student_club_143",
+    "intent": "What is the percentage of the cost for the meeting events?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget",
+      "expense"
+    ],
+    "primary_name": "event",
+    "description": "meeting events refers to type = 'Meeting'; percentage = DIVIDE( SUM(cost), COUNT(event_id)) * 100",
+    "source_sql": "SELECT SUM(CASE WHEN T1.type = 'Meeting' THEN T3.cost ELSE 0 END) * 100 / SUM(T3.cost) FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget"
+  },
+  {
+    "id": "bird_student_club_144",
+    "intent": "Which budget allowed the most money for water, chips, and cookies?",
+    "category": "bird",
+    "relevant_names": [
+      "expense",
+      "budget"
+    ],
+    "primary_name": "expense",
+    "description": "budget allowed refers to expense_description; expense_description = 'Water, chips, cookies'; most money refers to MAX(cost)",
+    "source_sql": "SELECT T2.budget_id FROM expense AS T1 INNER JOIN budget AS T2 ON T1.link_to_budget = T2.budget_id WHERE T1.expense_description = 'Water, chips, cookies' ORDER BY T1.cost DESC LIMIT 1"
+  },
+  {
+    "id": "bird_student_club_145",
+    "intent": "List the full name of the top five members who spend the most money in the descending order of spending.",
+    "category": "bird",
+    "relevant_names": [
+      "expense",
+      "budget",
+      "member"
+    ],
+    "primary_name": "expense",
+    "description": "full name refers to first_name, last_name; spend the most money refers to MAX(expense.cost)",
+    "source_sql": "SELECT T3.first_name, T3.last_name FROM expense AS T1 INNER JOIN budget AS T2 ON T1.link_to_budget = T2.budget_id INNER JOIN member AS T3 ON T1.link_to_member = T3.member_id ORDER BY T2.spent DESC LIMIT 5"
+  },
+  {
+    "id": "bird_student_club_146",
+    "intent": "Give the full name and contact number of members who had to spend more than average on each expense.",
+    "category": "bird",
+    "relevant_names": [
+      "expense",
+      "budget",
+      "member"
+    ],
+    "primary_name": "expense",
+    "description": "full name refers to first_name, last_name; contact number refers to phone; had spent more than average on each expense refers to cost > AVG(cost)",
+    "source_sql": "SELECT DISTINCT T3.first_name, T3.last_name, T3.phone FROM expense AS T1 INNER JOIN budget AS T2 ON T1.link_to_budget = T2.budget_id INNER JOIN member AS T3 ON T3.member_id = T1.link_to_member WHERE T1.cost > ( SELECT AVG(T1.cost) FROM expense AS T1 INNER JOIN budget AS T2 ON T1.link_to_budget = T2.budget_id INNER JOIN member AS T3 ON T3.member_id = T1.link_to_member )"
+  },
+  {
+    "id": "bird_student_club_147",
+    "intent": "Calculate the difference in the percentage of members in New Jersey and Vermont.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "SUBTRACT( DIVIDE( SUM(state = 'New Jersey'), COUNT(position = 'Member')), DIVIDE( SUM(state = 'Vermont'), COUNT(position = 'Member')) )",
+    "source_sql": "SELECT CAST((SUM(CASE WHEN T2.state = 'New Jersey' THEN 1 ELSE 0 END) - SUM(CASE WHEN T2.state = 'Vermont' THEN 1 ELSE 0 END)) AS REAL) * 100 / COUNT(T1.member_id) AS diff FROM member AS T1 INNER JOIN zip_code AS T2 ON T2.zip_code = T1.zip"
+  },
+  {
+    "id": "bird_student_club_148",
+    "intent": "What is the major of Garrett Gerke and which department does it belong to?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "major refers to major name;",
+    "source_sql": "SELECT T2.major_name, T2.department FROM member AS T1 INNER JOIN major AS T2 ON T2.major_id = T1.link_to_major WHERE T1.first_name = 'Garrett' AND T1.last_name = 'Gerke'"
+  },
+  {
+    "id": "bird_student_club_149",
+    "intent": "Write the full name of the member who spent money for water, veggie tray and supplies and include the cost of it.",
+    "category": "bird",
+    "relevant_names": [
+      "expense",
+      "member"
+    ],
+    "primary_name": "expense",
+    "description": "full name refers to first_name, last name; spent money for refers expense description; expense_description = 'Water, Veggie tray, supplies'",
+    "source_sql": "SELECT T2.first_name, T2.last_name, T1.cost FROM expense AS T1 INNER JOIN member AS T2 ON T1.link_to_member = T2.member_id WHERE T1.expense_description = 'Water, Veggie tray, supplies'"
+  },
+  {
+    "id": "bird_student_club_150",
+    "intent": "List the last names of students under the Elementary Education major and include their phone numbers.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "'Elementary Education' is the major name; phone numbers refers to phone",
+    "source_sql": "SELECT T1.last_name, T1.phone FROM member AS T1 INNER JOIN major AS T2 ON T2.major_id = T1.link_to_major WHERE T2.major_name = 'Elementary Education'"
+  },
+  {
+    "id": "bird_student_club_151",
+    "intent": "What category was budgeted for the 'January Speaker' event and how much was the amount budgeted for that category?",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "amount budgeted refers to amount, 'January Speaker' is the event name;",
+    "source_sql": "SELECT T2.category, T2.amount FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T1.event_name = 'January Speaker'"
+  },
+  {
+    "id": "bird_student_club_152",
+    "intent": "List the event names which were budgeted for the food.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "budget"
+    ],
+    "primary_name": "event",
+    "description": "budgeted for food refers to category = 'Food'",
+    "source_sql": "SELECT T1.event_name FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event WHERE T2.category = 'Food'"
+  },
+  {
+    "id": "bird_student_club_153",
+    "intent": "Write the full names of students who received funds on the date of 9/9/2019 and include the amount received.",
+    "category": "bird",
+    "relevant_names": [
+      "event",
+      "attendance",
+      "member",
+      "income"
+    ],
+    "primary_name": "event",
+    "description": "full name refers to first_name, last_name, amount of funds received refers to amount, received funds on date refers to date_received",
+    "source_sql": "SELECT DISTINCT T3.first_name, T3.last_name, T4.amount FROM event AS T1 INNER JOIN attendance AS T2 ON T1.event_id = T2.link_to_event INNER JOIN member AS T3 ON T3.member_id = T2.link_to_member INNER JOIN income AS T4 ON T4.link_to_member = T3.member_id WHERE T4.date_received = '2019-09-09'"
+  },
+  {
+    "id": "bird_student_club_154",
+    "intent": "Which budget category does the expense 'Posters' fall to?",
+    "category": "bird",
+    "relevant_names": [
+      "expense",
+      "budget"
+    ],
+    "primary_name": "expense",
+    "description": "'Posters' refers to expense description",
+    "source_sql": "SELECT DISTINCT T2.category FROM expense AS T1 INNER JOIN budget AS T2 ON T1.link_to_budget = T2.budget_id WHERE T1.expense_description = 'Posters'"
+  },
+  {
+    "id": "bird_student_club_155",
+    "intent": "Write the full name of the club member with the position of 'Secretary' and list which college the club member belongs to.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "major"
+    ],
+    "primary_name": "member",
+    "description": "full name refers to first_name, last name",
+    "source_sql": "SELECT T1.first_name, T1.last_name, college FROM member AS T1 INNER JOIN major AS T2 ON T2.major_id = T1.link_to_major WHERE T1.position = 'Secretary'"
+  },
+  {
+    "id": "bird_student_club_156",
+    "intent": "Calculate the total amount spent on speaker gifts and list the name of the event they were spent on.",
+    "category": "bird",
+    "relevant_names": [
+      "budget",
+      "event"
+    ],
+    "primary_name": "budget",
+    "description": "total amount spent = SUM(spent) where category = 'Speaker Gifts'",
+    "source_sql": "SELECT SUM(T1.spent), T2.event_name FROM budget AS T1 INNER JOIN event AS T2 ON T1.link_to_event = T2.event_id WHERE T1.category = 'Speaker Gifts' GROUP BY T2.event_name"
+  },
+  {
+    "id": "bird_student_club_157",
+    "intent": "Where is the hometown of Garrett Gerke?",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "hometown refers to city",
+    "source_sql": "SELECT T2.city FROM member AS T1 INNER JOIN zip_code AS T2 ON T2.zip_code = T1.zip WHERE T1.first_name = 'Garrett' AND T1.last_name = 'Gerke'"
+  },
+  {
+    "id": "bird_student_club_158",
+    "intent": "Which student has the hometown of Lincolnton, North Carolina with the zip code of 28092? List their full name and position.",
+    "category": "bird",
+    "relevant_names": [
+      "member",
+      "zip_code"
+    ],
+    "primary_name": "member",
+    "description": "full name refers to first_name, last_name, hometown of Lincolnton, North Carolina refers to city = 'Lincolnton' AND state = 'North Carolina'",
+    "source_sql": "SELECT T1.first_name, T1.last_name, T1.position FROM member AS T1 INNER JOIN zip_code AS T2 ON T2.zip_code = T1.zip WHERE T2.city = 'Lincolnton' AND T2.state = 'North Carolina' AND T2.zip_code = 28092"
+  }
+]

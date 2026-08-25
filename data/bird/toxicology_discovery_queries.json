@@ -1,0 +1,1718 @@
+[
+  {
+    "id": "bird_toxicology_001",
+    "intent": "What is the most common bond type?",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "most common bond type refers MAX(COUNT(bond_type))",
+    "source_sql": "SELECT T.bond_type FROM ( SELECT bond_type, COUNT(bond_id) FROM bond GROUP BY bond_type ORDER BY COUNT(bond_id) DESC LIMIT 1 ) AS T"
+  },
+  {
+    "id": "bird_toxicology_002",
+    "intent": "In the non-carcinogenic molecules, how many contain chlorine atoms?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule",
+      "atom"
+    ],
+    "primary_name": "molecule",
+    "description": "non-carcinogenic molecules refers to label = '-'; chlorine atoms refers to element = 'cl'",
+    "source_sql": "SELECT COUNT(DISTINCT T1.molecule_id) FROM molecule AS T1 INNER JOIN atom AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.element = 'cl' AND T1.label = '-'"
+  },
+  {
+    "id": "bird_toxicology_003",
+    "intent": "Calculate the average number of oxygen atoms in single-bonded molecules.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "single-bonded molecules refers to bond_type = '-' ; average number of oxygen atom = AVG(element = 'o')",
+    "source_sql": "SELECT AVG(oxygen_count) FROM (SELECT T1.molecule_id, COUNT(T1.element) AS oxygen_count FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id  WHERE T2.bond_type = '-' AND T1.element = 'o'  GROUP BY T1.molecule_id) AS oxygen_counts"
+  },
+  {
+    "id": "bird_toxicology_004",
+    "intent": "On average how many carcinogenic molecules are single bonded?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "carcinogenic molecules refers to label = '+'; single-bonded refers to bond_type = '-'; average = DIVIDE(SUM(bond_type = '-'), COUNT(atom_id))",
+    "source_sql": "SELECT AVG(single_bond_count) FROM (SELECT T3.molecule_id, COUNT(T1.bond_type) AS single_bond_count FROM bond AS T1  INNER JOIN atom AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN molecule AS T3 ON T3.molecule_id = T2.molecule_id WHERE T1.bond_type = '-' AND T3.label = '+' GROUP BY T3.molecule_id) AS subquery"
+  },
+  {
+    "id": "bird_toxicology_005",
+    "intent": "In the molecule containing sodium atoms, how many are non-carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "non-carcinogenic refers to label = '-'; sodium atoms refers to element = 'na'",
+    "source_sql": "SELECT COUNT(DISTINCT T2.molecule_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 'na' AND T2.label = '-'"
+  },
+  {
+    "id": "bird_toxicology_006",
+    "intent": "Find the triple-bonded molecules which are carcinogenic.",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "triple-bonded molecules refers to bond_type = '#'; carcinogenic refers to label = '+'",
+    "source_sql": "SELECT DISTINCT T2.molecule_id FROM bond AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.bond_type = '#' AND T2.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_007",
+    "intent": "What is the percentage of carbon in double-bond molecules?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "carbon refers to element = 'c'; double-bond molecules refers to bond_type = '='; percentage = DIVIDE(SUM(element = 'c'), COUNT(atom_id))",
+    "source_sql": "SELECT CAST(COUNT(DISTINCT CASE WHEN T1.element = 'c' THEN T1.atom_id ELSE NULL END) AS REAL) * 100 / COUNT(DISTINCT T1.atom_id) FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.bond_type = '='"
+  },
+  {
+    "id": "bird_toxicology_008",
+    "intent": "How many triple type bonds are there?",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "triple type bonds refers to bond_type = '#'",
+    "source_sql": "SELECT COUNT(T.bond_id) FROM bond AS T WHERE T.bond_type = '#'"
+  },
+  {
+    "id": "bird_toxicology_009",
+    "intent": "In how many atoms is there no bromine?",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "atoms with no bromine refers to element ! = 'br'",
+    "source_sql": "SELECT COUNT(DISTINCT T.atom_id) FROM atom AS T WHERE T.element <> 'br'"
+  },
+  {
+    "id": "bird_toxicology_010",
+    "intent": "Of the first 100 molecules in number order, how many are carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "first 100 molecules in number order refers to molecule_id between 'TR000' and 'TR099'; label = '+' means molecules are carcinogenic",
+    "source_sql": "SELECT COUNT(T.molecule_id) FROM molecule AS T WHERE molecule_id BETWEEN 'TR000' AND 'TR099' AND T.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_011",
+    "intent": "Identify by their ID the molecules in which there is carbon.",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "carbon refers to element = 'c';",
+    "source_sql": "SELECT T.molecule_id FROM atom AS T WHERE T.element = 'c'"
+  },
+  {
+    "id": "bird_toxicology_012",
+    "intent": "What elements are in the TR004_8_9 bond atoms?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "TR004_8_9 bond atoms refers to bond_id = 'TR004_8_9';",
+    "source_sql": "SELECT DISTINCT T1.element FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id WHERE T2.bond_id = 'TR004_8_9'"
+  },
+  {
+    "id": "bird_toxicology_013",
+    "intent": "What elements are in a double type bond?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "bond",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "double type bond refers to bond_type = '=';",
+    "source_sql": "SELECT DISTINCT T1.element FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN connected AS T3 ON T1.atom_id = T3.atom_id WHERE T2.bond_type = '='"
+  },
+  {
+    "id": "bird_toxicology_014",
+    "intent": "Which type of label is the most numerous in atoms with hydrogen?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "with hydrogen refers to element = 'h'; label most numerous in atoms refers to MAX(COUNT(label)); ",
+    "source_sql": "SELECT T.label FROM ( SELECT T2.label, COUNT(T2.molecule_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 'h' GROUP BY T2.label ORDER BY COUNT(T2.molecule_id) DESC LIMIT 1 ) t"
+  },
+  {
+    "id": "bird_toxicology_015",
+    "intent": "Chlorine is in what type of bond?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected",
+      "atom"
+    ],
+    "primary_name": "bond",
+    "description": "type of bond refers to bond_type; chlorine refers to element = 'cl'",
+    "source_sql": "SELECT DISTINCT T1.bond_type FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id INNER JOIN atom AS T3 ON T2.atom_id = T3.atom_id WHERE T3.element = 'cl'"
+  },
+  {
+    "id": "bird_toxicology_016",
+    "intent": "What atoms are connected in single type bonds?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected"
+    ],
+    "primary_name": "bond",
+    "description": "single type bond refers to bond_type = '-';",
+    "source_sql": "SELECT T2.atom_id, T2.atom_id2 FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE T1.bond_type = '-'"
+  },
+  {
+    "id": "bird_toxicology_017",
+    "intent": "Indicate which atoms are connected in non-carcinogenic type molecules.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "label = '-' means molecules are non-carcinogenic",
+    "source_sql": "SELECT DISTINCT T1.atom_id FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN connected AS T3 ON T1.atom_id = T3.atom_id WHERE T2.label = '-'"
+  },
+  {
+    "id": "bird_toxicology_018",
+    "intent": "Which element is the least numerous in non-carcinogenic molecules?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '-' means molecules are non-carcinogenic; least numerous refers to MIN(COUNT(element));",
+    "source_sql": "SELECT T.element FROM (SELECT T1.element, COUNT(DISTINCT T1.molecule_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '-' GROUP BY T1.element ORDER BY COUNT(DISTINCT T1.molecule_id) ASC LIMIT 1) t"
+  },
+  {
+    "id": "bird_toxicology_019",
+    "intent": "What type of bond is there between the atoms TR004_8 and TR004_20?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected"
+    ],
+    "primary_name": "bond",
+    "description": "type of bond refers to bond_type; between the atoms TR004_8 and TR004_20 refers to atom_id = 'TR004_8' AND atom_id2 = 'TR004_20' OR another way around",
+    "source_sql": "SELECT T1.bond_type FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE T2.atom_id = 'TR004_8' AND T2.atom_id2 = 'TR004_20' OR T2.atom_id2 = 'TR004_8' AND T2.atom_id = 'TR004_20'"
+  },
+  {
+    "id": "bird_toxicology_020",
+    "intent": "What type of label is not on molecules with atoms with tin?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "tin refers to element ! = 'sn'; label = '+' mean molecules are carcinogenic; label = '-' means molecules are non-carcinogenic",
+    "source_sql": "SELECT DISTINCT T2.label FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element != 'sn'"
+  },
+  {
+    "id": "bird_toxicology_021",
+    "intent": "How many atoms with iodine and with sulfur type elements are there in single bond molecules?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "with iodine element refer to element = 'i'; with sulfur element refers to element = 's'; single type bond refers to bond_type = '-'; Should consider the distinct atoms when counting;",
+    "source_sql": "SELECT COUNT(DISTINCT CASE WHEN T1.element = 'i' THEN T1.atom_id ELSE NULL END) AS iodine_nums , COUNT(DISTINCT CASE WHEN T1.element = 's' THEN T1.atom_id ELSE NULL END) AS sulfur_nums FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id INNER JOIN bond AS T3 ON T2.bond_id = T3.bond_id WHERE T3.bond_type = '-'"
+  },
+  {
+    "id": "bird_toxicology_022",
+    "intent": "Identify all connected atoms with a triple bond.",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected"
+    ],
+    "primary_name": "bond",
+    "description": "triple bond refers to bond_type = '#';",
+    "source_sql": "SELECT T2.atom_id, T2.atom_id2 FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE T1.bond_type = '#'"
+  },
+  {
+    "id": "bird_toxicology_023",
+    "intent": "Identify all the atoms that are connected to the atoms of the TR181 molecule.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "TR181 molecule refers to molecule_id = 'TR181'",
+    "source_sql": "SELECT T2.atom_id, T2.atom_id2 FROM atom AS T1 INNER JOIN connected AS T2 ON T2.atom_id = T1.atom_id WHERE T1.molecule_id = 'TR181'"
+  },
+  {
+    "id": "bird_toxicology_024",
+    "intent": "What percentage of carcinogenic-type molecules does not contain fluorine?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic; contain fluorine refers to element = 'f'; percentage = DIVIDE(SUM(element = 'f') * 100, COUNT(molecule_id)) where label = '+'; Should consider the distinct atoms when counting;",
+    "source_sql": "SELECT CAST(COUNT(DISTINCT CASE WHEN T1.element <> 'f' THEN T2.molecule_id ELSE NULL END) AS REAL) * 100 / COUNT(DISTINCT T2.molecule_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_025",
+    "intent": "What is the percentage of carcinogenic molecules in triple type bonds?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic; triple bond refers to bond_type = '#'; percentage = DIVIDE(SUM(bond_type = '#') * 100, COUNT(bond_id)) as percent where label = '+'",
+    "source_sql": "SELECT CAST(COUNT(DISTINCT CASE WHEN T2.label = '+' THEN T2.molecule_id ELSE NULL END) AS REAL) * 100 / COUNT(DISTINCT T2.molecule_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN bond AS T3 ON T2.molecule_id = T3.molecule_id WHERE T3.bond_type = '#'"
+  },
+  {
+    "id": "bird_toxicology_026",
+    "intent": "Please list top three elements of the toxicology of the molecule TR000 in alphabetical order.",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "TR000 is the molecule id;",
+    "source_sql": "SELECT DISTINCT T.element FROM atom AS T WHERE T.molecule_id = 'TR000' ORDER BY T.element LIMIT 3"
+  },
+  {
+    "id": "bird_toxicology_027",
+    "intent": "What are the atoms that are bonded in the molecule TR001 with the bond ID of TR001_2_6?",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "TR001 is the molecule id; TR001_2_6 is the bond id",
+    "source_sql": "SELECT SUBSTR(T.bond_id, 1, 7) AS atom_id1 , T.molecule_id || SUBSTR(T.bond_id, 8, 2) AS atom_id2 FROM bond AS T WHERE T.molecule_id = 'TR001' AND T.bond_id = 'TR001_2_6'"
+  },
+  {
+    "id": "bird_toxicology_028",
+    "intent": "What is the difference between the number of molecules that are carcinogenic and those that are not?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '+' means molecules are carcinogenic; label = '-' means molecules are non-carcinogenic; difference = SUBTRACT(SUM(label = '+'), SUM(label = '-'))",
+    "source_sql": "SELECT COUNT(CASE WHEN T.label = '+' THEN T.molecule_id ELSE NULL END) - COUNT(CASE WHEN T.label = '-' THEN T.molecule_id ELSE NULL END) AS diff_car_notcar FROM molecule t"
+  },
+  {
+    "id": "bird_toxicology_029",
+    "intent": "What are the atom IDs of the bond TR000_2_5?",
+    "category": "bird",
+    "relevant_names": [
+      "connected"
+    ],
+    "primary_name": "connected",
+    "description": "TR000_2_5 is the bond id",
+    "source_sql": "SELECT T.atom_id FROM connected AS T WHERE T.bond_id = 'TR000_2_5'"
+  },
+  {
+    "id": "bird_toxicology_030",
+    "intent": "What are the bond IDs that have the same atom ID 2 of TR000_2?",
+    "category": "bird",
+    "relevant_names": [
+      "connected"
+    ],
+    "primary_name": "connected",
+    "description": "TR000_2 is the atom id; atom ID 2 refers to atom_id2",
+    "source_sql": "SELECT T.bond_id FROM connected AS T WHERE T.atom_id2 = 'TR000_2'"
+  },
+  {
+    "id": "bird_toxicology_031",
+    "intent": "Please list top five molecules that have double bonds in alphabetical order.",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "double bond refers to bond_type = ' = ';",
+    "source_sql": "SELECT DISTINCT T.molecule_id FROM bond AS T WHERE T.bond_type = '=' ORDER BY T.molecule_id LIMIT 5"
+  },
+  {
+    "id": "bird_toxicology_032",
+    "intent": "What is the percentage of double bonds in the molecule TR008? Please provide your answer as a percentage with five decimal places.",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "double bond refers to bond_type = '='; TR008 is the molecule id; percentage = DIVIDE(SUM(bond_type = '='), COUNT(bond_id)) as percent where molecule_id = 'TR008'",
+    "source_sql": "SELECT ROUND(CAST(COUNT(CASE WHEN T.bond_type = '=' THEN T.bond_id ELSE NULL END) AS REAL) * 100 / COUNT(T.bond_id),5) FROM bond AS T WHERE T.molecule_id = 'TR008'"
+  },
+  {
+    "id": "bird_toxicology_033",
+    "intent": "What is the percentage of molecules that are carcinogenic? Please provide your answer as a percentage with three decimal places.",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '+' mean molecules are carcinogenic; percentage = DIVIDE(SUM(label = '+'), COUNT(molecule_id)) as percent",
+    "source_sql": "SELECT ROUND(CAST(COUNT(CASE WHEN T.label = '+' THEN T.molecule_id ELSE NULL END) AS REAL) * 100 / COUNT(T.molecule_id),3) FROM molecule t"
+  },
+  {
+    "id": "bird_toxicology_034",
+    "intent": "How much of the hydrogen in molecule TR206 is accounted for? Please provide your answer as a percentage with four decimal places.",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "hydrogen refers to element = 'h'; TR206 is the molecule id; percentage = DIVIDE(SUM(element = 'h'), COUNT(atom_id)) as percent where molecule_id = 'TR206'",
+    "source_sql": "SELECT ROUND(CAST(COUNT(CASE WHEN T.element = 'h' THEN T.atom_id ELSE NULL END) AS REAL) * 100 / COUNT(T.atom_id),4) FROM atom AS T WHERE T.molecule_id = 'TR206'"
+  },
+  {
+    "id": "bird_toxicology_035",
+    "intent": "What is the type of bond that molecule TR000 has when involved in any bonds?",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "type of bond refers to bond_type; TR000 is the molecule id",
+    "source_sql": "SELECT DISTINCT T.bond_type FROM bond AS T WHERE T.molecule_id = 'TR000'"
+  },
+  {
+    "id": "bird_toxicology_036",
+    "intent": "What are the elements of the toxicology and label of molecule TR060?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "TR060 is the molecule id; ",
+    "source_sql": "SELECT DISTINCT T1.element, T2.label FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.molecule_id = 'TR060'"
+  },
+  {
+    "id": "bird_toxicology_037",
+    "intent": "Which bond type accounted for the majority of the bonds found in molecule TR010 and state whether or not this molecule is carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "TR010 is the molecule id; majority of the bond found refers to MAX(COUNT(bond_type)); ",
+    "source_sql": "SELECT T.bond_type FROM ( SELECT T1.bond_type, COUNT(T1.molecule_id) FROM bond AS T1  WHERE T1.molecule_id = 'TR010' GROUP BY T1.bond_type ORDER BY COUNT(T1.molecule_id) DESC LIMIT 1 ) AS T"
+  },
+  {
+    "id": "bird_toxicology_038",
+    "intent": "Please list top three molecules that have single bonds between two atoms and are not carcinogenic in alphabetical order.",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "label = '-' means molecules are not carcinogenic; single type bond refers to bond_type = '-'; list top three molecules refers to return molecule_id and order by molecule_id;",
+    "source_sql": "SELECT DISTINCT T2.molecule_id FROM bond AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.bond_type = '-' AND T2.label = '-' ORDER BY T2.molecule_id LIMIT 3"
+  },
+  {
+    "id": "bird_toxicology_039",
+    "intent": "Please list top two bonds that happened with the molecule TR006 in alphabetical order.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "TR006 is the molecule id",
+    "source_sql": "SELECT DISTINCT T2.bond_id FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id WHERE T1.molecule_id = 'TR006' ORDER BY T2.bond_id LIMIT 2"
+  },
+  {
+    "id": "bird_toxicology_040",
+    "intent": "How many bonds which involved atom 12 does molecule TR009 have?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected"
+    ],
+    "primary_name": "bond",
+    "description": "TR009 is the molecule id;  involved atom 12 refers to atom_id = 'TR009_12' or atom_id2 = 'TR009_12'",
+    "source_sql": "SELECT COUNT(T2.bond_id) FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE T1.molecule_id = 'TR009' AND T2.atom_id = T1.molecule_id || '_1' AND T2.atom_id2 = T1.molecule_id || '_2'"
+  },
+  {
+    "id": "bird_toxicology_041",
+    "intent": "How many molecules are carcinogenic and have the bromine element?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic; have bromine element refers to element = 'br'",
+    "source_sql": "SELECT COUNT(DISTINCT T2.molecule_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '+' AND T1.element = 'br'"
+  },
+  {
+    "id": "bird_toxicology_042",
+    "intent": "What are the bond type and the atoms of the bond ID of TR001_6_9?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected"
+    ],
+    "primary_name": "bond",
+    "description": "atoms refer to atom_id or atom_id2",
+    "source_sql": "SELECT T1.bond_type, T2.atom_id, T2.atom_id2 FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE T2.bond_id = 'TR001_6_9'"
+  },
+  {
+    "id": "bird_toxicology_043",
+    "intent": "Which molecule does the atom TR001_10 belong to? Please state whether this molecule is carcinogenic or not.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "TR001_10 is the atom id; label = '+' mean molecules are carcinogenic",
+    "source_sql": "SELECT T2.molecule_id , IIF(T2.label = '+', 'YES', 'NO') AS flag_carcinogenic FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.atom_id = 'TR001_10'"
+  },
+  {
+    "id": "bird_toxicology_044",
+    "intent": "How many molecules have a triple bond type?",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "triple bond refers to bond_type = '#';",
+    "source_sql": "SELECT COUNT(DISTINCT T.molecule_id) FROM bond AS T WHERE T.bond_type = '#'"
+  },
+  {
+    "id": "bird_toxicology_045",
+    "intent": "How many connections does the atom 19 have?",
+    "category": "bird",
+    "relevant_names": [
+      "connected"
+    ],
+    "primary_name": "connected",
+    "description": "connections refers to bond_id; atom 19 refers to atom_id like 'TR%_19';",
+    "source_sql": "SELECT COUNT(T.bond_id) FROM connected AS T WHERE SUBSTR(T.atom_id, -2) = '19'"
+  },
+  {
+    "id": "bird_toxicology_046",
+    "intent": "List all the elements of the toxicology of the molecule \"TR004\".",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "TR004 is the molecule id;",
+    "source_sql": "SELECT DISTINCT T.element FROM atom AS T WHERE T.molecule_id = 'TR004'"
+  },
+  {
+    "id": "bird_toxicology_047",
+    "intent": "How many of the molecules are not carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '-' means molecules are non-carcinogenic",
+    "source_sql": "SELECT COUNT(T.molecule_id) FROM molecule AS T WHERE T.label = '-'"
+  },
+  {
+    "id": "bird_toxicology_048",
+    "intent": "Among all the atoms from 21 to 25, list all the molecules that are carcinogenic.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "atoms from 21 to 25 refers to SUBSTR(atom_id, 7, 2) between '21' and '25'; label = '+' mean molecules are carcinogenic",
+    "source_sql": "SELECT DISTINCT T2.molecule_id FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE SUBSTR(T1.atom_id, -2) BETWEEN '21' AND '25' AND T2.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_049",
+    "intent": "What are the bonds that have phosphorus and nitrogen as their atom elements?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "have phosphorus as atom elements refers to element = 'p'; have nitrogen as atom elements refers to element = 'n'",
+    "source_sql": "SELECT T2.bond_id FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id WHERE T2.bond_id IN ( SELECT T3.bond_id FROM connected AS T3 INNER JOIN atom AS T4 ON T3.atom_id = T4.atom_id WHERE T4.element = 'p' ) AND T1.element = 'n'"
+  },
+  {
+    "id": "bird_toxicology_050",
+    "intent": "Is the molecule with the most double bonds carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule",
+      "bond"
+    ],
+    "primary_name": "molecule",
+    "description": "double bond refers to bond_type = ' = '; label = '+' mean molecules are carcinogenic",
+    "source_sql": "SELECT T1.label FROM molecule AS T1 INNER JOIN ( SELECT T.molecule_id, COUNT(T.bond_type) FROM bond AS T WHERE T.bond_type = '=' GROUP BY T.molecule_id ORDER BY COUNT(T.bond_type) DESC LIMIT 1 ) AS T2 ON T1.molecule_id = T2.molecule_id"
+  },
+  {
+    "id": "bird_toxicology_051",
+    "intent": "What is the average number of bonds the atoms with the element iodine have?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "atoms with the element iodine refers to element = 'i'; average = DIVIDE(COUND(bond_id), COUNT(atom_id)) where element = 'i'",
+    "source_sql": "SELECT CAST(COUNT(T2.bond_id) AS REAL) / COUNT(T1.atom_id) FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id WHERE T1.element = 'i'"
+  },
+  {
+    "id": "bird_toxicology_052",
+    "intent": "List the bond type and the bond ID of the atom 45.",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected"
+    ],
+    "primary_name": "bond",
+    "description": "bond ID of atom 45 refers to SUBSTR(atom_id, 7, 2) + 0 = 45; double bond refers to bond_type = ' = '; single bond refers to bond_type = '-'; triple bond refers to bond_type = '#';",
+    "source_sql": "SELECT T1.bond_type, T1.bond_id FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE SUBSTR(T2.atom_id, 7, 2) = '45'"
+  },
+  {
+    "id": "bird_toxicology_053",
+    "intent": "List all the elements of atoms that can not bond with any other atoms.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": " atoms cannot bond with other atoms means atom_id NOT in connected table;",
+    "source_sql": "SELECT DISTINCT T.element FROM atom AS T WHERE T.element NOT IN ( SELECT DISTINCT T1.element FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id )"
+  },
+  {
+    "id": "bird_toxicology_054",
+    "intent": "What are the atoms of the triple bond with the molecule \"TR041\"?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "TR041 is the molecule id; triple bond refers to bond_type = '#';",
+    "source_sql": "SELECT T2.atom_id, T2.atom_id2 FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id INNER JOIN bond AS T3 ON T2.bond_id = T3.bond_id WHERE T3.bond_type = '#' AND T3.molecule_id = 'TR041'"
+  },
+  {
+    "id": "bird_toxicology_055",
+    "intent": "What are the elements of the atoms of TR144_8_19?",
+    "category": "bird",
+    "relevant_names": [
+      "connected",
+      "atom"
+    ],
+    "primary_name": "connected",
+    "description": "TR144_8_19 is the bond id; ",
+    "source_sql": "SELECT T2.element FROM connected AS T1 INNER JOIN atom AS T2 ON T1.atom_id = T2.atom_id WHERE T1.bond_id = 'TR144_8_19'"
+  },
+  {
+    "id": "bird_toxicology_056",
+    "intent": "Of all the carcinogenic molecules, which one has the most double bonds?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "label = '+' mean molecules are carcinogenic; double bond refers to bond_type = ' = ';",
+    "source_sql": "SELECT T.molecule_id FROM ( SELECT T3.molecule_id, COUNT(T1.bond_type) FROM bond AS T1 INNER JOIN molecule AS T3 ON T1.molecule_id = T3.molecule_id WHERE T3.label = '+' AND T1.bond_type = '=' GROUP BY T3.molecule_id ORDER BY COUNT(T1.bond_type) DESC LIMIT 1 ) AS T"
+  },
+  {
+    "id": "bird_toxicology_057",
+    "intent": "What is the least common element of all carcinogenic molecules?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule",
+      "atom"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '+' mean molecules are carcinogenic",
+    "source_sql": "SELECT T.element FROM ( SELECT T2.element, COUNT(DISTINCT T2.molecule_id) FROM molecule AS T1 INNER JOIN atom AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.label = '+' GROUP BY T2.element ORDER BY COUNT(DISTINCT T2.molecule_id) LIMIT 1 ) t"
+  },
+  {
+    "id": "bird_toxicology_058",
+    "intent": "What are the atoms that can bond with the atom that has the element lead?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "atom that has the element lead refers to atom_id where element = 'pb'",
+    "source_sql": "SELECT T2.atom_id, T2.atom_id2 FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id WHERE T1.element = 'pb'"
+  },
+  {
+    "id": "bird_toxicology_059",
+    "intent": "List the elements of all the triple bonds.",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected",
+      "atom"
+    ],
+    "primary_name": "bond",
+    "description": "triple bond refers to bond_type = '#';",
+    "source_sql": "SELECT DISTINCT T3.element FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id INNER JOIN atom AS T3 ON T2.atom_id = T3.atom_id WHERE T1.bond_type = '#'"
+  },
+  {
+    "id": "bird_toxicology_060",
+    "intent": "What percentage of bonds have the most common combination of atoms' elements?",
+    "category": "bird",
+    "relevant_names": [
+      "connected",
+      "bond"
+    ],
+    "primary_name": "connected",
+    "description": "DIVIDE(COUNT(bond_id), COUNT(atom_id where MAX(COUNT(atom_id)) ))",
+    "source_sql": "SELECT CAST((SELECT COUNT(T1.atom_id) FROM connected AS T1 INNER JOIN bond AS T2 ON T1.bond_id = T2.bond_id GROUP BY T2.bond_type ORDER BY COUNT(T2.bond_id) DESC LIMIT 1 ) AS REAL) * 100 / ( SELECT COUNT(atom_id) FROM connected )"
+  },
+  {
+    "id": "bird_toxicology_061",
+    "intent": "What proportion of single bonds are carcinogenic? Please provide your answer as a percentage with five decimal places.",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "single bond refers to bond_type = '-'; label = '+' mean molecules are carcinogenic; proportion = DIVIDE(SUM(label = '+') * 100, COUNT(bond_id)) where bond_type = '-'",
+    "source_sql": "SELECT ROUND(CAST(COUNT(CASE WHEN T2.label = '+' THEN T1.bond_id ELSE NULL END) AS REAL) * 100 / COUNT(T1.bond_id),5) FROM bond AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.bond_type = '-'"
+  },
+  {
+    "id": "bird_toxicology_062",
+    "intent": "Calculate the total atoms consisting of the element carbon and hydrogen.",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "consisting of element carbon and hydrogen refers to element in('c', 'h')",
+    "source_sql": "SELECT COUNT(T.atom_id) FROM atom AS T WHERE T.element = 'c' OR T.element = 'h'"
+  },
+  {
+    "id": "bird_toxicology_063",
+    "intent": "List down atom id2 for atoms with element sulfur.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "element sulfur refers to element = 's'",
+    "source_sql": "SELECT DISTINCT T2.atom_id2 FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id WHERE T1.element = 's'"
+  },
+  {
+    "id": "bird_toxicology_064",
+    "intent": "What are the bond type for atoms with element Tin?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "element Tin refers to element = 'sn'; double bond refers to bond_type = ' = '; single bond refers to bond_type = '-'; triple bond refers to bond_type = '#'",
+    "source_sql": "SELECT DISTINCT T3.bond_type FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id INNER JOIN bond AS T3 ON T3.bond_id = T2.bond_id WHERE T1.element = 'sn'"
+  },
+  {
+    "id": "bird_toxicology_065",
+    "intent": "How many elements are there for single bond molecules?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "single bond refers to bond_type = '-';",
+    "source_sql": "SELECT COUNT(DISTINCT T.element) FROM ( SELECT DISTINCT T2.molecule_id, T1.element FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN bond AS T3 ON T2.molecule_id = T3.molecule_id WHERE T3.bond_type = '-' ) AS T"
+  },
+  {
+    "id": "bird_toxicology_066",
+    "intent": "Calculate the total atoms with triple-bond molecules containing the element phosphorus or bromine.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "triple bond refers to bond_type = '#'; phosphorus refers to element = 'p'; bromine refers to element = 'br'",
+    "source_sql": "SELECT COUNT(T1.atom_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN bond AS T3 ON T2.molecule_id = T3.molecule_id WHERE T3.bond_type = '#' AND T1.element IN ('p', 'br')"
+  },
+  {
+    "id": "bird_toxicology_067",
+    "intent": "Write down bond id for molecules that are carcinogenic.",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "label = '+' mean molecules are carcinogenic",
+    "source_sql": "SELECT DISTINCT T1.bond_id FROM bond AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_068",
+    "intent": "Among the single bond molecule id, which molecules are not carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "label = '-' means molecules are non-carcinogenic; single bond refers to bond_type = '-';",
+    "source_sql": "SELECT DISTINCT T1.molecule_id FROM bond AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '-' AND T1.bond_type = '-'"
+  },
+  {
+    "id": "bird_toxicology_069",
+    "intent": "What is the composition of element chlorine in percentage among the single bond molecules?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "element chlorine refers to element = 'cl'; single bond refers to bond_type = '-'; percentage = DIVIDE(SUM(element = 'cl'), COUNT(atom_id)) as percent where bond_type = '-'",
+    "source_sql": "SELECT CAST(COUNT(CASE WHEN T.element = 'cl' THEN T.atom_id ELSE NULL END) AS REAL) * 100 / COUNT(T.atom_id) FROM ( SELECT T1.atom_id, T1.element FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN bond AS T3 ON T2.molecule_id = T3.molecule_id WHERE T3.bond_type = '-' ) AS T"
+  },
+  {
+    "id": "bird_toxicology_070",
+    "intent": "What are the labels for TR000, TR001 and TR002?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "TR000, TR001 and TR002 are molecule id; label = '+' mean molecules are carcinogenic; label = '-' means molecules are non-carcinogenic",
+    "source_sql": "SELECT molecule_id, T.label FROM molecule AS T WHERE T.molecule_id IN ('TR000', 'TR001', 'TR002')"
+  },
+  {
+    "id": "bird_toxicology_071",
+    "intent": "List down the molecule id for non carcinogenic molecules.",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '-' means molecules are non-carcinogenic",
+    "source_sql": "SELECT T.molecule_id FROM molecule AS T WHERE T.label = '-'"
+  },
+  {
+    "id": "bird_toxicology_072",
+    "intent": "Calculate the total carcinogenic molecules for molecule id from TR000 to TR030.",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '+' mean molecules are carcinogenic",
+    "source_sql": "SELECT COUNT(T.molecule_id) FROM molecule AS T WHERE T.molecule_id BETWEEN 'TR000' AND 'TR030' AND T.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_073",
+    "intent": "List down the bond type for molecules from molecule id TR000 to TR050.",
+    "category": "bird",
+    "relevant_names": [
+      "molecule",
+      "bond"
+    ],
+    "primary_name": "molecule",
+    "description": "double bond refers to bond_type = ' = '; single bond refers to bond_type = '-'; triple bond refers to bond_type = '#';",
+    "source_sql": "SELECT T2.molecule_id, T2.bond_type FROM molecule AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.molecule_id BETWEEN 'TR000' AND 'TR050'"
+  },
+  {
+    "id": "bird_toxicology_074",
+    "intent": "What are the elements for bond id TR001_10_11?",
+    "category": "bird",
+    "relevant_names": [
+      "connected",
+      "atom"
+    ],
+    "primary_name": "connected",
+    "description": "TR001_10_11 is the bond id;",
+    "source_sql": "SELECT T2.element FROM connected AS T1 INNER JOIN atom AS T2 ON T1.atom_id = T2.atom_id WHERE T1.bond_id = 'TR001_10_11'"
+  },
+  {
+    "id": "bird_toxicology_075",
+    "intent": "How many bond id have element iodine?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "iodine refers to element = 'i'",
+    "source_sql": "SELECT COUNT(T3.bond_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN bond AS T3 ON T2.molecule_id = T3.molecule_id WHERE T1.element = 'i'"
+  },
+  {
+    "id": "bird_toxicology_076",
+    "intent": "Among the molecules with element Calcium, are they mostly carcinogenic or non carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "calcium refers to element = 'ca'; label = '+' mean molecules are carcinogenic; label = '-' means molecules are non-carcinogenic; MAX(label)",
+    "source_sql": "SELECT T2.label FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 'ca' GROUP BY T2.label ORDER BY COUNT(T2.label) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_toxicology_077",
+    "intent": "Does bond id TR001_1_8 have both element of chlorine and carbon?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "chlorine refers to element = 'cl'; carbon refers to element = 'c'",
+    "source_sql": "SELECT T2.bond_id, T2.atom_id2, T1.element AS flag_have_CaCl FROM atom AS T1 INNER JOIN connected AS T2 ON T2.atom_id = T1.atom_id WHERE T2.bond_id = 'TR001_1_8' AND (T1.element = 'c1' OR T1.element = 'c')"
+  },
+  {
+    "id": "bird_toxicology_078",
+    "intent": "List down two molecule id of triple bond non carcinogenic molecules with element carbon.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "carbon refers to element = 'c'; triple bond refers to bond_type = '#'; label = '-' means molecules are non-carcinogenic",
+    "source_sql": "SELECT DISTINCT T2.molecule_id FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN bond AS T3 ON T2.molecule_id = T3.molecule_id WHERE T3.bond_type = '#' AND T1.element = 'c' AND T2.label = '-'"
+  },
+  {
+    "id": "bird_toxicology_079",
+    "intent": "What is the percentage of element chlorine in carcinogenic molecules?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "chlorine refers to element = 'cl'; label = '+' mean molecules are carcinogenic; percentage = DIVIDE(SUM(element = 'pb'); COUNT(molecule_id)) as percentage where label = '+'",
+    "source_sql": "SELECT CAST(COUNT( CASE WHEN T1.element = 'cl' THEN T1.element ELSE NULL END) AS REAL) * 100 / COUNT(T1.element) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_080",
+    "intent": "List the toxicology elements associated with molecule TR001.",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "TR001 is the molecule id",
+    "source_sql": "SELECT DISTINCT T.element FROM atom AS T WHERE T.molecule_id = 'TR001'"
+  },
+  {
+    "id": "bird_toxicology_081",
+    "intent": "Give me the molecule ID of the double bond type.",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "double bond refers to bond_type = ' = ';",
+    "source_sql": "SELECT DISTINCT T.molecule_id FROM bond AS T WHERE T.bond_type = '='"
+  },
+  {
+    "id": "bird_toxicology_082",
+    "intent": "Write down the atom IDs of the first and second atoms of triple bond type molecules.",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected"
+    ],
+    "primary_name": "bond",
+    "description": "first atom refers to atom_id; second atom refers to atom_id2; triple bond refers to bond_type = '#';",
+    "source_sql": "SELECT T2.atom_id, T2.atom_id2 FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE T1.bond_type = '#'"
+  },
+  {
+    "id": "bird_toxicology_083",
+    "intent": "What are the toxicology elements associated with bond ID TR000_1_2?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "TR000_1_2 is the bond id;",
+    "source_sql": "SELECT T1.element FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id WHERE T2.bond_id = 'TR000_1_2'"
+  },
+  {
+    "id": "bird_toxicology_084",
+    "intent": "How many of the single bond type molecules are non-carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "label = '-' means molecules are non-carcinogenic; single bond refers to bond_type = '-';",
+    "source_sql": "SELECT COUNT(DISTINCT T2.molecule_id) FROM bond AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '-' AND T1.bond_type = '-'"
+  },
+  {
+    "id": "bird_toxicology_085",
+    "intent": "What is the label for bond ID TR001_10_11?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "label = '+' mean molecules are carcinogenic; label = '-' means molecules are non-carcinogenic",
+    "source_sql": "SELECT T2.label FROM bond AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.bond_id = 'TR001_10_11'"
+  },
+  {
+    "id": "bird_toxicology_086",
+    "intent": "Enumerate the bond ID of triple bond type molecules and tell me if they are carcinogenic or not.",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "triple bond refers to bond_type = '#'; label = '+' mean molecules are carcinogenic; label = '-' means molecules are non-carcinogenic",
+    "source_sql": "SELECT DISTINCT T1.bond_id, T2.label FROM bond AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.bond_type = '#'"
+  },
+  {
+    "id": "bird_toxicology_087",
+    "intent": "Tally the toxicology element of the 4th atom of each molecule that was carcinogenic.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' means molecules are carcinogenic; 4th atom of each molecule refers to substr(atom_id, 7, 1) = '4'; ",
+    "source_sql": "SELECT DISTINCT T1.element FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '+' AND SUBSTR(T1.atom_id, -1) = '4' AND LENGTH(T1.atom_id) = 7"
+  },
+  {
+    "id": "bird_toxicology_088",
+    "intent": "What is the ratio of Hydrogen elements in molecule ID TR006? List the ratio with its label.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "subquery",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "hydrogen refers to element = 'h'; ratio = DIVIDE(SUM(element = 'h'), count(element)) where molecule_id = 'TR006' ; label = '+' mean molecules are carcinogenic; label = '-' means molecules are non-carcinogenic",
+    "source_sql": "WITH SubQuery AS (SELECT DISTINCT T1.atom_id, T1.element, T1.molecule_id, T2.label FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.molecule_id = 'TR006') SELECT CAST(COUNT(CASE WHEN element = 'h' THEN atom_id ELSE NULL END) AS REAL) / (CASE WHEN COUNT(atom_id) = 0 THEN NULL ELSE COUNT(atom_id) END) AS ratio, label FROM SubQuery GROUP BY label"
+  },
+  {
+    "id": "bird_toxicology_089",
+    "intent": "Identify whether the chemical compound that contains Calcium is carcinogenic.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "calcium refers to element = 'ca'; label = '+' mean molecules are carcinogenic; label = '-' means molecules are non-carcinogenic;",
+    "source_sql": "SELECT T2.label AS flag_carcinogenic FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 'ca'"
+  },
+  {
+    "id": "bird_toxicology_090",
+    "intent": "Determine the bond type that is formed in the chemical compound containing element Carbon.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "Carbon refers to element = 'c'; double bond refers to bond_type = ' = '; single bond refers to bond_type = '-'; triple bond refers to bond_type = '#';",
+    "source_sql": "SELECT DISTINCT T2.bond_type FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 'c'"
+  },
+  {
+    "id": "bird_toxicology_091",
+    "intent": "Name chemical elements that form a bond TR001_10_11.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "element = 'cl' means Chlorine; element = 'c' means Carbon; element = 'h' means Hydrogen; element = 'o' means Oxygen, element = 's' means Sulfur; element = 'n' means Nitrogen, element = 'p' means Phosphorus, element = 'na' means Sodium, element = 'br' means Bromine, element = 'f' means Fluorine; element = 'i' means Iodine; element = 'sn' means Tin; element = 'pb' means Lead; element = 'te' means Tellurium; element = 'ca' means Calcium; TR001_10_11 is the bond id; molecule id refers to SUBSTR(bond_id, 1, 5); atom 1 refers to SUBSTR(bond_id, 7, 2); atom 2 refers to SUBSTR(bond_id, 10, 2)",
+    "source_sql": "SELECT T1.element FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id INNER JOIN bond AS T3 ON T2.bond_id = T3.bond_id WHERE T3.bond_id = 'TR001_10_11'"
+  },
+  {
+    "id": "bird_toxicology_092",
+    "intent": "Among all chemical compounds identified in the database, what percent of compounds form a triple-bond.",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "triple bond refers to bond_type = '#';",
+    "source_sql": "SELECT CAST(COUNT(CASE WHEN T.bond_type = '#' THEN T.bond_id ELSE NULL END) AS REAL) * 100 / COUNT(T.bond_id) FROM bond AS T"
+  },
+  {
+    "id": "bird_toxicology_093",
+    "intent": "Among all chemical compounds that contain molecule TR047, identify the percent that form a double-bond.",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "TR047 is the molecule id; double bond refers to bond_type = ' = '; percentage = DIVIDE(SUM(bond_type = ' = '), COUNT(all bond_id)) as percent where molecule_id = 'TR047'",
+    "source_sql": "SELECT CAST(COUNT(CASE WHEN T.bond_type = '=' THEN T.bond_id ELSE NULL END) AS REAL) * 100 / COUNT(T.bond_id) FROM bond AS T WHERE T.molecule_id = 'TR047'"
+  },
+  {
+    "id": "bird_toxicology_094",
+    "intent": "Identify whether the molecule that contains atom TR001_1 is carcinogenic.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic;",
+    "source_sql": "SELECT T2.label AS flag_carcinogenic FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.atom_id = 'TR001_1'"
+  },
+  {
+    "id": "bird_toxicology_095",
+    "intent": "Is molecule TR151 carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '+' mean molecules are carcinogenic;",
+    "source_sql": "SELECT T.label FROM molecule AS T WHERE T.molecule_id = 'TR151'"
+  },
+  {
+    "id": "bird_toxicology_096",
+    "intent": "Which toxic element can be found in the molecule TR151?",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "element = 'cl' means Chlorine; element = 'c' means Carbon; element = 'h' means Hydrogen; element = 'o' means Oxygen, element = 's' means Sulfur; element = 'n' means Nitrogen, element = 'p' means Phosphorus, element = 'na' means Sodium, element = 'br' means Bromine, element = 'f' means Fluorine; element = 'i' means Iodine; element = 'sn' means Tin; element = 'pb' means Lead; element = 'te' means Tellurium; element = 'ca' means Calcium",
+    "source_sql": "SELECT DISTINCT T.element FROM atom AS T WHERE T.molecule_id = 'TR151'"
+  },
+  {
+    "id": "bird_toxicology_097",
+    "intent": "How many chemical compounds in the database are identified as carcinogenic.",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '+' mean molecules are carcinogenic;",
+    "source_sql": "SELECT COUNT(T.molecule_id) FROM molecule AS T WHERE T.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_098",
+    "intent": "Identify the atoms belong to the molecule with ID between TR010 to TR050 that contain the element carbon.",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "carbon refers to element = 'c'; between TR010 to TR050 refers to substr(molecule_id, 3, 3)>=10 AND substr(molecule_id, 3, 3) <= 50",
+    "source_sql": "SELECT T.atom_id FROM atom AS T WHERE T.molecule_id BETWEEN 'TR010' AND 'TR050' AND T.element = 'c'"
+  },
+  {
+    "id": "bird_toxicology_099",
+    "intent": "How many atoms belong to the molecule labeled with carcinogenic compounds?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic;",
+    "source_sql": "SELECT COUNT(T1.atom_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_100",
+    "intent": "Which bond ids are double-bond with carcinogenic compound?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "label = '+' mean molecules are carcinogenic; double bond refers to bond_type = ' = ';",
+    "source_sql": "SELECT T1.bond_id FROM bond AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '+' AND T1.bond_type = '='"
+  },
+  {
+    "id": "bird_toxicology_101",
+    "intent": "How many atoms belong to the molecule that element is hydrogen and labeled with carcinogenic compound?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic; hydrogen refers to element = h'",
+    "source_sql": "SELECT COUNT(T1.atom_id) AS atomnums_h FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '+' AND T1.element = 'h'"
+  },
+  {
+    "id": "bird_toxicology_102",
+    "intent": "Indicate the molecule id is belonging to the TR000_1_2 bond that has the first atom named TR000_1.",
+    "category": "bird",
+    "relevant_names": [
+      "connected",
+      "bond"
+    ],
+    "primary_name": "connected",
+    "description": "",
+    "source_sql": "SELECT T2.molecule_id, T2.bond_id, T1.atom_id FROM connected AS T1 INNER JOIN bond AS T2 ON T1.bond_id = T2.bond_id WHERE T1.atom_id = 'TR000_1' AND T2.bond_id = 'TR000_1_2'"
+  },
+  {
+    "id": "bird_toxicology_103",
+    "intent": "Among the atoms that contain element carbon, which one does not contain compound carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '-' means molecules are non-carcinogenic; carbon refers to element = 'c'",
+    "source_sql": "SELECT T1.atom_id FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 'c' AND T2.label = '-'"
+  },
+  {
+    "id": "bird_toxicology_104",
+    "intent": "Calculate the percentage of molecules containing carcinogenic compounds that element is hydrogen.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "hydrogen refers to element = 'h'; label = '+' mean molecules are carcinogenic; percentage = DIVIDE(SUM(label = '+' and element = 'h'), COUNT(molecule_id)) * 100.0",
+    "source_sql": "SELECT CAST(COUNT(CASE WHEN T1.element = 'h' AND T2.label = '+' THEN T2.molecule_id ELSE NULL END) AS REAL) * 100 / COUNT(T2.molecule_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id"
+  },
+  {
+    "id": "bird_toxicology_105",
+    "intent": "Is molecule TR124 carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '+' mean molecules are carcinogenic;",
+    "source_sql": "SELECT T.label FROM molecule AS T WHERE T.molecule_id = 'TR124'"
+  },
+  {
+    "id": "bird_toxicology_106",
+    "intent": "What atoms comprise TR186?",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "TR186 is a molecule id",
+    "source_sql": "SELECT T.atom_id FROM atom AS T WHERE T.molecule_id = 'TR186'"
+  },
+  {
+    "id": "bird_toxicology_107",
+    "intent": "What is the bond type of TR007_4_19?",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "double bond refers to bond_type = ' = '; single bond refers to bond_type = '-'; triple bond refers to bond_type = '#';",
+    "source_sql": "SELECT T.bond_type FROM bond AS T WHERE T.bond_id = 'TR007_4_19'"
+  },
+  {
+    "id": "bird_toxicology_108",
+    "intent": "Name the elements that comprise the atoms of bond TR001_2_4.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "element = 'cl' means Chlorine; element = 'c' means Carbon; element = 'h' means Hydrogen; element = 'o' means Oxygen, element = 's' means Sulfur; element = 'n' means Nitrogen, element = 'p' means Phosphorus, element = 'na' means Sodium, element = 'br' means Bromine, element = 'f' means Fluorine; element = 'i' means Iodine; element = 'sn' means Tin; element = 'pb' means Lead; element = 'te' means Tellurium; element = 'ca' means Calcium",
+    "source_sql": "SELECT DISTINCT T1.element FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id WHERE T2.bond_id = 'TR001_2_4'"
+  },
+  {
+    "id": "bird_toxicology_109",
+    "intent": "How many double bonds does TR006 have and is it carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "label = '+' mean molecules are carcinogenic; label = '-' means molecules are non-carcinogenic; double bond refers to bond_type = ' = ';",
+    "source_sql": "SELECT COUNT(T1.bond_id), T2.label FROM bond AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.bond_type = '=' AND T2.molecule_id = 'TR006' GROUP BY T2.label"
+  },
+  {
+    "id": "bird_toxicology_110",
+    "intent": "List all carcinogenic molecules and their elements.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic; element = 'cl' means Chlorine; element = 'c' means Carbon; element = 'h' means Hydrogen; element = 'o' means Oxygen, element = 's' means Sulfur; element = 'n' means Nitrogen, element = 'p' means Phosphorus, element = 'na' means Sodium, element = 'br' means Bromine, element = 'f' means Fluorine; element = 'i' means Iodine; element = 'sn' means Tin; element = 'pb' means Lead; element = 'te' means Tellurium; element = 'ca' means Calcium",
+    "source_sql": "SELECT DISTINCT T2.molecule_id, T1.element FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_111",
+    "intent": "Name all bonds with single bond types and what atoms are connected to the molecules.",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected"
+    ],
+    "primary_name": "bond",
+    "description": "single bond refers to bond_type = '-';",
+    "source_sql": "SELECT T1.bond_id, T2.atom_id, T2.atom_id2 FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE T1.bond_type = '-'"
+  },
+  {
+    "id": "bird_toxicology_112",
+    "intent": "Which molecules have triple bonds and list all the elements they contain.",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "atom"
+    ],
+    "primary_name": "bond",
+    "description": "triple bond refers to bond_type = '#'; element = 'cl' means Chlorine; element = 'c' means Carbon; element = 'h' means Hydrogen; element = 'o' means Oxygen, element = 's' means Sulfur; element = 'n' means Nitrogen, element = 'p' means Phosphorus, element = 'na' means Sodium, element = 'br' means Bromine, element = 'f' means Fluorine; element = 'i' means Iodine; element = 'sn' means Tin; element = 'pb' means Lead; element = 'te' means Tellurium; element = 'ca' means Calcium",
+    "source_sql": "SELECT DISTINCT T1.molecule_id, T2.element FROM bond AS T1 INNER JOIN atom AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.bond_type = '#'"
+  },
+  {
+    "id": "bird_toxicology_113",
+    "intent": "Name the atoms' elements that form bond TR000_2_3.",
+    "category": "bird",
+    "relevant_names": [
+      "connected",
+      "atom"
+    ],
+    "primary_name": "connected",
+    "description": "element = 'cl' means Chlorine; element = 'c' means Carbon; element = 'h' means Hydrogen; element = 'o' means Oxygen, element = 's' means Sulfur; element = 'n' means Nitrogen, element = 'p' means Phosphorus, element = 'na' means Sodium, element = 'br' means Bromine, element = 'f' means Fluorine; element = 'i' means Iodine; element = 'sn' means Tin; element = 'pb' means Lead; element = 'te' means Tellurium; element = 'ca' means Calcium",
+    "source_sql": "SELECT T2.element FROM connected AS T1 INNER JOIN atom AS T2 ON T1.atom_id = T2.atom_id WHERE T1.bond_id = 'TR000_2_3'"
+  },
+  {
+    "id": "bird_toxicology_114",
+    "intent": "How many bonds are created by bonding atoms with chlorine element?",
+    "category": "bird",
+    "relevant_names": [
+      "connected",
+      "atom"
+    ],
+    "primary_name": "connected",
+    "description": "chlorine refers to element = 'cl'",
+    "source_sql": "SELECT COUNT(T1.bond_id) FROM connected AS T1 INNER JOIN atom AS T2 ON T1.atom_id = T2.atom_id WHERE T2.element = 'cl'"
+  },
+  {
+    "id": "bird_toxicology_115",
+    "intent": "List out the atom id that belongs to the TR346 molecule and how many bond type can be created by this molecule?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "",
+    "source_sql": "SELECT T1.atom_id, COUNT(DISTINCT T2.bond_type),T1.molecule_id FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.molecule_id = 'TR000' GROUP BY T1.atom_id, T2.bond_type"
+  },
+  {
+    "id": "bird_toxicology_116",
+    "intent": "How many molecules have a double bond type and among these molecule, how many are labeled as carcinogenic compound?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "molecule"
+    ],
+    "primary_name": "bond",
+    "description": "double bond refers to bond_type = ' = '; label = '+' mean molecules are carcinogenic;",
+    "source_sql": "SELECT COUNT(DISTINCT T2.molecule_id), SUM(CASE WHEN T2.label = '+' THEN 1 ELSE 0 END) FROM bond AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.bond_type = '='"
+  },
+  {
+    "id": "bird_toxicology_117",
+    "intent": "How many molecules without sulphur element is not having double bond?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "double bond refers to bond_type = ' = '; bond_type ! = ' = '; sulphur refers to element = 's'",
+    "source_sql": "SELECT COUNT(DISTINCT T1.molecule_id) FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element <> 's' AND T2.bond_type <> '='"
+  },
+  {
+    "id": "bird_toxicology_118",
+    "intent": "What is the carcinogenic label for bond TR001_2_4?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic",
+    "source_sql": "SELECT DISTINCT T2.label FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN bond AS T3 ON T2.molecule_id = T3.molecule_id WHERE T3.bond_id = 'TR001_2_4'"
+  },
+  {
+    "id": "bird_toxicology_119",
+    "intent": "How many atoms belong to molecule id TR001?",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "",
+    "source_sql": "SELECT COUNT(T.atom_id) FROM atom AS T WHERE T.molecule_id = 'TR001'"
+  },
+  {
+    "id": "bird_toxicology_120",
+    "intent": "How many single bonds are there in the list?",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "single bond refers to bond_type = '-';",
+    "source_sql": "SELECT COUNT(T.bond_id) FROM bond AS T WHERE T.bond_type = '-'"
+  },
+  {
+    "id": "bird_toxicology_121",
+    "intent": "Among the molecules which contain \"cl\" element, which of them are carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic;",
+    "source_sql": "SELECT DISTINCT T1.molecule_id FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 'cl' AND T2.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_122",
+    "intent": "Among the molecules which contain \"c\" element, which of them are not carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '-' means molecules are non-carcinogenic",
+    "source_sql": "SELECT DISTINCT T1.molecule_id FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 'c' AND T2.label = '-'"
+  },
+  {
+    "id": "bird_toxicology_123",
+    "intent": "Calculate the percentage of carcinogenic molecules which contain the Chlorine element.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic; percentage = DIVIDE(SUM(label = '+' and element = 'cl'), COUNT(molecule_id)) as percentage",
+    "source_sql": "SELECT COUNT(CASE WHEN T2.label = '+' AND T1.element = 'cl' THEN T2.molecule_id ELSE NULL END) * 100 / COUNT(T2.molecule_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id"
+  },
+  {
+    "id": "bird_toxicology_124",
+    "intent": "What is the molecule id of bond id TR001_1_7?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "",
+    "source_sql": "SELECT DISTINCT T1.molecule_id FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id WHERE T2.bond_id = 'TR001_1_7'"
+  },
+  {
+    "id": "bird_toxicology_125",
+    "intent": "How many elements are contained in bond_id TR001_3_4?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "connected"
+    ],
+    "primary_name": "atom",
+    "description": "element = 'cl' means Chlorine; element = 'c' means Carbon; element = 'h' means Hydrogen; element = 'o' means Oxygen, element = 's' means Sulfur; element = 'n' means Nitrogen, element = 'p' means Phosphorus, element = 'na' means Sodium, element = 'br' means Bromine, element = 'f' means Fluorine; element = 'i' means Iodine; element = 'sn' means Tin; element = 'pb' means Lead; element = 'te' means Tellurium; element = 'ca' means Calcium",
+    "source_sql": "SELECT COUNT(DISTINCT T1.element) FROM atom AS T1 INNER JOIN connected AS T2 ON T1.atom_id = T2.atom_id WHERE T2.bond_id = 'TR001_3_4'"
+  },
+  {
+    "id": "bird_toxicology_126",
+    "intent": "What is the type of the bond which is presenting the connection between two atoms TR000_1 and TR000_2?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected"
+    ],
+    "primary_name": "bond",
+    "description": "type of bond refers to bond_type; double bond refers to bond_type = ' = '; single bond refers to bond_type = '-'; triple bond refers to bond_type = '#';",
+    "source_sql": "SELECT T1.bond_type FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE T2.atom_id = 'TR000_1' AND T2.atom_id2 = 'TR000_2'"
+  },
+  {
+    "id": "bird_toxicology_127",
+    "intent": "What is the molecule of atom id \"TR000_2\" and atom id 2 \"TR000_4\"?",
+    "category": "bird",
+    "relevant_names": [
+      "bond",
+      "connected"
+    ],
+    "primary_name": "bond",
+    "description": "",
+    "source_sql": "SELECT T1.molecule_id FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE T2.atom_id = 'TR000_2' AND T2.atom_id2 = 'TR000_4'"
+  },
+  {
+    "id": "bird_toxicology_128",
+    "intent": "What is the element of toxicology for the atom with the ID of TR000_1?",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "atom with ID refers to atom_id; element = 'cl' means Chlorine; element = 'c' means Carbon; element = 'h' means Hydrogen; element = 'o' means Oxygen, element = 's' means Sulfur; element = 'n' means Nitrogen, element = 'p' means Phosphorus, element = 'na' means Sodium, element = 'br' means Bromine, element = 'f' means Fluorine; element = 'i' means Iodine; element = 'sn' means Tin; element = 'pb' means Lead; element = 'te' means Tellurium; element = 'ca' means Calcium",
+    "source_sql": "SELECT T.element FROM atom AS T WHERE T.atom_id = 'TR000_1'"
+  },
+  {
+    "id": "bird_toxicology_129",
+    "intent": "Is molecule TR000 is carcinogenic or not?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '+' mean molecules are carcinogenic; label = '-' means molecules are non-carcinogenic",
+    "source_sql": "SELECT label FROM molecule AS T WHERE T.molecule_id = 'TR000'"
+  },
+  {
+    "id": "bird_toxicology_130",
+    "intent": "Find the percentage of atoms with single bond.",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "single bond refers to bond_type = '-'; percentage = DIVIDE(SUM(bond_type = '-'), COUNT(bond_id)) as percentage",
+    "source_sql": "SELECT CAST(COUNT(CASE WHEN T.bond_type = '-' THEN T.bond_id ELSE NULL END) AS REAL) * 100 / COUNT(T.bond_id) FROM bond t"
+  },
+  {
+    "id": "bird_toxicology_131",
+    "intent": "How many carcinogenic molecules that consisted of Nitrogen?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule",
+      "atom"
+    ],
+    "primary_name": "molecule",
+    "description": "nitrogen refers to element = 'n'; label = '+' mean molecules are carcinogenic;",
+    "source_sql": "SELECT COUNT(DISTINCT T1.molecule_id) FROM molecule AS T1 INNER JOIN atom AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.element = 'n' AND T1.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_132",
+    "intent": "Which molecule consisted of Sulphur atom with double bond?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "sulphur refers to element - 's'; double bond refers to bond_type = ' = ';",
+    "source_sql": "SELECT DISTINCT T1.molecule_id FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 's' AND T2.bond_type = '='"
+  },
+  {
+    "id": "bird_toxicology_133",
+    "intent": "Which non-carcinogenic molecules consisted more than 5 atoms?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule",
+      "atom"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '-' means molecules are non-carcinogenic; molecules consisted more than 5 atoms refers to COUNT(molecule_id) > 5",
+    "source_sql": "SELECT T.molecule_id FROM ( SELECT T1.molecule_id, COUNT(T2.atom_id) FROM molecule AS T1 INNER JOIN atom AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.label = '-' GROUP BY T1.molecule_id HAVING COUNT(T2.atom_id) > 5 ) t"
+  },
+  {
+    "id": "bird_toxicology_134",
+    "intent": "List all the elements with double bond, consisted in molecule TR024.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "double bond refers to bond_type = '='; element = 'cl' means Chlorine; element = 'c' means Carbon; element = 'h' means Hydrogen; element = 'o' means Oxygen, element = 's' means Sulfur; element = 'n' means Nitrogen, element = 'p' means Phosphorus, element = 'na' means Sodium, element = 'br' means Bromine, element = 'f' means Fluorine; element = 'i' means Iodine; element = 'sn' means Tin; element = 'pb' means Lead; element = 'te' means Tellurium; element = 'ca' means Calcium",
+    "source_sql": "SELECT T1.element FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.molecule_id = 'TR024' AND T2.bond_type = '='"
+  },
+  {
+    "id": "bird_toxicology_135",
+    "intent": "Which carcinogenic molecule have the highest number of atoms consisted in it?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic; molecule that have the highest number of atoms consisted in in refers to MAX(COUNT(atom.molecule_id))",
+    "source_sql": "SELECT T.molecule_id FROM ( SELECT T2.molecule_id, COUNT(T1.atom_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.label = '+' GROUP BY T2.molecule_id ORDER BY COUNT(T1.atom_id) DESC LIMIT 1 ) t"
+  },
+  {
+    "id": "bird_toxicology_136",
+    "intent": "Calculate the percentage of carcinogenic molecules with triple bonded Hidrogen atoms.",
+    "category": "bird",
+    "relevant_names": [
+      "molecule",
+      "atom",
+      "bond"
+    ],
+    "primary_name": "molecule",
+    "description": "hydrogen refers to element = 'h'; label = '+' mean molecules are carcinogenic; triple bond refers to bond_type = '#'; percentage = DIVIDE(SUM(label = '+'), COUNT(molecule_id)) * 100.0 where element = 'h' AND bond_type = '#';",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T1.label = '+' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(DISTINCT T1.molecule_id) FROM molecule AS T1 INNER JOIN atom AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN bond AS T3 ON T1.molecule_id = T3.molecule_id WHERE T3.bond_type = '#' AND T2.element = 'h'"
+  },
+  {
+    "id": "bird_toxicology_137",
+    "intent": "How many of the molecules are carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule"
+    ],
+    "primary_name": "molecule",
+    "description": "label = '+' mean molecules are carcinogenic;",
+    "source_sql": "SELECT COUNT(T.molecule_id) FROM molecule AS T WHERE T.label = '+'"
+  },
+  {
+    "id": "bird_toxicology_138",
+    "intent": "Among the molecules between TR004 to TR010, how many of them has single bonds?",
+    "category": "bird",
+    "relevant_names": [
+      "bond"
+    ],
+    "primary_name": "bond",
+    "description": "single bond refers to bond_type = '-'; molecules between TR004 to TR010 refers molecule_id BETWEEN 'TR004' and 'TR010';",
+    "source_sql": "SELECT COUNT(DISTINCT T.molecule_id) FROM bond AS T WHERE T.molecule_id BETWEEN 'TR004' AND 'TR010' AND T.bond_type = '-'"
+  },
+  {
+    "id": "bird_toxicology_139",
+    "intent": "In the molecule TR008, how many carbons are present?",
+    "category": "bird",
+    "relevant_names": [
+      "atom"
+    ],
+    "primary_name": "atom",
+    "description": "carbon refers to element = 'c'",
+    "source_sql": "SELECT COUNT(T.atom_id) FROM atom AS T WHERE T.molecule_id = 'TR008' AND T.element = 'c'"
+  },
+  {
+    "id": "bird_toxicology_140",
+    "intent": "What is the element with the atom ID of TR004_7 in molecule that is not carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '-' means molecules are non-carcinogenic; element = 'cl' means Chlorine; element = 'c' means Carbon; element = 'h' means Hydrogen; element = 'o' means Oxygen, element = 's' means Sulfur; element = 'n' means Nitrogen, element = 'p' means Phosphorus, element = 'na' means Sodium, element = 'br' means Bromine, element = 'f' means Fluorine; element = 'i' means Iodine; element = 'sn' means Tin; element = 'pb' means Lead; element = 'te' means Tellurium; element = 'ca' means Calcium",
+    "source_sql": "SELECT T1.element FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.atom_id = 'TR004_7' AND T2.label = '-'"
+  },
+  {
+    "id": "bird_toxicology_141",
+    "intent": "What is the total number of molecules with double bonded oxygen?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "oxygen refers to element = 'o'; double bond refers to bond_type = ' = ';",
+    "source_sql": "SELECT COUNT(DISTINCT T1.molecule_id) FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.bond_type = '=' AND T1.element = 'o'"
+  },
+  {
+    "id": "bird_toxicology_142",
+    "intent": "in molecules with triple bonds, how many of them are not carcinogenic?",
+    "category": "bird",
+    "relevant_names": [
+      "molecule",
+      "bond"
+    ],
+    "primary_name": "molecule",
+    "description": "triple bond refers to bond_type = '#'; label = '-' means molecules are non-carcinogenic",
+    "source_sql": "SELECT COUNT(DISTINCT T1.molecule_id) FROM molecule AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.bond_type = '#' AND T1.label = '-'"
+  },
+  {
+    "id": "bird_toxicology_143",
+    "intent": "List the element and bond type included in the molecule with molecule ID of TR002.",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "TR002 is the molecule id",
+    "source_sql": "SELECT DISTINCT T1.element, T2.bond_type FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.molecule_id = 'TR002'"
+  },
+  {
+    "id": "bird_toxicology_144",
+    "intent": "What is the atom ID of double bonded carbon in TR012 molecule?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule",
+      "bond"
+    ],
+    "primary_name": "atom",
+    "description": "carbon refers to element = 'c'; double bond refers to bond_type = ' = ';",
+    "source_sql": "SELECT T1.atom_id FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN bond AS T3 ON T2.molecule_id = T3.molecule_id WHERE T2.molecule_id = 'TR012' AND T3.bond_type = '=' AND T1.element = 'c'"
+  },
+  {
+    "id": "bird_toxicology_145",
+    "intent": "List the atom ID of the carcinogenic molecule that contains oxygen?",
+    "category": "bird",
+    "relevant_names": [
+      "atom",
+      "molecule"
+    ],
+    "primary_name": "atom",
+    "description": "label = '+' mean molecules are carcinogenic; oxygen refers to element = 'o'",
+    "source_sql": "SELECT T1.atom_id FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.element = 'o' AND T2.label = '+'"
+  }
+]

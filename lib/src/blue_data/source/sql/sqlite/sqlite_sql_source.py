@@ -221,7 +221,7 @@ class SQLiteDBSource(SQLSource):
             if not schema.has_entity(table):
                 schema.add_entity(table)
 
-            cursor.execute(f"PRAGMA table_info({table});")
+            cursor.execute(f'PRAGMA table_info("{table}");')
             columns = cursor.fetchall()
 
             for col in columns:
@@ -495,7 +495,7 @@ class SQLiteDBSource(SQLSource):
             cursor = conn.cursor()
 
             # Find column type from PRAGMA
-            cursor.execute(f"PRAGMA table_info({table});")
+            cursor.execute(f'PRAGMA table_info("{table}");')
 
             columns = cursor.fetchall()
             column_type = None

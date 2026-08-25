@@ -32,14 +32,8 @@ from pathlib import Path
 
 # ── SQL table extractor ────────────────────────────────────────────────────
 
-_FROM_RE  = re.compile(
-    r"\bFROM\s+([\w`"\[\]]+)",
-    re.IGNORECASE,
-)
-_JOIN_RE  = re.compile(
-    r"\bJOIN\s+([\w`"\[\]]+)",
-    re.IGNORECASE,
-)
+_FROM_RE  = re.compile(r'\bFROM\s+([\w`\[\]"]+)', re.IGNORECASE)
+_JOIN_RE  = re.compile(r'\bJOIN\s+([\w`\[\]"]+)', re.IGNORECASE)
 
 def _strip_quotes(name: str) -> str:
     return name.strip("`\"[]")

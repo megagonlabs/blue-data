@@ -1,0 +1,482 @@
+{
+  "bird_financial_001": [
+    "district",
+    "account"
+  ],
+  "bird_financial_002": [
+    "account",
+    "loan",
+    "district"
+  ],
+  "bird_financial_003": [
+    "district"
+  ],
+  "bird_financial_004": [
+    "client",
+    "district"
+  ],
+  "bird_financial_005": [
+    "client",
+    "district"
+  ],
+  "bird_financial_006": [
+    "district",
+    "account",
+    "client",
+    "disp"
+  ],
+  "bird_financial_007": [
+    "account",
+    "client",
+    "disp",
+    "district"
+  ],
+  "bird_financial_008": [
+    "account",
+    "disp"
+  ],
+  "bird_financial_009": [
+    "account",
+    "disp"
+  ],
+  "bird_financial_010": [
+    "loan",
+    "account"
+  ],
+  "bird_financial_011": [
+    "loan",
+    "account"
+  ],
+  "bird_financial_012": [
+    "district",
+    "client"
+  ],
+  "bird_financial_013": [
+    "trans"
+  ],
+  "bird_financial_014": [
+    "trans",
+    "account"
+  ],
+  "bird_financial_015": [
+    "client",
+    "disp",
+    "card"
+  ],
+  "bird_financial_016": [
+    "account",
+    "trans"
+  ],
+  "bird_financial_017": [
+    "account",
+    "loan"
+  ],
+  "bird_financial_018": [
+    "card",
+    "disp",
+    "account",
+    "trans"
+  ],
+  "bird_financial_019": [
+    "district",
+    "client"
+  ],
+  "bird_financial_020": [
+    "loan",
+    "account",
+    "trans"
+  ],
+  "bird_financial_021": [
+    "client",
+    "district"
+  ],
+  "bird_financial_022": [
+    "disp",
+    "account",
+    "trans"
+  ],
+  "bird_financial_023": [
+    "district",
+    "account"
+  ],
+  "bird_financial_024": [
+    "district",
+    "client"
+  ],
+  "bird_financial_025": [
+    "loan",
+    "account",
+    "disp",
+    "client"
+  ],
+  "bird_financial_026": [
+    "account",
+    "district"
+  ],
+  "bird_financial_027": [
+    "client",
+    "district"
+  ],
+  "bird_financial_028": [
+    "loan",
+    "account",
+    "trans"
+  ],
+  "bird_financial_029": [
+    "loan"
+  ],
+  "bird_financial_030": [
+    "loan"
+  ],
+  "bird_financial_031": [
+    "account",
+    "district"
+  ],
+  "bird_financial_032": [
+    "account",
+    "district"
+  ],
+  "bird_financial_033": [
+    "account",
+    "district"
+  ],
+  "bird_financial_034": [
+    "account",
+    "district",
+    "loan"
+  ],
+  "bird_financial_035": [
+    "account",
+    "district",
+    "loan"
+  ],
+  "bird_financial_036": [
+    "account",
+    "district",
+    "loan"
+  ],
+  "bird_financial_037": [
+    "loan",
+    "account",
+    "district"
+  ],
+  "bird_financial_038": [
+    "district",
+    "account"
+  ],
+  "bird_financial_039": [
+    "account"
+  ],
+  "bird_financial_040": [
+    "client",
+    "district"
+  ],
+  "bird_financial_041": [
+    "district",
+    "account",
+    "trans"
+  ],
+  "bird_financial_042": [
+    "district",
+    "client",
+    "disp"
+  ],
+  "bird_financial_043": [
+    "account",
+    "district",
+    "loan"
+  ],
+  "bird_financial_044": [
+    "client",
+    "disp",
+    "account",
+    "loan"
+  ],
+  "bird_financial_045": [
+    "district"
+  ],
+  "bird_financial_046": [
+    "district",
+    "account"
+  ],
+  "bird_financial_047": [
+    "trans",
+    "account"
+  ],
+  "bird_financial_048": [
+    "account",
+    "loan"
+  ],
+  "bird_financial_049": [
+    "account",
+    "district",
+    "loan"
+  ],
+  "bird_financial_050": [
+    "client",
+    "district"
+  ],
+  "bird_financial_051": [
+    "card",
+    "disp"
+  ],
+  "bird_financial_052": [
+    "account",
+    "district"
+  ],
+  "bird_financial_053": [
+    "account",
+    "district",
+    "trans"
+  ],
+  "bird_financial_054": [
+    "trans",
+    "account",
+    "district"
+  ],
+  "bird_financial_055": [
+    "disp",
+    "card"
+  ],
+  "bird_financial_056": [
+    "card",
+    "disp",
+    "account",
+    "trans"
+  ],
+  "bird_financial_057": [
+    "trans",
+    "account"
+  ],
+  "bird_financial_058": [
+    "client",
+    "disp",
+    "account",
+    "loan",
+    "card"
+  ],
+  "bird_financial_059": [
+    "client",
+    "district"
+  ],
+  "bird_financial_060": [
+    "district",
+    "account",
+    "disp"
+  ],
+  "bird_financial_061": [
+    "district",
+    "account",
+    "disp"
+  ],
+  "bird_financial_062": [
+    "district",
+    "account",
+    "trans"
+  ],
+  "bird_financial_063": [
+    "district",
+    "account",
+    "trans"
+  ],
+  "bird_financial_064": [
+    "district",
+    "account"
+  ],
+  "bird_financial_065": [
+    "card",
+    "disp"
+  ],
+  "bird_financial_066": [
+    "client",
+    "district"
+  ],
+  "bird_financial_067": [
+    "card"
+  ],
+  "bird_financial_068": [
+    "disp",
+    "account",
+    "loan"
+  ],
+  "bird_financial_069": [
+    "district",
+    "account"
+  ],
+  "bird_financial_070": [
+    "order",
+    "account",
+    "district"
+  ],
+  "bird_financial_071": [
+    "client",
+    "disp",
+    "account",
+    "trans"
+  ],
+  "bird_financial_072": [
+    "loan",
+    "account"
+  ],
+  "bird_financial_073": [
+    "disp",
+    "client",
+    "card"
+  ],
+  "bird_financial_074": [
+    "district",
+    "client"
+  ],
+  "bird_financial_075": [
+    "district",
+    "account",
+    "loan"
+  ],
+  "bird_financial_076": [
+    "order",
+    "account",
+    "disp",
+    "client"
+  ],
+  "bird_financial_077": [
+    "district",
+    "account",
+    "trans"
+  ],
+  "bird_financial_078": [
+    "district",
+    "account"
+  ],
+  "bird_financial_079": [
+    "card",
+    "disp"
+  ],
+  "bird_financial_080": [
+    "district",
+    "client"
+  ],
+  "bird_financial_081": [
+    "loan",
+    "account",
+    "disp",
+    "client"
+  ],
+  "bird_financial_082": [
+    "trans"
+  ],
+  "bird_financial_083": [
+    "district"
+  ],
+  "bird_financial_084": [
+    "disp"
+  ],
+  "bird_financial_085": [
+    "account",
+    "order"
+  ],
+  "bird_financial_086": [
+    "client",
+    "disp",
+    "account"
+  ],
+  "bird_financial_087": [
+    "account",
+    "disp"
+  ],
+  "bird_financial_088": [
+    "client",
+    "disp",
+    "account",
+    "loan"
+  ],
+  "bird_financial_089": [
+    "client",
+    "disp",
+    "account",
+    "trans"
+  ],
+  "bird_financial_090": [
+    "client",
+    "disp",
+    "card"
+  ],
+  "bird_financial_091": [
+    "client",
+    "disp",
+    "account",
+    "trans"
+  ],
+  "bird_financial_092": [
+    "client",
+    "district",
+    "disp",
+    "account"
+  ],
+  "bird_financial_093": [
+    "client",
+    "disp",
+    "account",
+    "loan"
+  ],
+  "bird_financial_094": [
+    "trans",
+    "account",
+    "disp",
+    "client"
+  ],
+  "bird_financial_095": [
+    "account",
+    "district"
+  ],
+  "bird_financial_096": [
+    "client",
+    "disp",
+    "card"
+  ],
+  "bird_financial_097": [
+    "district",
+    "client"
+  ],
+  "bird_financial_098": [
+    "client",
+    "district",
+    "account",
+    "disp"
+  ],
+  "bird_financial_099": [
+    "account",
+    "disp"
+  ],
+  "bird_financial_100": [
+    "loan",
+    "account"
+  ],
+  "bird_financial_101": [
+    "client",
+    "district",
+    "account",
+    "disp"
+  ],
+  "bird_financial_102": [
+    "client",
+    "district"
+  ],
+  "bird_financial_103": [
+    "account",
+    "loan"
+  ],
+  "bird_financial_104": [
+    "account",
+    "loan"
+  ],
+  "bird_financial_105": [
+    "account",
+    "district",
+    "disp"
+  ],
+  "bird_financial_106": [
+    "disp",
+    "card",
+    "client"
+  ]
+}

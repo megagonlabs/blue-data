@@ -30,7 +30,7 @@ Hit@5 (% of 80 queries)
 ## Entity-level retrieval (P / R / F1)
 
 > Does the search return the right **set of tables** (entity records)?  
-> Ideal-K uses exactly |relevant tables| as the cutoff — directly comparable to MEW.
+> Ideal-K uses exactly |relevant tables| as the cutoff.
 
 | Metric | keyword |
 |--------|---------|

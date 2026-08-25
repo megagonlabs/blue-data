@@ -1,0 +1,2229 @@
+[
+  {
+    "id": "bird_card_games_001",
+    "intent": "Which are the cards that have incredibly powerful foils.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "incredibly poweful foils refers to cardKingdomFoilId is not null AND cardKingdomId is not null",
+    "source_sql": "SELECT id FROM cards WHERE cardKingdomFoilId IS NOT NULL AND cardKingdomId IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_002",
+    "intent": "What are the borderless cards available without powerful foils?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "borderless' refers to borderColor; poweful foils refers to cardKingdomFoilId paired with cardKingdomId AND cardKingdomId is not null",
+    "source_sql": "SELECT id FROM cards WHERE borderColor = 'borderless' AND (cardKingdomId IS NULL OR cardKingdomId IS NULL)"
+  },
+  {
+    "id": "bird_card_games_003",
+    "intent": "List the card names with value that cost more converted mana for the face.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "more converted mana for the face refers to Max(faceConvertedManaCost);",
+    "source_sql": "SELECT name FROM cards ORDER BY faceConvertedManaCost LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_004",
+    "intent": "Name all cards with 2015 frame style ranking below 100 on EDHRec.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "below 100 on EDHRec refers to EDHRec <100; with 2015 frame style refers to frameVersion = 2015;",
+    "source_sql": "SELECT id FROM cards WHERE edhrecRank < 100 AND frameVersion = 2015"
+  },
+  {
+    "id": "bird_card_games_005",
+    "intent": "List all the mythic rarity print cards banned in gladiator format.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "mythic rarity printing refers to rarity = 'mythic'; card banned refers to status = 'Banned'; in gladiator format refers to format = 'gladiator';",
+    "source_sql": "SELECT DISTINCT T1.id FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T2.format = 'gladiator' AND T2.status = 'Banned' AND T1.rarity = 'mythic'"
+  },
+  {
+    "id": "bird_card_games_006",
+    "intent": "For artifact type of cards that do not have multiple faces on the same card, state its legalities status for vintage play format.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "Artifact type of cards refers to types = 'Artifact'; card does not have multiple faces on the same card refers to side is NULL'; vintage play format refers to format = 'vintage';",
+    "source_sql": "SELECT DISTINCT T2.status FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T1.type = 'Artifact' AND T2.format = 'vintage' AND T1.side IS NULL"
+  },
+  {
+    "id": "bird_card_games_007",
+    "intent": "List all the card id and artist with unknown power which are legal for commander play format.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "unknown power refers to power = '*' or POWER IS NULL; commander play format refers to format = 'commander'; legal for commander play format refers to format = 'commander' where status = 'Legal'",
+    "source_sql": "SELECT T1.id, T1.artist FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T2.status = 'Legal' AND T2.format = 'commander' AND (T1.power IS NULL OR T1.power = '*')"
+  },
+  {
+    "id": "bird_card_games_008",
+    "intent": "Find all cards illustrated by Stephen Daniel and describe the text of the ruling of these cards. State if these cards have missing or degraded properties and values.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "cards have missing or degraded properties and value refers to hasContentWarning = 1; 'Stephen Daniele' is artist; Find all cards refers to return card id",
+    "source_sql": "SELECT T1.id, T2.text, T1.hasContentWarning FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE T1.artist = 'Stephen Daniele'"
+  },
+  {
+    "id": "bird_card_games_009",
+    "intent": "Describe the information about rulings for card named 'Sublime Epiphany' with number 74s.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "Sublime Epiphany' is name of cards; number 74s refers to number = '74s'; information refers to text;",
+    "source_sql": "SELECT T2.text FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE T1.name = 'Sublime Epiphany' AND T1.number = '74s'"
+  },
+  {
+    "id": "bird_card_games_010",
+    "intent": "Name the card and artist with the most ruling information. Also state if the card is a promotional printing.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "with the most ruling information refers to Max(count(rulings.uuid)); the card is the promotional printing refers to isPromo = 1;",
+    "source_sql": "SELECT T1.name, T1.artist, T1.isPromo FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE T1.isPromo = 1 AND T1.artist = (SELECT artist FROM cards WHERE isPromo = 1 GROUP BY artist HAVING COUNT(DISTINCT uuid) = (SELECT MAX(count_uuid) FROM ( SELECT COUNT(DISTINCT uuid) AS count_uuid FROM cards WHERE isPromo = 1 GROUP BY artist ))) LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_011",
+    "intent": "State the alternative languages available for card named Annul numbered 29.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "annul refers to name = 'annul'; numbered 29 refers to number = '29';",
+    "source_sql": "SELECT T2.language FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T1.name = 'Annul' AND T1.number = 29"
+  },
+  {
+    "id": "bird_card_games_012",
+    "intent": "Name all the cards which have alternative language in Japanese.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "Japanese' is the language;",
+    "source_sql": "SELECT T1.name FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T2.language = 'Japanese'"
+  },
+  {
+    "id": "bird_card_games_013",
+    "intent": "Calculate the percentage of the cards availabe in Chinese Simplified.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "Chinese Simplified' is the language; percentage = Divide(Sum(id where language = 'Chinese Simplified'), Count(id)) *100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.language = 'Chinese Simplified' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.id) FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid"
+  },
+  {
+    "id": "bird_card_games_014",
+    "intent": "List all the sets available in Italian translation. State the total number of cards per set.",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "Italian translation refers to language = 'Italian'; total number of card per set refers to totalSetSize;",
+    "source_sql": "SELECT T1.name, T1.totalSetSize FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T2.language = 'Italian'"
+  },
+  {
+    "id": "bird_card_games_015",
+    "intent": "How many types of cards does the artist Aaron Boyd illustrated about card art?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "Aaron Boyd' is artist;",
+    "source_sql": "SELECT COUNT(type) FROM cards WHERE artist = 'Aaron Boyd'"
+  },
+  {
+    "id": "bird_card_games_016",
+    "intent": "What is the keyword found on card 'Angel of Mercy'?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "Angel of Mercy' is the name of card;",
+    "source_sql": "SELECT DISTINCT keywords FROM cards WHERE name = 'Angel of Mercy'"
+  },
+  {
+    "id": "bird_card_games_017",
+    "intent": "How many cards have infinite power?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "infinite power refers to power = '*';",
+    "source_sql": "SELECT COUNT(*) FROM cards WHERE power = '*'"
+  },
+  {
+    "id": "bird_card_games_018",
+    "intent": "What type of promotion is of card 'Duress'?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "card Duress refers to name = 'Duress'; type of promotion refers to promoTypes;",
+    "source_sql": "SELECT promoTypes FROM cards WHERE name = 'Duress' AND promoTypes IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_019",
+    "intent": "What is the border color of card \"Ancestor's Chosen\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "name of card  = 'Ancestor''s Chosen' ;",
+    "source_sql": "SELECT DISTINCT borderColor FROM cards WHERE name = 'Ancestor''s Chosen'"
+  },
+  {
+    "id": "bird_card_games_020",
+    "intent": "What is the type of the card \"Ancestor's Chosen\" as originally printed?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "Ancestor's Chosen' is the name of card; type of the card as originally printed refers to originaltype;",
+    "source_sql": "SELECT originalType FROM cards WHERE name = 'Ancestor''s Chosen' AND originalType IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_021",
+    "intent": "cards are not directly linked to language but through table 'set'. you need to add set in covered table & rephrase your question\nWhat are the languages available for the set that card 'Angel of Mercy' is in?",
+    "category": "bird",
+    "relevant_names": [
+      "set_translations",
+      "cards"
+    ],
+    "primary_name": "set_translations",
+    "description": "Angel of Mercy' is the name of card;",
+    "source_sql": "SELECT language FROM set_translations WHERE id IN ( SELECT id FROM cards WHERE name = 'Angel of Mercy' )"
+  },
+  {
+    "id": "bird_card_games_022",
+    "intent": "How many cards of legalities whose status is restricted have text boxes?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "restricted refers to status = 'restricted'; have text boxes refers to is Textless = 0;",
+    "source_sql": "SELECT COUNT(DISTINCT T1.id) FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T2.status = 'Restricted' AND T1.isTextless = 0"
+  },
+  {
+    "id": "bird_card_games_023",
+    "intent": "What is the description about the ruling of card \"Condemn\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "Ancestor's Chosen' is the name of card; description about the ruling refers to text;",
+    "source_sql": "SELECT T2.text FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE T1.name = 'Condemn'"
+  },
+  {
+    "id": "bird_card_games_024",
+    "intent": "How many cards of legalities whose status is restricted are found in a starter deck?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "restricted refers to status = 'restricted'; found in the starter deck refers to isStarter = 1;",
+    "source_sql": "SELECT COUNT(DISTINCT T1.id) FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T2.status = 'Restricted' AND T1.isStarter = 1"
+  },
+  {
+    "id": "bird_card_games_025",
+    "intent": "What is the status of card \"Cloudchaser Eagle\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "Cloudchaser Eagle is the name of card;",
+    "source_sql": "SELECT DISTINCT T2.status FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T1.name = 'Cloudchaser Eagle'"
+  },
+  {
+    "id": "bird_card_games_026",
+    "intent": "What is the type of card \"Benalish Knight\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "Benalish Knight' is the name of card;",
+    "source_sql": "SELECT DISTINCT T1.type FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T1.name = 'Benalish Knight'"
+  },
+  {
+    "id": "bird_card_games_027",
+    "intent": "What is the rule of playing card \"Benalish Knight\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "Benalish Knight' is the name of card; rule of playing card refers to format;",
+    "source_sql": "SELECT T2.format FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T1.name = 'Benalish Knight'"
+  },
+  {
+    "id": "bird_card_games_028",
+    "intent": "Please provide the names of the artists who illustrated the card art in Phyrexian.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "Phyrexian' is the language; name of artists refers to artist;",
+    "source_sql": "SELECT T1.artist FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T2.language = 'Phyrexian'"
+  },
+  {
+    "id": "bird_card_games_029",
+    "intent": "What is the percentage of borderless cards?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "borderless card refers to borderColor = 'borderless'; percentage = Divide(Count (id) where borderColor = 'borderless', Count(id)) *100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN borderColor = 'borderless' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(id) FROM cards"
+  },
+  {
+    "id": "bird_card_games_030",
+    "intent": "How many cards that illusrtated in German have been reprinted?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "German' is the language; reprinted refers to isReprint = 1;",
+    "source_sql": "SELECT COUNT(T1.id) FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T2.language = 'German' AND T1.isReprint = 1"
+  },
+  {
+    "id": "bird_card_games_031",
+    "intent": "How many borderless cards are illustrated in Russian?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "borderless card refers to borderColor = 'borderless'; 'Russian' is the language;",
+    "source_sql": "SELECT COUNT(T1.id) FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T1.borderColor = 'borderless' AND T2.language = 'Russian'"
+  },
+  {
+    "id": "bird_card_games_032",
+    "intent": "What is the percentage of cards whose language is French among the Story Spotlight cards?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "Story Spotlight card refers to isStorySpotlight = 1; French is the language; Percentage = Divide(Count(id) where language = 'French' and isStorySpotlight = 1, Count(id) where isStorySpotlight = 1)*100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.language = 'French' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.id) FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T1.isStorySpotlight = 1"
+  },
+  {
+    "id": "bird_card_games_033",
+    "intent": "How many cards are there with toughness of 99?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "",
+    "source_sql": "SELECT COUNT(id) FROM cards WHERE toughness = 99"
+  },
+  {
+    "id": "bird_card_games_034",
+    "intent": "Name the cards that were illustrated by Aaron Boyd.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "Aaron Boyd' is artist;",
+    "source_sql": "SELECT DISTINCT name FROM cards WHERE artist = 'Aaron Boyd'"
+  },
+  {
+    "id": "bird_card_games_035",
+    "intent": "How many black border cards are only available on mtgo?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "black border card refers to borderColor = black; available on mtgo refers to availability = mtgo;\n\nadd quotes for string = 'black' and = 'mtgo'",
+    "source_sql": "SELECT COUNT(id) FROM cards WHERE availability = 'mtgo' AND borderColor = 'black'"
+  },
+  {
+    "id": "bird_card_games_036",
+    "intent": "List down all the card IDs with converted mana cost of 0.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "converted mana cost of 0 refers to covertedManaCost = 0;",
+    "source_sql": "SELECT id FROM cards WHERE convertedManaCost = 0"
+  },
+  {
+    "id": "bird_card_games_037",
+    "intent": "What are the card layout of cards with keyword of flying?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "",
+    "source_sql": "SELECT layout FROM cards WHERE keywords = 'Flying'"
+  },
+  {
+    "id": "bird_card_games_038",
+    "intent": "How many cards with original type of \"Summon - Angel\" have subtype other than \"Angel\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "subtype other than Angel refers to subtypes is not 'Angel';",
+    "source_sql": "SELECT COUNT(id) FROM cards WHERE originalType = 'Summon - Angel' AND subtypes != 'Angel'"
+  },
+  {
+    "id": "bird_card_games_039",
+    "intent": "What are the foiled cards that are incredibly powerful when paired with non foiled cards? List the IDs.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "Incredibly powerful refers to both cardKingdomFoilId and cardKingdomId IS NOT Null;",
+    "source_sql": "SELECT id FROM cards WHERE cardKingdomId IS NOT NULL AND cardKingdomFoilId IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_040",
+    "intent": "What are the cards belong to duel deck a? List the ID.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "duel deck a refers to duelDeck = a;",
+    "source_sql": "SELECT id FROM cards WHERE duelDeck = 'a'"
+  },
+  {
+    "id": "bird_card_games_041",
+    "intent": "List the edhrecRank for cards with frame version 2015.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "",
+    "source_sql": "SELECT edhrecRank FROM cards WHERE frameVersion = 2015"
+  },
+  {
+    "id": "bird_card_games_042",
+    "intent": "List down the name of artists for cards in Chinese Simplified.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "Chinese Simplified' is the language;",
+    "source_sql": "SELECT T1.artist FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T2.language = 'Chinese Simplified'"
+  },
+  {
+    "id": "bird_card_games_043",
+    "intent": "What are the cards that only available in paper and Japanese language?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "available in paper refers to availability = 'paper'; 'Japanese is the language;",
+    "source_sql": "SELECT T1.name FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T1.availability = 'paper' AND T2.language = 'Japanese'"
+  },
+  {
+    "id": "bird_card_games_044",
+    "intent": "How many of the banned cards are white border?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "banned card refers to status = 'Banned'; white border refers to borderColor = 'white';",
+    "source_sql": "SELECT COUNT(T1.id) FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T2.status = 'Banned' AND T1.borderColor = 'white'"
+  },
+  {
+    "id": "bird_card_games_045",
+    "intent": "List down the uuid for legacy cards and the foreign language of these cards.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "legacy card refers to format = 'legacy'; foreign language refers to language in foreign_data",
+    "source_sql": "SELECT T1.uuid, T3.language FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid INNER JOIN foreign_data AS T3 ON T1.uuid = T3.uuid WHERE T2.format = 'legacy'"
+  },
+  {
+    "id": "bird_card_games_046",
+    "intent": "Write down the ruling of Beacon of Immortality.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "Beacon of Immortality' is the name of card;",
+    "source_sql": "SELECT T2.text FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE T1.name = 'Beacon of Immortality'"
+  },
+  {
+    "id": "bird_card_games_047",
+    "intent": "How many cards are having future frame version and what are the legality status of these cards?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "future frame version refers to frameVersion = 'future'; legility status refers to status = 'legal';",
+    "source_sql": "SELECT COUNT(T1.id) FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T1.frameVersion = 'future'"
+  },
+  {
+    "id": "bird_card_games_048",
+    "intent": "What are the cards for set OGW? State the colour for these cards.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "set_translations"
+    ],
+    "primary_name": "cards",
+    "description": "set OGW refers to setCode = 'OGW';",
+    "source_sql": "SELECT id, colors FROM cards WHERE id IN ( SELECT id FROM set_translations WHERE setCode = 'OGW' )"
+  },
+  {
+    "id": "bird_card_games_049",
+    "intent": "What are the cards in set 10E with converted mana of 5 have translation and what are the languages?",
+    "category": "bird",
+    "relevant_names": [
+      "set_translations",
+      "cards"
+    ],
+    "primary_name": "set_translations",
+    "description": "set 10E refers to setCode = '10E'; converted mana of 5 refers to convertedManaCost = 5;",
+    "source_sql": "SELECT id, language FROM set_translations WHERE id = ( SELECT id FROM cards WHERE convertedManaCost = 5 ) AND setCode = '10E'"
+  },
+  {
+    "id": "bird_card_games_050",
+    "intent": "List down the name of cards with original types of Creature - Elf and the date of rulings for these cards.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "Creature - Elf is the originalType;",
+    "source_sql": "SELECT T1.id, T2.date FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE T1.originalType = 'Creature - Elf'"
+  },
+  {
+    "id": "bird_card_games_051",
+    "intent": "What are the colors of cards from ID 1-20? What are the format of these cards?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "ID 1-20 refers to id BETWEEN 1 and 20;",
+    "source_sql": "SELECT T1.colors, T2.format FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T1.id BETWEEN 1 AND 20"
+  },
+  {
+    "id": "bird_card_games_052",
+    "intent": "Among the Artifact cards, which are black color and comes with foreign languague translation?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "Artifact card refers to originalType = 'Artifact'; black color refers to colors = 'B'; foreign language refers to language in foreign_data",
+    "source_sql": "SELECT DISTINCT T1.name FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T1.originalType = 'Artifact' AND T1.colors = 'B'"
+  },
+  {
+    "id": "bird_card_games_053",
+    "intent": "Pick 3 cards with rarity of uncommon, list down name these cards according to ascending order of it's ruling date.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "uncommon refers to rarity = 'uncommon';",
+    "source_sql": "SELECT DISTINCT T1.name FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE T1.rarity = 'uncommon' ORDER BY T2.date ASC LIMIT 3"
+  },
+  {
+    "id": "bird_card_games_054",
+    "intent": "On how many cards designed by John Avon is its foil non-powerful?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "John Avon refer to artist; foil poweful foils refers to cardKingdomId and cardKingdomFoildId is NOT NULL \n",
+    "source_sql": "SELECT COUNT(id) FROM cards WHERE (cardKingdomId IS NULL OR cardKingdomFoilId IS NULL) AND artist = 'John Avon'"
+  },
+  {
+    "id": "bird_card_games_055",
+    "intent": "How many white bordered cards are powerful?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "white bordered cards refer to borderColor = 'white'; powerful cards refers to cardKingdomFoilId is not null AND cardKingdomId is not null (replace)",
+    "source_sql": "SELECT COUNT(id) FROM cards WHERE borderColor = 'white' AND cardKingdomId IS NOT NULL AND cardKingdomFoilId IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_056",
+    "intent": "How many cards designed by UDON and available in mtgo print type has a starting maximum hand size of -1?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "UDON refer to artist; availabe in mtgo refers to availability = 'mtgo'; starting maximum hand size of -1 refers to hand = -1",
+    "source_sql": "SELECT COUNT(id) FROM cards WHERE hAND = '-1' AND artist = 'UDON' AND Availability = 'mtgo' "
+  },
+  {
+    "id": "bird_card_games_057",
+    "intent": "How many cards with a 1993 frame version and available on paper have a sensitive content warning?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "sensitive content warning refer to hasContentWarning = 1; available on paper refer to availability = 'paper' 1993 refer to frameVersion",
+    "source_sql": "SELECT COUNT(id) FROM cards WHERE frameVersion = 1993 AND availability = 'paper' AND hasContentWarning = 1"
+  },
+  {
+    "id": "bird_card_games_058",
+    "intent": "What is the mana cost of cards with a normal layout, a 2003 frame version, with a black border color, and available in paper and mtgo?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "available in paper and mtgo refers to availability = 'mtgo,paper'; frameVersion = 2003;borderColor = 'black'",
+    "source_sql": "SELECT manaCost FROM cards WHERE availability = 'mtgo,paper' AND borderColor = 'black' AND frameVersion = 2003 AND layout = 'normal'"
+  },
+  {
+    "id": "bird_card_games_059",
+    "intent": "What is the  unconverted mana do all the cards created by Rob Alexander cost in total?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "unconverted mana refer to manaCost; Rob Alexander refer to artist",
+    "source_sql": "SELECT manaCost FROM cards WHERE artist = 'Rob Alexander'"
+  },
+  {
+    "id": "bird_card_games_060",
+    "intent": "Lists all types of cards available in arena.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "all types refer to subtypes and supertypes\n\navailble in arena refers to availability = 'arena'",
+    "source_sql": "SELECT DISTINCT subtypes, supertypes FROM cards WHERE availability = 'arena' AND subtypes IS NOT NULL AND supertypes IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_061",
+    "intent": "Lists the set code of all cards translated into Spanish.",
+    "category": "bird",
+    "relevant_names": [
+      "set_translations"
+    ],
+    "primary_name": "set_translations",
+    "description": "Spanish refer to language; set code refers to setCode",
+    "source_sql": "SELECT setCode FROM set_translations WHERE language = 'Spanish'"
+  },
+  {
+    "id": "bird_card_games_062",
+    "intent": "What percentage of legendary frame effect cards that are only available in online game variations?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "only available in online game variationsrefer to isOnlineOnly =1 ; legendary frame effect cards refer to frameEffects = 'legendary'; percentage refer to DIVIDE(COUNT(isOnlineOnly=1), COUNT(id)) from cards where frameEffects = 'legendary'",
+    "source_sql": "SELECT SUM(CASE WHEN isOnlineOnly = 1 THEN 1.0 ELSE 0 END) / COUNT(id) * 100 FROM cards WHERE frameEffects = 'legendary'"
+  },
+  {
+    "id": "bird_card_games_063",
+    "intent": "What is the percentage of Story Spotlight cards that do not have a text box? List them by their ID.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "Story Spotlight cards that do not have a text box refers to isStorylight = 1 and isTextless = 0; Percentage = DIVIDE(SUM(count(id) where isStorylight = 1 AND isTextless = 0 ), SUM(count(id))) * 100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN isTextless = 0 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(id) FROM cards WHERE isStorySpotlight = 1"
+  },
+  {
+    "id": "bird_card_games_064",
+    "intent": "Calculate the percentage of cards in Spanish. List them by name.",
+    "category": "bird",
+    "relevant_names": [
+      "foreign_data"
+    ],
+    "primary_name": "foreign_data",
+    "description": "Spanish refer to language; Percentage refer to DIVIDE(SUM(ID where language = 'Spanish'), COUNT(id))*100",
+    "source_sql": "SELECT ( SELECT CAST(SUM(CASE WHEN language = 'Spanish' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM foreign_data ), name FROM foreign_data WHERE language = 'Spanish'"
+  },
+  {
+    "id": "bird_card_games_065",
+    "intent": "Indicates the name of all the languages into which the set whose number of cards is 309 is translated.",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "set refer to setCode; number of cards refers to baseSetSize; baseSetsize = 309\n\n",
+    "source_sql": "SELECT T2.language FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T1.baseSetSize = 309"
+  },
+  {
+    "id": "bird_card_games_066",
+    "intent": "How many Brazilian Portuguese translated sets are inside the Commander block?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "Commander block refer to block = 'Commander'; sets refer to code = setCode; Portuguese refer to language = 'Portuguese (Brasil)'",
+    "source_sql": "SELECT COUNT(T1.id) FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T2.language = 'Portuguese (Brazil)' AND T1.block = 'Commander'"
+  },
+  {
+    "id": "bird_card_games_067",
+    "intent": "Lists by ID all Creature-type cards with legal status.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "legal status refer to status = 'legal'; Goblin-type cards refer to types = 'Creature';",
+    "source_sql": "SELECT T1.id FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid INNER JOIN legalities AS T3 ON T1.uuid = T3.uuid WHERE T3.status = 'Legal' AND T1.types = 'Creature'"
+  },
+  {
+    "id": "bird_card_games_068",
+    "intent": "Lists all types of cards in German.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "German refer to language; all types refer to the subtypes, supertypes; subtypes is not null AND supertypes is not null",
+    "source_sql": "SELECT T1.subtypes, T1.supertypes FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T2.language = 'German' AND T1.subtypes IS NOT NULL AND T1.supertypes IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_069",
+    "intent": "How many unknown power cards contain info about the triggered ability",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "unknown power cards refers to power is null or power = '*';contain info about the triggered ability refers to text contains 'triggered ability'",
+    "source_sql": "SELECT T2.text FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE (T1.power IS NULL OR T1.power = '*') AND T2.text LIKE '%triggered ability%'"
+  },
+  {
+    "id": "bird_card_games_070",
+    "intent": "Indicates the number of cards with pre-modern format, ruling text \"This is a triggered mana ability.\" that do not have multiple faces.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "pre-modern format refers to format = 'premodern' ;do not have multiple faces refers to side IS NULL",
+    "source_sql": "SELECT COUNT(T1.id) FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid INNER JOIN rulings AS T3 ON T1.uuid = T3.uuid WHERE T2.format = 'premodern' AND T3.text = 'This is a triggered mana ability.' AND T1.Side IS NULL"
+  },
+  {
+    "id": "bird_card_games_071",
+    "intent": "Is there any card from Erica Yang artist in pauper format and available in paper? If so, indicate its ID.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "available in paper refers to availability = 'paper'",
+    "source_sql": "SELECT T1.id FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T1.artist = 'Erica Yang' AND T2.format = 'pauper' AND T1.availability = 'paper'"
+  },
+  {
+    "id": "bird_card_games_072",
+    "intent": "To which artist does the card with the text \"Das perfekte Gegenmittel zu einer dichten Formation\" belong?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "",
+    "source_sql": "SELECT DISTINCT T1.artist FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T2.flavorText LIKE '%DAS perfekte Gegenmittel zu einer dichten Formation%'"
+  },
+  {
+    "id": "bird_card_games_073",
+    "intent": "What is the foreign name of the card in French of type Creature, normal layout and black border color, by artist Matthew D. Wilson?",
+    "category": "bird",
+    "relevant_names": [
+      "foreign_data",
+      "cards"
+    ],
+    "primary_name": "foreign_data",
+    "description": "in French refers to language = 'French'; black border color refers to borderColor = 'black'",
+    "source_sql": "SELECT name FROM foreign_data WHERE uuid IN ( SELECT uuid FROM cards WHERE types = 'Creature' AND layout = 'normal' AND borderColor = 'black' AND artist = 'Matthew D. Wilson' ) AND language = 'French'"
+  },
+  {
+    "id": "bird_card_games_074",
+    "intent": "How many cards with print rarity have ruling text printed on 01/02/2007?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "with print rarity refers to rarity = 'rare'; on 01/02/2007 refers to date = '2007-02-01'",
+    "source_sql": "SELECT COUNT(DISTINCT T1.id) FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE T1.rarity = 'rare' AND T2.date = '2007-02-01'"
+  },
+  {
+    "id": "bird_card_games_075",
+    "intent": "What language is the set of 180 cards that belongs to the Ravnica block translated into?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "set of 180 cards refers to baseSetSize = 180",
+    "source_sql": "SELECT T2.language FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T1.block = 'Ravnica' AND T1.baseSetSize = 180"
+  },
+  {
+    "id": "bird_card_games_076",
+    "intent": "What percentage of cards with format commander and legal status do not have a content warning?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "do not have a content warning refers to hasContentWarning = 0; percentage refers to DIVIDE(COUNT(hasContentWarning = 0),COUNT(ID))*100 where format = 'commander' AND Status = 'legal';",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T1.hasContentWarning = 0 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.id) FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T2.format = 'commander' AND T2.status = 'Legal'"
+  },
+  {
+    "id": "bird_card_games_077",
+    "intent": "What percentage of cards without power are in French?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "in French refers to language = 'French'; cards without power refers to power IS NULL OR power = '*'; percentage = DIVIDE(COUNT(language = 'French' and power is NULL or power = '*'), COUNT( power is NULL or power = '*'))*100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.language = 'French' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.id) FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T1.power IS NULL OR T1.power = '*'"
+  },
+  {
+    "id": "bird_card_games_078",
+    "intent": "What percentage of Japanese translated sets are expansion sets?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "Japanese translated refers to language = 'Japanese'; expansion sets refers to type = 'expansion'; percentage = DIVIDE(COUNT(language = 'Japanese'),COUNT(language))*100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.language = 'Japanese' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.id) FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T1.type = 'expansion'"
+  },
+  {
+    "id": "bird_card_games_079",
+    "intent": "What kind of printing is on the card that Daren Bader created?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "kind of printing refers to availability; Daren Bader created refers to artist = 'Daren Bader'",
+    "source_sql": "SELECT DISTINCT availability FROM cards WHERE artist = 'Daren Bader'"
+  },
+  {
+    "id": "bird_card_games_080",
+    "intent": "How many color cards with no borders have been ranked higher than 12000 on EDHRec?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "color cards with no borders refers to borderColor = 'borderless'; ranked higher than 12000 on EDHRec refers to edhrecRank > 12000",
+    "source_sql": "SELECT COUNT(id) FROM cards WHERE edhrecRank > 12000 AND borderColor = 'borderless'"
+  },
+  {
+    "id": "bird_card_games_081",
+    "intent": "How many cards are oversized, reprinted, and printed for promotions?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "are oversized refers to isOversized = 1; reprinted refers to isReprint = 1; printed for promotions refers to isPromo = 1",
+    "source_sql": "SELECT COUNT(id) FROM cards WHERE isOversized = 1 AND isReprint = 1 AND isPromo = 1"
+  },
+  {
+    "id": "bird_card_games_082",
+    "intent": "Please list top three unknown power cards that have promotional types for arena league in alphabetical order.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "unknown power cards refers to power is null or power = '*'; promotional types for arena league refers to promoTypes = 'arenaleague'",
+    "source_sql": "SELECT name FROM cards WHERE (power IS NULL OR power LIKE '%*%') AND promoTypes = 'arenaleague' ORDER BY name LIMIT 3"
+  },
+  {
+    "id": "bird_card_games_083",
+    "intent": "What is the language of the card with the multiverse number 149934?",
+    "category": "bird",
+    "relevant_names": [
+      "foreign_data"
+    ],
+    "primary_name": "foreign_data",
+    "description": "multiverse number 149934 refers to multiverseid = 149934;",
+    "source_sql": "SELECT language FROM foreign_data WHERE multiverseid = 149934"
+  },
+  {
+    "id": "bird_card_games_084",
+    "intent": "Please provide the ids of top three powerful pairs of Kingdom Foil and Kingdom Cards sorted by Kingdom Foil id in alphabetical order.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "poweful refers to cardKingdomFoilId is not null AND cardKingdomId is not null",
+    "source_sql": "SELECT cardKingdomFoilId, cardKingdomId FROM cards WHERE cardKingdomFoilId IS NOT NULL AND cardKingdomId IS NOT NULL ORDER BY cardKingdomFoilId LIMIT 3"
+  },
+  {
+    "id": "bird_card_games_085",
+    "intent": "What proportion of cards do not have a text box with a normal layout?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "do not have a text box refers to isTextless = 1; proportion refers to DIVIDE(COUNT(Textless = 1 and layout = 'normal'),COUNT(Textless))*100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN isTextless = 1 AND layout = 'normal' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM cards"
+  },
+  {
+    "id": "bird_card_games_086",
+    "intent": "What are the card numbers that don't have multiple faces on a single card and have the subtypes Angel and Wizard?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "don't have multiple faces on a single card side is null",
+    "source_sql": "SELECT id FROM cards WHERE subtypes = 'Angel,Wizard' AND side IS NULL"
+  },
+  {
+    "id": "bird_card_games_087",
+    "intent": "Please provide top three sets that don't appear in Magic: The Gathering Online, along with their names in in alphabetical order.",
+    "category": "bird",
+    "relevant_names": [
+      "sets"
+    ],
+    "primary_name": "sets",
+    "description": "don't appear in Magic: The Gathering Online refers to mtgoCode is NULL or mtgoCode = ''",
+    "source_sql": "SELECT name FROM sets WHERE mtgoCode IS NULL ORDER BY name LIMIT 3"
+  },
+  {
+    "id": "bird_card_games_088",
+    "intent": "What languages are available in the set known as Archenemy on the magic card market and having the code ARC?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "known as Archenemy refers to mcmName = 'Archenemy'; having the code ARC refers to setCode = 'ARC'",
+    "source_sql": "SELECT T2.language FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T1.mcmName = 'Archenemy' AND T2.setCode = 'ARC'"
+  },
+  {
+    "id": "bird_card_games_089",
+    "intent": "What is the name of set number 5 and its translation?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "set number 5 refers to id = 5",
+    "source_sql": "SELECT T1.name, T2.translation FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T2.id = 5 GROUP BY T1.name, T2.translation"
+  },
+  {
+    "id": "bird_card_games_090",
+    "intent": "What is the language and expansion type of set number 206?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "set number 206 refers to id = 206",
+    "source_sql": "SELECT T2.language, T1.type FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T2.id = 206"
+  },
+  {
+    "id": "bird_card_games_091",
+    "intent": "Please list top two sets of cards with their IDs that have Italian-language cards and are located in the Shadowmoor block in alphabetical order.",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "",
+    "source_sql": "SELECT T1.name, T1.id FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T1.block = 'Shadowmoor' AND T2.language = 'Italian' ORDER BY T1.id LIMIT 2"
+  },
+  {
+    "id": "bird_card_games_092",
+    "intent": "Which set is not available outside of the United States and has foil cards with Japanese writing on them? Please include the set ID in your response.",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "available outside of the United States refers to isForeignOnly = 1; has foil cards refers to isFoilOnly = 1; with Japanese writing on them refers to language = 'Japanese'",
+    "source_sql": "SELECT T1.name, T1.id FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T2.language = 'Japanese' AND T1.isFoilOnly = 1 AND T1.isForeignOnly = 0"
+  },
+  {
+    "id": "bird_card_games_093",
+    "intent": "Which Russian set of cards contains the most cards overall?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "Russian refers to language = 'Russian'; contains the most cards overall refers to MAX(baseSetSize)",
+    "source_sql": "SELECT T1.id FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T2.language = 'Russian' GROUP BY T1.baseSetSize ORDER BY T1.baseSetSize DESC LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_094",
+    "intent": "What is the percentage of the set of cards that have Chinese Simplified as the language and are only available for online games?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "are only available for online games refers to isOnlineOnly = 1; percentage = DIVIDE(COUNT(isOnlineOnly = 1),COUNT(isOnlineOnly))*100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T2.language = 'Chinese Simplified' AND T1.isOnlineOnly = 1 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode"
+  },
+  {
+    "id": "bird_card_games_095",
+    "intent": "How many sets are available just in Japanese and not in Magic: The Gathering Online?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "Japanese refers to language = 'Japanese'; not in Magic: The Gathering Online refers to mtgoCode is null or mtgoCode = ''",
+    "source_sql": "SELECT COUNT(T1.id) FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T2.language = 'Japanese'  AND (T1.mtgoCode IS NULL OR T1.mtgoCode = '')"
+  },
+  {
+    "id": "bird_card_games_096",
+    "intent": "How many card border with black color ? List out the card id.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "border with black color refers to borderColor = 'black'",
+    "source_sql": "SELECT id FROM cards WHERE borderColor = 'black' GROUP BY id"
+  },
+  {
+    "id": "bird_card_games_097",
+    "intent": "How many cards have frame effect as extendedart? List out the id of those cards.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "\nframe effect as extendedart refers to frameEffects = 'extendedart'\n",
+    "source_sql": "SELECT id FROM cards WHERE frameEffects = 'extendedart' GROUP BY id"
+  },
+  {
+    "id": "bird_card_games_098",
+    "intent": "Among black card borders, which card has full artwork?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "white card borders refers to borderColor = 'white'; has full artwork refers to isFullArt = 1",
+    "source_sql": "SELECT id FROM cards WHERE borderColor = 'black' AND isFullArt = 1"
+  },
+  {
+    "id": "bird_card_games_099",
+    "intent": "Point out the language of set id \"174\"?",
+    "category": "bird",
+    "relevant_names": [
+      "set_translations"
+    ],
+    "primary_name": "set_translations",
+    "description": "",
+    "source_sql": "SELECT language FROM set_translations WHERE id = 174"
+  },
+  {
+    "id": "bird_card_games_100",
+    "intent": "List out the set name of the set code \"ALL\".",
+    "category": "bird",
+    "relevant_names": [
+      "sets"
+    ],
+    "primary_name": "sets",
+    "description": "",
+    "source_sql": "SELECT name FROM sets WHERE code = 'ALL'"
+  },
+  {
+    "id": "bird_card_games_101",
+    "intent": "Which foreign language used by \"A Pedra Fellwar\"?",
+    "category": "bird",
+    "relevant_names": [
+      "foreign_data"
+    ],
+    "primary_name": "foreign_data",
+    "description": "\"A Pedra Fellwar\" refers to name = 'A Pedra Fellwar'",
+    "source_sql": "SELECT DISTINCT language FROM foreign_data WHERE name = 'A Pedra Fellwar'"
+  },
+  {
+    "id": "bird_card_games_102",
+    "intent": "State the set code of the set with release date of 07/13/2007?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "",
+    "source_sql": "SELECT T2.setCode FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T1.releaseDate = '2007-07-13'"
+  },
+  {
+    "id": "bird_card_games_103",
+    "intent": "Mention the base set size and set code of the set that was in block named \"Masques\" and \"Mirage\".",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "",
+    "source_sql": "SELECT DISTINCT T1.baseSetSize, T2.setCode FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T1.block IN ('Masques', 'Mirage')"
+  },
+  {
+    "id": "bird_card_games_104",
+    "intent": "Give the code of sets have expansion type of 'expansion'?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "code of sets refers to setCode",
+    "source_sql": "SELECT T2.setCode FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T1.type = 'expansion' GROUP BY T2.setCode"
+  },
+  {
+    "id": "bird_card_games_105",
+    "intent": "Name the foreign name of the card that has boros watermark? List out the type of this card.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "",
+    "source_sql": "SELECT DISTINCT T1.name, T1.type FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T2.uuid = T1.uuid WHERE T1.watermark = 'boros'"
+  },
+  {
+    "id": "bird_card_games_106",
+    "intent": "What is the language and flavor text of the card that has colorpie watermark? List out the type of this card.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "",
+    "source_sql": "SELECT DISTINCT T2.language, T2.flavorText FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T2.uuid = T1.uuid WHERE T1.watermark = 'colorpie'"
+  },
+  {
+    "id": "bird_card_games_107",
+    "intent": "What is percentage of the cards with a converted Mana Cost of 10 in set of Abyssal Horror?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "set of Abyssal Horror refers to name = 'Abyssal Horror'; percentage refers to DIVIDE(COUNT(convertedManaCost = 16),COUNT(convertedManaCost))*100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T1.convertedManaCost = 10 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.id), T1.name FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T1.name = 'Abyssal Horror'"
+  },
+  {
+    "id": "bird_card_games_108",
+    "intent": "Give the code of sets have expansion commander type?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "code of sets refers to setCode",
+    "source_sql": "SELECT T2.setCode FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T1.type = 'commander'"
+  },
+  {
+    "id": "bird_card_games_109",
+    "intent": "Name the foreign name of the card that has abzan watermark? List out the type of this card.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "",
+    "source_sql": "SELECT DISTINCT T1.name, T1.type FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T2.uuid = T1.uuid WHERE T1.watermark = 'abzan'"
+  },
+  {
+    "id": "bird_card_games_110",
+    "intent": "What is the language of the card that has azorius watermark? List out the type of this card.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "",
+    "source_sql": "SELECT DISTINCT T2.language, T1.type FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T2.uuid = T1.uuid WHERE T1.watermark = 'azorius'"
+  },
+  {
+    "id": "bird_card_games_111",
+    "intent": "Of all the cards that are designed by Aaron Miller, how many of them are incredibly powerful?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "designed by Aaron Miller refers to artist = 'Aaron Miller'; are icredibily powerful refers to cardKingdomFoilId is not null AND cardKingdomId is not null",
+    "source_sql": "SELECT SUM(CASE WHEN artist = 'Aaron Miller' AND cardKingdomFoilId IS NOT NULL AND cardKingdomId IS NOT NULL THEN 1 ELSE 0 END) FROM cards"
+  },
+  {
+    "id": "bird_card_games_112",
+    "intent": "How many cards available in paper have a positive starting maximum hand size?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "available in paper refers to availability like '%paper%'; have a positive starting maximum hand size refers to hand = '3'",
+    "source_sql": "SELECT SUM(CASE WHEN availability = 'paper' AND hAND = '3' THEN 1 ELSE 0 END) FROM cards"
+  },
+  {
+    "id": "bird_card_games_113",
+    "intent": "Please list the names of the cards that have a text box.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "have a text box refers to isTextless = 0",
+    "source_sql": "SELECT DISTINCT name FROM cards WHERE isTextless = 0"
+  },
+  {
+    "id": "bird_card_games_114",
+    "intent": "What's the unconverted mana cost of the card \"Ancestor's Chosen\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "card \"Ancestor's Chosen\" refers to name = 'Ancestor`s Chosen'",
+    "source_sql": "SELECT DISTINCT manaCost FROM cards WHERE name = 'Ancestor''s Chosen'"
+  },
+  {
+    "id": "bird_card_games_115",
+    "intent": "Among the cards with a white border color, how many of them have unknown power?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "unknown power refers to power = '*' or power is null",
+    "source_sql": "SELECT SUM(CASE WHEN power LIKE '%*%' OR power IS NULL THEN 1 ELSE 0 END) FROM cards WHERE borderColor = 'white'"
+  },
+  {
+    "id": "bird_card_games_116",
+    "intent": "Which of the cards that are a promotional painting have multiple faces on the same card? Please list their names.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "are a promotional painting refers to isPromo = 1; have multiple faces on the same card refers to side is not Null",
+    "source_sql": "SELECT DISTINCT name FROM cards WHERE isPromo = 1 AND side IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_117",
+    "intent": "What's the list of all types for the card \"Molimo, Maro-Sorcerer\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "card \"Molimo, Maro-Sorcerer\" refers to name = 'Molimo, Maro-Sorcerer'; list of all types refers to subtypes,supertypes",
+    "source_sql": "SELECT DISTINCT subtypes, supertypes FROM cards WHERE name = 'Molimo, Maro-Sorcerer'"
+  },
+  {
+    "id": "bird_card_games_118",
+    "intent": "Please list the websites where I can purchase the cards that have the promotional type of \"bundle\".",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "promotional type of \"bundle\" refers to promoTypes = 'bundle'; websites refers to purchaseUrls",
+    "source_sql": "SELECT DISTINCT purchaseUrls FROM cards WHERE promoTypes = 'bundle'"
+  },
+  {
+    "id": "bird_card_games_119",
+    "intent": "How many artists have designed a card with a black border color and is available in both \"arena\" and \"mtgo\" printing type?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "available in both \"arena\" and \"mtgo\" refers to availability like '%arena,mtgo%'",
+    "source_sql": "SELECT COUNT(CASE WHEN availability LIKE '%arena,mtgo%' AND borderColor = 'black' THEN 1 ELSE NULL END) FROM cards"
+  },
+  {
+    "id": "bird_card_games_120",
+    "intent": "Which card costs more converted mana, \"Serra Angel\" or \"Shrine Keeper\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "\"Serra Angel\" refers to name = 'Serra Angel'; \"Shrine Keeper\" refers to name = 'Shrine Keeper'; card costs more converted mana when the value of convertedManaCost is greater",
+    "source_sql": "SELECT name FROM cards WHERE name IN ('Serra Angel', 'Shrine Keeper') ORDER BY convertedManaCost DESC LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_121",
+    "intent": "Which artist designed the card whose promotional name is \"Battra, Dark Destroyer\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "promotional name is \"Battra, Dark Destroyer\" refers to flavorName = 'Battra, Dark Destroyer'",
+    "source_sql": "SELECT artist FROM cards WHERE flavorName = 'Battra, Dark Destroyer'"
+  },
+  {
+    "id": "bird_card_games_122",
+    "intent": "Please list the names of the top 3 cards with the highest converted mana cost and have a 2003 card frame style.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "name of cards refers to name; 2003 card frame style refers to frameVersion = '2003'",
+    "source_sql": "SELECT name FROM cards WHERE frameVersion = 2003 ORDER BY convertedManaCost DESC LIMIT 3"
+  },
+  {
+    "id": "bird_card_games_123",
+    "intent": "What's the Italian name of the set of cards with \"Ancestor's Chosen\" is in?",
+    "category": "bird",
+    "relevant_names": [
+      "set_translations",
+      "cards"
+    ],
+    "primary_name": "set_translations",
+    "description": "Italian is a language which refers to language = 'Italian'; with \"Ancestor's Chosen\" in the card set refers to name = 'Ancestor''s Chosen'",
+    "source_sql": "SELECT translation FROM set_translations WHERE setCode IN ( SELECT setCode FROM cards WHERE name = 'Ancestor''s Chosen' ) AND language = 'Italian'"
+  },
+  {
+    "id": "bird_card_games_124",
+    "intent": "How many translations are there for the set of cards with \"Angel of Mercy\" in it?",
+    "category": "bird",
+    "relevant_names": [
+      "set_translations",
+      "cards"
+    ],
+    "primary_name": "set_translations",
+    "description": "set of cards with \"Angel of Mercy\" in it refers to name = 'Angel of Mercy'",
+    "source_sql": "SELECT COUNT(DISTINCT translation) FROM set_translations WHERE setCode IN ( SELECT setCode FROM cards WHERE name = 'Angel of Mercy' ) AND translation IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_125",
+    "intent": "Please list the names of the cards in the set \"Hauptset Zehnte Edition\".",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "set_translations"
+    ],
+    "primary_name": "cards",
+    "description": "card set \"Hauptset Zehnte Edition\" refers to translation = 'Hauptset Zehnte Edition'",
+    "source_sql": "SELECT DISTINCT T1.name FROM cards AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.setCode WHERE T2.translation = 'Hauptset Zehnte Edition'"
+  },
+  {
+    "id": "bird_card_games_126",
+    "intent": "For the set of cards with \"Ancestor's Chosen\" in it, is there a Korean version of it?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "set_translations"
+    ],
+    "primary_name": "cards",
+    "description": "set of cards with \"Ancestor''s Chosen\" in it refers to name = 'Ancestor''s Chosen'; Korean version refers to language = 'Korean'",
+    "source_sql": "SELECT IIF(SUM(CASE WHEN T2.language = 'Korean' AND T2.translation IS NOT NULL THEN 1 ELSE 0 END) > 0, 'YES', 'NO') FROM cards AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.setCode WHERE T1.name = 'Ancestor''s Chosen'"
+  },
+  {
+    "id": "bird_card_games_127",
+    "intent": "Among the cards in the set \"Hauptset Zehnte Edition\", how many of them are designed by Adam Rex?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "set_translations"
+    ],
+    "primary_name": "cards",
+    "description": "card set \"Hauptset Zehnte Edition\" refers to translation = 'Hauptset Zehnte Edition'; designed by Adam refers to artist = 'Adam Rex'",
+    "source_sql": "SELECT COUNT(T1.id) FROM cards AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.setCode WHERE T2.translation = 'Hauptset Zehnte Edition' AND T1.artist = 'Adam Rex'"
+  },
+  {
+    "id": "bird_card_games_128",
+    "intent": "How many cards are there in the base set of \"Hauptset Zehnte Edition\"?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "\"Hauptset Zehnte Edition\" refers to translation = 'Hauptset Zehnte Edition'; number of cards refers to baseSetSize",
+    "source_sql": "SELECT T1.baseSetSize FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T2.translation = 'Hauptset Zehnte Edition'"
+  },
+  {
+    "id": "bird_card_games_129",
+    "intent": "What is the Simplified Chinese translation of the name of the set \"Eighth Edition\"?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "Eighth Edition is the name of card set which refers to name = 'Eighth Edition'; Simplified Chinese refers to language = 'Chinese Simplified'; translation of the name refers to translation",
+    "source_sql": "SELECT T2.translation FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T1.name = 'Eighth Edition' AND T2.language = 'Chinese Simplified'"
+  },
+  {
+    "id": "bird_card_games_130",
+    "intent": "Did the set of cards with \"Angel of Mercy\" appear on Magic: The Gathering Online?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "card set \"Angel of Mercy\" refers to name = 'Angel of Mercy'; appear on Magic: The Gathering Online refers to mtgoCode is NOT NULL and vice versa",
+    "source_sql": "SELECT IIF(T2.mtgoCode IS NOT NULL, 'YES', 'NO') FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T1.name = 'Angel of Mercy'"
+  },
+  {
+    "id": "bird_card_games_131",
+    "intent": "When was the set of cards with \"Ancestor's Chosen\" released?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "card set \"Ancestor's Chosen\" refers to name = 'Ancestor''s Chosen'; when released refers to releaseDate",
+    "source_sql": "SELECT DISTINCT T2.releaseDate FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T1.name = 'Ancestor''s Chosen'"
+  },
+  {
+    "id": "bird_card_games_132",
+    "intent": "What is the expansion type of the set \"Hauptset Zehnte Edition\"?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "card set \"Hauptset Zehnte Edition\" refers to translation = ' Hauptset Zehnte Edition'; expansion type refers to type",
+    "source_sql": "SELECT T1.type FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T2.translation = 'Hauptset Zehnte Edition'"
+  },
+  {
+    "id": "bird_card_games_133",
+    "intent": "Among the sets in the block \"Ice Age\", how many of them have an Italian translation?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "sets in the block \"Ice Age\" refers to block = 'Ice Age'; Italian translation refers to language = 'Italian' and translation is not null",
+    "source_sql": "SELECT COUNT(DISTINCT T1.id) FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T1.block = 'Ice Age' AND T2.language = 'Italian' AND T2.translation IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_134",
+    "intent": "Is the set of cards with Adarkar Valkyrie only available outside the United States?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "card set Adarkar Valkyrie refers to name = 'Adarkar Valkyrie'; isForeignOnly = 1 means only available outside the United States;",
+    "source_sql": "SELECT IIF(isForeignOnly = 1, 'YES', 'NO') FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T1.name = 'Adarkar Valkyrie'"
+  },
+  {
+    "id": "bird_card_games_135",
+    "intent": "Among the sets of cards that have an Italian translation, how many of them have a base set number of under 100?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "Italian translation refers to language = 'Italian'; have a translation means translation is not null; base set number of under 100 refers to baseSetSize < 10",
+    "source_sql": "SELECT COUNT(T1.id) FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T2.translation IS NOT NULL AND T1.baseSetSize < 100 AND T2.language = 'Italian'"
+  },
+  {
+    "id": "bird_card_games_136",
+    "intent": "How many cards in the set Coldsnap have a black border color?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "card set Coldsnap refers to name = 'Coldsnap'; black border color refers to borderColor = 'black'",
+    "source_sql": "SELECT SUM(CASE WHEN T1.borderColor = 'black' THEN 1 ELSE 0 END) FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T2.name = 'Coldsnap'"
+  },
+  {
+    "id": "bird_card_games_137",
+    "intent": "Please list the name of the cards in the set Coldsnap with the highest converted mana cost.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "card set Coldsnap refers to name = 'Coldsnap'",
+    "source_sql": "SELECT T1.name FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T2.name = 'Coldsnap' ORDER BY T1.convertedManaCost DESC LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_138",
+    "intent": "Which of these artists have designed a card in the set Coldsnap, Jeremy Jarvis, Aaron Miller or Chippy?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "card set Coldsnap refers to name = 'Coldsnap'; Jeremy Jarvis, Aaron Miller or Chippy are the name of artists which refers to artist IN ('Jeremy Jarvis', 'Aaron Miller','Chippy');",
+    "source_sql": "SELECT T1.artist FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE (T2.name = 'Coldsnap' AND T1.artist = 'Chippy') OR (T2.name = 'Coldsnap' AND T1.artist = 'Aaron Miller') OR (T2.name = 'Coldsnap' AND T1.artist = 'Jeremy Jarvis') GROUP BY T1.artist"
+  },
+  {
+    "id": "bird_card_games_139",
+    "intent": "What is card number 4 in the set Coldsnap?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "card set Coldsnap refers to name = 'Coldsnap'; card number 4 refers to number = 4",
+    "source_sql": "SELECT T1.name FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T2.name = 'Coldsnap' AND T1.number = 4"
+  },
+  {
+    "id": "bird_card_games_140",
+    "intent": "Among the cards with converted mana cost higher than 5 in the set Coldsnap, how many of them have unknown power?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "card set Coldsnap refers to name = 'Coldsnap'; converted mana cost higher than 5 refers to convertedManaCost > 5; unknown power refers to power = '*' or T1.power is null",
+    "source_sql": "SELECT SUM(CASE WHEN T1.power LIKE '*' OR T1.power IS NULL THEN 1 ELSE 0 END) FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T2.name = 'Coldsnap' AND T1.convertedManaCost > 5"
+  },
+  {
+    "id": "bird_card_games_141",
+    "intent": "What is the Italian flavor text of the card \"Ancestor's Chosen\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "Italian refers to language = 'Italian'; flavor text refers to flavorText; \"Ancestor''s Chosen\" refers to name = 'Ancestor''s Chosen'",
+    "source_sql": "SELECT T2.flavorText FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T2.uuid = T1.uuid WHERE T1.name = 'Ancestor''s Chosen' AND T2.language = 'Italian'"
+  },
+  {
+    "id": "bird_card_games_142",
+    "intent": "Please list all the foreign languages in which the card \"Ancestor's Chosen\" has a flavor text.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "\"Ancestor''s Chosen\" refers to name = 'Ancestor''s Chosen'; has a flavor text refers to flavorText is not null",
+    "source_sql": "SELECT T2.language FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T2.uuid = T1.uuid WHERE T1.name = 'Ancestor''s Chosen' AND T2.flavorText IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_143",
+    "intent": "What's the German type of the card \"Ancestor's Chosen\"?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "German refers to language = 'German'; \"Ancestor's Chosen\" refers to name = 'Ancestor''s Chosen'",
+    "source_sql": "SELECT DISTINCT T1.type FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T2.uuid = T1.uuid WHERE T1.name = 'Ancestor''s Chosen' AND T2.language = 'German'"
+  },
+  {
+    "id": "bird_card_games_144",
+    "intent": "Please list the Italian text ruling of all the cards in the set Coldsnap.",
+    "category": "bird",
+    "relevant_names": [
+      "foreign_data",
+      "cards",
+      "sets"
+    ],
+    "primary_name": "foreign_data",
+    "description": "card set Coldsnap refers to name = 'Coldsnap'; Italian refers to language = 'Italian'",
+    "source_sql": "SELECT DISTINCT T1.text FROM foreign_data AS T1 INNER JOIN cards AS T2 ON T2.uuid = T1.uuid INNER JOIN sets AS T3 ON T3.code = T2.setCode WHERE T3.name = 'Coldsnap' AND T1.language = 'Italian'"
+  },
+  {
+    "id": "bird_card_games_145",
+    "intent": "Please list the Italian names of the cards in the set Coldsnap with the highest converted mana cost.",
+    "category": "bird",
+    "relevant_names": [
+      "foreign_data",
+      "cards",
+      "sets"
+    ],
+    "primary_name": "foreign_data",
+    "description": "card set Coldsnap refers to name = 'Coldsnap'; Italian refers to language = 'Italian'; highest converted mana cost refers to MAX(convertedManaCost)",
+    "source_sql": "SELECT T2.name FROM foreign_data AS T1 INNER JOIN cards AS T2 ON T2.uuid = T1.uuid INNER JOIN sets AS T3 ON T3.code = T2.setCode WHERE T3.name = 'Coldsnap' AND T1.language = 'Italian' ORDER BY T2.convertedManaCost DESC"
+  },
+  {
+    "id": "bird_card_games_146",
+    "intent": "When was the ruling for the card 'Reminisce' created?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "Reminisce refers to name = 'Reminisce'; when created is the date",
+    "source_sql": "SELECT T2.date FROM cards AS T1 INNER JOIN rulings AS T2 ON T2.uuid = T1.uuid WHERE T1.name = 'Reminisce'"
+  },
+  {
+    "id": "bird_card_games_147",
+    "intent": "What is the percentage of the cards with a converted mana cost of 7 in the set Coldsnap?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "converted mana cost of 7 refers to convertedManaCost = 7; card set Coldsnap refers to name = 'Coldsnap'; percentage = DIVIDE(SUM(convertedManaCost = 7), SUM(convertedManaCost))*100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T1.convertedManaCost = 7 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.id) FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T2.name = 'Coldsnap'"
+  },
+  {
+    "id": "bird_card_games_148",
+    "intent": "What is the percentage of incredibly powerful cards in the set Coldsnap?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "card set Coldsnap refers to name = 'Coldsnap'; foil is incredibly powerful refers to cardKingdomFoilId is not null AND cardKingdomId is not null; the percentage of incredibly powerful cards in the set refers to DIVIDE(SUM(incredibly powerful), SUM(name = 'Coldsnap'))*100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN T1.cardKingdomFoilId IS NOT NULL AND T1.cardKingdomId IS NOT NULL THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.id) FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T2.name = 'Coldsnap'"
+  },
+  {
+    "id": "bird_card_games_149",
+    "intent": "What's the code for the set which was released on 2017/7/14?",
+    "category": "bird",
+    "relevant_names": [
+      "sets"
+    ],
+    "primary_name": "sets",
+    "description": "released on 2017/7/14 refers to releaseDate = '2017-07-14'",
+    "source_sql": "SELECT code FROM sets WHERE releaseDate = '2017-07-14' GROUP BY releaseDate, code"
+  },
+  {
+    "id": "bird_card_games_150",
+    "intent": "List the keyrune code for the set whose code is 'PKHC'.",
+    "category": "bird",
+    "relevant_names": [
+      "sets"
+    ],
+    "primary_name": "sets",
+    "description": "keyrune code refers to keyruneCode",
+    "source_sql": "SELECT keyruneCode FROM sets WHERE code = 'PKHC'"
+  },
+  {
+    "id": "bird_card_games_151",
+    "intent": "For the set which had 'SS2' as the code, what is its magic card market id?",
+    "category": "bird",
+    "relevant_names": [
+      "sets"
+    ],
+    "primary_name": "sets",
+    "description": "magic card market id refers to mcmId",
+    "source_sql": "SELECT mcmId FROM sets WHERE code = 'SS2'"
+  },
+  {
+    "id": "bird_card_games_152",
+    "intent": "What's the magic card market name for the set which was released on 2017/6/9?",
+    "category": "bird",
+    "relevant_names": [
+      "sets"
+    ],
+    "primary_name": "sets",
+    "description": "magic card market name refers to mcmName",
+    "source_sql": "SELECT mcmName FROM sets WHERE releaseDate = '2017-06-09'"
+  },
+  {
+    "id": "bird_card_games_153",
+    "intent": "For the set \"From the Vault: Lore\", what is its expansion type?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "the"
+    ],
+    "primary_name": "sets",
+    "description": "set \"From the Vault refers to name which contains 'From the Vault: Lore'; expansion type refers to type",
+    "source_sql": "SELECT type FROM sets WHERE name LIKE '%FROM the Vault: Lore%'"
+  },
+  {
+    "id": "bird_card_games_154",
+    "intent": "For the set \"Commander 2014 Oversized\" , give its parent code.",
+    "category": "bird",
+    "relevant_names": [
+      "sets"
+    ],
+    "primary_name": "sets",
+    "description": "the set \"Commander 2014 Oversized\" refers to name = 'Commander 2014 Oversized';",
+    "source_sql": "SELECT parentCode FROM sets WHERE name = 'Commander 2014 Oversized'"
+  },
+  {
+    "id": "bird_card_games_155",
+    "intent": "For all cards illustrated by Jim Pavelec. and describe the text of the ruling of these cards. Do these cards have missing or degraded properties and values.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "all cards illustrated by Jim Pavelec refers to artist = 'Jim Pavelec'; the text of the ruling refers to text; cards have missing or degraded properties and values if hasContentWarning = 1 else it doesn't have;",
+    "source_sql": "SELECT T2.text , CASE WHEN T1.hasContentWarning = 1 THEN 'YES' ELSE 'NO' END FROM cards AS T1 INNER JOIN rulings AS T2 ON T2.uuid = T1.uuid WHERE T1.artist = 'Jim Pavelec'"
+  },
+  {
+    "id": "bird_card_games_156",
+    "intent": "What was the release date for the set which card \"Evacuation\" in it?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "\"Evacuation\" refers to name = 'Evacuation'; release date refers to releaseDate",
+    "source_sql": "SELECT T2.releaseDate FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T1.name = 'Evacuation'"
+  },
+  {
+    "id": "bird_card_games_157",
+    "intent": "What is the number of cards are there in the set of \"Rinascita di Alara\"?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "number of cards refers to baseSetSize; set of \"Rinascita di Alara\" refers to translation = 'Rinascita di Alara'",
+    "source_sql": "SELECT T1.baseSetSize FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T2.translation = 'Rinascita di Alara'"
+  },
+  {
+    "id": "bird_card_games_158",
+    "intent": "List the expansion type of the set \"Huiti\u00e8me \u00e9dition\".",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "the set \"Huiti\u00e8me \u00e9dition\" refers to translation = 'Huiti\u00e8me \u00e9dition'; expansion type refers to type",
+    "source_sql": "SELECT type FROM sets WHERE code IN ( SELECT setCode FROM set_translations WHERE translation = 'Huiti\u00e8me \u00e9dition' )"
+  },
+  {
+    "id": "bird_card_games_159",
+    "intent": "What's the French name of the set of cards with \"Tendo Ice Bridge\" is in?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "set_translations"
+    ],
+    "primary_name": "cards",
+    "description": "French refers to language = 'French'; \"Tendo Ice Bridge\" is a translated name of a card; translated name refers to translation",
+    "source_sql": "SELECT T2.translation FROM cards AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.setCode WHERE T1.name = 'Tendo Ice Bridge' AND T2.language = 'French' AND T2.translation IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_160",
+    "intent": "How many translations of the name of the set \"Tenth Edition\"?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "translations of the name refers to translation; translation is not NULL; set \"Salvat 2011\" refers to name = 'Tenth Edition'",
+    "source_sql": "SELECT COUNT(DISTINCT T2.translation) FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T1.name = 'Tenth Edition' AND T2.translation IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_161",
+    "intent": "Tell the Japanese name of the set which card \"Fellwar Stone\" is in it.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "set_translations"
+    ],
+    "primary_name": "cards",
+    "description": "Japanese name refers to language = 'Japanese'; card \"Fellwar Stone\" refers to name = 'Fellwar Stone'",
+    "source_sql": "SELECT T2.translation FROM cards AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.setCode WHERE T1.name = 'Fellwar Stone' AND T2.language = 'Japanese' AND T2.translation IS NOT NULL"
+  },
+  {
+    "id": "bird_card_games_162",
+    "intent": "Which card name in the set 'Journey into Nyx Hero's Path' has the highest converted mana cost.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "set 'Journey into Nyx Hero's Path' refers to name = 'Journey into Nyx Hero''s Path'",
+    "source_sql": "SELECT T1.name FROM cards AS T1 INNER JOIN sets AS T2 ON T2.code = T1.setCode WHERE T2.name = 'Journey into Nyx Hero''s Path' ORDER BY T1.convertedManaCost DESC LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_163",
+    "intent": "What is the release date for the set \"Ola de fr\u00edo\"?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "release date is the date of card set being released; set \"Ola de fr\u00edo\" refers to translation = 'Ola de fr\u00edo'",
+    "source_sql": "SELECT T1.releaseDate FROM sets AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.code WHERE T2.translation = 'Ola de fr\u00edo'"
+  },
+  {
+    "id": "bird_card_games_164",
+    "intent": "What was the expansion type for the set which card \"Samite Pilgrim\" in it?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "cards"
+    ],
+    "primary_name": "sets",
+    "description": "expansion type refers to type; card \"Samite Pilgrim\" refers to name = 'Samite Pilgrim'",
+    "source_sql": "SELECT type FROM sets WHERE code IN ( SELECT setCode FROM cards WHERE name = 'Samite Pilgrim' )"
+  },
+  {
+    "id": "bird_card_games_165",
+    "intent": "How many cards are there in the set 'World Championship Decks 2004' with the converted mana cost as '3'.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "sets"
+    ],
+    "primary_name": "cards",
+    "description": "the set 'World Championship Decks 2004' refers to name = 'World Championship Decks 2004'",
+    "source_sql": "SELECT COUNT(id) FROM cards WHERE setCode IN ( SELECT code FROM sets WHERE name = 'World Championship Decks 2004' ) AND convertedManaCost = 3"
+  },
+  {
+    "id": "bird_card_games_166",
+    "intent": "Show the Simplified Chinese translation of the name of the set \"Mirrodin\"?",
+    "category": "bird",
+    "relevant_names": [
+      "set_translations",
+      "sets"
+    ],
+    "primary_name": "set_translations",
+    "description": "Simplified Chinese translation refers to language = 'Chinese Simplified'; name of the set \"Mirrodin\" refers to name = 'Mirrodin'",
+    "source_sql": "SELECT translation FROM set_translations WHERE setCode IN ( SELECT code FROM sets WHERE name = 'Mirrodin' ) AND language = 'Chinese Simplified'"
+  },
+  {
+    "id": "bird_card_games_167",
+    "intent": "For all the set of cards that has Japanese translation, what is the percentage of them are only available in non-foil?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "Japanese translation refers to language = 'Japanese'; in non-foil refers to isNonFoilOnly = 1; percentage of Japanese non foil in Japanese cards refers to DIVIDE(SUM(isNonFoilOnly = 1), SUM(language = 'Japanese'))*100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN isNonFoilOnly = 1 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(id) FROM sets WHERE code IN ( SELECT setCode FROM set_translations WHERE language = 'Japanese' )"
+  },
+  {
+    "id": "bird_card_games_168",
+    "intent": "For all the set of cards that has Brazil Portuguese translation, what is the percentage of them are only available online?",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "Brazil Portuguese translation refers to language = 'Portuguese (Brazil)'; only available online refers to isOnlineOnly = 1; percentage of online only Brazil Portuguese in all Brazil Portuguese cards refers to DIVIDE(SUM(isOnlineOnly = 1), SUM(language = 'Portuguese (Brazil)))*100",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN isOnlineOnly = 1 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(id) FROM sets WHERE code IN ( SELECT setCode FROM set_translations WHERE language = 'Portuguese (Brazil)' )"
+  },
+  {
+    "id": "bird_card_games_169",
+    "intent": "What are the available printing types of the cards that doesn't have a text box created by Aleksi Briclot?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "created by Aleksi Briclot refers to artist = 'Aleksi Briclot'; doesn't have a text box refers to isTextless = 1; available printing types refers to availability",
+    "source_sql": "SELECT DISTINCT availability FROM cards WHERE artist = 'Aleksi Briclot' AND isTextless = 1"
+  },
+  {
+    "id": "bird_card_games_170",
+    "intent": "What is the unique id of the set that has the highest number of cards?",
+    "category": "bird",
+    "relevant_names": [
+      "sets"
+    ],
+    "primary_name": "sets",
+    "description": "the highest number of cards refers to MAX(baseSetSize); unique id refers to id",
+    "source_sql": "SELECT id FROM sets ORDER BY baseSetSize DESC LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_171",
+    "intent": "Among the cards that doesn't have multiple faces on the same card, who is the illustrator of the card art that has the highest cost of converted mana?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "doesn't have multiple faces refers to side IS NULL; illustrator refers to artist",
+    "source_sql": "SELECT artist FROM cards WHERE side IS NULL ORDER BY convertedManaCost DESC LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_172",
+    "intent": "What is the most common visual frame effects among the incredibly powerful foils?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "when both cardKingdomFoilId and cardKingdomId are not null, this foil is incredibly powerful; most common visual frame effects refers to MAX(frameEffects)",
+    "source_sql": "SELECT frameEffects FROM cards WHERE cardKingdomFoilId IS NOT NULL AND cardKingdomId IS NOT NULL GROUP BY frameEffects ORDER BY COUNT(frameEffects) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_173",
+    "intent": "How many cards with unknown power that can't be found in foil is in duel deck A?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "unknown power refers to power IS NULL or power = '*'; can't be found in foil refers to hasFoil = 0; duel deck A refers to duelDeck = 'a'",
+    "source_sql": "SELECT SUM(CASE WHEN power = '*' OR power IS NULL THEN 1 ELSE 0 END) FROM cards WHERE hasFoil = 0 AND duelDeck = 'a'"
+  },
+  {
+    "id": "bird_card_games_174",
+    "intent": "Among the sets whose expansion type is Commander, which set has the highest total number of cards including promotional and related supplemental products but excluding Alchemy modifications? Indicate the id of the set.",
+    "category": "bird",
+    "relevant_names": [
+      "sets"
+    ],
+    "primary_name": "sets",
+    "description": "expansion type refers to type where type = 'commander'; totalSetSize: The total number of cards in the set, including promotional and related supplemental products but excluding Alchemy modifications; highest total number of cards refers to MAX(totalSetSize)",
+    "source_sql": "SELECT id FROM sets WHERE type = 'commander' ORDER BY totalSetSize DESC LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_175",
+    "intent": "In duels, what are the top 10 cards with the highest uncoverted mana cost?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "duels refer to format = 'duel'; the highest uncoverted mana cost refers to MAX(manaCost)",
+    "source_sql": "SELECT DISTINCT name FROM cards WHERE uuid IN ( SELECT uuid FROM legalities WHERE format = 'duel' ) ORDER BY manaCost DESC LIMIT 0, 10"
+  },
+  {
+    "id": "bird_card_games_176",
+    "intent": "When was the oldest mythic card released and what are its legal play formats?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "the oldest card refers to MIN(originalReleaseDate); mythic card refers to rarity = 'mythic'; legal play refers to status = 'legal'; play format refers to format",
+    "source_sql": "SELECT T1.originalReleaseDate, T2.format FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T1.rarity = 'mythic' AND T1.originalReleaseDate IS NOT NULL AND T2.status = 'Legal' ORDER BY T1.originalReleaseDate LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_177",
+    "intent": "How many cards did Volkan Ba\u00c7\u00b5a illustrated whose foreign language is in French?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "foreign_data"
+    ],
+    "primary_name": "cards",
+    "description": "Volkan Ba\u00c7\u00b5a refers to artist = 'Volkan Ba\u01f5a'; foreign language is in French refers to language = 'French'",
+    "source_sql": "SELECT COUNT(T3.id) FROM ( SELECT T1.id FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T2.uuid = T1.uuid WHERE T1.artist = 'Volkan Ba\u01f5a' AND T2.language = 'French' GROUP BY T1.id ) AS T3"
+  },
+  {
+    "id": "bird_card_games_178",
+    "intent": "How many rare enchantment Abundance cards are there whose play format status are all legal?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "rare refers to rarity = 'rare'; enchantment card refers to types = 'Enchantment'; Abundance cards refers to name = 'Abundance'; format status are all legal refers to status = 'Legal'",
+    "source_sql": "SELECT COUNT(T1.id) FROM cards AS T1 INNER JOIN legalities AS T2 ON T2.uuid = T1.uuid WHERE T1.rarity = 'rare' AND T1.types = 'Enchantment' AND T1.name = 'Abundance' AND T2.status = 'Legal'"
+  },
+  {
+    "id": "bird_card_games_179",
+    "intent": "Which of the play format has the highest number of banned status? Indicate the play format and the names of all the card meet the condition.",
+    "category": "bird",
+    "relevant_names": [
+      "legalities",
+      "cards",
+      "maxbanned"
+    ],
+    "primary_name": "legalities",
+    "description": "play format refers to format; banned status refers to status = 'Banned'; the highest number of banned status refers to MAX(COUNT(status = 'Banned'))",
+    "source_sql": "WITH MaxBanned AS (SELECT format, COUNT(*) AS count_banned FROM legalities WHERE status = 'Banned' GROUP BY format ORDER BY COUNT(*) DESC LIMIT 1) SELECT T2.format, T1.name FROM cards AS T1 INNER JOIN legalities AS T2 ON T2.uuid = T1.uuid INNER JOIN MaxBanned MB ON MB.format = T2.format WHERE T2.status = 'Banned'"
+  },
+  {
+    "id": "bird_card_games_180",
+    "intent": "What is the language of the \"Battlebond\" set?",
+    "category": "bird",
+    "relevant_names": [
+      "set_translations",
+      "sets"
+    ],
+    "primary_name": "set_translations",
+    "description": "\"Battlebond\" set refers to name = 'Battlebond'",
+    "source_sql": "SELECT language FROM set_translations WHERE id IN ( SELECT id FROM sets WHERE name = 'Battlebond' )"
+  },
+  {
+    "id": "bird_card_games_181",
+    "intent": "Who is the illustrator that illustrated the least amount of cards? List the format of play of the cards that he/she illustrated.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "format of the cards refers to format; illustrator refers to artist; the least amount of cards refers to MIN(artist)",
+    "source_sql": "SELECT T1.artist, T2.format FROM cards AS T1 INNER JOIN legalities AS T2 ON T2.uuid = T1.uuid GROUP BY T1.artist ORDER BY COUNT(T1.id) ASC LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_182",
+    "intent": "Among the cards whose version of frame style is 1997, what is the status of the card illustrated by D. Alexander Gregory in legacy play format that has sensitive content or Wizards of the Coast?",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "version of frame style is 1997 refers to frameVersion = '1997'; illustrated by D. Alexander Gregory refers to artist = 'D. Alexander Gregory'; sensitive content refers to hasContentWarning = 1; legacy play format refers to format = 'legacy'; status of the card refers to status",
+    "source_sql": "SELECT DISTINCT T2.status FROM cards AS T1 INNER JOIN legalities AS T2 ON T2.uuid = T1.uuid WHERE T1.frameVersion = 1997 AND T1.hasContentWarning = 1 AND T1.artist = 'D. Alexander Gregory' AND T2.format = 'legacy'"
+  },
+  {
+    "id": "bird_card_games_183",
+    "intent": "Which cards are ranked 1st on EDHRec? List all of the cards name and its banned play format.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "ranked 1st on EDHRec refers to edhrecRank = 1; banned refers to status = 'Banned'; play format refers to format; cards name refers to name",
+    "source_sql": "SELECT T1.name, T2.format FROM cards AS T1 INNER JOIN legalities AS T2 ON T2.uuid = T1.uuid WHERE T1.edhrecRank = 1 AND T2.status = 'Banned' GROUP BY T1.name, T2.format"
+  },
+  {
+    "id": "bird_card_games_184",
+    "intent": "What is the annual average number of sets that were released between 1/1/2012 to 12/31/2015? Indicate the common langugage of the card.",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "AVG(id); releaseDate BETWEEN 1/1/2012 AND 12/31/2015; the common language refers to MAX(COUNT(language))",
+    "source_sql": "SELECT (CAST(SUM(T1.id) AS REAL) / COUNT(T1.id)) / 4, T2.language FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.id = T2.id WHERE T1.releaseDate BETWEEN '2012-01-01' AND '2015-12-31' GROUP BY T1.releaseDate ORDER BY COUNT(T2.language) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_card_games_185",
+    "intent": "List the artists who illustrated cards with black borders which are available only in arena.",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "black borders refers to BorderColor = 'black'; available only in arena refers to availability = 'arena'",
+    "source_sql": "SELECT DISTINCT artist FROM cards WHERE availability = 'arena' AND BorderColor = 'black'"
+  },
+  {
+    "id": "bird_card_games_186",
+    "intent": "Find the uuid of cards in which the old school format is restricted or banned.",
+    "category": "bird",
+    "relevant_names": [
+      "legalities"
+    ],
+    "primary_name": "legalities",
+    "description": "old school format refers to format = 'oldschool'; restricted or banned refers to status = 'banned' or 'restricted'",
+    "source_sql": "SELECT uuid FROM legalities WHERE format = 'oldschool' AND (status = 'Banned' OR status = 'Restricted')"
+  },
+  {
+    "id": "bird_card_games_187",
+    "intent": "Among the card designed by Matthew D. Wilson, how many are available only in the paper?",
+    "category": "bird",
+    "relevant_names": [
+      "cards"
+    ],
+    "primary_name": "cards",
+    "description": "card designed by Matthew D. Wilson refers to artist = 'Matthew D. Wilson'; available only in the paper refers to availability = 'paper'",
+    "source_sql": "SELECT COUNT(id) FROM cards WHERE artist = 'Matthew D. Wilson' AND availability = 'paper'"
+  },
+  {
+    "id": "bird_card_games_188",
+    "intent": "What are the rulings for the card named and designed by Kev Walker? List them in descending order of dates.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "rulings"
+    ],
+    "primary_name": "cards",
+    "description": "rulings refers to text; card named and designed by Kev Walker refers to artist = 'Kev Walker'; descending order of dates refers to MAX(date);",
+    "source_sql": "SELECT T2.text FROM cards AS T1 INNER JOIN rulings AS T2 ON T2.uuid = T1.uuid WHERE T1.artist = 'Kev Walker' ORDER BY T2.date DESC"
+  },
+  {
+    "id": "bird_card_games_189",
+    "intent": "List the names of all the cards in the set Hour of Devastation and find the formats in which these cards are legal.",
+    "category": "bird",
+    "relevant_names": [
+      "legalities",
+      "sets",
+      "cards"
+    ],
+    "primary_name": "legalities",
+    "description": "the set Hour of Devastation refers to set.name = 'Hour of Devastation'; names of all the cards in the set refers to cards.name; legal cards refers to status = 'Legal'; the formats refers to format",
+    "source_sql": "SELECT DISTINCT T2.name , CASE WHEN T1.status = 'Legal' THEN T1.format ELSE NULL END FROM legalities AS T1 INNER JOIN cards AS T2 ON T2.uuid = T1.uuid WHERE T2.setCode IN ( SELECT code FROM sets WHERE name = 'Hour of Devastation' )"
+  },
+  {
+    "id": "bird_card_games_190",
+    "intent": "Find and list the names of sets which doesn't have Japanese translation but have Korean translation.",
+    "category": "bird",
+    "relevant_names": [
+      "sets",
+      "set_translations"
+    ],
+    "primary_name": "sets",
+    "description": "names of sets refers to name; doesn't have Japanese translation refers to language not like '%Japanese%'; have Korean translation refers to language = 'Korean'",
+    "source_sql": "SELECT name FROM sets WHERE code IN ( SELECT setCode FROM set_translations WHERE language = 'Korean' AND language NOT LIKE '%Japanese%' )"
+  },
+  {
+    "id": "bird_card_games_191",
+    "intent": "List all the frame styles and cards Allen Williams worked on and find any banned cards if there are any.",
+    "category": "bird",
+    "relevant_names": [
+      "cards",
+      "legalities"
+    ],
+    "primary_name": "cards",
+    "description": "frame styles refers to frameVersion; cards Allen Williams worked on refers to artist = 'Allen Williams'; banned cards refers to status = 'Banned'",
+    "source_sql": "SELECT DISTINCT T1.frameVersion, T1.name , IIF(T2.status = 'Banned', T1.name, 'NO') FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T1.artist = 'Allen Williams'"
+  }
+]

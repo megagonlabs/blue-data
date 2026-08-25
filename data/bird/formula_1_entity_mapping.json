@@ -1,0 +1,714 @@
+{
+  "bird_formula_1_001": [
+    "qualifying",
+    "drivers"
+  ],
+  "bird_formula_1_002": [
+    "qualifying",
+    "drivers"
+  ],
+  "bird_formula_1_003": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_004": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_005": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_006": [
+    "constructorstandings",
+    "constructors"
+  ],
+  "bird_formula_1_007": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_008": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_009": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_010": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_011": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_012": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_013": [
+    "constructorresults",
+    "constructors"
+  ],
+  "bird_formula_1_014": [
+    "qualifying",
+    "drivers"
+  ],
+  "bird_formula_1_015": [
+    "qualifying",
+    "drivers"
+  ],
+  "bird_formula_1_016": [
+    "qualifying",
+    "drivers"
+  ],
+  "bird_formula_1_017": [
+    "races",
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_018": [
+    "races",
+    "seasons"
+  ],
+  "bird_formula_1_019": [
+    "races",
+    "results"
+  ],
+  "bird_formula_1_020": [
+    "drivers",
+    "results"
+  ],
+  "bird_formula_1_021": [
+    "laptimes",
+    "drivers"
+  ],
+  "bird_formula_1_022": [
+    "drivers",
+    "results"
+  ],
+  "bird_formula_1_023": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_024": [
+    "constructorresults",
+    "constructors"
+  ],
+  "bird_formula_1_025": [
+    "qualifying",
+    "drivers"
+  ],
+  "bird_formula_1_026": [
+    "qualifying",
+    "drivers"
+  ],
+  "bird_formula_1_027": [
+    "qualifying",
+    "drivers"
+  ],
+  "bird_formula_1_028": [
+    "drivers",
+    "results"
+  ],
+  "bird_formula_1_029": [
+    "races",
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_030": [
+    "races",
+    "seasons"
+  ],
+  "bird_formula_1_031": [
+    "races",
+    "results"
+  ],
+  "bird_formula_1_032": [
+    "drivers",
+    "results"
+  ],
+  "bird_formula_1_033": [
+    "laptimes",
+    "drivers"
+  ],
+  "bird_formula_1_034": [
+    "drivers",
+    "results"
+  ],
+  "bird_formula_1_035": [
+    "drivers",
+    "results"
+  ],
+  "bird_formula_1_036": [
+    "races",
+    "results"
+  ],
+  "bird_formula_1_037": [
+    "races"
+  ],
+  "bird_formula_1_038": [
+    "races"
+  ],
+  "bird_formula_1_039": [
+    "races"
+  ],
+  "bird_formula_1_040": [
+    "races"
+  ],
+  "bird_formula_1_041": [
+    "races"
+  ],
+  "bird_formula_1_042": [
+    "races"
+  ],
+  "bird_formula_1_043": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_044": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_045": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_046": [
+    "races",
+    "driverstandings",
+    "drivers"
+  ],
+  "bird_formula_1_047": [
+    "races",
+    "driverstandings",
+    "drivers"
+  ],
+  "bird_formula_1_048": [
+    "races",
+    "driverstandings",
+    "drivers"
+  ],
+  "bird_formula_1_049": [
+    "drivers",
+    "laptimes",
+    "races"
+  ],
+  "bird_formula_1_050": [
+    "races",
+    "laptimes",
+    "drivers"
+  ],
+  "bird_formula_1_051": [
+    "races",
+    "driverstandings",
+    "drivers"
+  ],
+  "bird_formula_1_052": [
+    "drivers",
+    "driverstandings"
+  ],
+  "bird_formula_1_053": [
+    "drivers"
+  ],
+  "bird_formula_1_054": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_055": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_056": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_057": [
+    "races",
+    "driverstandings",
+    "drivers"
+  ],
+  "bird_formula_1_058": [
+    "drivers",
+    "driverstandings",
+    "races",
+    "circuits"
+  ],
+  "bird_formula_1_059": [
+    "races",
+    "laptimes",
+    "drivers"
+  ],
+  "bird_formula_1_060": [
+    "drivers",
+    "driverstandings",
+    "races"
+  ],
+  "bird_formula_1_061": [
+    "races",
+    "driverstandings",
+    "drivers"
+  ],
+  "bird_formula_1_062": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_063": [
+    "circuits",
+    "races",
+    "laptimes"
+  ],
+  "bird_formula_1_064": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_065": [
+    "circuits"
+  ],
+  "bird_formula_1_066": [
+    "circuits"
+  ],
+  "bird_formula_1_067": [
+    "circuits"
+  ],
+  "bird_formula_1_068": [
+    "circuits"
+  ],
+  "bird_formula_1_069": [
+    "drivers"
+  ],
+  "bird_formula_1_070": [
+    "drivers"
+  ],
+  "bird_formula_1_071": [
+    "drivers"
+  ],
+  "bird_formula_1_072": [
+    "drivers"
+  ],
+  "bird_formula_1_073": [
+    "drivers"
+  ],
+  "bird_formula_1_074": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_075": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_076": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_077": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_078": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_079": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_080": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_081": [
+    "drivers",
+    "results"
+  ],
+  "bird_formula_1_082": [
+    "drivers",
+    "results"
+  ],
+  "bird_formula_1_083": [
+    "races",
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_084": [
+    "races",
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_085": [
+    "races",
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_086": [
+    "races",
+    "results"
+  ],
+  "bird_formula_1_087": [
+    "races",
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_088": [
+    "races",
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_089": [
+    "races",
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_090": [
+    "races",
+    "results"
+  ],
+  "bird_formula_1_091": [
+    "results",
+    "races",
+    "drivers"
+  ],
+  "bird_formula_1_092": [
+    "results",
+    "races"
+  ],
+  "bird_formula_1_093": [
+    "drivers",
+    "results",
+    "races"
+  ],
+  "bird_formula_1_094": [
+    "drivers",
+    "results",
+    "races"
+  ],
+  "bird_formula_1_095": [
+    "results",
+    "races"
+  ],
+  "bird_formula_1_096": [
+    "drivers",
+    "results"
+  ],
+  "bird_formula_1_097": [
+    "drivers",
+    "results"
+  ],
+  "bird_formula_1_098": [
+    "results",
+    "races"
+  ],
+  "bird_formula_1_099": [
+    "results",
+    "time_in_seconds",
+    "last_driver_incremental",
+    "champion_time",
+    "races"
+  ],
+  "bird_formula_1_100": [
+    "circuits"
+  ],
+  "bird_formula_1_101": [
+    "circuits"
+  ],
+  "bird_formula_1_102": [
+    "drivers"
+  ],
+  "bird_formula_1_103": [
+    "constructorstandings",
+    "constructors"
+  ],
+  "bird_formula_1_104": [
+    "constructorstandings",
+    "constructors"
+  ],
+  "bird_formula_1_105": [
+    "constructorstandings",
+    "constructors"
+  ],
+  "bird_formula_1_106": [
+    "constructorstandings",
+    "constructors"
+  ],
+  "bird_formula_1_107": [
+    "results",
+    "constructors"
+  ],
+  "bird_formula_1_108": [
+    "results",
+    "constructors"
+  ],
+  "bird_formula_1_109": [
+    "results",
+    "races",
+    "drivers"
+  ],
+  "bird_formula_1_110": [
+    "results",
+    "time_in_seconds",
+    "champion_time",
+    "races"
+  ],
+  "bird_formula_1_111": [
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_112": [
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_113": [
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_114": [
+    "results",
+    "races"
+  ],
+  "bird_formula_1_115": [
+    "results",
+    "races"
+  ],
+  "bird_formula_1_116": [
+    "races",
+    "results"
+  ],
+  "bird_formula_1_117": [
+    "results",
+    "races",
+    "drivers"
+  ],
+  "bird_formula_1_118": [
+    "drivers",
+    "laptimes"
+  ],
+  "bird_formula_1_119": [
+    "drivers"
+  ],
+  "bird_formula_1_120": [
+    "races"
+  ],
+  "bird_formula_1_121": [
+    "driverstandings"
+  ],
+  "bird_formula_1_122": [
+    "drivers"
+  ],
+  "bird_formula_1_123": [
+    "drivers"
+  ],
+  "bird_formula_1_124": [
+    "drivers"
+  ],
+  "bird_formula_1_125": [
+    "pitstops",
+    "drivers"
+  ],
+  "bird_formula_1_126": [
+    "drivers"
+  ],
+  "bird_formula_1_127": [
+    "results",
+    "drivers"
+  ],
+  "bird_formula_1_128": [
+    "pitstops",
+    "drivers"
+  ],
+  "bird_formula_1_129": [
+    "results",
+    "races"
+  ],
+  "bird_formula_1_130": [
+    "laptimes",
+    "races"
+  ],
+  "bird_formula_1_131": [
+    "laptimes"
+  ],
+  "bird_formula_1_132": [
+    "results"
+  ],
+  "bird_formula_1_133": [
+    "circuits"
+  ],
+  "bird_formula_1_134": [
+    "results"
+  ],
+  "bird_formula_1_135": [
+    "qualifying",
+    "drivers"
+  ],
+  "bird_formula_1_136": [
+    "qualifying",
+    "drivers",
+    "races"
+  ],
+  "bird_formula_1_137": [
+    "drivers",
+    "results",
+    "status"
+  ],
+  "bird_formula_1_138": [
+    "constructors",
+    "constructorstandings"
+  ],
+  "bird_formula_1_139": [
+    "constructors",
+    "constructorstandings"
+  ],
+  "bird_formula_1_140": [
+    "laptimes",
+    "races"
+  ],
+  "bird_formula_1_141": [
+    "laptimes",
+    "races"
+  ],
+  "bird_formula_1_142": [
+    "results",
+    "races"
+  ],
+  "bird_formula_1_143": [
+    "pitstops",
+    "drivers"
+  ],
+  "bird_formula_1_144": [
+    "results",
+    "races"
+  ],
+  "bird_formula_1_145": [
+    "results",
+    "races",
+    "constructors"
+  ],
+  "bird_formula_1_146": [
+    "drivers"
+  ],
+  "bird_formula_1_147": [
+    "drivers"
+  ],
+  "bird_formula_1_148": [
+    "circuits"
+  ],
+  "bird_formula_1_149": [
+    "constructorresults",
+    "constructors",
+    "races"
+  ],
+  "bird_formula_1_150": [
+    "drivers",
+    "driverstandings",
+    "races"
+  ],
+  "bird_formula_1_151": [
+    "races"
+  ],
+  "bird_formula_1_152": [
+    "drivers"
+  ],
+  "bird_formula_1_153": [
+    "driverstandings"
+  ],
+  "bird_formula_1_154": [
+    "races",
+    "results"
+  ],
+  "bird_formula_1_155": [
+    "circuits",
+    "races"
+  ],
+  "bird_formula_1_156": [
+    "qualifying",
+    "circuits",
+    "drivers",
+    "races"
+  ],
+  "bird_formula_1_157": [
+    "drivers",
+    "driverstandings",
+    "races"
+  ],
+  "bird_formula_1_158": [
+    "results",
+    "races",
+    "status"
+  ],
+  "bird_formula_1_159": [
+    "driverstandings",
+    "drivers"
+  ],
+  "bird_formula_1_160": [
+    "pitstops"
+  ],
+  "bird_formula_1_161": [
+    "laptimes"
+  ],
+  "bird_formula_1_162": [
+    "pitstops",
+    "drivers"
+  ],
+  "bird_formula_1_163": [
+    "pitstops",
+    "drivers",
+    "races"
+  ],
+  "bird_formula_1_164": [
+    "pitstops",
+    "races"
+  ],
+  "bird_formula_1_165": [
+    "laptimes",
+    "drivers"
+  ],
+  "bird_formula_1_166": [
+    "laptimes",
+    "lap_times_in_seconds",
+    "drivers"
+  ],
+  "bird_formula_1_167": [
+    "laptimes",
+    "drivers"
+  ],
+  "bird_formula_1_168": [
+    "results",
+    "fastest_lap_times",
+    "races",
+    "circuits"
+  ],
+  "bird_formula_1_169": [
+    "results",
+    "fastest_lap_times",
+    "races",
+    "circuits"
+  ],
+  "bird_formula_1_170": [
+    "results",
+    "races",
+    "fastest_lap_times",
+    "circuits"
+  ],
+  "bird_formula_1_171": [
+    "results",
+    "fastest_lap_times",
+    "lap_record_race",
+    "races",
+    "circuits",
+    "pitstops"
+  ],
+  "bird_formula_1_172": [
+    "laptimes",
+    "races",
+    "circuits"
+  ],
+  "bird_formula_1_173": [
+    "pitstops",
+    "drivers"
+  ],
+  "bird_formula_1_174": [
+    "laptimes",
+    "races",
+    "circuits"
+  ]
+}

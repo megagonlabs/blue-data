@@ -1,0 +1,1042 @@
+[
+  {
+    "id": "bird_california_schools_001",
+    "intent": "What is the highest eligible free rate for K-12 students in the schools in Alameda County?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm"
+    ],
+    "primary_name": "frpm",
+    "description": "Eligible free rate for K-12 = `Free Meal Count (K-12)` / `Enrollment (K-12)`",
+    "source_sql": "SELECT `Free Meal Count (K-12)` / `Enrollment (K-12)` FROM frpm WHERE `County Name` = 'Alameda' ORDER BY (CAST(`Free Meal Count (K-12)` AS REAL) / `Enrollment (K-12)`) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_002",
+    "intent": "Please list the lowest three eligible free rates for students aged 5-17 in continuation schools.",
+    "category": "bird",
+    "relevant_names": [
+      "frpm"
+    ],
+    "primary_name": "frpm",
+    "description": "Eligible free rates for students aged 5-17 = `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)`",
+    "source_sql": "SELECT `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)` FROM frpm WHERE `Educational Option Type` = 'Continuation School' AND `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)` IS NOT NULL ORDER BY `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)` ASC LIMIT 3"
+  },
+  {
+    "id": "bird_california_schools_003",
+    "intent": "Please list the zip code of all the charter schools in Fresno County Office of Education.",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "Charter schools refers to `Charter School (Y/N)` = 1 in the table fprm",
+    "source_sql": "SELECT T2.Zip FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.`District Name` = 'Fresno County Office of Education' AND T1.`Charter School (Y/N)` = 1"
+  },
+  {
+    "id": "bird_california_schools_004",
+    "intent": "What is the unabbreviated mailing street address of the school with the highest FRPM count for K-12 students?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "",
+    "source_sql": "SELECT T2.MailStreet FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode ORDER BY T1.`FRPM Count (K-12)` DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_005",
+    "intent": "Please list the phone numbers of the direct charter-funded schools that are opened after 2000/1/1.",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "Charter schools refers to `Charter School (Y/N)` = 1 in the frpm",
+    "source_sql": "SELECT T2.Phone FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.`Charter Funding Type` = 'Directly funded' AND T1.`Charter School (Y/N)` = 1 AND T2.OpenDate > '2000-01-01'"
+  },
+  {
+    "id": "bird_california_schools_006",
+    "intent": "How many schools with an average score in Math greater than 400 in the SAT test are exclusively virtual?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "Exclusively virtual refers to Virtual = 'F'",
+    "source_sql": "SELECT COUNT(DISTINCT T2.School) FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T2.Virtual = 'F' AND T1.AvgScrMath > 400"
+  },
+  {
+    "id": "bird_california_schools_007",
+    "intent": "Among the schools with the SAT test takers of over 500, please list the schools that are magnet schools or offer a magnet program.",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "Magnet schools or offer a magnet program means that Magnet = 1",
+    "source_sql": "SELECT T2.School FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T2.Magnet = 1 AND T1.NumTstTakr > 500"
+  },
+  {
+    "id": "bird_california_schools_008",
+    "intent": "What is the phone number of the school that has the highest number of test takers with an SAT score of over 1500?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT T2.Phone FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.NumGE1500 DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_009",
+    "intent": "What is the number of SAT test takers of the schools with the highest FRPM count for K-12 students?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "frpm"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT NumTstTakr FROM satscores WHERE cds = ( SELECT CDSCode FROM frpm ORDER BY `FRPM Count (K-12)` DESC LIMIT 1 )"
+  },
+  {
+    "id": "bird_california_schools_010",
+    "intent": "Among the schools with the average score in Math over 560 in the SAT test, how many schools are directly charter-funded?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "frpm"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT COUNT(T2.`School Code`) FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T1.AvgScrMath > 560 AND T2.`Charter Funding Type` = 'Directly funded'"
+  },
+  {
+    "id": "bird_california_schools_011",
+    "intent": "For the school with the highest average score in Reading in the SAT test, what is its FRPM count for students aged 5-17?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "frpm"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT T2.`FRPM Count (Ages 5-17)` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.AvgScrRead DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_012",
+    "intent": "Please list the codes of the schools with a total enrollment of over 500.",
+    "category": "bird",
+    "relevant_names": [
+      "schools",
+      "frpm"
+    ],
+    "primary_name": "schools",
+    "description": "Total enrollment can be represented by `Enrollment (K-12)` + `Enrollment (Ages 5-17)`",
+    "source_sql": "SELECT T2.CDSCode FROM schools AS T1 INNER JOIN frpm AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.`Enrollment (K-12)` + T2.`Enrollment (Ages 5-17)` > 500"
+  },
+  {
+    "id": "bird_california_schools_013",
+    "intent": "Among the schools with an SAT excellence rate of over 0.3, what is the highest eligible free rate for students aged 5-17?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "satscores"
+    ],
+    "primary_name": "frpm",
+    "description": "Excellence rate = NumGE1500 / NumTstTakr; Eligible free rates for students aged 5-17 = `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)`",
+    "source_sql": "SELECT MAX(CAST(T1.`Free Meal Count (Ages 5-17)` AS REAL) / T1.`Enrollment (Ages 5-17)`) FROM frpm AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE CAST(T2.NumGE1500 AS REAL) / T2.NumTstTakr > 0.3"
+  },
+  {
+    "id": "bird_california_schools_014",
+    "intent": "Please list the phone numbers of the schools with the top 3 SAT excellence rate.",
+    "category": "bird",
+    "relevant_names": [
+      "schools",
+      "satscores"
+    ],
+    "primary_name": "schools",
+    "description": "Excellence rate = NumGE1500 / NumTstTakr",
+    "source_sql": "SELECT T1.Phone FROM schools AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds ORDER BY CAST(T2.NumGE1500 AS REAL) / T2.NumTstTakr DESC LIMIT 3"
+  },
+  {
+    "id": "bird_california_schools_015",
+    "intent": "List the top five schools, by descending order, from the highest to the lowest, the most number of Enrollment (Ages 5-17). Please give their NCES school identification number.",
+    "category": "bird",
+    "relevant_names": [
+      "schools",
+      "frpm"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT T1.NCESSchool FROM schools AS T1 INNER JOIN frpm AS T2 ON T1.CDSCode = T2.CDSCode ORDER BY T2.`Enrollment (Ages 5-17)` DESC LIMIT 5"
+  },
+  {
+    "id": "bird_california_schools_016",
+    "intent": "Which active district has the highest average score in Reading?",
+    "category": "bird",
+    "relevant_names": [
+      "schools",
+      "satscores"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT T1.District FROM schools AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE T1.StatusType = 'Active' ORDER BY T2.AvgScrRead DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_017",
+    "intent": "How many schools in merged Alameda have number of test takers less than 100?",
+    "category": "bird",
+    "relevant_names": [
+      "schools",
+      "satscores"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT COUNT(T1.CDSCode) FROM schools AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE T1.StatusType = 'Merged' AND T2.NumTstTakr < 100 AND T1.County = 'Lake'"
+  },
+  {
+    "id": "bird_california_schools_018",
+    "intent": "Rank schools by their average score in Writing where the score is greater than 499, showing their charter numbers.",
+    "category": "bird",
+    "relevant_names": [
+      "schools",
+      "satscores"
+    ],
+    "primary_name": "schools",
+    "description": "Valid charter number means the number is not null",
+    "source_sql": "SELECT CharterNum, AvgScrWrite, RANK() OVER (ORDER BY AvgScrWrite DESC) AS WritingScoreRank FROM schools AS T1  INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE T2.AvgScrWrite > 499 AND CharterNum is not null"
+  },
+  {
+    "id": "bird_california_schools_019",
+    "intent": "How many schools in Fresno (directly funded) have number of test takers not more than 250?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "satscores"
+    ],
+    "primary_name": "frpm",
+    "description": "",
+    "source_sql": "SELECT COUNT(T1.CDSCode) FROM frpm AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE T1.`Charter Funding Type` = 'Directly funded' AND T1.`County Name` = 'Fresno' AND T2.NumTstTakr <= 250"
+  },
+  {
+    "id": "bird_california_schools_020",
+    "intent": "What is the phone number of the school that has the highest average score in Math?",
+    "category": "bird",
+    "relevant_names": [
+      "schools",
+      "satscores"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT T1.Phone FROM schools AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds ORDER BY T2.AvgScrMath DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_021",
+    "intent": "How many schools in Amador which the Low Grade is 9 and the High Grade is 12?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "",
+    "source_sql": "SELECT COUNT(T1.`School Name`) FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.County = 'Amador' AND T1.`Low Grade` = 9 AND T1.`High Grade` = 12"
+  },
+  {
+    "id": "bird_california_schools_022",
+    "intent": "In Los Angeles how many schools have more than 500 free meals but less than 700 free or reduced price meals for K-12?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm"
+    ],
+    "primary_name": "frpm",
+    "description": "",
+    "source_sql": "SELECT COUNT(CDSCode) FROM frpm WHERE `County Name` = 'Los Angeles' AND `Free Meal Count (K-12)` > 500 AND `FRPM Count (K-12)`< 700"
+  },
+  {
+    "id": "bird_california_schools_023",
+    "intent": "Which school in Contra Costa has the highest number of test takers?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT sname FROM satscores WHERE cname = 'Contra Costa' AND sname IS NOT NULL ORDER BY NumTstTakr DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_024",
+    "intent": "List the names of schools with more than 30 difference in enrollements between K-12 and ages 5-17? Please also give the full street adress of the schools.",
+    "category": "bird",
+    "relevant_names": [
+      "schools",
+      "frpm"
+    ],
+    "primary_name": "schools",
+    "description": "Diffrence in enrollement = `Enrollment (K-12)` - `Enrollment (Ages 5-17)`",
+    "source_sql": "SELECT T1.School, T1.Street FROM schools AS T1 INNER JOIN frpm AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.`Enrollment (K-12)` - T2.`Enrollment (Ages 5-17)` > 30"
+  },
+  {
+    "id": "bird_california_schools_025",
+    "intent": "Give the names of the schools with the percent eligible for free meals in K-12 is more than 0.1 and test takers whose test score is greater than or equal to 1500?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "frpm"
+    ],
+    "primary_name": "satscores",
+    "description": "Percent eligible for free meals = Free Meal Count (K-12) / Total (Enrollment (K-12)",
+    "source_sql": "SELECT T2.`School Name` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE CAST(T2.`Free Meal Count (K-12)` AS REAL) / T2.`Enrollment (K-12)` > 0.1 AND T1.NumGE1500 > 0"
+  },
+  {
+    "id": "bird_california_schools_026",
+    "intent": "Name schools in Riverside which the average of average math score for SAT is grater than 400, what is the funding type of these schools?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "frpm"
+    ],
+    "primary_name": "satscores",
+    "description": "Average of average math = sum(average math scores) / count(schools).",
+    "source_sql": "SELECT T1.sname, T2.`Charter Funding Type` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T2.`District Name` LIKE 'Riverside%' GROUP BY T1.sname, T2.`Charter Funding Type` HAVING CAST(SUM(T1.AvgScrMath) AS REAL) / COUNT(T1.cds) > 400"
+  },
+  {
+    "id": "bird_california_schools_027",
+    "intent": "State the names and full communication address of high schools in Monterey which has more than 800 free or reduced price meals for ages 15-17?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "Full communication address should include Street, City, State and zip code if any.",
+    "source_sql": "SELECT T1.`School Name`, T2.Street, T2.City, T2.State, T2.Zip FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.County = 'Monterey' AND T1.`Free Meal Count (Ages 5-17)` > 800 AND T1.`School Type` = 'High Schools (Public)'"
+  },
+  {
+    "id": "bird_california_schools_028",
+    "intent": "What is the average score in writing for the schools that were opened after 1991 or closed before 2000? List the school names along with the score. Also, list the communication number of the schools if there is any.",
+    "category": "bird",
+    "relevant_names": [
+      "schools",
+      "satscores"
+    ],
+    "primary_name": "schools",
+    "description": "Communication number refers to phone number.",
+    "source_sql": "SELECT T2.School, T1.AvgScrWrite, T2.Phone FROM schools AS T2 LEFT JOIN satscores AS T1 ON T2.CDSCode = T1.cds WHERE strftime('%Y', T2.OpenDate) > '1991' OR strftime('%Y', T2.ClosedDate) < '2000'"
+  },
+  {
+    "id": "bird_california_schools_029",
+    "intent": "Consider the average difference between K-12 enrollment and 15-17 enrollment of schools that are locally funded, list the names and DOC type of schools which has a difference above this average.",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "Difference between K-12 enrollment and 15-17 enrollment can be computed by `Enrollment (K-12)` - `Enrollment (Ages 5-17)`",
+    "source_sql": "SELECT T2.School, T2.DOC FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.FundingType = 'Locally funded' AND (T1.`Enrollment (K-12)` - T1.`Enrollment (Ages 5-17)`) > (SELECT AVG(T3.`Enrollment (K-12)` - T3.`Enrollment (Ages 5-17)`) FROM frpm AS T3 INNER JOIN schools AS T4 ON T3.CDSCode = T4.CDSCode WHERE T4.FundingType = 'Locally funded')"
+  },
+  {
+    "id": "bird_california_schools_030",
+    "intent": "When did the first-through-twelfth-grade school with the largest enrollment open?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "K-12 means First-through-twelfth-grade",
+    "source_sql": "SELECT T2.OpenDate FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode ORDER BY T1.`Enrollment (K-12)` DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_031",
+    "intent": "Which cities have the top 5 lowest enrollment number for students in grades 1 through 12?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "K-12 refers to students in grades 1 through 12.",
+    "source_sql": "SELECT T2.City FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode GROUP BY T2.City ORDER BY SUM(T1.`Enrollment (K-12)`) ASC LIMIT 5"
+  },
+  {
+    "id": "bird_california_schools_032",
+    "intent": "What is the eligible free rate of the 10th and 11th schools with the highest enrolment for students in grades 1 through 12?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm"
+    ],
+    "primary_name": "frpm",
+    "description": "K-12 refers to students in grades 1 through 12; Eligible free rate for K-12 = `Free Meal Count (K-12)` / `Enrollment (K-12)`",
+    "source_sql": "SELECT CAST(`Free Meal Count (K-12)` AS REAL) / `Enrollment (K-12)` FROM frpm ORDER BY `Enrollment (K-12)` DESC LIMIT 9, 2"
+  },
+  {
+    "id": "bird_california_schools_033",
+    "intent": "What is the eligible free or reduced price meal rate for the top 5 schools in grades 1-12 with the highest free or reduced price meal count of the schools with the ownership code 66?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "grades 1-12 means K-12; Eligible free or reduced price meal rate for K-12 = `FRPM Count (K-12)` / `Enrollment (K-12)`",
+    "source_sql": "SELECT CAST(T1.`FRPM Count (K-12)` AS REAL) / T1.`Enrollment (K-12)` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.SOC = 66 ORDER BY T1.`FRPM Count (K-12)` DESC LIMIT 5"
+  },
+  {
+    "id": "bird_california_schools_034",
+    "intent": "If there are any, what are the websites address of the schools with a free meal count of 1,900-2,000 to students aged 5-17? Include the name of the school.",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "",
+    "source_sql": "SELECT T2.Website, T1.`School Name` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.`Free Meal Count (Ages 5-17)` BETWEEN 1900 AND 2000 AND T2.Website IS NOT NULL"
+  },
+  {
+    "id": "bird_california_schools_035",
+    "intent": "What is the free rate for students between the ages of 5 and 17 at the school run by Kacey Gibson?",
+    "category": "bird",
+    "relevant_names": [
+      "schools",
+      "frpm"
+    ],
+    "primary_name": "schools",
+    "description": "Eligible free rates for students aged 5-17 = `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)`",
+    "source_sql": "SELECT CAST(T2.`Free Meal Count (Ages 5-17)` AS REAL) / T2.`Enrollment (Ages 5-17)` FROM schools AS T1 INNER JOIN frpm AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.AdmFName1 = 'Kacey' AND T1.AdmLName1 = 'Gibson'"
+  },
+  {
+    "id": "bird_california_schools_036",
+    "intent": "What is the administrator's email address of the chartered school with the fewest students enrolled in grades 1 through 12?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "Charted school means `Charter School (Y/N)` = 1 in the table frpm; Students enrolled in grades 1 through 12 refers to `Enrollment (K-12)`",
+    "source_sql": "SELECT T2.AdmEmail1 FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.`Charter School (Y/N)` = 1 ORDER BY T1.`Enrollment (K-12)` ASC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_037",
+    "intent": "Under whose administration is the school with the highest number of students scoring 1500 or more on the SAT? Indicate their full names.",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "full name means first name, last name; There are at most 3 administrators for each school; SAT Scores are greater or equal to 1500 refers to NumGE1500",
+    "source_sql": "SELECT T2.AdmFName1, T2.AdmLName1, T2.AdmFName2, T2.AdmLName2, T2.AdmFName3, T2.AdmLName3 FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.NumGE1500 DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_038",
+    "intent": "What is the complete address of the school with the lowest excellence rate? Indicate the Street, City, Zip and State.",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "Execellence Rate = NumGE1500 / NumTstTakr; complete address has Street, City, State, Zip code",
+    "source_sql": "SELECT T2.Street, T2.City, T2.State, T2.Zip FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY CAST(T1.NumGE1500 AS REAL) / T1.NumTstTakr ASC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_039",
+    "intent": "What are the webpages for the Los Angeles County school that has between 2,000 and 3,000 test takers?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT T2.Website FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T1.NumTstTakr BETWEEN 2000 AND 3000 AND T2.County = 'Los Angeles'"
+  },
+  {
+    "id": "bird_california_schools_040",
+    "intent": "What is the average number of test takers from Fresno schools that opened between 1/1/1980 and 12/31/1980?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "between 1/1/1980 and 12/31/1980 means the year = 1980",
+    "source_sql": "SELECT AVG(T1.NumTstTakr) FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE strftime('%Y', T2.OpenDate) = '1980' AND T2.County = 'Fresno'"
+  },
+  {
+    "id": "bird_california_schools_041",
+    "intent": "What is the telephone number for the school with the lowest average score in reading in Fresno Unified?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "Fresno Unified is a name of district;",
+    "source_sql": "SELECT T2.Phone FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T2.District = 'Fresno Unified' AND T1.AvgScrRead IS NOT NULL ORDER BY T1.AvgScrRead ASC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_042",
+    "intent": "List the names of virtual schools that are among the top 5 in their respective counties based on average reading scores.",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "Exclusively virtual refers to Virtual = 'F'; respective counties means PARTITION BY County",
+    "source_sql": "SELECT School FROM (SELECT T2.School,T1.AvgScrRead, RANK() OVER (PARTITION BY T2.County ORDER BY T1.AvgScrRead DESC) AS rnk FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T2.Virtual = 'F' ) ranked_schools WHERE rnk <= 5"
+  },
+  {
+    "id": "bird_california_schools_043",
+    "intent": "What is the type of education offered in the school who scored the highest average in Math?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT T2.EdOpsName FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.AvgScrMath DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_044",
+    "intent": "What is the average math score of the school with the lowest average score for all subjects, and in which county is it located?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "Average score for all subjects can be computed by AvgScrMath + AvgScrRead + AvgScrWrite",
+    "source_sql": "SELECT T1.AvgScrMath, T2.County FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T1.AvgScrMath IS NOT NULL ORDER BY T1.AvgScrMath + T1.AvgScrRead + T1.AvgScrWrite ASC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_045",
+    "intent": "What is the average writing score of the school who has the highest number of test takers whose total SAT sscores are greater or equal to 1500? Indicate the city to where the school is situated.",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT T1.AvgScrWrite, T2.City FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.NumGE1500 DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_046",
+    "intent": "What is the average writing score of each of the schools managed by Ricci Ulrich? List the schools and the corresponding average writing scores.",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "Usually, administrators manage the school stuff.",
+    "source_sql": "SELECT T2.School, T1.AvgScrWrite FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T2.AdmFName1 = 'Ricci' AND T2.AdmLName1 = 'Ulrich'"
+  },
+  {
+    "id": "bird_california_schools_047",
+    "intent": "Which state special schools have the highest number of enrollees from grades 1 through 12?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "State Special Schools refers to DOC = 31; Grades 1 through 12 means K-12",
+    "source_sql": "SELECT T2.School FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.DOC = 31 ORDER BY T1.`Enrollment (K-12)` DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_048",
+    "intent": "What is the monthly average number of schools that opened in Alameda County under the jurisdiction of the Elementary School District in 1980?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "Elementary School District refers to DOC = 52; Monthly average number of schools that opened in 1980 = count(schools that opened in 1980) / 12",
+    "source_sql": "SELECT CAST(COUNT(School) AS REAL) / 12 FROM schools WHERE DOC = 52 AND County = 'Alameda' AND strftime('%Y', OpenDate) = '1980'"
+  },
+  {
+    "id": "bird_california_schools_049",
+    "intent": "What is the ratio of merged Unified School District schools in Orange County to merged Elementary School District schools?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "Elementary School District refers to DOC = 52; Unified School District refers to DOC = 54.",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN DOC = 54 THEN 1 ELSE 0 END) AS REAL) / SUM(CASE WHEN DOC = 52 THEN 1 ELSE 0 END) FROM schools WHERE StatusType = 'Merged' AND County = 'Orange'"
+  },
+  {
+    "id": "bird_california_schools_050",
+    "intent": "Which different county has the most number of closed schools? Please provide the name of each school as well as the closure date.",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "Closure date and closed date are synonyms; 'Closed' was mentioned in schools.StatusType.",
+    "source_sql": "SELECT DISTINCT County, School, ClosedDate FROM schools WHERE County = ( SELECT County FROM schools WHERE StatusType = 'Closed' GROUP BY County ORDER BY COUNT(School) DESC LIMIT 1 ) AND StatusType = 'Closed' AND school IS NOT NULL"
+  },
+  {
+    "id": "bird_california_schools_051",
+    "intent": "What is the postal street address for the school with the 7th highest Math average? Indicate the school's name.",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "Postal street and mailing street are synonyms.",
+    "source_sql": "SELECT T2.MailStreet, T2.School FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.AvgScrMath DESC LIMIT 6, 1"
+  },
+  {
+    "id": "bird_california_schools_052",
+    "intent": "In which mailing street address can you find the school that has the lowest average score in reading? Also give the school's name.",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT T2.MailStreet, T2.School FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T1.AvgScrRead IS NOT NULL ORDER BY T1.AvgScrRead ASC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_053",
+    "intent": "What is the total number of schools whose total SAT scores are greater or equal to 1500 whose mailing city is Lakeport?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "Total SAT scores can be computed by AvgScrRead + AvgScrMath + AvgScrWrite",
+    "source_sql": "SELECT COUNT(T1.cds) FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T2.MailCity = 'Lakeport' AND (T1.AvgScrRead + T1.AvgScrMath + T1.AvgScrWrite) >= 1500"
+  },
+  {
+    "id": "bird_california_schools_054",
+    "intent": "How many test takers are there at the school/s whose mailing city address is in Fresno?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT T1.NumTstTakr FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T2.MailCity = 'Fresno'"
+  },
+  {
+    "id": "bird_california_schools_055",
+    "intent": "Please specify all of the schools and their related mailing zip codes that are under Avetik Atoian's administration.",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT School, MailZip FROM schools WHERE AdmFName1 = 'Avetik' AND AdmLName1 = 'Atoian'"
+  },
+  {
+    "id": "bird_california_schools_056",
+    "intent": "Of the schools with a mailing state address in California, what is the ratio of the schools located in the county of Colusa against the school located in the county of Humboldt?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "Ratio = count(schools in Colusa) / count(schools in Humboldt)",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN County = 'Colusa' THEN 1 ELSE 0 END) AS REAL) / SUM(CASE WHEN County = 'Humboldt' THEN 1 ELSE 0 END) FROM schools WHERE MailState = 'CA'"
+  },
+  {
+    "id": "bird_california_schools_057",
+    "intent": "Of all the schools with a mailing state address in California, how many are active in San Joaquin city?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT COUNT(CDSCode) FROM schools WHERE City = 'San Joaquin' AND MailState = 'CA' AND StatusType = 'Active'"
+  },
+  {
+    "id": "bird_california_schools_058",
+    "intent": "What is the phone number and extension number for the school that had the 333rd highest average writing score?",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT T2.Phone, T2.Ext FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.AvgScrWrite DESC LIMIT 332, 1"
+  },
+  {
+    "id": "bird_california_schools_059",
+    "intent": "What is the phone number and extension number for the school with the zip code 95203-3704? Indicate the school's name.",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT Phone, Ext, School FROM schools WHERE Zip = '95203-3704'"
+  },
+  {
+    "id": "bird_california_schools_060",
+    "intent": "What is the website for the schools under the administrations of Mike Larson and Dante Alvarez?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT Website FROM schools WHERE (AdmFName1 = 'Mike' AND AdmLName1 = 'Larson') OR (AdmFName1 = 'Dante' AND AdmLName1 = 'Alvarez')"
+  },
+  {
+    "id": "bird_california_schools_061",
+    "intent": "What are the websites for all the partially virtual chartered schools located in San Joaquin?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "Virtual = 'P' means partially virtual; Charter schools refers to Charter = 1 in the table schools",
+    "source_sql": "SELECT Website FROM schools WHERE County = 'San Joaquin' AND Virtual = 'P' AND Charter = 1"
+  },
+  {
+    "id": "bird_california_schools_062",
+    "intent": "How many chartered schools located in the city of Hickman are owned by the Elementary School District?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "Elementary School District refers to DOC = 52; Chartered schools refer to Charter = 1 in the table schools",
+    "source_sql": "SELECT COUNT(School) FROM schools WHERE DOC = 52 AND Charter = 1 AND City = 'Hickman'"
+  },
+  {
+    "id": "bird_california_schools_063",
+    "intent": "What is the total number of non-chartered schools in the county of Los Angeles with a percent (%) of eligible free meals for grades 1 through 12 that is less than 0.18%?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "non-chartered schools refer to schools whose Charter = 0; K-12 means grades 1 through 12; percent of eligible free rate for K-12 = `Free Meal Count (K-12)` * 100 / `Enrollment (K-12)`",
+    "source_sql": "SELECT COUNT(T2.School) FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.County = 'Los Angeles' AND T2.Charter = 0 AND CAST(T1.`Free Meal Count (K-12)` AS REAL) * 100 / T1.`Enrollment (K-12)` < 0.18"
+  },
+  {
+    "id": "bird_california_schools_064",
+    "intent": "In chartered schools with charter number 00D2, what are the names of all the administrators? Include the name of the school and the city to which it belongs",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "Chartered schools refer to Charter = 1 in the table schools; Full name refers to first name, last name",
+    "source_sql": "SELECT AdmFName1, AdmLName1, School, City FROM schools WHERE Charter = 1 AND CharterNum = '00D2'"
+  },
+  {
+    "id": "bird_california_schools_065",
+    "intent": "What is the total number of schools with a mailing city in Hickman belonging to the charter number 00D4?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT COUNT(*) FROM schools WHERE CharterNum = '00D4' AND MailCity = 'Hickman'"
+  },
+  {
+    "id": "bird_california_schools_066",
+    "intent": "What is the ratio in percentage of Santa Clara County schools that are locally funded compared to all other types of charter school funding?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "Ratio in percentage = (count(locally funded schools in Santa Clara) / count(all funding type schools in Santa Clara) * 100%",
+    "source_sql": "SELECT CAST(SUM(CASE WHEN FundingType = 'Locally funded' THEN 1 ELSE 0 END) AS REAL) * 100 / SUM(CASE WHEN FundingType != 'Locally funded' THEN 1 ELSE 0 END) FROM schools WHERE County = 'Santa Clara' AND Charter = 1"
+  },
+  {
+    "id": "bird_california_schools_067",
+    "intent": "Between 1/1/2000 to 12/31/2005, how many directly funded schools opened in the county of Stanislaus?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "Directly funded schools refers to FundingType = 'Directly Funded'",
+    "source_sql": "SELECT COUNT(School) FROM schools WHERE strftime('%Y', OpenDate) BETWEEN '2000' AND '2005' AND County = 'Stanislaus' AND FundingType = 'Directly funded'"
+  },
+  {
+    "id": "bird_california_schools_068",
+    "intent": "What is the total amount of Community College District closure in 1989 in the city of San Francisco?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT COUNT(School) FROM schools WHERE strftime('%Y', ClosedDate) = '1989' AND City = 'San Francisco' AND DOCType = 'Community College District'"
+  },
+  {
+    "id": "bird_california_schools_069",
+    "intent": "Which county reported the most number of school closure in the 1980s with school wonership code belonging to Youth Authority Facilities (CEA)?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "Youth Authority Facilities (CEA) refers to SOC = 11; 1980s = years between 1980 and 1989",
+    "source_sql": "SELECT County FROM schools WHERE strftime('%Y', ClosedDate) BETWEEN '1980' AND '1989' AND StatusType = 'Closed' AND SOC = 11 GROUP BY County ORDER BY COUNT(School) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_070",
+    "intent": "Please provide the National Center for Educational Statistics school district identification number for all schools with a School Ownership Code that are part of the State Special Schools.",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "State Special Schools means that SOC = 31.",
+    "source_sql": "SELECT NCESDist FROM schools WHERE SOC = 31"
+  },
+  {
+    "id": "bird_california_schools_071",
+    "intent": "How many active and closed District Community Day Schools are there in the county of Alpine?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT COUNT(School) FROM schools WHERE (StatusType = 'Closed' OR StatusType = 'Active') AND SOC = 69 AND County = 'Alpine'"
+  },
+  {
+    "id": "bird_california_schools_072",
+    "intent": "What is the district code for the School that does not offer a magnet program in the city of Fresno?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "When magent is equal to 0 in the database, it means ths school doesn't offer a magnet program.",
+    "source_sql": "SELECT T1.`District Code` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.City = 'Fresno' AND T2.Magnet = 0"
+  },
+  {
+    "id": "bird_california_schools_073",
+    "intent": "How many students from the ages of 5 to 17 are enrolled at the State Special School school in Fremont for the 2014-2015 academic year?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "State Special School means EdOpsCode = 'SSS'",
+    "source_sql": "SELECT T1.`Enrollment (Ages 5-17)` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.EdOpsCode = 'SSS' AND T2.City = 'Fremont' AND T1.`Academic Year` BETWEEN 2014 AND 2015"
+  },
+  {
+    "id": "bird_california_schools_074",
+    "intent": "What is the free or reduced price meal count for ages 5 to 17 in the Youth Authority School with a mailing street address of PO Box 1040?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "",
+    "source_sql": "SELECT T1.`FRPM Count (Ages 5-17)` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.MailStreet = 'PO Box 1040' AND T2.SOCType = 'Youth Authority Facilities'"
+  },
+  {
+    "id": "bird_california_schools_075",
+    "intent": "What is the lowest grade for the District Special Education Consortia School with National Center for Educational Statistics school district identification number of 0613360?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "District Special Education Consortia School refers to EdOpsCode = 'SPECON'.",
+    "source_sql": "SELECT MIN(T1.`Low Grade`) FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.NCESDist = '0613360' AND T2.EdOpsCode = 'SPECON'"
+  },
+  {
+    "id": "bird_california_schools_076",
+    "intent": "What is the educational level name for the schools with Breakfast Provision 2 in county code 37? Indicate the name of the school.",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "",
+    "source_sql": "SELECT T2.EILName, T2.School FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.`NSLP Provision Status` = 'Breakfast Provision 2' AND T1.`County Code` = 37"
+  },
+  {
+    "id": "bird_california_schools_077",
+    "intent": "What is the city location of the high school level school with Lunch Provision 2 whose lowest grade is 9 and the highest grade is 12 in the county of Merced?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "High school can be represented as EILCode = 'HS'",
+    "source_sql": "SELECT T2.City FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.`NSLP Provision Status` = 'Lunch Provision 2' AND T2.County = 'Merced' AND T1.`Low Grade` = 9 AND T1.`High Grade` = 12 AND T2.EILCode = 'HS'"
+  },
+  {
+    "id": "bird_california_schools_078",
+    "intent": "Which schools served a grade span of Kindergarten to 9th grade in the county of Los Angeles and what is its Percent (%) Eligible FRPM (Ages 5-17)?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "Percent (%) Eligible FRPM (Ages 5-17) can be acquired by `FRPM Count (Ages 5-17)` / `Enrollment (Ages 5-17)` * 100",
+    "source_sql": "SELECT T2.School, T1.`FRPM Count (Ages 5-17)` * 100 / T1.`Enrollment (Ages 5-17)` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.County = 'Los Angeles' AND T2.GSserved = 'K-9'"
+  },
+  {
+    "id": "bird_california_schools_079",
+    "intent": "What is the most common type of grade span served in the city of Adelanto?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT GSserved FROM schools WHERE City = 'Adelanto' GROUP BY GSserved ORDER BY COUNT(GSserved) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_080",
+    "intent": "Between San Diego and Santa Barbara, which county offers the most number of schools that does not offer physical building? Indicate the amount.",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "'Does not offer physical building' means Virtual = F in the database.",
+    "source_sql": "SELECT County, COUNT(Virtual) FROM schools WHERE (County = 'San Diego' OR County = 'Santa Barbara') AND Virtual = 'F' GROUP BY County ORDER BY COUNT(Virtual) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_081",
+    "intent": "What is the school type of the school with the highest latitude? Indicate the name of the school as well as the latitude coordinates.",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "",
+    "source_sql": "SELECT T1.`School Type`, T1.`School Name`, T2.Latitude FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode ORDER BY T2.Latitude DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_082",
+    "intent": "In which city can you find the school in the state of California with the lowest latitude coordinates and what is its lowest grade? Indicate the school name.",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "State of California refers to state = 'CA'",
+    "source_sql": "SELECT T2.City, T1.`Low Grade`, T1.`School Name` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.State = 'CA' ORDER BY T2.Latitude ASC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_083",
+    "intent": "What is the grade span offered in the school with the highest longitude?",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "the highest longitude refers to the school with the maximum absolute longitude value.",
+    "source_sql": "SELECT GSoffered FROM schools ORDER BY ABS(longitude) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_california_schools_084",
+    "intent": "Of the schools that offers a magnet program serving a grade span of Kindergarten to 8th grade, how many offers Multiple Provision Types? List the number of cities that offers a Kindergarten to 8th grade span and indicate how many schools are there serving such grade span for each city.",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "Kindergarten to 8th grade refers to K-8; 'Offers a magnet program' means Magnet = 1; Multiple Provision Types refers to `NSLP Provision Status` = 'Multiple Provision Types'",
+    "source_sql": "SELECT T2.City, COUNT(T2.CDSCode) FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.Magnet = 1 AND T2.GSoffered = 'K-8' AND T1.`NSLP Provision Status` = 'Multiple Provision Types' GROUP BY T2.City"
+  },
+  {
+    "id": "bird_california_schools_085",
+    "intent": "What are the two most common first names among the school administrators? Indicate the district to which they administer.",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT DISTINCT T1.AdmFName1, T1.District FROM schools AS T1 INNER JOIN ( SELECT admfname1 FROM schools GROUP BY admfname1 ORDER BY COUNT(admfname1) DESC LIMIT 2 ) AS T2 ON T1.AdmFName1 = T2.admfname1"
+  },
+  {
+    "id": "bird_california_schools_086",
+    "intent": "What is the Percent (%) Eligible Free (K-12) in the school administered by an administrator whose first name is Alusine. List the district code of the school.",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "Percent (%) Eligible Free (K-12) = `Free Meal Count (K-12)` / `Enrollment (K-12)` * 100%",
+    "source_sql": "SELECT T1.`Free Meal Count (K-12)` * 100 / T1.`Enrollment (K-12)`, T1.`District Code` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.AdmFName1 = 'Alusine'"
+  },
+  {
+    "id": "bird_california_schools_087",
+    "intent": "What is the administrator's last name that oversees the school with Charter number 40? Indicate the district, the county where the school is situated, and the name of the school.",
+    "category": "bird",
+    "relevant_names": [
+      "schools"
+    ],
+    "primary_name": "schools",
+    "description": "",
+    "source_sql": "SELECT AdmLName1, District, County, School FROM schools WHERE CharterNum = '0040'"
+  },
+  {
+    "id": "bird_california_schools_088",
+    "intent": "What are the valid e-mail addresses of the administrator of the school located in the San Bernardino county, City of San Bernardino City Unified that opened between 1/1/2009 to 12/31/2010 whose school types are public Intermediate/Middle Schools and Unified Schools?",
+    "category": "bird",
+    "relevant_names": [
+      "frpm",
+      "schools"
+    ],
+    "primary_name": "frpm",
+    "description": "Intermediate/Middle Schools refers to SOC = 62; Unified School refers to DOC = 54; years between 2009 and 2010 can refer to 'between 1/1/2009 to 12/31/2010'",
+    "source_sql": "SELECT T2.AdmEmail1, T2.AdmEmail2 FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.County = 'San Bernardino' AND T2.City = 'San Bernardino' AND T2.DOC = 54 AND strftime('%Y', T2.OpenDate) BETWEEN '2009' AND '2010' AND T2.SOC = 62"
+  },
+  {
+    "id": "bird_california_schools_089",
+    "intent": "What is the administrator's email address for the school with the highest number of test takers who received SAT scores of at least 1500?Provide the name of the school.",
+    "category": "bird",
+    "relevant_names": [
+      "satscores",
+      "schools"
+    ],
+    "primary_name": "satscores",
+    "description": "",
+    "source_sql": "SELECT T2.AdmEmail1, T2.School FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.NumGE1500 DESC LIMIT 1"
+  }
+]

@@ -1,0 +1,709 @@
+{
+  "bird_codebase_community_001": [
+    "users"
+  ],
+  "bird_codebase_community_002": [
+    "users"
+  ],
+  "bird_codebase_community_003": [
+    "users"
+  ],
+  "bird_codebase_community_004": [
+    "users"
+  ],
+  "bird_codebase_community_005": [
+    "users"
+  ],
+  "bird_codebase_community_006": [
+    "users"
+  ],
+  "bird_codebase_community_007": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_008": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_009": [
+    "posts",
+    "experts",
+    "users"
+  ],
+  "bird_codebase_community_010": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_011": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_012": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_013": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_014": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_015": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_016": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_017": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_018": [
+    "posts",
+    "experts",
+    "users"
+  ],
+  "bird_codebase_community_019": [
+    "tags",
+    "posts"
+  ],
+  "bird_codebase_community_020": [
+    "posts",
+    "tags"
+  ],
+  "bird_codebase_community_021": [
+    "badges",
+    "users"
+  ],
+  "bird_codebase_community_022": [
+    "badges",
+    "users"
+  ],
+  "bird_codebase_community_023": [
+    "badges",
+    "users"
+  ],
+  "bird_codebase_community_024": [
+    "badges",
+    "users"
+  ],
+  "bird_codebase_community_025": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_026": [
+    "badges",
+    "users"
+  ],
+  "bird_codebase_community_027": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_028": [
+    "votes"
+  ],
+  "bird_codebase_community_029": [
+    "votes"
+  ],
+  "bird_codebase_community_030": [
+    "badges"
+  ],
+  "bird_codebase_community_031": [
+    "posts",
+    "comments"
+  ],
+  "bird_codebase_community_032": [
+    "posts",
+    "comments"
+  ],
+  "bird_codebase_community_033": [
+    "posts",
+    "comments"
+  ],
+  "bird_codebase_community_034": [
+    "posts",
+    "comments"
+  ],
+  "bird_codebase_community_035": [
+    "comments",
+    "posts"
+  ],
+  "bird_codebase_community_036": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_037": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_038": [
+    "users",
+    "votes"
+  ],
+  "bird_codebase_community_039": [
+    "posts",
+    "votes"
+  ],
+  "bird_codebase_community_040": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_041": [
+    "votes",
+    "posts"
+  ],
+  "bird_codebase_community_042": [
+    "posts"
+  ],
+  "bird_codebase_community_043": [
+    "comments"
+  ],
+  "bird_codebase_community_044": [
+    "users"
+  ],
+  "bird_codebase_community_045": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_046": [
+    "users",
+    "comments"
+  ],
+  "bird_codebase_community_047": [
+    "users",
+    "comments"
+  ],
+  "bird_codebase_community_048": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_049": [
+    "comments",
+    "adaboost",
+    "posts"
+  ],
+  "bird_codebase_community_050": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_051": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_052": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_053": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_054": [
+    "posts",
+    "posthistory"
+  ],
+  "bird_codebase_community_055": [
+    "posts",
+    "votes"
+  ],
+  "bird_codebase_community_056": [
+    "posts",
+    "votes",
+    "users"
+  ],
+  "bird_codebase_community_057": [
+    "comments",
+    "posts"
+  ],
+  "bird_codebase_community_058": [
+    "comments"
+  ],
+  "bird_codebase_community_059": [
+    "users"
+  ],
+  "bird_codebase_community_060": [
+    "users"
+  ],
+  "bird_codebase_community_061": [
+    "badges"
+  ],
+  "bird_codebase_community_062": [
+    "badges"
+  ],
+  "bird_codebase_community_063": [
+    "badges",
+    "users"
+  ],
+  "bird_codebase_community_064": [
+    "comments",
+    "users"
+  ],
+  "bird_codebase_community_065": [
+    "users",
+    "posthistory",
+    "posts"
+  ],
+  "bird_codebase_community_066": [
+    "badges",
+    "comments"
+  ],
+  "bird_codebase_community_067": [
+    "badges",
+    "users"
+  ],
+  "bird_codebase_community_068": [
+    "badges"
+  ],
+  "bird_codebase_community_069": [
+    "comments",
+    "posthistory"
+  ],
+  "bird_codebase_community_070": [
+    "posts",
+    "postlinks"
+  ],
+  "bird_codebase_community_071": [
+    "posts",
+    "postlinks"
+  ],
+  "bird_codebase_community_072": [
+    "posthistory",
+    "posts"
+  ],
+  "bird_codebase_community_073": [
+    "posts",
+    "posthistory"
+  ],
+  "bird_codebase_community_074": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_075": [
+    "badges"
+  ],
+  "bird_codebase_community_076": [
+    "badges"
+  ],
+  "bird_codebase_community_077": [
+    "comments"
+  ],
+  "bird_codebase_community_078": [
+    "comments"
+  ],
+  "bird_codebase_community_079": [
+    "posts"
+  ],
+  "bird_codebase_community_080": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_081": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_082": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_083": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_084": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_085": [
+    "badges",
+    "users"
+  ],
+  "bird_codebase_community_086": [
+    "comments",
+    "posts"
+  ],
+  "bird_codebase_community_087": [
+    "comments",
+    "posts"
+  ],
+  "bird_codebase_community_088": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_089": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_090": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_091": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_092": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_093": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_094": [
+    "users"
+  ],
+  "bird_codebase_community_095": [
+    "users"
+  ],
+  "bird_codebase_community_096": [
+    "votes"
+  ],
+  "bird_codebase_community_097": [
+    "users"
+  ],
+  "bird_codebase_community_098": [
+    "users"
+  ],
+  "bird_codebase_community_099": [
+    "votes"
+  ],
+  "bird_codebase_community_100": [
+    "users",
+    "posthistory",
+    "posts"
+  ],
+  "bird_codebase_community_101": [
+    "users",
+    "posthistory"
+  ],
+  "bird_codebase_community_102": [
+    "users",
+    "posthistory",
+    "votes"
+  ],
+  "bird_codebase_community_103": [
+    "users",
+    "posthistory",
+    "posts"
+  ],
+  "bird_codebase_community_104": [
+    "users",
+    "posthistory",
+    "posts"
+  ],
+  "bird_codebase_community_105": [
+    "users",
+    "posthistory",
+    "posts",
+    "votes"
+  ],
+  "bird_codebase_community_106": [
+    "users",
+    "posts",
+    "comments"
+  ],
+  "bird_codebase_community_107": [
+    "users",
+    "posthistory",
+    "posts"
+  ],
+  "bird_codebase_community_108": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_109": [
+    "users",
+    "posthistory",
+    "tags"
+  ],
+  "bird_codebase_community_110": [
+    "users",
+    "posthistory",
+    "posts"
+  ],
+  "bird_codebase_community_111": [
+    "badges"
+  ],
+  "bird_codebase_community_112": [
+    "posthistory"
+  ],
+  "bird_codebase_community_113": [
+    "users"
+  ],
+  "bird_codebase_community_114": [
+    "posts"
+  ],
+  "bird_codebase_community_115": [
+    "comments"
+  ],
+  "bird_codebase_community_116": [
+    "posts",
+    "comments"
+  ],
+  "bird_codebase_community_117": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_118": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_119": [
+    "posthistory",
+    "posts"
+  ],
+  "bird_codebase_community_120": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_121": [
+    "postlinks",
+    "posts"
+  ],
+  "bird_codebase_community_122": [
+    "posthistory",
+    "badges"
+  ],
+  "bird_codebase_community_123": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_124": [
+    "tags",
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_125": [
+    "posts",
+    "postlinks"
+  ],
+  "bird_codebase_community_126": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_127": [
+    "users",
+    "votes"
+  ],
+  "bird_codebase_community_128": [
+    "posts"
+  ],
+  "bird_codebase_community_129": [
+    "tags"
+  ],
+  "bird_codebase_community_130": [
+    "posts"
+  ],
+  "bird_codebase_community_131": [
+    "users"
+  ],
+  "bird_codebase_community_132": [
+    "posts",
+    "votes"
+  ],
+  "bird_codebase_community_133": [
+    "users"
+  ],
+  "bird_codebase_community_134": [
+    "posts"
+  ],
+  "bird_codebase_community_135": [
+    "postlinks",
+    "posts"
+  ],
+  "bird_codebase_community_136": [
+    "votes",
+    "posts"
+  ],
+  "bird_codebase_community_137": [
+    "posts",
+    "postlinks"
+  ],
+  "bird_codebase_community_138": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_139": [
+    "users",
+    "votes"
+  ],
+  "bird_codebase_community_140": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_141": [
+    "users",
+    "badges"
+  ],
+  "bird_codebase_community_142": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_143": [
+    "votes",
+    "users"
+  ],
+  "bird_codebase_community_144": [
+    "users"
+  ],
+  "bird_codebase_community_145": [
+    "users"
+  ],
+  "bird_codebase_community_146": [
+    "users"
+  ],
+  "bird_codebase_community_147": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_148": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_149": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_150": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_151": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_152": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_153": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_154": [
+    "users"
+  ],
+  "bird_codebase_community_155": [
+    "posthistory",
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_156": [
+    "posts"
+  ],
+  "bird_codebase_community_157": [
+    "posts",
+    "comments"
+  ],
+  "bird_codebase_community_158": [
+    "posts"
+  ],
+  "bird_codebase_community_159": [
+    "posts",
+    "users"
+  ],
+  "bird_codebase_community_160": [
+    "badges",
+    "users"
+  ],
+  "bird_codebase_community_161": [
+    "users"
+  ],
+  "bird_codebase_community_162": [
+    "badges",
+    "users"
+  ],
+  "bird_codebase_community_163": [
+    "users",
+    "posts",
+    "comments"
+  ],
+  "bird_codebase_community_164": [
+    "users",
+    "posts",
+    "comments"
+  ],
+  "bird_codebase_community_165": [
+    "badges"
+  ],
+  "bird_codebase_community_166": [
+    "tags"
+  ],
+  "bird_codebase_community_167": [
+    "users"
+  ],
+  "bird_codebase_community_168": [
+    "posts"
+  ],
+  "bird_codebase_community_169": [
+    "users"
+  ],
+  "bird_codebase_community_170": [
+    "votes"
+  ],
+  "bird_codebase_community_171": [
+    "users",
+    "posts"
+  ],
+  "bird_codebase_community_172": [
+    "posts"
+  ],
+  "bird_codebase_community_173": [
+    "tags"
+  ],
+  "bird_codebase_community_174": [
+    "tags"
+  ],
+  "bird_codebase_community_175": [
+    "comments",
+    "users"
+  ],
+  "bird_codebase_community_176": [
+    "comments",
+    "posts"
+  ],
+  "bird_codebase_community_177": [
+    "comments",
+    "posts"
+  ],
+  "bird_codebase_community_178": [
+    "comments",
+    "users"
+  ],
+  "bird_codebase_community_179": [
+    "comments",
+    "posts"
+  ],
+  "bird_codebase_community_180": [
+    "comments",
+    "posts"
+  ],
+  "bird_codebase_community_181": [
+    "comments",
+    "users"
+  ],
+  "bird_codebase_community_182": [
+    "comments",
+    "posts"
+  ],
+  "bird_codebase_community_183": [
+    "comments",
+    "users"
+  ],
+  "bird_codebase_community_184": [
+    "comments",
+    "users"
+  ],
+  "bird_codebase_community_185": [
+    "comments",
+    "users"
+  ],
+  "bird_codebase_community_186": [
+    "users",
+    "comments"
+  ]
+}

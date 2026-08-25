@@ -90,13 +90,14 @@ def build_registry(db_dir: str, database: str, embedding_fn=None) -> DataRegistr
 # ── Attribute-level scoring (Hit@K / MRR) ─────────────────────────────────
 
 def score_attribute(results: list[dict], relevant_names: set[str]) -> dict:
+    norm = {n.lower() for n in relevant_names}
     metrics: dict[str, float] = {}
     for k in K_VALUES:
-        hit = any(r.get("name") in relevant_names for r in results[:k])
+        hit = any((r.get("name") or "").lower() in norm for r in results[:k])
         metrics[f"hit@{k}"] = 1.0 if hit else 0.0
     mrr = 0.0
     for rank, r in enumerate(results[:10], 1):
-        if r.get("name") in relevant_names:
+        if (r.get("name") or "").lower() in norm:
             mrr = 1.0 / rank
             break
     metrics["mrr"] = mrr
@@ -106,15 +107,16 @@ def score_attribute(results: list[dict], relevant_names: set[str]) -> dict:
 # ── Entity-level scoring (P / R / F1 @ K) ─────────────────────────────────
 
 def score_entity_set(results: list[dict], relevant_entities: set[str], k: int) -> dict:
+    norm = {e.lower() for e in relevant_entities}
     entity_results = [r for r in results[:k] if r.get("type") == "entity"]
-    retrieved = {r.get("name") for r in entity_results if r.get("name")}
+    retrieved = {(r.get("name") or "").lower() for r in entity_results if r.get("name")}
 
-    if not relevant_entities:
+    if not norm:
         return {"precision": 0.0, "recall": 0.0, "f1": 0.0}
 
-    tp = len(retrieved & relevant_entities)
+    tp = len(retrieved & norm)
     precision = tp / len(retrieved) if retrieved else 0.0
-    recall    = tp / len(relevant_entities)
+    recall    = tp / len(norm)
     f1 = (2 * precision * recall / (precision + recall)
           if (precision + recall) > 0 else 0.0)
     return {"precision": precision, "recall": recall, "f1": f1}
@@ -388,7 +390,7 @@ def generate_report(title, results, cnames, cats, n, has_entity) -> str:
         a("## Entity-level retrieval (P / R / F1)")
         a("")
         a("> Does the search return the right **set of tables** (entity records)?  ")
-        a("> Ideal-K uses exactly |relevant tables| as the cutoff — directly comparable to MEW.")
+        a("> Ideal-K uses exactly |relevant tables| as the cutoff.")
         a("")
         hdr = "| Metric |" + "".join(f" {c} |" for c in cnames)
         sep = "|--------|" + "".join("---------|" for _ in cnames)

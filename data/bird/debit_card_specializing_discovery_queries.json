@@ -1,0 +1,765 @@
+[
+  {
+    "id": "bird_debit_card_specializing_001",
+    "intent": "How many gas stations in CZE has Premium gas?",
+    "category": "bird",
+    "relevant_names": [
+      "gasstations"
+    ],
+    "primary_name": "gasstations",
+    "description": "",
+    "source_sql": "SELECT COUNT(GasStationID) FROM gasstations WHERE Country = 'CZE' AND Segment = 'Premium'"
+  },
+  {
+    "id": "bird_debit_card_specializing_002",
+    "intent": "What is the ratio of customers who pay in EUR against customers who pay in CZK?",
+    "category": "bird",
+    "relevant_names": [
+      "customers"
+    ],
+    "primary_name": "customers",
+    "description": "ratio of customers who pay in EUR against customers who pay in CZK = count(Currency = 'EUR') / count(Currency = 'CZK').",
+    "source_sql": "SELECT CAST(SUM(IIF(Currency = 'EUR', 1, 0)) AS FLOAT) / SUM(IIF(Currency = 'CZK', 1, 0)) AS ratio FROM customers"
+  },
+  {
+    "id": "bird_debit_card_specializing_003",
+    "intent": "In 2012, who had the least consumption in LAM?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "Year 2012 can be presented as Between 201201 And 201212; The first 4 strings of the Date values in the yearmonth table can represent year.",
+    "source_sql": "SELECT T1.CustomerID FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Segment = 'LAM' AND SUBSTR(T2.Date, 1, 4) = '2012' GROUP BY T1.CustomerID ORDER BY SUM(T2.Consumption) ASC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_004",
+    "intent": "What was the average monthly consumption of customers in SME for the year 2013?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "Average Monthly consumption = AVG(Consumption) / 12; Year 2013 can be presented as Between 201301 And 201312; The first 4 strings of the Date values in the yearmonth table can represent year.",
+    "source_sql": "SELECT AVG(T2.Consumption) / 12 FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE SUBSTR(T2.Date, 1, 4) = '2013' AND T1.Segment = 'SME'"
+  },
+  {
+    "id": "bird_debit_card_specializing_005",
+    "intent": "Which customers, paying in CZK, consumed the most gas in 2011?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "Year 2011 can be presented as Between 201101 And 201112, which means between January and December in 2011",
+    "source_sql": "SELECT T1.CustomerID FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Currency = 'CZK' AND T2.Date BETWEEN 201101 AND 201112 GROUP BY T1.CustomerID ORDER BY SUM(T2.Consumption) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_006",
+    "intent": "How many customers in KAM had a consumption of less than 30,000 for the year 2012?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "Year 2012 can be presented as Between 201201 And 201212, which means between January and December in 2012",
+    "source_sql": "SELECT COUNT(*) FROM ( SELECT T2.CustomerID FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Segment = 'KAM' AND SUBSTRING(T2.Date, 1, 4) = '2012' GROUP BY T2.CustomerID HAVING SUM(T2.Consumption) < 30000 ) AS t1"
+  },
+  {
+    "id": "bird_debit_card_specializing_007",
+    "intent": "What was the difference in gas consumption between CZK-paying customers and EUR-paying customers in 2012?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "Year 2012 can be presented as Between 201201 And 201212; The first 4 strings of the Date values in the yearmonth table can represent year; Difference in Consumption = CZK customers consumption in 2012 - EUR customers consumption in 2012",
+    "source_sql": "SELECT SUM(IIF(T1.Currency = 'CZK', T2.Consumption, 0)) - SUM(IIF(T1.Currency = 'EUR', T2.Consumption, 0)) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE SUBSTR(T2.Date, 1, 4) = '2012'"
+  },
+  {
+    "id": "bird_debit_card_specializing_008",
+    "intent": "Which year recorded the most gas use paid in EUR?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "",
+    "source_sql": "SELECT SUBSTRING(T2.Date, 1, 4) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Currency = 'EUR' GROUP BY SUBSTRING(T2.Date, 1, 4) ORDER BY SUM(T2.Consumption) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_009",
+    "intent": "Which segment had the least consumption?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "",
+    "source_sql": "SELECT T1.Segment FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID GROUP BY T1.Segment ORDER BY SUM(T2.Consumption) ASC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_010",
+    "intent": "Which year recorded the most consumption of gas paid in CZK?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "The first 4 strings of the Date values in the yearmonth table can represent year.",
+    "source_sql": "SELECT SUBSTR(T2.Date, 1, 4) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Currency = 'CZK' GROUP BY SUBSTR(T2.Date, 1, 4) ORDER BY SUM(T2.Consumption) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_011",
+    "intent": "What was the gas consumption peak month for SME customers in 2013?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "Year 2013 can be presented as Between 201301 And 201312; The first 4 strings of the Date values in the yearmonth table can represent year; The 5th and 6th string of the date can refer to month.",
+    "source_sql": "SELECT SUBSTR(T2.Date, 5, 2) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE SUBSTR(T2.Date, 1, 4) = '2013' AND T1.Segment = 'SME' GROUP BY SUBSTR(T2.Date, 5, 2) ORDER BY SUM(T2.Consumption) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_012",
+    "intent": "What is the difference in the annual average consumption of the customers with the least amount of consumption paid in CZK for 2013 between SME and LAM, LAM and KAM, and KAM and SME?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "annual average consumption of customer with the lowest consumption in each segment = total consumption per year / the number of customer with lowest consumption in each segment; Difference in annual average = SME's annual average - LAM's annual average; Difference in annual average = LAM's annual average - KAM's annual average; Year 2013 can be presented as Between 201301 And 201312; The first 4 strings of the Date values in the yearmonth table can represent year.",
+    "source_sql": "SELECT CAST(SUM(IIF(T1.Segment = 'SME', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) - CAST(SUM(IIF(T1.Segment = 'LAM', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) , CAST(SUM(IIF(T1.Segment = 'LAM', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) - CAST(SUM(IIF(T1.Segment = 'KAM', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) , CAST(SUM(IIF(T1.Segment = 'KAM', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) - CAST(SUM(IIF(T1.Segment = 'SME', T2.Consumption, 0)) AS REAL) / COUNT(T1.CustomerID) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Currency = 'CZK' AND T2.Consumption = ( SELECT MIN(Consumption) FROM yearmonth ) AND T2.Date BETWEEN 201301 AND 201312"
+  },
+  {
+    "id": "bird_debit_card_specializing_013",
+    "intent": "Which of the three segments\u2014SME, LAM and KAM\u2014has the biggest and lowest percentage increases in consumption paid in EUR between 2012 and 2013?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "Increase or Decrease = consumption for 2013 - consumption for 2012; Percentage of Increase = (Increase or Decrease / consumption for 2013) * 100%; The first 4 strings of the Date values in the yearmonth table can represent year",
+    "source_sql": "SELECT CAST((SUM(IIF(T1.Segment = 'SME' AND T2.Date LIKE '2013%', T2.Consumption, 0)) - SUM(IIF(T1.Segment = 'SME' AND T2.Date LIKE '2012%', T2.Consumption, 0))) AS FLOAT) * 100 / SUM(IIF(T1.Segment = 'SME' AND T2.Date LIKE '2012%', T2.Consumption, 0)), CAST(SUM(IIF(T1.Segment = 'LAM' AND T2.Date LIKE '2013%', T2.Consumption, 0)) - SUM(IIF(T1.Segment = 'LAM' AND T2.Date LIKE '2012%', T2.Consumption, 0)) AS FLOAT) * 100 / SUM(IIF(T1.Segment = 'LAM' AND T2.Date LIKE '2012%', T2.Consumption, 0)) , CAST(SUM(IIF(T1.Segment = 'KAM' AND T2.Date LIKE '2013%', T2.Consumption, 0)) - SUM(IIF(T1.Segment = 'KAM' AND T2.Date LIKE '2012%', T2.Consumption, 0)) AS FLOAT) * 100 / SUM(IIF(T1.Segment = 'KAM' AND T2.Date LIKE '2012%', T2.Consumption, 0)) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID"
+  },
+  {
+    "id": "bird_debit_card_specializing_014",
+    "intent": "How much did customer 6 consume in total between August and November 2013?",
+    "category": "bird",
+    "relevant_names": [
+      "yearmonth"
+    ],
+    "primary_name": "yearmonth",
+    "description": "Between August And November 2013 refers to Between 201308 And 201311; The first 4 strings of the Date values in the yearmonth table can represent year; The 5th and 6th string of the date can refer to month.",
+    "source_sql": "SELECT SUM(Consumption) FROM yearmonth WHERE CustomerID = 6 AND Date BETWEEN '201308' AND '201311'"
+  },
+  {
+    "id": "bird_debit_card_specializing_015",
+    "intent": "How many more \"discount\" gas stations does the Czech Republic have compared to Slovakia?",
+    "category": "bird",
+    "relevant_names": [
+      "gasstations"
+    ],
+    "primary_name": "gasstations",
+    "description": "Czech Republic can be represented as the Country value in gasstations table is 'CZE'; Slovakia can be represented as the Country value in the gasstations table is 'SVK';  Computation of more \"discount\" gas stations= Total no. of discount gas stations in Czech Republic - Total no. of discount gas stations in Slovakia",
+    "source_sql": "SELECT SUM(IIF(Country = 'CZE', 1, 0)) - SUM(IIF(Country = 'SVK', 1, 0)) FROM gasstations WHERE Segment = 'Discount'"
+  },
+  {
+    "id": "bird_debit_card_specializing_016",
+    "intent": "How much more was customer 7 consuming in April 2013 than customer 5?",
+    "category": "bird",
+    "relevant_names": [
+      "yearmonth"
+    ],
+    "primary_name": "yearmonth",
+    "description": "April 2013 refers to 201304 in the yearmonth.date",
+    "source_sql": "SELECT SUM(IIF(CustomerID = 7, Consumption, 0)) - SUM(IIF(CustomerID = 5, Consumption, 0)) FROM yearmonth WHERE Date = '201304'"
+  },
+  {
+    "id": "bird_debit_card_specializing_017",
+    "intent": "Is it true that more SMEs pay in Czech koruna than in euros? If so, how many more?",
+    "category": "bird",
+    "relevant_names": [
+      "customers"
+    ],
+    "primary_name": "customers",
+    "description": "Amount of more SMEs = Total of SMEs pay using Currency CZK - Total of SMEs pay using Currency EUR",
+    "source_sql": "SELECT SUM(Currency = 'CZK') - SUM(Currency = 'EUR') FROM customers WHERE Segment = 'SME'"
+  },
+  {
+    "id": "bird_debit_card_specializing_018",
+    "intent": "Which LAM customer used the Euro as their currency and had the highest consumption in October 2013?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "October 2013 refers to 201310 in the yearmonth.date",
+    "source_sql": "SELECT T1.CustomerID FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Segment = 'LAM' AND T2.Date = '201310' AND T1.Currency = 'EUR' GROUP BY T1.CustomerID ORDER BY SUM(T2.Consumption) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_019",
+    "intent": "Who among KAM's customers consumed the most? How much did it consume?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "",
+    "source_sql": "SELECT T2.CustomerID, SUM(T2.Consumption) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Segment = 'KAM' GROUP BY T2.CustomerID ORDER BY SUM(T2.Consumption) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_020",
+    "intent": "How much did the KAM customers consume in total in May 2013?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "May 2013 refers to yearmonth.date = 201305",
+    "source_sql": "SELECT SUM(T2.Consumption) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T2.Date = '201305' AND T1.Segment = 'KAM'"
+  },
+  {
+    "id": "bird_debit_card_specializing_021",
+    "intent": "How many percent of LAM customer consumed more than 46.73?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "Percentage of LAM customer consumed more than 46.73 = (Total no. of LAM customers who consumed more than 46.73 / Total no. of LAM customers) * 100.",
+    "source_sql": "SELECT CAST(SUM(IIF(T2.Consumption > 46.73, 1, 0)) AS FLOAT) * 100 / COUNT(T1.CustomerID) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Segment = 'LAM'"
+  },
+  {
+    "id": "bird_debit_card_specializing_022",
+    "intent": "Which country has more \"value for money\" gas stations? Please give a total number of \"value for money\" gas stations in each country.",
+    "category": "bird",
+    "relevant_names": [
+      "gasstations"
+    ],
+    "primary_name": "gasstations",
+    "description": "",
+    "source_sql": "SELECT Country , ( SELECT COUNT(GasStationID) FROM gasstations WHERE Segment = 'Value for money' ) FROM gasstations WHERE Segment = 'Value for money' GROUP BY Country ORDER BY COUNT(GasStationID) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_023",
+    "intent": "What percentage of KAM customers pay in euros?",
+    "category": "bird",
+    "relevant_names": [
+      "customers"
+    ],
+    "primary_name": "customers",
+    "description": "Percentage of KAM uses Euro = (Total of KAM uses Euro / Total of KAM) * 100%.",
+    "source_sql": "SELECT CAST(SUM(Currency = 'EUR') AS FLOAT) * 100 / COUNT(CustomerID) FROM customers WHERE Segment = 'KAM'"
+  },
+  {
+    "id": "bird_debit_card_specializing_024",
+    "intent": "In February 2012, what percentage of customers consumed more than 528.3?",
+    "category": "bird",
+    "relevant_names": [
+      "yearmonth"
+    ],
+    "primary_name": "yearmonth",
+    "description": "February 2012 refers to '201202' in yearmonth.date; The first 4 strings of the Date values in the yearmonth table can represent year; The 5th and 6th string of the date can refer to month.",
+    "source_sql": "SELECT CAST(SUM(IIF(Consumption > 528.3, 1, 0)) AS FLOAT) * 100 / COUNT(CustomerID) FROM yearmonth WHERE Date = '201202'"
+  },
+  {
+    "id": "bird_debit_card_specializing_025",
+    "intent": "What percentage of Slovakian gas stations are premium?",
+    "category": "bird",
+    "relevant_names": [
+      "gasstations"
+    ],
+    "primary_name": "gasstations",
+    "description": "Percentage of premium gas station = (Total of premium gas station in Slovakia / Total of gas station in Slovakia) * 100%.",
+    "source_sql": "SELECT CAST(SUM(IIF(Segment = 'Premium', 1, 0)) AS FLOAT) * 100 / COUNT(GasStationID) FROM gasstations WHERE Country = 'SVK'"
+  },
+  {
+    "id": "bird_debit_card_specializing_026",
+    "intent": "Which client ID consumed the most in September 2013?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "September 2013 refers to yearmonth.date = '201309'",
+    "source_sql": "SELECT T1.CustomerID FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T2.Date = '201309' GROUP BY T1.CustomerID ORDER BY SUM(T2.Consumption) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_027",
+    "intent": "Which client segment consumed the least in September 2013?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "September 2013 refers to yearmonth.date = '201309'",
+    "source_sql": "SELECT T1.Segment FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T2.Date = '201309' GROUP BY T1.CustomerID ORDER BY SUM(T2.Consumption) ASC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_028",
+    "intent": "Which SME customer consumed the least in June 2012?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "June 2012 refers to yearmonth.date = '201206'",
+    "source_sql": "SELECT T1.CustomerID FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T2.Date = '201206' AND T1.Segment = 'SME' GROUP BY T1.CustomerID ORDER BY SUM(T2.Consumption) ASC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_029",
+    "intent": "What is the highest monthly consumption in the year 2012?",
+    "category": "bird",
+    "relevant_names": [
+      "yearmonth"
+    ],
+    "primary_name": "yearmonth",
+    "description": "The first 4 strings of the Date values in the yearmonth table can represent year; The 5th and 6th string of the date can refer to month.",
+    "source_sql": "SELECT SUM(Consumption) FROM yearmonth WHERE SUBSTR(Date, 1, 4) = '2012' GROUP BY SUBSTR(Date, 5, 2) ORDER BY SUM(Consumption) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_030",
+    "intent": "What is the biggest monthly consumption of the customers who use euro as their currency?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth"
+    ],
+    "primary_name": "customers",
+    "description": "Monthly consumption = SUM(consumption) / 12",
+    "source_sql": "SELECT SUM(T2.Consumption) / 12 AS MonthlyConsumption FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Currency = 'EUR' GROUP BY T1.CustomerID ORDER BY MonthlyConsumption DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_031",
+    "intent": "Please list the product description of the products consumed in September, 2013.",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "yearmonth",
+      "products"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "September 2013 refers to 201309; The first 4 strings of the Date values in the yearmonth table can represent year; The 5th and 6th string of the date can refer to month.",
+    "source_sql": "SELECT T3.Description FROM transactions_1k AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID INNER JOIN products AS T3 ON T1.ProductID = T3.ProductID WHERE T2.Date = '201309'"
+  },
+  {
+    "id": "bird_debit_card_specializing_032",
+    "intent": "Please list the countries of the gas stations with transactions taken place in June, 2013.",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations",
+      "yearmonth"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "June 2013 refers to '201306'; The first 4 strings of the Date values in the yearmonth table can represent year; The 5th and 6th string of the date can refer to month;",
+    "source_sql": "SELECT DISTINCT T2.Country FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID INNER JOIN yearmonth AS T3 ON T1.CustomerID = T3.CustomerID WHERE T3.Date = '201306'"
+  },
+  {
+    "id": "bird_debit_card_specializing_033",
+    "intent": "Please list the chains of the gas stations with transactions in euro.",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "customers",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "",
+    "source_sql": "SELECT DISTINCT T3.ChainID FROM transactions_1k AS T1 INNER JOIN customers AS T2 ON T1.CustomerID = T2.CustomerID INNER JOIN gasstations AS T3 ON T1.GasStationID = T3.GasStationID WHERE T2.Currency = 'EUR'"
+  },
+  {
+    "id": "bird_debit_card_specializing_034",
+    "intent": "Please list the product description of the products bought in transactions in euro.",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "customers",
+      "products"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "",
+    "source_sql": "SELECT DISTINCT T1.ProductID, T3.Description FROM transactions_1k AS T1 INNER JOIN customers AS T2 ON T1.CustomerID = T2.CustomerID INNER JOIN products AS T3 ON T1.ProductID = T3.ProductID WHERE T2.Currency = 'EUR'"
+  },
+  {
+    "id": "bird_debit_card_specializing_035",
+    "intent": "What is the average total price of the transactions taken place in January, 2012?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "In January, 2012 means Date contains '2012-01'",
+    "source_sql": "SELECT AVG(Amount) FROM transactions_1k WHERE Date LIKE '2012-01%'"
+  },
+  {
+    "id": "bird_debit_card_specializing_036",
+    "intent": "Among the customers who paid in euro, how many of them have a monthly consumption of over 1000?",
+    "category": "bird",
+    "relevant_names": [
+      "yearmonth",
+      "customers"
+    ],
+    "primary_name": "yearmonth",
+    "description": "Pays in euro = Currency = 'EUR'.",
+    "source_sql": "SELECT COUNT(*) FROM yearmonth AS T1 INNER JOIN customers AS T2 ON T1.CustomerID = T2.CustomerID WHERE T2.Currency = 'EUR' AND T1.Consumption > 1000.00"
+  },
+  {
+    "id": "bird_debit_card_specializing_037",
+    "intent": "Please list the product descriptions of the transactions taken place in the gas stations in the Czech Republic.",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations",
+      "products"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "Czech Republic can be represented as the Country value in the gasstations table is 'CZE'; ",
+    "source_sql": "SELECT DISTINCT T3.Description FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID INNER JOIN products AS T3 ON T1.ProductID = T3.ProductID WHERE T2.Country = 'CZE'"
+  },
+  {
+    "id": "bird_debit_card_specializing_038",
+    "intent": "Please list the disparate time of the transactions taken place in the gas stations from chain no. 11.",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "",
+    "source_sql": "SELECT DISTINCT T1.Time FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T2.ChainID = 11"
+  },
+  {
+    "id": "bird_debit_card_specializing_039",
+    "intent": "How many transactions taken place in the gas station in the Czech Republic are with a price of over 1000?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "Gas station in the Czech Republic implies that Country = 'CZE'",
+    "source_sql": "SELECT COUNT(T1.TransactionID) FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T2.Country = 'CZE' AND T1.Price > 1000"
+  },
+  {
+    "id": "bird_debit_card_specializing_040",
+    "intent": "Among the transactions made in the gas stations in the Czech Republic, how many of them are taken place after 2012/1/1?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "Czech Republic can be represented as the Country value in the gasstations table is 'CZE'",
+    "source_sql": "SELECT COUNT(T1.TransactionID) FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T2.Country = 'CZE' AND STRFTIME('%Y', T1.Date) >= '2012'"
+  },
+  {
+    "id": "bird_debit_card_specializing_041",
+    "intent": "What is the average total price of the transactions taken place in gas stations in the Czech Republic?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "Gas station in the Czech Republic implies that Country = 'CZE'",
+    "source_sql": "SELECT AVG(T1.Price) FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T2.Country = 'CZE'"
+  },
+  {
+    "id": "bird_debit_card_specializing_042",
+    "intent": "For the customers who paid in the euro, what is their average total price of the transactions?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations",
+      "customers"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "",
+    "source_sql": "SELECT AVG(T1.Price) FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID INNER JOIN customers AS T3 ON T1.CustomerID = T3.CustomerID WHERE T3.Currency = 'EUR'"
+  },
+  {
+    "id": "bird_debit_card_specializing_043",
+    "intent": "Which customer paid the most in 2012/8/25?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "'2012/8/25' can be represented by '2012-08-25'",
+    "source_sql": "SELECT CustomerID FROM transactions_1k WHERE Date = '2012-08-25' GROUP BY CustomerID ORDER BY SUM(Price) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_044",
+    "intent": "Which country's gas station had the first paid cusomer in 2012/8/25?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "'2012/8/25' can be represented by '2012-08-25'",
+    "source_sql": "SELECT T2.Country FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T1.Date = '2012-08-25' ORDER BY T1.Time DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_045",
+    "intent": "What kind of currency did the customer paid at 16:25:00 in 2012/8/24?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations",
+      "customers"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "'2012/8/24' can be represented by '2012-08-24'; ",
+    "source_sql": "SELECT DISTINCT T3.Currency FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID INNER JOIN customers AS T3 ON T1.CustomerID = T3.CustomerID WHERE T1.Date = '2012-08-24' AND T1.Time = '16:25:00'"
+  },
+  {
+    "id": "bird_debit_card_specializing_046",
+    "intent": "What segment did the customer have at 2012/8/23 21:20:00?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "customers"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "'2012/8/23' can be represented by '2012-08-23'",
+    "source_sql": "SELECT T2.Segment FROM transactions_1k AS T1 INNER JOIN customers AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.date = '2012-08-23' AND T1.time = '21:20:00'"
+  },
+  {
+    "id": "bird_debit_card_specializing_047",
+    "intent": "How many transactions were paid in CZK in the morning of 2012/8/26?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "customers"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "'2012/8/26' can be represented by '2012-08-26'; The morning refers to the time before '13:00:00'",
+    "source_sql": "SELECT COUNT(T1.TransactionID) FROM transactions_1k AS T1 INNER JOIN customers AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Date = '2012-08-26' AND T1.Time < '13:00:00' AND T2.Currency = 'CZK'"
+  },
+  {
+    "id": "bird_debit_card_specializing_048",
+    "intent": "For the earliest customer, what segment did he/she have?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "customers"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "",
+    "source_sql": "SELECT T2.Segment FROM transactions_1k AS T1 INNER JOIN customers AS T2 ON T1.CustomerID = T2.CustomerID ORDER BY Date ASC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_049",
+    "intent": "For the deal happened at 2012/8/24 12:42:00, which country was it?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "'2012/8/24 12:42:00' can refer to date = '2012-08-24' AND T1.time = '12:42:00' in the database",
+    "source_sql": "SELECT T2.Country FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T1.Date = '2012-08-24' AND T1.Time = '12:42:00'"
+  },
+  {
+    "id": "bird_debit_card_specializing_050",
+    "intent": "What was the product id of the transaction happened at 2012/8/23 21:20:00?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "'2012/8/23 21:20:00' can refer to date = '2012-08-23' AND T1.time = '21:20:00' in the database",
+    "source_sql": "SELECT T1.ProductID FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T1.Date = '2012-08-23' AND T1.Time = '21:20:00'"
+  },
+  {
+    "id": "bird_debit_card_specializing_051",
+    "intent": "For the customer who paid 124.05 in 2012/8/24, how much did he/she spend during the January of 2012? And what is the date and expenses exactly?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "yearmonth"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "'2012/8/24' can be represented by '2012-08-24'; expense and the consumption has the similar meaning.",
+    "source_sql": "SELECT T1.CustomerID, T2.Date, T2.Consumption FROM transactions_1k AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Date = '2012-08-24' AND T1.Price = 124.05 AND T2.Date = '201201'"
+  },
+  {
+    "id": "bird_debit_card_specializing_052",
+    "intent": "For all the transactions happened during 8:00-9:00 in 2012/8/26, how many happened in CZE?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "Czech Republic can be represented as the Country value in the gasstations table is 'CZE'; '2012/8/26' can be represented by '2012-08-26'; during 8:00-9:00 can be represented as Time BETWEEN '08:00:00' AND '09:00:00'",
+    "source_sql": "SELECT COUNT(T1.TransactionID) FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T1.Date = '2012-08-26' AND T1.Time BETWEEN '08:00:00' AND '09:00:00' AND T2.Country = 'CZE'"
+  },
+  {
+    "id": "bird_debit_card_specializing_053",
+    "intent": "There's one customer spent 214582.17 in the June of 2013, which currency did he/she use?",
+    "category": "bird",
+    "relevant_names": [
+      "yearmonth",
+      "customers"
+    ],
+    "primary_name": "yearmonth",
+    "description": "June of 2013 means Date contains '201306' in the yearmonth.date of the database",
+    "source_sql": "SELECT T2.Currency FROM yearmonth AS T1 INNER JOIN customers AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Date = '201306' AND T1.Consumption = 214582.17"
+  },
+  {
+    "id": "bird_debit_card_specializing_054",
+    "intent": "Which country was the card owner of No.667467 in?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "",
+    "source_sql": "SELECT T2.Country FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T1.CardID = '667467'"
+  },
+  {
+    "id": "bird_debit_card_specializing_055",
+    "intent": "What's the nationality of the customer who spent 548.4 in 2012/8/24?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "'2012/8/24' can be represented by '2012-08-24'",
+    "source_sql": "SELECT T2.Country FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T1.Date = '2012-08-24' AND T1.Price = 548.4"
+  },
+  {
+    "id": "bird_debit_card_specializing_056",
+    "intent": "What is the percentage of the customers who used EUR in 2012/8/25?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "customers"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "'2012/8/25' can be represented by '2012-08-25'",
+    "source_sql": "SELECT CAST(SUM(IIF(T2.Currency = 'EUR', 1, 0)) AS FLOAT) * 100 / COUNT(T1.CustomerID) FROM transactions_1k AS T1 INNER JOIN customers AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Date = '2012-08-25'"
+  },
+  {
+    "id": "bird_debit_card_specializing_057",
+    "intent": "For the customer who paid 634.8 in 2012/8/25, what was the consumption decrease rate from Year 2012 to 2013?",
+    "category": "bird",
+    "relevant_names": [
+      "yearmonth",
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "yearmonth",
+    "description": "'2012/8/24' can be represented by '2012-08-24'; Consumption decrease rate = (consumption_2012 - consumption_2013) / consumption_2012",
+    "source_sql": "SELECT CAST(SUM(IIF(SUBSTR(Date, 1, 4) = '2012', Consumption, 0)) - SUM(IIF(SUBSTR(Date, 1, 4) = '2013', Consumption, 0)) AS FLOAT) / SUM(IIF(SUBSTR(Date, 1, 4) = '2012', Consumption, 0)) FROM yearmonth WHERE CustomerID = ( SELECT T1.CustomerID FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T1.Date = '2012-08-25' AND T1.Price = 634.8 )"
+  },
+  {
+    "id": "bird_debit_card_specializing_058",
+    "intent": "Which gas station has the highest amount of revenue?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "",
+    "source_sql": "SELECT GasStationID FROM transactions_1k GROUP BY GasStationID ORDER BY SUM(Price) DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_059",
+    "intent": "What is the percentage of \"premium\" against the overall segment in Country = \"SVK\"?",
+    "category": "bird",
+    "relevant_names": [
+      "gasstations"
+    ],
+    "primary_name": "gasstations",
+    "description": "",
+    "source_sql": "SELECT CAST(SUM(IIF(Country = 'SVK' AND Segment = 'Premium', 1, 0)) AS FLOAT) * 100 / SUM(IIF(Country = 'SVK', 1, 0)) FROM gasstations"
+  },
+  {
+    "id": "bird_debit_card_specializing_060",
+    "intent": "What is the amount spent by customer \"38508\" at the gas stations? How much had the customer spent in January 2012?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations",
+      "yearmonth"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "January 2012 refers to the Date value = '201201'",
+    "source_sql": "SELECT SUM(T1.Price) , SUM(IIF(T3.Date = '201201', T1.Price, 0)) FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID INNER JOIN yearmonth AS T3 ON T1.CustomerID = T3.CustomerID WHERE T1.CustomerID = '38508'"
+  },
+  {
+    "id": "bird_debit_card_specializing_061",
+    "intent": "Which are the top five best selling products? Please state the full name of them.",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "products"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "Description of products contains full name",
+    "source_sql": "SELECT T2.Description FROM transactions_1k AS T1 INNER JOIN products AS T2 ON T1.ProductID = T2.ProductID ORDER BY T1.Amount DESC LIMIT 5"
+  },
+  {
+    "id": "bird_debit_card_specializing_062",
+    "intent": "Who is the top spending customer and how much is the average price per single item purchased by this customer? What currency was being used?",
+    "category": "bird",
+    "relevant_names": [
+      "customers",
+      "yearmonth",
+      "transactions_1k"
+    ],
+    "primary_name": "customers",
+    "description": "average price per single item = Total(price) / Total(amount)",
+    "source_sql": "SELECT T2.CustomerID, SUM(T2.Price / T2.Amount), T1.Currency FROM customers AS T1 INNER JOIN transactions_1k AS T2 ON T1.CustomerID = T2.CustomerID WHERE T2.CustomerID = ( SELECT CustomerID FROM yearmonth ORDER BY Consumption DESC LIMIT 1 ) GROUP BY T2.CustomerID, T1.Currency"
+  },
+  {
+    "id": "bird_debit_card_specializing_063",
+    "intent": "Which country had the gas station that sold the most expensive product id No.2 for one unit?",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "gasstations"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "",
+    "source_sql": "SELECT T2.Country FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T1.ProductID = 2 ORDER BY T1.Price DESC LIMIT 1"
+  },
+  {
+    "id": "bird_debit_card_specializing_064",
+    "intent": "For all the people who paid more than 29.00 per unit of product id No.5. Give their consumption status in the August of 2012.",
+    "category": "bird",
+    "relevant_names": [
+      "transactions_1k",
+      "yearmonth"
+    ],
+    "primary_name": "transactions_1k",
+    "description": "August of 2012 refers to the Date value = '201208' ; Price per unit of product = Price / Amount;",
+    "source_sql": "SELECT T2.Consumption FROM transactions_1k AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Price / T1.Amount > 29.00 AND T1.ProductID = 5 AND T2.Date = '201208'"
+  }
+]

@@ -1,0 +1,561 @@
+{
+  "bird_superhero_001": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_002": [
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_003": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_004": [
+    "superhero",
+    "hero_power"
+  ],
+  "bird_superhero_005": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_006": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_007": [
+    "superhero",
+    "hero_power",
+    "superpower",
+    "colour"
+  ],
+  "bird_superhero_008": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_009": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_010": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_011": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_012": [
+    "superhero",
+    "colour",
+    "publisher"
+  ],
+  "bird_superhero_013": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_014": [
+    "superhero",
+    "hero_power",
+    "publisher",
+    "superpower"
+  ],
+  "bird_superhero_015": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_016": [
+    "superhero",
+    "publisher",
+    "hero_attribute",
+    "attribute"
+  ],
+  "bird_superhero_017": [
+    "superhero",
+    "publisher",
+    "colour"
+  ],
+  "bird_superhero_018": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_019": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_020": [
+    "superhero",
+    "hero_attribute",
+    "attribute"
+  ],
+  "bird_superhero_021": [
+    "superhero",
+    "race"
+  ],
+  "bird_superhero_022": [
+    "superhero",
+    "hero_attribute",
+    "attribute"
+  ],
+  "bird_superhero_023": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_024": [
+    "superhero",
+    "hero_attribute",
+    "attribute",
+    "gender"
+  ],
+  "bird_superhero_025": [
+    "superhero",
+    "hero_power"
+  ],
+  "bird_superhero_026": [
+    "superhero",
+    "race"
+  ],
+  "bird_superhero_027": [
+    "superhero",
+    "publisher",
+    "alignment"
+  ],
+  "bird_superhero_028": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_029": [
+    "publisher"
+  ],
+  "bird_superhero_030": [
+    "hero_attribute"
+  ],
+  "bird_superhero_031": [
+    "superhero"
+  ],
+  "bird_superhero_032": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_033": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_034": [
+    "superhero",
+    "gender"
+  ],
+  "bird_superhero_035": [
+    "superhero",
+    "hero_power",
+    "superpower",
+    "gender"
+  ],
+  "bird_superhero_036": [
+    "superhero",
+    "race"
+  ],
+  "bird_superhero_037": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_038": [
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_039": [
+    "superhero",
+    "race"
+  ],
+  "bird_superhero_040": [
+    "superhero",
+    "alignment"
+  ],
+  "bird_superhero_041": [
+    "superhero",
+    "race"
+  ],
+  "bird_superhero_042": [
+    "superhero",
+    "race",
+    "colour"
+  ],
+  "bird_superhero_043": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_044": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_045": [
+    "superhero",
+    "gender"
+  ],
+  "bird_superhero_046": [
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_047": [
+    "superhero",
+    "hero_attribute"
+  ],
+  "bird_superhero_048": [
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_049": [
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_050": [
+    "superhero",
+    "hero_attribute",
+    "attribute"
+  ],
+  "bird_superhero_051": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_052": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_053": [
+    "superhero",
+    "hero_attribute",
+    "attribute",
+    "publisher"
+  ],
+  "bird_superhero_054": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_055": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_056": [
+    "superhero",
+    "publisher",
+    "gender"
+  ],
+  "bird_superhero_057": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_058": [
+    "superhero",
+    "race"
+  ],
+  "bird_superhero_059": [
+    "superhero",
+    "gender",
+    "colour"
+  ],
+  "bird_superhero_060": [
+    "superhero",
+    "race"
+  ],
+  "bird_superhero_061": [
+    "superhero",
+    "gender"
+  ],
+  "bird_superhero_062": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_063": [
+    "hero_power",
+    "superhero"
+  ],
+  "bird_superhero_064": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_065": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_066": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_067": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_068": [
+    "superhero",
+    "race"
+  ],
+  "bird_superhero_069": [
+    "superhero",
+    "alignment"
+  ],
+  "bird_superhero_070": [
+    "hero_attribute",
+    "attribute"
+  ],
+  "bird_superhero_071": [
+    "superhero",
+    "race",
+    "alignment"
+  ],
+  "bird_superhero_072": [
+    "superhero",
+    "publisher",
+    "gender"
+  ],
+  "bird_superhero_073": [
+    "superhero",
+    "race"
+  ],
+  "bird_superhero_074": [
+    "superhero"
+  ],
+  "bird_superhero_075": [
+    "superhero"
+  ],
+  "bird_superhero_076": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_077": [
+    "superhero",
+    "race",
+    "gender"
+  ],
+  "bird_superhero_078": [
+    "superhero",
+    "hero_attribute",
+    "attribute"
+  ],
+  "bird_superhero_079": [
+    "superhero",
+    "alignment"
+  ],
+  "bird_superhero_080": [
+    "superhero",
+    "hero_attribute",
+    "attribute"
+  ],
+  "bird_superhero_081": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_082": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_083": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_084": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_085": [
+    "superhero",
+    "gender"
+  ],
+  "bird_superhero_086": [
+    "superhero"
+  ],
+  "bird_superhero_087": [
+    "superpower"
+  ],
+  "bird_superhero_088": [
+    "superhero"
+  ],
+  "bird_superhero_089": [
+    "superhero"
+  ],
+  "bird_superhero_090": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_091": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_092": [
+    "superhero",
+    "race"
+  ],
+  "bird_superhero_093": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_094": [
+    "superhero",
+    "hero_attribute",
+    "race"
+  ],
+  "bird_superhero_095": [
+    "superhero",
+    "hero_power",
+    "superpower",
+    "alignment"
+  ],
+  "bird_superhero_096": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_097": [
+    "hero_attribute",
+    "superhero",
+    "alignment"
+  ],
+  "bird_superhero_098": [
+    "superhero",
+    "colour",
+    "hero_attribute"
+  ],
+  "bird_superhero_099": [
+    "superhero",
+    "alignment",
+    "gender"
+  ],
+  "bird_superhero_100": [
+    "superhero",
+    "hero_attribute"
+  ],
+  "bird_superhero_101": [
+    "superhero",
+    "colour",
+    "race",
+    "gender"
+  ],
+  "bird_superhero_102": [
+    "superhero",
+    "alignment",
+    "gender"
+  ],
+  "bird_superhero_103": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_104": [
+    "superhero",
+    "hero_attribute",
+    "attribute"
+  ],
+  "bird_superhero_105": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_106": [
+    "superhero",
+    "alignment",
+    "colour"
+  ],
+  "bird_superhero_107": [
+    "superhero",
+    "publisher",
+    "gender"
+  ],
+  "bird_superhero_108": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_109": [
+    "superhero",
+    "hero_power",
+    "superpower",
+    "gender"
+  ],
+  "bird_superhero_110": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_111": [
+    "superhero",
+    "publisher",
+    "race"
+  ],
+  "bird_superhero_112": [
+    "hero_attribute",
+    "attribute",
+    "superhero"
+  ],
+  "bird_superhero_113": [
+    "superhero",
+    "publisher"
+  ],
+  "bird_superhero_114": [
+    "superhero",
+    "hero_attribute",
+    "attribute"
+  ],
+  "bird_superhero_115": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_116": [
+    "superhero"
+  ],
+  "bird_superhero_117": [
+    "superhero"
+  ],
+  "bird_superhero_118": [
+    "superhero",
+    "publisher",
+    "gender"
+  ],
+  "bird_superhero_119": [
+    "superhero",
+    "publisher",
+    "alignment"
+  ],
+  "bird_superhero_120": [
+    "superhero"
+  ],
+  "bird_superhero_121": [
+    "hero_attribute"
+  ],
+  "bird_superhero_122": [
+    "superhero"
+  ],
+  "bird_superhero_123": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_124": [
+    "superhero",
+    "hero_attribute"
+  ],
+  "bird_superhero_125": [
+    "superhero",
+    "race"
+  ],
+  "bird_superhero_126": [
+    "superhero",
+    "alignment"
+  ],
+  "bird_superhero_127": [
+    "hero_power",
+    "superpower"
+  ],
+  "bird_superhero_128": [
+    "superhero",
+    "colour"
+  ],
+  "bird_superhero_129": [
+    "superhero",
+    "hero_power",
+    "superpower"
+  ]
+}

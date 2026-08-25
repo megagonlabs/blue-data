@@ -1,0 +1,646 @@
+{
+  "bird_thrombosis_prediction_001": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_002": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_003": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_004": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_005": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_006": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_007": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_008": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_009": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_010": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_011": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_012": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_013": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_014": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_015": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_016": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_017": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_018": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_019": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_020": [
+    "laboratory",
+    "patient"
+  ],
+  "bird_thrombosis_prediction_021": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_022": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_023": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_024": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_025": [
+    "examination",
+    "patient"
+  ],
+  "bird_thrombosis_prediction_026": [
+    "laboratory",
+    "patient"
+  ],
+  "bird_thrombosis_prediction_027": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_028": [
+    "examination"
+  ],
+  "bird_thrombosis_prediction_029": [
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_030": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_031": [
+    "examination",
+    "patient"
+  ],
+  "bird_thrombosis_prediction_032": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_033": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_034": [
+    "laboratory",
+    "patient"
+  ],
+  "bird_thrombosis_prediction_035": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_036": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_037": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_038": [
+    "examination"
+  ],
+  "bird_thrombosis_prediction_039": [
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_040": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_041": [
+    "examination"
+  ],
+  "bird_thrombosis_prediction_042": [
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_043": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_044": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_045": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_046": [
+    "patient",
+    "examination",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_047": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_048": [
+    "examination"
+  ],
+  "bird_thrombosis_prediction_049": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_050": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_051": [
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_052": [
+    "examination"
+  ],
+  "bird_thrombosis_prediction_053": [
+    "patient"
+  ],
+  "bird_thrombosis_prediction_054": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_055": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_056": [
+    "patient",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_057": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_058": [
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_059": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_060": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_061": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_062": [
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_063": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_064": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_065": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_066": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_067": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_068": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_069": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_070": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_071": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_072": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_073": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_074": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_075": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_076": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_077": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_078": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_079": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_080": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_081": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_082": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_083": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_084": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_085": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_086": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_087": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_088": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_089": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_090": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_091": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_092": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_093": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_094": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_095": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_096": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_097": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_098": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_099": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_100": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_101": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_102": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_103": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_104": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_105": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_106": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_107": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_108": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_109": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_110": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_111": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_112": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_113": [
+    "examination",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_114": [
+    "examination",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_115": [
+    "patient",
+    "examination",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_116": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_117": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_118": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_119": [
+    "examination",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_120": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_121": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_122": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_123": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_124": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_125": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_126": [
+    "examination",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_127": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_128": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_129": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_130": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_131": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_132": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_133": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_134": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_135": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_136": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_137": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_138": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_139": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_140": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_141": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_142": [
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_143": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_144": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_145": [
+    "patient",
+    "examination",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_146": [
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_147": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_148": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_149": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_150": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_151": [
+    "examination",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_152": [
+    "examination",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_153": [
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_154": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_155": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_156": [
+    "patient",
+    "laboratory",
+    "examination"
+  ],
+  "bird_thrombosis_prediction_157": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_158": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_159": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_160": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_161": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_162": [
+    "patient",
+    "laboratory"
+  ],
+  "bird_thrombosis_prediction_163": [
+    "patient",
+    "laboratory",
+    "examination"
+  ]
+}
