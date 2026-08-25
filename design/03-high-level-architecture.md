@@ -19,32 +19,38 @@
 │  │                   (path-keyed record store backed by JSONSource)             │   │
 │  └──────────────────────────────────────────────────────────────────────────────┘   │
 │                                                                                      │
-│  ┌────────────────────────────┐     ┌────────────────────────────────────────────┐  │
-│  │      Source Manager        │     │             Search Engine                  │  │
-│  │                            │     │                                            │  │
-│  │  ┌──────────────────────┐  │     │  ┌──────────────────────────────────────┐  │  │
-│  │  │     DataSource ABC   │  │     │  │           RegistrySearch             │  │  │
-│  │  │  ┌───────┐ ┌───────┐ │  │     │  │  ┌──────────────┐ ┌──────────────┐  │  │  │
-│  │  │  │SQLite │ │Postgres│ │  │     │  │  │  HybridSearch│ │RecordIndexer │  │  │  │
-│  │  │  └───────┘ └───────┘ │  │     │  │  │ ┌──────┐     │ └──────────────┘  │  │  │
-│  │  │  ┌───────┐           │  │     │  │  │ │ BM25 │     │                   │  │  │
-│  │  │  │ Neo4j │           │  │     │  │  │ └──────┘     │                   │  │  │
-│  │  │  └───────┘           │  │     │  │  │ ┌──────────┐ │                   │  │  │
-│  │  └──────────────────────┘  │     │  │  │ │  Vector  │ │                   │  │  │
-│  └────────────────────────────┘     │  │  │ └──────────┘ │                   │  │  │
-│                                     │  │  └──────────────────────────────────┘  │  │
-│  ┌────────────────────────────┐     │  └────────────────────────────────────────┘  │
-│  │    Enrichment Pipeline     │     │                                               │
-│  │                            │     │                                               │
-│  │  ┌──────────────────────┐  │     │                                               │
-│  │  │ SemanticTypeInfer.   │  │     │                                               │
-│  │  │   (Layer 1 — det.)   │  │     │                                               │
-│  │  └──────────────────────┘  │     │                                               │
-│  │  ┌──────────────────────┐  │     │                                               │
-│  │  │   MetaData (LLM)     │  │     │                                               │
-│  │  │   (Layer 2 — opt.)   │  │     │                                               │
-│  │  └──────────────────────┘  │     │                                               │
-│  └────────────────────────────┘     │                                               │
+│  ┌──────────────────────────────────┐     ┌────────────────────────────────────────┐ │
+│  │         Source Manager           │     │           Search Engine                │ │
+│  │                                  │     │                                        │ │
+│  │  ┌────────────────────────────┐  │     │  ┌────────────────────────────────┐   │ │
+│  │  │       DataSource ABC       │  │     │  │        RegistrySearch          │   │ │
+│  │  │  ┌──────┐  ┌──────────┐   │  │     │  │  ┌────────────┐ ┌───────────┐  │   │ │
+│  │  │  │SQLite│  │ Postgres │   │  │     │  │  │HybridSearch│ │RecordIndex│  │   │ │
+│  │  │  └──────┘  └──────────┘   │  │     │  │  │ ┌──────┐   │ └───────────┘  │   │ │
+│  │  │  ┌──────┐  ┌──────────┐   │  │     │  │  │ │ BM25 │   │               │   │ │
+│  │  │  │MySQL │  │   File   │   │  │     │  │  │ └──────┘   │               │   │ │
+│  │  │  └──────┘  └──────────┘   │  │     │  │  │ ┌────────┐ │               │   │ │
+│  │  │  ┌──────┐  ┌──────────┐   │  │     │  │  │ │ Vector │ │               │   │ │
+│  │  │  │Neo4j │  │  Stream  │   │  │     │  │  │ └────────┘ │               │   │ │
+│  │  │  └──────┘  └──────────┘   │  │     │  │  └────────────────────────────┘   │ │
+│  │  │  ┌──────────────────────┐  │  │     │  └────────────────────────────────────┘ │
+│  │  │  │  Bayesian Network    │  │  │     │                                        │ │
+│  │  │  └──────────────────────┘  │  │     │                                        │ │
+│  │  └────────────────────────────┘  │     │                                        │ │
+│  └──────────────────────────────────┘     └────────────────────────────────────────┘ │
+│                                                                                      │
+│  ┌────────────────────────────┐                                                      │
+│  │    Enrichment Pipeline     │                                                      │
+│  │                            │                                                      │
+│  │  ┌──────────────────────┐  │                                                      │
+│  │  │ SemanticTypeInfer.   │  │                                                      │
+│  │  │   (Layer 1 — det.)   │  │                                                      │
+│  │  └──────────────────────┘  │                                                      │
+│  │  ┌──────────────────────┐  │                                                      │
+│  │  │   MetaData (LLM)     │  │                                                      │
+│  │  │   (Layer 2 — opt.)   │  │                                                      │
+│  │  └──────────────────────┘  │                                                      │
+│  └────────────────────────────┘                                                      │
 └──────────────────────────────────────────────────────────────────────────────────────┘
               │                                   │
 ┌─────────────▼──────────────┐    ┌──────────────▼──────────────────────────────────┐
@@ -105,12 +111,58 @@ Not a separate class — this is the responsibility of `DataRegistry`. It owns a
 
 Abstract base class for external data adapters. Exposes a uniform interface for listing databases, collections, entities, attributes, and relations, and for executing ad-hoc queries. Subclasses override only the methods their backend supports.
 
+Sources are organized into families. `VectorSource` and `JSONSource` are also `DataSource` subclasses but serve dual roles — they back the search index and registry store respectively, and are shown separately in the diagram.
+
+**SQL**
+
 | Backend | Class | Status |
 |---------|-------|--------|
 | SQLite | `SQLiteDBSource` | Full |
-| PostgreSQL | `PostgresDBSource` | Stub |
-| MongoDB | `MongoDBSource` | Stub |
-| Neo4j | `Neo4JGraphSource` | Full |
+| PostgreSQL | `PostgresDBSource` | Full |
+| MySQL | `MySQLDBSource` | Full |
+
+**File**
+
+| Backend | Class | Status |
+|---------|-------|--------|
+| CSV / JSON / JSONL / Parquet | `FileSource` | Full |
+
+**Graph**
+
+| Backend | Class | Status |
+|---------|-------|--------|
+| In-memory / file-backed | `MemoryGraphSource` / `FileGraphSource` | Full |
+| Neo4j | `NEO4JSource` | Full |
+
+**Stream**
+
+| Backend | Class | Status |
+|---------|-------|--------|
+| In-memory | `MemoryStreamSource` | Full |
+| File | `FileStreamSource` | Full |
+| Redis Streams | `RedisStreamSource` | Full |
+
+**Network**
+
+| Backend | Class | Status |
+|---------|-------|--------|
+| Bayesian network (pgmpy) | `BayesianNetworkSource` | Full |
+
+**Document / JSON** (dual-role — also registry persistence backend)
+
+| Backend | Class | Status |
+|---------|-------|--------|
+| In-memory | `MemoryJSONSource` | Full |
+| File | `FileJSONSource` | Full |
+| Redis Stack | `RedisJSONSource` | Full |
+| MongoDB | `MongoDBSource` | Partial |
+
+**Vector** (dual-role — also search index backend)
+
+| Backend | Class | Status |
+|---------|-------|--------|
+| In-memory (numpy cosine) | `MemoryVectorSource` | Full |
+| Redis Stack (RediSearch KNN) | `RedisVectorSource` | Full |
 
 ---
 
