@@ -128,6 +128,37 @@ def test_execute_query_missing_collection_returns_empty(src):
     assert src.execute_query(None, collection="nonexistent") == []
 
 
+def test_execute_query_ops_file_read(src, tmp_path):
+    rows = [{"id": 1, "city": "NYC"}, {"id": 2, "city": "LA"}]
+    _write_csv(tmp_path, "orders", rows)
+    result = src.execute_query({"op": "FILE.READ"}, collection="orders")
+    assert len(result) == 2
+
+
+def test_execute_query_ops_file_find_equality(src, tmp_path):
+    rows = [{"id": 1, "city": "NYC"}, {"id": 2, "city": "LA"}]
+    _write_csv(tmp_path, "orders", rows)
+    result = src.execute_query(
+        {"op": "FILE.FIND", "filter": {"city": "NYC"}}, collection="orders"
+    )
+    assert len(result) == 1
+    assert result[0]["city"] == "NYC"
+
+
+def test_execute_query_ops_file_find_no_filter_returns_all(src, tmp_path):
+    rows = [{"id": 1}, {"id": 2}]
+    _write_csv(tmp_path, "items", rows)
+    result = src.execute_query({"op": "FILE.FIND"}, collection="items")
+    assert len(result) == 2
+
+
+def test_execute_query_ops_unknown_raises(src, tmp_path):
+    rows = [{"id": 1}]
+    _write_csv(tmp_path, "items", rows)
+    with pytest.raises(ValueError, match="Unknown FILE op"):
+        src.execute_query({"op": "FILE.NONSENSE"}, collection="items")
+
+
 def test_execute_query_json(src, tmp_path):
     rows = [{"x": 1}, {"x": 2}]
     _write_json(tmp_path, "items", rows)

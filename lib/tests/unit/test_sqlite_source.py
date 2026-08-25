@@ -327,6 +327,44 @@ def test_execute_query_insert_without_commit_not_persisted(src, tmp_path):
     assert count == 0
 
 
+def test_execute_query_ops_sql_query(src):
+    _create_table(src, "testdb", "items", cols=[
+        {"name": "id",  "type": "INTEGER"},
+        {"name": "val", "type": "TEXT"},
+    ], rows=[
+        'INSERT INTO items VALUES (1, "hello");',
+        'INSERT INTO items VALUES (2, "world");',
+    ])
+    rows = src.execute_query(
+        {"op": "SQL.QUERY", "query": "SELECT * FROM items ORDER BY id;"},
+        database="testdb",
+    )
+    assert len(rows) == 2
+    assert rows[0]["val"] == "hello"
+
+
+def test_execute_query_ops_fetch_all(src):
+    _create_table(src, "testdb", "items", cols=[
+        {"name": "id",  "type": "INTEGER"},
+        {"name": "val", "type": "TEXT"},
+    ], rows=[
+        'INSERT INTO items VALUES (1, "hello");',
+        'INSERT INTO items VALUES (2, "world");',
+    ])
+    rows = src.execute_query(
+        {"op": "SQL.FETCH_ALL"},
+        database="testdb",
+        collection="items",
+    )
+    assert len(rows) == 2
+
+
+def test_execute_query_ops_unknown_raises(src):
+    _create_table(src, "testdb", "t", cols=[{"name": "id", "type": "INTEGER"}])
+    with pytest.raises(ValueError, match="Unknown SQL op"):
+        src.execute_query({"op": "SQL.NONSENSE"}, database="testdb")
+
+
 # ===========================================================================
 # fetch_database_stats
 # ===========================================================================

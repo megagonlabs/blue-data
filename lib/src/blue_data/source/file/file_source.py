@@ -179,11 +179,13 @@ class FileSource(DataSource):
         """Return rows from *collection*.
 
         ``query`` can be:
-        - ``None``  — return all rows
-        - ``str``   — JSON-encoded structured query (see below) or pandas filter expression
-        - ``dict``  — structured query dict OR legacy equality filter ``{col: val, ...}``
+        - ``{"op": "FILE.READ"}``                       — return all rows
+        - ``{"op": "FILE.FIND", "filter": {...}}``      — structured or equality filter
+        - ``None``                                       — return all rows (deprecated)
+        - ``str``                                        — JSON-encoded dict (deprecated)
+        - ``dict`` without ``"op"``                      — legacy equality / structured filter (deprecated)
 
-        Structured query keys: ``filter`` (pandas query string), ``group_by``,
+        Structured filter keys: ``filter`` (pandas query string), ``group_by``,
         ``aggregate`` (dict of ``{col: func}`` where func is count/sum/mean/min/max),
         ``select``, ``sort_by``, ``sort_desc``, ``limit``.
         """
@@ -194,6 +196,18 @@ class FileSource(DataSource):
         except FileNotFoundError:
             return []
         rows = self._read_file(path, fmt)
+
+        # Ops-based interface.
+        if isinstance(query, dict) and "op" in query:
+            op = query["op"].upper()
+            if op == "FILE.READ":
+                return rows
+            elif op == "FILE.FIND":
+                query = query.get("filter")
+                if query is None:
+                    return rows
+            else:
+                raise ValueError(f"Unknown FILE op: {query['op']!r}")
 
         if query is None:
             return rows
