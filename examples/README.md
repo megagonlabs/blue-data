@@ -124,6 +124,20 @@ python3 examples/feature-demos/data_quality_demo.py
 
 ---
 
+### Source-to-Source Data Export (`export_data_demo.py`)
+
+Shows `registry.export_data` writing rows from a registered SQLiteDBSource to
+CSV, JSON, and JSONL files — no manual pandas or SQL boilerplate. Demonstrates
+format inference from extension and filtered export.
+
+```bash
+python3 examples/feature-demos/export_data_demo.py
+```
+
+**API key:** not required
+
+---
+
 ### Source-to-Source Data Import (`import_data_demo.py`)
 
 Shows `registry.import_data` moving rows between two registered sources. A
@@ -152,6 +166,39 @@ python3 examples/feature-demos/nl_query_demo.py
 ```
 
 **API key:** OpenAI required | **[Sample output](feature-demos/nl_query_demo.output.txt)**
+
+---
+
+### Tool-based NL Querying — SQL (`nl_tools_demo.py`)
+
+Shows `execute_query_nl_tools` driving a multi-turn LLM tool loop against a
+SQLite source. The LLM calls `list_databases`, `get_schema`, `execute_query`,
+etc. in any order before returning a final answer. Contrast with `nl_query_demo.py`
+which uses a single one-shot prompt.
+
+```bash
+pip install -e lib/ anthropic
+export ANTHROPIC_API_KEY=sk-ant-...
+python3 examples/feature-demos/nl_tools_demo.py
+```
+
+**API key:** Anthropic required
+
+---
+
+### Tool-based NL Querying — Graph (`nl_tools_graph_demo.py`)
+
+Same tool-loop approach as `nl_tools_demo.py` but for a GraphSource. The LLM
+uses purpose-built graph tools (`match_nodes`, `get_neighbors`, `match_edges`)
+to traverse the graph naturally instead of constructing raw dict ops.
+
+```bash
+pip install -e lib/ anthropic
+export ANTHROPIC_API_KEY=sk-ant-...
+python3 examples/feature-demos/nl_tools_graph_demo.py
+```
+
+**API key:** Anthropic required
 
 ---
 
@@ -331,8 +378,11 @@ python3 examples/backends/redis_demo.py
 | `description_search_demo.py` | scenario-demos | none at runtime | — | [output](scenario-demos/description_search_demo.output.txt) |
 | `process_reasoning_demo.py` | scenario-demos | none (default) | — | [output](scenario-demos/process_reasoning_demo.output.txt) |
 | `data_quality_demo.py` | feature-demos | none | — | [output](feature-demos/data_quality_demo.output.txt) |
+| `export_data_demo.py` | feature-demos | none | — | — |
 | `import_data_demo.py` | feature-demos | none | — | [output](feature-demos/import_data_demo.output.txt) |
 | `nl_query_demo.py` | feature-demos | OpenAI | — | [output](feature-demos/nl_query_demo.output.txt) |
+| `nl_tools_demo.py` | feature-demos | Anthropic | — | — |
+| `nl_tools_graph_demo.py` | feature-demos | Anthropic | — | — |
 | `schema_creation_demo.py` | feature-demos | none | — | [output](feature-demos/schema_creation_demo.output.txt) |
 | `enrichment_demo.py` | feature-demos | Anthropic (optional) | — | [output](feature-demos/enrichment_demo.output.txt) |
 | `sql_semantic_enrichment_demo.py` | integration-demos | none | — | [output](integration-demos/sql_semantic_enrichment_demo.output.txt) |
