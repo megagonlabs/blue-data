@@ -545,6 +545,23 @@ class SQLiteDBSource(SQLSource):
                 stats["min"] = None
                 stats["max"] = None
 
+            # Mean + variance for numeric columns (outlier_rate computation)
+            is_numeric = include_min_max and any(
+                t in column_type.upper() for t in ["INT", "REAL", "NUM", "FLOAT", "DOUBLE"]
+            )
+            if is_numeric:
+                cursor.execute(
+                    f"SELECT AVG({column}),"
+                    f"       AVG({column} * {column}) - AVG({column}) * AVG({column})"
+                    f" FROM {table};"
+                )
+                mean_val, var_val = cursor.fetchone()
+                stats["mean"]     = mean_val
+                stats["variance"] = var_val
+            else:
+                stats["mean"]     = None
+                stats["variance"] = None
+
             # Top-20 values by frequency (value, count) pairs, descending
             cursor.execute(
                 f"""

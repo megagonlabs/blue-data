@@ -1443,10 +1443,19 @@ class DataRegistry(Registry):
 
         Expects ``compute_attribute_data_quality`` to have already run for each
         attribute; missing attributes are skipped silently.
-        """
-        from blue_data.registry.enrichment.data_quality import compute_entity_dq_summary
 
-        attribute_dq: dict[str, dict] = {}
+        Also computes ``misplaced_value_rate`` (cross-column) and writes the per-
+        attribute breakdown back into each attribute's ``data_quality`` property.
+        """
+        from blue_data.registry.enrichment.data_quality import (
+            compute_entity_dq_summary,
+            compute_misplaced_rates,
+        )
+
+        attribute_dq: dict[str, dict]       = {}
+        attribute_semantics: dict[str, dict] = {}
+        attribute_stats: dict[str, dict]     = {}
+
         for attr_record in self.list_entity_attributes(source, database, collection, entity):
             attr_name = attr_record["name"]
             dq = self.get_source_database_collection_entity_attribute_property(
@@ -1455,12 +1464,41 @@ class DataRegistry(Registry):
             if dq:
                 attribute_dq[attr_name] = dq
 
+            sem = self.get_source_database_collection_entity_attribute_property(
+                source, database, collection, entity, attr_name, "value_semantics"
+            )
+            if sem:
+                attribute_semantics[attr_name] = sem
+
+            st = self.get_source_database_collection_entity_attribute_property(
+                source, database, collection, entity, attr_name, "stats"
+            )
+            if st:
+                attribute_stats[attr_name] = st
+
         entity_stats = self.get_source_database_collection_entity_property(
             source, database, collection, entity, "stats"
         )
         row_samples = (entity_stats or {}).get("row_samples")
 
-        summary = compute_entity_dq_summary(attribute_dq, row_samples)
+        summary = compute_entity_dq_summary(
+            attribute_dq,
+            row_samples=row_samples,
+            attribute_semantics=attribute_semantics or None,
+            attribute_stats=attribute_stats or None,
+        )
+
+        # Write misplaced_value_rate back to each attribute's data_quality property
+        misplaced_map: dict | None = summary.get("misplaced_value_rate")
+        if misplaced_map and attribute_dq:
+            for attr_name, rate in misplaced_map.items():
+                if attr_name in attribute_dq:
+                    updated_dq = dict(attribute_dq[attr_name])
+                    updated_dq["misplaced_value_rate"] = rate
+                    self.set_source_database_collection_entity_attribute_property(
+                        source, database, collection, entity, attr_name, "data_quality", updated_dq
+                    )
+
         self.set_source_database_collection_entity_property(
             source, database, collection, entity, "data_quality_summary", summary
         )
