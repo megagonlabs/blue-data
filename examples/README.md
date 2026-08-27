@@ -15,6 +15,25 @@ pip install -e lib/
 Each demo tells one clean story with a quantitative before/after result.
 Designed for presentations. Start here.
 
+### Demo 0 — Data Quality Profiling (`data_quality_demo.py`)
+
+**Story:** A vendor delivers a CRM export that looks structurally correct.
+An AI agent queries it directly and gets an average salary 29× too high.
+blue-data DQ profiling surfaces four concrete issues before any query runs —
+an outlier row, 100% representation fragmentation on `country`, disguised
+nulls in `email`, and a typo in `status`.  The corrected query returns the
+right answer.
+
+**Result:** 5 contacts / $2,056,999 → 7 contacts / $69,000 (29.8× correction)
+
+```bash
+python3 examples/scenario-demos/data_quality_demo.py
+```
+
+**Dataset:** synthetic 20-row CRM export | **API key:** not required | **[Sample output](scenario-demos/data_quality_demo.output.txt)**
+
+---
+
 ### Demo 1 — Coded Value Disambiguation (`coded_value_demo.py`)
 
 **Story:** SQL databases store values as domain codes (PRIJEM, VYDAJ, A/B/C/D).
@@ -80,6 +99,30 @@ python3 examples/scenario-demos/process_reasoning_demo.py --live
 
 Deep-dives into individual blue-data features. No before/after story — shows
 what a feature does, what it produces, and how to wire it up.
+
+### Data Quality Profiling Reference (`data_quality_demo.py`)
+
+Developer reference for the full DQ pipeline.  Uses a synthetic `contacts`
+table with deliberate errors to show every metric tier and where results land
+in the registry.
+
+**Tier 1 (always):** `missing_value_rate`, `fill_rate`, `is_partial_attribute`, `cardinality_ratio`
+
+**Tier 2 (sample values + semantic type):** `disguised_missing_rate`, `format_violation_rate`, `heterogeneous_format_rate`, `embedded_value_rate`
+
+**Tier 3 (frequencies + mean/variance):** `rare_value_rate`, `suspected_typo_rate`, `representation_fragmentation_rate`, `outlier_rate`
+
+**Tier 4 (derived):** `repairability.{deterministic, ambiguous, unrecoverable}`, `misplaced_value_rate`
+
+**Entity-level:** `effective_noise_rate`, `worst_attribute`, `rows_with_error_rate`, `multi_error_row_rate`
+
+```bash
+python3 examples/feature-demos/data_quality_demo.py
+```
+
+**API key:** not required | **[Sample output](feature-demos/data_quality_demo.output.txt)**
+
+---
 
 ### Source-to-Source Data Import (`import_data_demo.py`)
 
@@ -283,9 +326,11 @@ python3 examples/backends/redis_demo.py
 
 | File | Folder | API key | External | Output |
 |------|--------|---------|----------|--------|
+| `data_quality_demo.py` | scenario-demos | none | — | [output](scenario-demos/data_quality_demo.output.txt) |
 | `coded_value_demo.py` | scenario-demos | Anthropic (SQL gen) | — | [output](scenario-demos/coded_value_demo.output.txt) |
 | `description_search_demo.py` | scenario-demos | none at runtime | — | [output](scenario-demos/description_search_demo.output.txt) |
 | `process_reasoning_demo.py` | scenario-demos | none (default) | — | [output](scenario-demos/process_reasoning_demo.output.txt) |
+| `data_quality_demo.py` | feature-demos | none | — | [output](feature-demos/data_quality_demo.output.txt) |
 | `import_data_demo.py` | feature-demos | none | — | [output](feature-demos/import_data_demo.output.txt) |
 | `nl_query_demo.py` | feature-demos | OpenAI | — | [output](feature-demos/nl_query_demo.output.txt) |
 | `schema_creation_demo.py` | feature-demos | none | — | [output](feature-demos/schema_creation_demo.output.txt) |

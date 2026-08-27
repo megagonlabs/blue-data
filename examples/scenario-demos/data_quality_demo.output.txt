@@ -1,0 +1,94 @@
+
+================================================================
+Data Quality Profiling — Before and After
+================================================================
+
+  Dataset : 20-row CRM contact export
+  Schema  : id, email, signup_date, country, salary, status
+  Goal    : average salary of active contacts in the US
+
+  The dataset looks structurally correct — no missing columns, no obvious
+  type errors.  But hidden quality issues cause a naive query to return
+  a value 29× higher than the true figure.
+
+================================================================
+Step 1 — Naive query: 'What is the avg salary of active US contacts?'
+================================================================
+
+  SQL:  SELECT COUNT(*), AVG(salary) FROM contacts WHERE status = 'active' AND country = 'US'
+
+  Result:  5 contacts,  avg salary $2,056,999.80
+
+  Something is wrong.  $2M+ is not a realistic average salary.
+  And only 5 contacts — the dataset has 14 rows with status='active'.
+  The query is syntactically correct but the data isn't ready.
+
+================================================================
+Step 2 — DQ profiling: sync → collect_stats → enrich → compute_dq
+================================================================
+
+  compute_source_data_quality complete.
+
+================================================================
+Step 3 — DQ findings (4 issues across 3 columns)
+================================================================
+
+  Entity-level
+    4 of 6 columns flagged
+    50% of rows have at least one error
+    20% of rows have two or more errors
+    worst column : country
+
+  Issue 1 — salary: outlier detected
+    outlier_rate       5.00%  (rows > 3σ from mean)
+    repairability      deterministic=0.00  ambiguous=0.00  unrecoverable=0.00
+    value 9999999 is likely a test or placeholder record
+
+  Issue 2 — country: representation fragmentation
+    fragmentation_rate 100.00%  (abbreviation ↔ full-form variants)
+    repairability      deterministic=0.00  ambiguous=1.00  unrecoverable=0.00
+    'US' and 'United States' are the same entity — query misses half
+
+  Issue 3 — email: missing and invalid values
+    missing_value_rate    5.00%  (true nulls)
+    disguised_missing     15.79%  ("N/A" × 2, "NONE" × 1)
+    format_violation      21.05%  (carol.test.org — no @ sign)
+    repairability         deterministic=0.31  ambiguous=0.06  unrecoverable=0.05
+
+  Issue 4 — status: sentinel and typo
+    disguised_missing     15.00%  ("UNKNOWN" sentinel)
+    suspected_typo_rate   20.00%  ("pnding" — edit-distance 1 from "pending")
+    repairability         deterministic=0.09  ambiguous=0.26  unrecoverable=0.00
+
+================================================================
+Step 4 — DQ-informed query: normalize country + filter outlier
+================================================================
+
+  Fixes applied:
+    country: expand to both 'US' and 'United States'  (fragmentation fix)
+    salary:  exclude rows above $150K                 (outlier filter)
+
+  SQL:  SELECT COUNT(*), AVG(salary) FROM contacts WHERE status = 'active'   AND country IN ('US', 'United States')   AND salary < 150000
+
+  Result:  7 contacts,  avg salary $69,000.00
+
+================================================================
+Summary
+================================================================
+
+                   Before DQ          After DQ
+  ─────────────    ──────────────     ──────────────
+  Contacts found   5                  7
+  Avg salary       $ 2,056,999.80     $    69,000.00
+  Error factor     29.8×  too high      —
+
+  DQ profiling identified:
+    • salary    outlier_rate = 5.00%  → filter before aggregation
+    • country   fragmentation = 100%  → normalize variants
+    • email     5% missing + 16% disguised  → do not use as join key
+    • status    typo_rate = 20%  → normalize before filtering
+
+  All metrics are stored as registry properties and available to agents
+  before any query runs.  No LLM call required.
+
+Demo complete.
