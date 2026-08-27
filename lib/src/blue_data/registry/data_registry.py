@@ -1396,6 +1396,107 @@ class DataRegistry(Registry):
 
         return stats
 
+    # ---------- data quality ----------
+
+    def compute_attribute_data_quality(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+        attribute: str,
+    ) -> dict:
+        """Compute and store the ``data_quality`` property for *attribute*.
+
+        Reads ``stats`` and ``value_semantics`` from the registry (collecting
+        stats on the fly when absent) and writes the result back as
+        ``"data_quality"``.
+        """
+        from blue_data.registry.enrichment.data_quality import compute_attribute_dq
+
+        stats = self.get_source_database_collection_entity_attribute_property(
+            source, database, collection, entity, attribute, "stats"
+        )
+        if not stats:
+            stats = self.collect_source_database_collection_entity_attribute_stats(
+                source, database, collection, entity, attribute
+            )
+
+        value_semantics = self.get_source_database_collection_entity_attribute_property(
+            source, database, collection, entity, attribute, "value_semantics"
+        )
+
+        dq = compute_attribute_dq(stats or {}, value_semantics)
+        self.set_source_database_collection_entity_attribute_property(
+            source, database, collection, entity, attribute, "data_quality", dq
+        )
+        return dq
+
+    def compute_entity_data_quality_summary(
+        self,
+        source: str,
+        database: str,
+        collection: str,
+        entity: str,
+    ) -> dict:
+        """Aggregate per-attribute DQ into an entity-level ``data_quality_summary``.
+
+        Expects ``compute_attribute_data_quality`` to have already run for each
+        attribute; missing attributes are skipped silently.
+        """
+        from blue_data.registry.enrichment.data_quality import compute_entity_dq_summary
+
+        attribute_dq: dict[str, dict] = {}
+        for attr_record in self.list_entity_attributes(source, database, collection, entity):
+            attr_name = attr_record["name"]
+            dq = self.get_source_database_collection_entity_attribute_property(
+                source, database, collection, entity, attr_name, "data_quality"
+            )
+            if dq:
+                attribute_dq[attr_name] = dq
+
+        entity_stats = self.get_source_database_collection_entity_property(
+            source, database, collection, entity, "stats"
+        )
+        row_samples = (entity_stats or {}).get("row_samples")
+
+        summary = compute_entity_dq_summary(attribute_dq, row_samples)
+        self.set_source_database_collection_entity_property(
+            source, database, collection, entity, "data_quality_summary", summary
+        )
+        return summary
+
+    def compute_source_data_quality(
+        self,
+        source: str,
+        recursive: bool = True,
+    ) -> None:
+        """Compute DQ metrics across the full source hierarchy.
+
+        Walks databases → collections → entities → attributes, calling
+        ``compute_attribute_data_quality`` per attribute and then
+        ``compute_entity_data_quality_summary`` per entity.
+        Skips silently on missing stats rather than raising.
+        """
+        if not recursive:
+            return
+
+        for database_record in self.list_source_databases(source):
+            database = database_record["name"]
+            for collection_record in self.list_database_collections(source, database):
+                collection = collection_record["name"]
+                for entity_record in self.list_collection_entities(source, database, collection):
+                    entity = entity_record["name"]
+                    for attr_record in self.list_entity_attributes(
+                        source, database, collection, entity
+                    ):
+                        self.compute_attribute_data_quality(
+                            source, database, collection, entity, attr_record["name"]
+                        )
+                    self.compute_entity_data_quality_summary(
+                        source, database, collection, entity
+                    )
+
     def list_collection_relations(
         self,
         source: str,

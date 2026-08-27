@@ -545,8 +545,18 @@ class SQLiteDBSource(SQLSource):
                 stats["min"] = None
                 stats["max"] = None
 
-            # No equivalent of pg_stats.most_common_vals in SQLite
-            stats["most_common_vals"] = []
+            # Top-20 values by frequency (value, count) pairs, descending
+            cursor.execute(
+                f"""
+                SELECT {column}, COUNT(*) AS freq
+                FROM {table}
+                WHERE {column} IS NOT NULL
+                GROUP BY {column}
+                ORDER BY freq DESC
+                LIMIT 20;
+                """
+            )
+            stats["most_common_vals"] = [(r[0], r[1]) for r in cursor.fetchall()]
             return stats
 
         except Exception as e:
