@@ -255,6 +255,35 @@ registry.collect_source_stats(recursive=True) # 2. gather sample_values
 registry.enrich_source_metadata(...)         # 3. enrich
 ```
 
+### Data quality profiling
+
+| Method | Description |
+|---|---|
+| `compute_attribute_data_quality(source, database, collection, entity, attribute)` | Reads `stats` + `value_semantics` for one attribute, computes all DQ tiers, writes the result as the `"data_quality"` property |
+| `compute_entity_data_quality_summary(source, database, collection, entity)` | Aggregates per-attribute `"data_quality"` dicts, computes entity-level metrics, writes `"data_quality_summary"`; also writes `misplaced_value_rate` back to each attribute's `"data_quality"` property |
+| `compute_source_data_quality(source, recursive=True)` | Walks the full hierarchy, calling the attribute and entity methods in order |
+
+Prerequisite order:
+
+```python
+registry.collect_source_stats("mydb", recursive=True)  # must run first
+registry.enrich_source("mydb")                         # optional; sharpens Tier 2 format checks
+registry.compute_source_data_quality("mydb")           # writes data_quality + data_quality_summary
+```
+
+**Per-attribute `"data_quality"` keys:**
+
+| Tier | Keys |
+|------|------|
+| 1 | `missing_value_rate`, `fill_rate`, `is_partial_attribute`, `cardinality_ratio` |
+| 2 | `disguised_missing_rate`, `format_violation_rate`, `heterogeneous_format_rate`, `embedded_value_rate` |
+| 3 | `rare_value_rate`, `suspected_typo_rate`, `representation_fragmentation_rate`, `outlier_rate` |
+| 4 | `repairability` (`deterministic`, `ambiguous`, `unrecoverable`), `misplaced_value_rate` |
+
+**Per-entity `"data_quality_summary"` keys:** `effective_noise_rate`, `worst_attribute`, `dominant_error_type`, `columns_with_errors`, `columns_with_error_rate`, `duplicate_row_rate`, `rows_with_error_rate`, `multi_error_row_rate`, `misplaced_value_rate` (per-attribute map).
+
+---
+
 ### connect_source
 
 ```python

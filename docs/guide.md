@@ -115,6 +115,52 @@ registry = DataRegistry(store=MemoryJSONSource(), metadata_enricher=enricher)
 
 ---
 
+## Data quality profiling
+
+`compute_source_data_quality` profiles every attribute in a source and stores per-attribute metrics as the `"data_quality"` property and an entity-level summary as `"data_quality_summary"`. No LLM required.
+
+Must run after `collect_source_stats`. Running `enrich_source` first improves Tier 2 accuracy (format checks use the semantic type) but is optional.
+
+```python
+registry.collect_source_stats("mydb", recursive=True)
+registry.enrich_source("mydb")           # optional — sharpens Tier 2 format checks
+registry.compute_source_data_quality("mydb")
+
+# Read per-attribute DQ metrics
+dq = registry.get_source_database_collection_entity_attribute_property(
+    "mydb", "sales", "public", "contacts", "email", "data_quality"
+)
+print(dq["missing_value_rate"])          # 0.05  — true nulls
+print(dq["disguised_missing_rate"])      # 0.20  — "N/A", "NONE", "unknown", …
+print(dq["format_violation_rate"])       # 0.30  — doesn't match EMAIL pattern
+print(dq["representation_fragmentation_rate"])  # 1.0  — "US" ↔ "United States"
+print(dq["outlier_rate"])                # 0.05  — rows > 3σ from mean
+print(dq["repairability"])
+# {"deterministic": 0.42, "ambiguous": 0.06, "unrecoverable": 0.05}
+
+# Read entity-level summary
+summary = registry.get_source_database_collection_entity_property(
+    "mydb", "sales", "public", "contacts", "data_quality_summary"
+)
+print(summary["worst_attribute"])        # "email"
+print(summary["dominant_error_type"])    # "representation_fragmentation_rate"
+print(summary["rows_with_error_rate"])   # 0.5
+print(summary["multi_error_row_rate"])   # 0.2
+```
+
+**Metric tiers** — see [`docs/features.md`](features.md#data-quality-profiling) for the full description of each metric.
+
+| Tier | What it measures | Needs |
+|------|-----------------|-------|
+| 1 | Missing values, fill rate, cardinality | raw counts only |
+| 2 | Sentinels, format violations, mixed date styles | sample_values + semantic type |
+| 3 | Rare values, typos, fragmentation, outliers | most_common_vals + mean/variance |
+| 4 | Repairability breakdown, misplaced values | derived from Tier 1–3 |
+
+See `examples/feature-demos/data_quality_demo.py` for a tier-by-tier reference and `examples/scenario-demos/data_quality_demo.py` for a before/after query story.
+
+---
+
 ## Search
 
 `DataRegistry` supports hybrid search (BM25 keyword + vector similarity) over all registry records. Pass a `VectorSource` and an embedding function to enable vector search; omit them to fall back to keyword-only.

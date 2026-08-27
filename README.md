@@ -25,6 +25,10 @@ A Czech banking database stores transaction types as `PRIJEM`, `VYDAJ`, `UVER`. 
 
 A column named `freight` doesn't match a search for *"shipping cost"*. A column named `units_in_stock` doesn't match *"current inventory"*. Agents and analysts searching by meaning find nothing. blue-data Layer 2 generates natural-language descriptions for every column — once, cheaply — and stores them in the registry. After enrichment, *"shipping cost"* finds `orders.freight`. *"No longer sold"* finds `products.discontinued`. Zero API calls at search time.
 
+**Data quality before querying**
+
+A query that looks syntactically correct returns an average salary of $2 million. The cause: one test record with value `9999999`, country stored inconsistently as both `"US"` and `"United States"`, and sentinels like `"N/A"` masquerading as data in the email field. An LLM cannot detect any of this without inspecting the data, and it has no way to know the query result is wrong. blue-data DQ profiling surfaces every issue before a query runs — outlier rate, representation fragmentation, disguised missing values, suspected typos — stored as registry properties that agents can read and act on. The corrected query returns the right answer.
+
 **Process and temporal reasoning**
 
 Event-log tables get treated as static snapshots. *"What is the current account balance?"* produces `AVG(balance)` — averaging all historical records instead of reading the most recent one. *"Monthly trend"* produces a flat `COUNT(*)` with no time grouping. blue-data Layer 1 detects EVENT tables, identifies the event-time column, classifies state variables, and injects process operators into the schema context. The LLM now writes temporally correct queries — with `ORDER BY date`, `GROUP BY month`, and proper window logic. No LLM cost.

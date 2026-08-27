@@ -127,6 +127,51 @@ registry = DataRegistry(store=MemoryJSONSource(), metadata_enricher=enricher)
 
 ---
 
+## Data quality profiling
+
+Measures data reliability at the attribute and entity level from already-collected stats — no LLM required. Results are stored as registry properties and are available to agents before any query runs.
+
+- **Tier 1 — raw counts** — `missing_value_rate`, `fill_rate`, `is_partial_attribute`, `cardinality_ratio`
+- **Tier 2 — format and sentinel checks** — `disguised_missing_rate` (sentinel vocabulary: "N/A", "null", "unknown", …), `format_violation_rate` (EMAIL, DATE, UUID, …), `heterogeneous_format_rate` (mixed date styles), `embedded_value_rate`
+- **Tier 3 — frequency-based** — `rare_value_rate`, `suspected_typo_rate` (edit-distance ≤ 2 from frequent values), `representation_fragmentation_rate` ("UK" ↔ "United Kingdom"), `outlier_rate` (z-score, weighted by frequency)
+- **Tier 4 — derived** — `repairability.{deterministic, ambiguous, unrecoverable}` (no extra data needed), `misplaced_value_rate` (cross-column)
+- **Entity-level summary** — `effective_noise_rate`, `worst_attribute`, `dominant_error_type`, `rows_with_error_rate`, `multi_error_row_rate`, `duplicate_row_rate`
+
+Tier 2 format checks work best after enrichment (semantic type determines which format pattern to apply). Tiers 1, 3, and 4 are always available from stats alone.
+
+```python
+# Prerequisites: sync and collect_stats must run first
+registry.sync_all(recursive=True)
+registry.collect_source_stats("mydb", recursive=True)
+
+# Optional: enrichment sharpens Tier 2 format checks (no LLM needed)
+registry.enrich_source("mydb")
+
+# Compute and store DQ metrics across the full source hierarchy
+registry.compute_source_data_quality("mydb")
+
+# Read per-attribute metrics
+dq = registry.get_source_database_collection_entity_attribute_property(
+    "mydb", "sales", "public", "orders", "email", "data_quality"
+)
+print(dq["missing_value_rate"])          # 0.05
+print(dq["disguised_missing_rate"])      # 0.20  ("N/A", "NONE", …)
+print(dq["format_violation_rate"])       # 0.30  (not matching EMAIL pattern)
+print(dq["representation_fragmentation_rate"])  # 1.0  ("US" ↔ "United States")
+print(dq["repairability"])               # {"deterministic": 0.42, "ambiguous": 0.06, "unrecoverable": 0.05}
+
+# Read entity-level summary
+summary = registry.get_source_database_collection_entity_property(
+    "mydb", "sales", "public", "orders", "data_quality_summary"
+)
+print(summary["worst_attribute"])        # "email"
+print(summary["rows_with_error_rate"])   # 0.5
+```
+
+See `examples/feature-demos/data_quality_demo.py` for a tier-by-tier reference, and `examples/scenario-demos/data_quality_demo.py` for a before/after story showing a 29.8× query correction driven by DQ findings.
+
+---
+
 ## Hybrid search
 
 BM25 keyword + vector similarity search over all registry records, with hierarchical score propagation.

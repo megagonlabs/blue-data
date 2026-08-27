@@ -16,6 +16,7 @@ blue-data is that layer. It sits between enterprise data sources and AI agents, 
 - **Enrich** the catalog with two layers of semantic intelligence:
   - **Layer 1 (deterministic)** — `SemanticTypeInferencer` detects ENUM columns, event-log tables, value axes, and coded values from sample data alone; no LLM required
   - **Layer 2 (LLM-augmented)** — `MetaData` pipeline generates natural-language descriptions for entities and attributes, semantic role annotations, process semantics, and value-axis signals; each enrichment is stored as a record property and survives re-runs unchanged
+- **Profile data quality** from collected stats — per-attribute metrics (missing values, disguised sentinels, format violations, typos, representation fragmentation, outliers, repairability) and entity-level summaries (worst attribute, row error rates) stored as registry properties and available to agents before any query runs; no LLM required
 - **Search** the catalog through a hybrid BM25 + vector engine; queries like "shipping cost" find `orders.freight`; "no longer sold" finds `products.discontinued`; "current account balance" finds the right event-log column with the correct temporal operator
 - **Expose** the catalog through four thin platform interfaces: Python library, REST API (FastAPI), CLI (Click), and MCP servers (registry-mcp, json-mcp)
 
