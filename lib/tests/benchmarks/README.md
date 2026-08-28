@@ -108,6 +108,89 @@ SQLite databases must be present in `data/bird/` (not committed due to file size
 
 ---
 
+### BIRD Data Lake (`bird_lake_benchmark.py`)
+
+All 11 BIRD databases pooled into **one shared registry** (~86 tables, ~9,988 total
+records). Each of the 1,534 queries searches the full lake. Scoring uses source-qualified
+`(database, table)` pairs — returning `loan` from the wrong database is a miss.
+
+This is the harder, more realistic evaluation: the retriever must identify not just the
+right table name but also which of 11 databases it belongs to, competing against
+attribute records from all sources simultaneously.
+
+#### Overall results
+
+| Condition | Hit@1 | Hit@5 | MRR  | F1@Lake (Ideal-K) |
+|-----------|-------|-------|------|-------------------|
+| keyword   | 21%   | 32%   | 0.26 | 0.02              |
+| hybrid    | 32%   | 46%   | 0.37 | 0.02              |
+
+#### Per-database breakdown
+
+| Database | kw H@1 | kw H@5 | kw F1 | hyb H@1 | hyb H@5 | hyb F1 |
+|----------|--------|--------|-------|---------|---------|--------|
+| california_schools | 28% | 40% | 0.23 | 13% | 28% | 0.10 |
+| card_games | 31% | 46% | 0.05 | 49% | 55% | 0.14 |
+| codebase_community | 25% | 39% | 0.00 | 28% | 42% | 0.00 |
+| debit_card_specializing | 23% | 23% | 0.00 | 25% | 45% | 0.00 |
+| european_football_2 | 26% | 34% | 0.00 | 21% | 30% | 0.00 |
+| financial | 12% | 39% | 0.00 | 42% | 54% | 0.00 |
+| formula_1 | 13% | 27% | 0.00 | 24% | 32% | 0.00 |
+| student_club | 18% | 24% | 0.00 | 27% | 39% | 0.00 |
+| superhero | 32% | 33% | 0.00 | 63% | 80% | 0.00 |
+| thrombosis_prediction | 15% | 25% | 0.00 | 20% | 37% | 0.00 |
+| toxicology | 13% | 18% | 0.00 | 38% | 59% | 0.00 |
+
+#### Comparison: per-DB vs lake
+
+| Metric | Per-DB keyword | Lake keyword | Lake hybrid |
+|--------|---------------|--------------|-------------|
+| Hit@1 | 44% | 21% | 32% |
+| Hit@5 | 61% | 32% | 46% |
+| F1@Ideal-K | 0.29 | 0.02 | 0.02 |
+
+#### Interpreting the results
+
+**Attribute-level (Hit@K)** drops ~50% going from per-DB to lake. Hybrid search recovers
+most of the gap — embeddings are especially effective for databases with domain-specific
+vocabulary: financial (12%→42%), superhero (32%→63%), toxicology (13%→38%).
+
+**Entity-level (F1@Lake)** collapses to near zero in the lake scenario. With ~9,988
+records competing, entity records (tables) are routinely outranked by attribute records
+(columns) from all 11 databases. Only databases with very distinctive table names see
+non-zero F1: california_schools (3 tables, unique school/county vocabulary) and
+card_games. All other databases have generic table names (`users`, `patient`, `member`)
+that are common as column names across the full pool.
+
+**Key insight:** F1@Lake is the metric most sensitive to enrichment. Without Layer 2
+descriptions, an entity record for `users` has text "users entity" — indistinguishable
+from dozens of attribute records with "user" in their name. Adding semantic descriptions
+via enrichment is the primary lever to improve entity-level lake retrieval.
+
+**Note on comparability:** DMRAL (the closest published benchmark) uses a pool of
+~109,949 tables vs our 86, making our lake an easier retrieval problem. DMRAL reports
+F1@3=59.6% on BirdWild with their full retrieval pipeline (which uses table content, not
+just metadata). Our lower numbers reflect that we index metadata only — table/column
+names and descriptions when enriched. The gap quantifies how much is left on the table
+from content-aware retrieval and enrichment.
+
+```bash
+# keyword-only
+python3 lib/tests/benchmarks/bird_lake_benchmark.py --report-dir lib/tests/benchmarks/bird_results
+
+# keyword + hybrid (requires OPENAI_API_KEY)
+OPENAI_API_KEY=sk-... python3 lib/tests/benchmarks/bird_lake_benchmark.py --report-dir lib/tests/benchmarks/bird_results
+
+# single database's queries against the full lake
+python3 lib/tests/benchmarks/bird_lake_benchmark.py --db financial --report-dir lib/tests/benchmarks/bird_results
+```
+
+SQLite databases must be present in `data/bird/` (same requirement as `bird_set_benchmark.py`).
+
+**Report:** [bird_results/BIRD_LAKE_RESULTS.md](bird_results/BIRD_LAKE_RESULTS.md)
+
+---
+
 ### Search Benchmark (`search_benchmark.py`)
 
 Keyword vs hybrid on **20 Finance queries** (5 categories). The original baseline benchmark.
@@ -209,7 +292,7 @@ python3 lib/tests/benchmarks/bird_converter.py dev.json --out-dir data/bird --db
 | File | Used by |
 |------|---------|
 | `_discovery_runner.py` | `finance_discovery_benchmark.py`, `northwind_discovery_benchmark.py` |
-| `_set_retrieval_runner.py` | `finance_set_benchmark.py`, `northwind_set_benchmark.py`, `bird_set_benchmark.py` |
+| `_set_retrieval_runner.py` | `finance_set_benchmark.py`, `northwind_set_benchmark.py`, `bird_set_benchmark.py`, `bird_lake_benchmark.py` |
 
 ---
 
