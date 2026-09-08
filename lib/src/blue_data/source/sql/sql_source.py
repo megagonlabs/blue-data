@@ -43,14 +43,13 @@ class SQLSource(DataSource, ABC):
         if database is None:
             raise Exception("No database provided")
         # Ops-based interface: {"op": "SQL.QUERY", "query": "..."} or {"op": "SQL.FETCH_ALL"}
+        # Unknown ops fall through to the source implementation unchanged.
         if isinstance(query, dict) and "op" in query:
             op = query["op"].upper()
             if op == "SQL.QUERY":
                 query = query["query"]
             elif op == "SQL.FETCH_ALL":
                 query = None
-            else:
-                raise ValueError(f"Unknown SQL op: {query['op']!r}")
         if query is None:
             if collection is None:
                 raise ValueError("collection is required when query is None")

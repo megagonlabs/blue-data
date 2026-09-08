@@ -198,6 +198,7 @@ class FileSource(DataSource):
         rows = self._read_file(path, fmt)
 
         # Ops-based interface.
+        # Unknown ops fall through to the source implementation unchanged.
         if isinstance(query, dict) and "op" in query:
             op = query["op"].upper()
             if op == "FILE.READ":
@@ -206,8 +207,6 @@ class FileSource(DataSource):
                 query = query.get("filter")
                 if query is None:
                     return rows
-            else:
-                raise ValueError(f"Unknown FILE op: {query['op']!r}")
 
         if query is None:
             return rows

@@ -152,11 +152,13 @@ def test_execute_query_ops_file_find_no_filter_returns_all(src, tmp_path):
     assert len(result) == 2
 
 
-def test_execute_query_ops_unknown_raises(src, tmp_path):
+def test_execute_query_ops_unknown_falls_through(src, tmp_path):
+    # Unknown ops fall through to the source's native filter path unchanged.
     rows = [{"id": 1}]
     _write_csv(tmp_path, "items", rows)
-    with pytest.raises(ValueError, match="Unknown FILE op"):
-        src.execute_query({"op": "FILE.NONSENSE"}, collection="items")
+    # The dict has no "id" key match so no rows are returned — no error raised.
+    result = src.execute_query({"op": "FILE.NONSENSE"}, collection="items")
+    assert isinstance(result, list)
 
 
 def test_execute_query_json(src, tmp_path):

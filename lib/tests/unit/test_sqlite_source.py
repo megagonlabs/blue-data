@@ -359,9 +359,11 @@ def test_execute_query_ops_fetch_all(src):
     assert len(rows) == 2
 
 
-def test_execute_query_ops_unknown_raises(src):
+def test_execute_query_ops_unknown_falls_through(src):
+    # Unknown ops are passed to the source implementation unchanged.
+    # SQLite will raise a driver-level error (not a ValueError from the dispatch layer).
     _create_table(src, "testdb", "t", cols=[{"name": "id", "type": "INTEGER"}])
-    with pytest.raises(ValueError, match="Unknown SQL op"):
+    with pytest.raises(Exception):
         src.execute_query({"op": "SQL.NONSENSE"}, database="testdb")
 
 
