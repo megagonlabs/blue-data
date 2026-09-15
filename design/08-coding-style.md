@@ -65,7 +65,7 @@ The core library (`lib/`) is **synchronous**. There is no `async`/`await` in `Da
 
 Op code strings on `VectorSource` follow a `NAMESPACE.VERB` pattern: `VECTOR.CREATE_INDEX`, `VECTOR.UPSERT`, `VECTOR.DELETE`, `VECTOR.KNN`.
 
-Registry path keys follow `{scope}/{type}/{name}` — see [adr-001-registry-path-convention.md](adr-001-registry-path-convention.md).
+Registry path keys follow `{scope}/{type}/{name}` — see [ADR-001 in 13-decision-log.md](13-decision-log.md#adr-001--registry-path-convention-scopetypename).
 
 ---
 

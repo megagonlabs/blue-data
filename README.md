@@ -11,7 +11,7 @@ Its core capabilities include:
 - **Cross-source intelligence** that understands relationships and semantics across multiple enterprise systems
 - **AI-ready semantic metadata** that enables more accurate reasoning, planning, and decision-making over enterprise data
 
-→ **[Full feature list](docs/features.md)** · **[Installation](docs/installation.md)** · **[Quick start](#quick-start)** · **[Examples](#examples)**
+→ **[Full feature list](docs/features.md)** · **[Installation](docs/installation.md)** · **[Quick start](docs/quickstart.md)** · **[Examples](#examples)**
 
 ## Why blue-data
 
@@ -197,10 +197,10 @@ The `platform/` directory contains deployable components built on top of `lib/`.
 
 | Component | Description | Status |
 |---|---|---|
-| `platform/registry-mcp` | MCP server — exposes registry ops as tools for Claude and MCP clients | ✅ Done |
-| `platform/api` | REST API | ✅ Done |
-| `platform/cli` | Command-line interface | ✅ Done |
-| `platform/json-mcp` | MCP server for raw JSONSource operations (memory + file) | ✅ Done |
+| [`platform/registry-mcp`](platform/registry-mcp/README.md) | MCP server — exposes registry ops as tools for Claude and MCP clients | ✅ Done |
+| [`platform/api`](platform/api/README.md) | REST API | ✅ Done |
+| [`platform/cli`](platform/cli/README.md) | Command-line interface | ✅ Done |
+| [`platform/json-mcp`](platform/json-mcp/README.md) | MCP server for raw JSONSource operations (memory + file) | ✅ Done |
 
 ### registry-mcp
 
