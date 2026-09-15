@@ -787,3 +787,18 @@ def test_role_constraints_empty_for_descriptive_no_safe_agg(md):
     attrs = [_numeric_attr("notes", "FREE_TEXT", [], semantic_role="DESCRIPTIVE")]
     con = md.infer_role_query_constraints(attrs, [])
     assert "notes" not in con
+
+
+def test_temporal_density_signal_yyyymm_does_not_crash(md):
+    # YYYYMM values (e.g. "201112") were previously parsed as year 201112
+    # (datetime64[Y]), causing a TypeError when dividing by timedelta64[D].
+    rows = [{"date": str(201101 + i)} for i in range(20)]
+    result = md.temporal_density_signal("date", rows)
+    assert isinstance(result, float)
+
+
+def test_temporal_density_signal_yyyymm_monthly_cadence(md):
+    # 12 consecutive months should be detected as monthly (>= 30-day avg → 0.2).
+    rows = [{"date": f"{2020 + i // 12}{(i % 12) + 1:02d}"} for i in range(15)]
+    result = md.temporal_density_signal("date", rows)
+    assert result in (0.0, 0.2, 0.4)

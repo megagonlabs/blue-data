@@ -1138,7 +1138,12 @@ Return JSON ONLY:
             if v is None:
                 continue
             try:
-                times.append(np.datetime64(v))
+                v_str = str(v).strip()
+                # YYYYMM (e.g. "201112") — np.datetime64 would parse this as year
+                # 201112 (datetime64[Y]), making the day-resolution delta division fail.
+                if len(v_str) == 6 and v_str.isdigit():
+                    v_str = f"{v_str[:4]}-{v_str[4:6]}-01"
+                times.append(np.datetime64(v_str).astype("datetime64[D]"))
             except Exception:
                 pass
         if len(times) < 10:
