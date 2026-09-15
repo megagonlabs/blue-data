@@ -192,3 +192,16 @@ The root key `$` holds top-level registry metadata.
 **Consequences:**
 - Dynamic source registration (via `POST /{source_name}` equivalent or CLI `sources add`) still works and is the only option for sources added after deploy.
 - `BLUE_DATA_SOURCES_SYNC=false` can be set to load sources without syncing — useful when the live source is slow to respond at startup.
+
+---
+
+## ADR-012 — `blue_data.utils.config`: profile-driven configuration for the CLI family
+
+**Date:** 2026-09-15
+**Status:** Accepted
+
+**Decision:** Profile-driven configuration lives in `blue_data.utils.config`, shared by every Blue CLI rather than reimplemented per repository. A CLI declares its parameters in a JSON spec — each with a `default`, a `prompt`, whether it is `required`, an optional `inherits` chain, and a `cast` (`directory`, `file`, `str`, `int`, `float`, `bool`, `secret`) — and merges it with `base_spec()`, which holds the family-wide parameters (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `BLUE_DATA_LLM_PROVIDER`, `BLUE_DATA_LLM_MODEL`, `BLUE_DATA_CLI_FORMAT`, `BLUE_DATA_CLI_LOG_LIMIT`). Values are stored per CLI in `~/.<cli>/.profiles`, an INI file with one section per profile, mode `0600`; the selected profile is named in `~/.<cli>/.selected.profile`. Resolution order is **command option > environment variable > profile > spec default**. Secrets are stored either base64-encoded or as a `$VAR` reference resolved from the environment at use. `ConfigResolver.export()` writes the resolved values into `os.environ`.
+
+**Rationale:** The CLI compliance checklist requires that `profile` behave consistently across repositories, which a copy-paste implementation would not survive. Putting the engine here makes the first implementation the shared one. The package deliberately imports no CLI framework, so `blue-data`'s dependencies (pandas, numpy, jsonpath-ng) are unchanged: it decides what to ask for and what a value resolves to, while prompting and command wiring stay in each CLI. Exporting into `os.environ` is what makes the rest work unchanged — a profile *is* a named set of environment variables, so everything that already reads configuration from the environment (the OpenAI SDK, this library's own `config.py`, Click's `envvar=` options) keeps doing so with no rewiring.
+
+**Consequences:** A resolver reads from a snapshot of the environment taken at construction and writes to the live one, so it never observes its own exports — without that, every value the CLI exported would report back as having come from the environment and an `inspect` command could not attribute a value to the tier that really set it. The same property means a long-lived process building two resolvers gets consistent answers. Secret encoding is obfuscation, not encryption: it keeps a key off a screen and out of a careless `grep`, and the `0600` file mode plus the `$VAR` reference form are the real protections — the documentation says so rather than implying a guarantee the implementation does not provide. `base_spec.json` ships as package data, so a CLI consuming this needs no copy of the family parameters. `blue-data-kb-source`'s `kb profile` group is the reference implementation; siblings adopting it write only their own spec and a thin Click layer.

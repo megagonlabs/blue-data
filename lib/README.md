@@ -58,6 +58,7 @@ python3 -m pytest tests/integration/ -v
 - **[Developer guide](../docs/guide.md)** — syncing, enrichment, DQ profiling, search, and NL queries
 - **[Architecture](../docs/architecture.md)** — system architecture and design decisions
 - **[Extending](../docs/extending.md)** — implementing a new DataSource or custom NL translation
+- **[Profiles](../README.md#profiles-bluedatautilsconfig)** — `blue_data.utils.config`, the profile-driven configuration engine every Blue CLI shares
 
 ## Source layout
 
@@ -67,7 +68,9 @@ lib/
 │   └── blue_data/
 │       ├── core/           # DataSource, Registry, DataSchema
 │       ├── source/         # SQL, file, vector, JSON backends
-│       └── registry/       # DataRegistry, search, enrichment
+│       ├── registry/       # DataRegistry, search, enrichment
+│       └── utils/
+│           └── config/     # Profile-driven CLI configuration (spec, .profiles, precedence, secrets)
 └── tests/
     ├── unit/
     ├── integration/

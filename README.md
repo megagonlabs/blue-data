@@ -113,6 +113,26 @@ source .envrc
 
 Variables can also be set inline or exported in your shell. The sections below document every supported variable, its default, and when it is required.
 
+### Profiles (`blue_data.utils.config`)
+
+A CLI in this family does not have to make users export anything. `blue_data.utils.config` gives it named **profiles** — sets of these same variables, stored per CLI in `~/.<cli>/.profiles` — so switching environments is one command instead of a shell full of exports.
+
+```python
+from blue_data.utils.config import base_spec, build_resolver, load_spec
+
+spec = base_spec().merged_with(load_spec("my_cli/profile_spec.json"))
+resolver = build_resolver(spec, home="~/.mycli")
+resolver.export()          # resolved values -> os.environ, for everything that reads them
+```
+
+A CLI declares its own parameters in a JSON spec and merges them with `base_spec()`, which holds the family-wide ones (`OPENAI_API_KEY`, `BLUE_DATA_LLM_MODEL`, `BLUE_DATA_CLI_FORMAT`, …). Each entry declares a `default`, a `prompt` shown during interactive configuration, whether it is `required` (which selects what a walkthrough asks about), and a `cast` — `directory`, `file`, `str`, `int`, `float`, `bool` or `secret`.
+
+Resolution order is **command option > environment variable > profile > spec default**, and a parameter may `inherit` from others, so `MYCLI_EXTRACTION_LLM_MODEL` can fall back to `MYCLI_LLM_MODEL` and then to `BLUE_DATA_LLM_MODEL`.
+
+Secret parameters are stored either encoded, or as a `$VAR` reference resolved from the environment at use. The profiles file is written `0600`, and nothing decodes a secret for display. The encoding is obfuscation rather than encryption — the file mode is the real protection, and the reference form is what keeps a secret off disk entirely.
+
+This package is deliberately free of any CLI framework, so it adds no dependencies: it decides *what to ask for* and *what a value resolves to*, while prompting and command wiring stay in each CLI. `blue-data-kb-source`'s `kb profile` group is the reference implementation.
+
 ---
 
 ### Store

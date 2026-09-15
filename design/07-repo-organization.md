@@ -65,6 +65,13 @@ blue-data/
 │   │       │       ├── json_utils.py    # JSON serialization helpers
 │   │       │       ├── similarity_utils.py  # cosine similarity, numpy vector ops
 │   │       │       └── utils.py         # deep_merge, safe_json_parse, path utilities
+│   │       ├── utils/
+│   │       │   └── config/              # Profile-driven configuration shared by the Blue CLI family
+│   │       │       ├── spec.py          # ParamSpec/ConfigSpec — declared parameters and their casts
+│   │       │       ├── profiles.py      # ProfileStore — the ~/.<cli>/.profiles file and the selected profile
+│   │       │       ├── resolve.py       # ConfigResolver — precedence, $VAR references, export to os.environ
+│   │       │       ├── secrets.py       # encode/decode/display of secret values
+│   │       │       └── base_spec.json   # Family-wide parameters (OPENAI_API_KEY, BLUE_DATA_LLM_MODEL, …)
 │   │       ├── registry/
 │   │       │   ├── registry.py          # Registry — generic key/value record store over JSONSource
 │   │       │   ├── data_registry.py     # DataRegistry — Registry + typed source helpers + search engine
@@ -249,6 +256,12 @@ The codebase implements three abstract hierarchies that never share base classes
 | `registry/enrichment/semantic_types.py` | `SemanticTypeInferencer` — deterministic column type inference |
 | `registry/search/registry_search.py` | `RegistrySearch` — wires HybridSearch + RecordIndexer |
 | `registry/search/hybrid_search.py` | `HybridSearch` — BM25 + vector score fusion |
+| `utils/config/spec.py` | `ParamSpec`/`ConfigSpec` — a CLI's declared configuration parameters, their casts, and spec composition |
+| `utils/config/profiles.py` | `ProfileStore` — read/write the `~/.<cli>/.profiles` INI file (mode `0600`) and the selected profile |
+| `utils/config/resolve.py` | `ConfigResolver` — precedence (option > environment > profile > default), parameter inheritance, `$VAR` references, and `export()` into `os.environ` |
+| `utils/config/secrets.py` | Encoding, decoding and masked display of secret values |
+
+`utils/config/` deliberately imports no CLI framework, so it adds no dependencies: it decides *what to ask for* and *what a value resolves to*, while prompting and command wiring stay in each CLI. `blue-data-kb-source`'s `kb profile` group is the reference implementation.
 
 ### `platform/` — external interface services
 

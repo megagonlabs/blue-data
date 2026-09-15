@@ -1,0 +1,38 @@
+{
+  "OPENAI_API_KEY": {
+    "default": null,
+    "prompt": "OpenAI API key (used for LLM features and embeddings)",
+    "required": true,
+    "cast": "secret"
+  },
+  "ANTHROPIC_API_KEY": {
+    "default": null,
+    "prompt": "Anthropic API key",
+    "required": false,
+    "cast": "secret"
+  },
+  "BLUE_DATA_LLM_PROVIDER": {
+    "default": "openai",
+    "prompt": "Default LLM provider",
+    "required": false,
+    "cast": "str"
+  },
+  "BLUE_DATA_LLM_MODEL": {
+    "default": "gpt-4o",
+    "prompt": "Default LLM model",
+    "required": true,
+    "cast": "str"
+  },
+  "BLUE_DATA_CLI_FORMAT": {
+    "default": "table",
+    "prompt": "Default output format (table or json)",
+    "required": false,
+    "cast": "str"
+  },
+  "BLUE_DATA_CLI_LOG_LIMIT": {
+    "default": 80,
+    "prompt": "Max characters shown per truncated log line",
+    "required": false,
+    "cast": "int"
+  }
+}
