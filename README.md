@@ -125,7 +125,7 @@ resolver = build_resolver(spec, home="~/.mycli")
 resolver.export()          # resolved values -> os.environ, for everything that reads them
 ```
 
-A CLI declares its own parameters in a JSON spec and merges them with `base_spec()`, which holds the family-wide ones (`OPENAI_API_KEY`, `BLUE_DATA_LLM_MODEL`, `BLUE_DATA_CLI_FORMAT`, …). Each entry declares a `default`, a `prompt` shown during interactive configuration, whether it is `required` (which selects what a walkthrough asks about), and a `cast` — `directory`, `file`, `str`, `int`, `float`, `bool` or `secret`.
+`ProfileStore.initialize()` creates the `default` profile on first run, so a CLI needs no setup step before it works. A CLI declares its own parameters in a JSON spec and merges them with `base_spec()`, which holds the family-wide ones (`OPENAI_API_KEY`, `BLUE_DATA_LLM_MODEL`, `BLUE_DATA_CLI_FORMAT`, …). Each entry declares a `default`, a `prompt` shown during interactive configuration, whether it is `required` (which selects what a walkthrough asks about), and a `cast` — `directory`, `file`, `str`, `int`, `float`, `bool` or `secret`.
 
 Resolution order is **command option > environment variable > profile > spec default**, and a parameter may `inherit` from others, so `MYCLI_EXTRACTION_LLM_MODEL` can fall back to `MYCLI_LLM_MODEL` and then to `BLUE_DATA_LLM_MODEL`.
 

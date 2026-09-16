@@ -328,3 +328,36 @@ def test_export_leaves_an_already_exported_variable_alone(spec, store):
 def test_build_resolver_takes_a_home_directory(spec, tmp_path):
     r = build_resolver(spec, str(tmp_path / "home"), environ={})
     assert r.get("BLUE_DATA_LLM_MODEL") == "gpt-4o"
+
+
+# ------------------------------------------------------------------ #
+# first-run initialization                                            #
+# ------------------------------------------------------------------ #
+
+def test_initialize_creates_a_default_profile_on_a_fresh_install(store):
+    assert store.initialize() is True
+    assert store.list_profiles() == ["default"]
+    assert store.values("default") == {}
+
+
+def test_initialize_is_a_no_op_once_the_file_exists(store):
+    store.add("staging", {"APP_WORKERS": "4"})
+    assert store.initialize() is False
+    assert store.list_profiles() == ["staging"]
+
+
+def test_initialize_does_not_resurrect_an_explicitly_removed_profile(store):
+    """Keyed on the file, not the section: a profile the user removed on
+    purpose must not come back on the next command."""
+    store.initialize()
+    store.add("staging")
+    store.remove("default")
+    assert store.initialize() is False
+    assert store.list_profiles() == ["staging"]
+
+
+def test_an_initialized_profile_still_resolves_spec_defaults(spec, store):
+    """The section is left empty on purpose, so an unset value keeps tracking
+    the spec default rather than being frozen at install time."""
+    store.initialize()
+    assert resolver(spec, store).get("BLUE_DATA_LLM_MODEL") == "gpt-4o"

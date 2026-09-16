@@ -96,6 +96,26 @@ class ProfileStore:
             parser.set(name, key, str(value))
         self._write(parser)
 
+    def initialize(self, name: str = DEFAULT_PROFILE) -> bool:
+        """Create the profiles file with an empty *name* section if it is absent.
+
+        For a CLI to call on startup, so a fresh install has a profile to
+        configure without the user being told to create one first. Returns True
+        if the file was created.
+
+        Deliberately keyed on the *file* rather than on the section: once the
+        file exists, a profile the user explicitly removed stays removed. The
+        section is left empty rather than seeded with the spec's defaults, so a
+        value the user never set keeps tracking the default instead of being
+        frozen at whatever it was on the day of installation.
+        """
+        if self.profiles_path.exists():
+            return False
+        parser = self._parser()
+        parser.add_section(name)
+        self._write(parser)
+        return True
+
     def remove(self, name: str) -> None:
         parser = self._parser()
         if not parser.remove_section(name):
