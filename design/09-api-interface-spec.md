@@ -356,43 +356,24 @@ Global options: `--json` (raw JSON output), `--store` (override `BLUE_DATA_REGIS
 blue-data [--json] [--store memory|redis] [--config PATH] <command> [args]
 ```
 
-### `sources` group
+### `source` group
 
 ```
-blue-data sources list
-blue-data sources add NAME --type sqlite|postgres [--database-dir DIR] [--host HOST] [--port N] [--dbname DB] [--user USER] [--password PW]
-blue-data sources remove NAME
-```
-
-### Operations
-
-```
-blue-data sync SOURCE [--no-recursive]
-blue-data stats SOURCE [--no-recursive]
-blue-data enrich SOURCE
-blue-data metadata SOURCE [--rebuild]
+blue-data source list
+blue-data source add NAME --type sqlite|postgres [--database-dir DIR] [--host HOST] [--port N] [--dbname DB] [--user USER] [--password PW]
+blue-data source remove NAME
+blue-data source sync NAME [--no-recursive]
+blue-data source stats NAME [--no-recursive]
+blue-data source enrich NAME
+blue-data source metadata NAME [--rebuild]
+blue-data source query NAME SQL [--database DB]
+blue-data source inspect NAME [DATABASE [COLLECTION [ENTITY [ATTRIBUTE]]]]
 ```
 
 ### Search
 
 ```
 blue-data search QUERY [--type TYPE] [--limit N]
-```
-
-### `inspect` group
-
-```
-blue-data inspect source NAME
-blue-data inspect database SOURCE DATABASE
-blue-data inspect collection SOURCE DATABASE COLLECTION
-blue-data inspect entity SOURCE DATABASE COLLECTION ENTITY
-blue-data inspect attribute SOURCE DATABASE COLLECTION ENTITY ATTRIBUTE
-```
-
-### Query
-
-```
-blue-data query SOURCE SQL [--database DB]
 ```
 
 ---

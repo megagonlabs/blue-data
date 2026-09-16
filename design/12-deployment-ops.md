@@ -145,13 +145,13 @@ pip install -e "lib/" -e "platform/cli/"
 export BLUE_DATA_REGISTRY_STORE=redis
 export BLUE_DATA_REGISTRY_REDIS_URL=redis://localhost:6379/0
 
-blue-data sources add northwind --type sqlite --database-dir /data/sqlite
-blue-data sync northwind
-blue-data stats northwind
-blue-data enrich northwind
-blue-data metadata northwind
+blue-data source add northwind --type sqlite --database-dir /data/sqlite
+blue-data source sync northwind
+blue-data source stats northwind
+blue-data source enrich northwind
+blue-data source metadata northwind
 blue-data search "customer revenue"
-blue-data inspect entity northwind northwind public orders
+blue-data source inspect northwind northwind public orders
 ```
 
 ---

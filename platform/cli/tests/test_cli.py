@@ -2,26 +2,26 @@ from registry_cli.main import cli
 
 
 # ---------------------------------------------------------------------------
-# sources
+# source list / add / remove
 # ---------------------------------------------------------------------------
 
-def test_sources_list(runner):
-    r = runner.invoke(cli, ["sources", "list"])
+def test_source_list(runner):
+    r = runner.invoke(cli, ["source", "list"])
     assert r.exit_code == 0
     assert "sales" in r.output
 
 
-def test_sources_list_json(runner):
-    r = runner.invoke(cli, ["--json", "sources", "list"])
+def test_source_list_json(runner):
+    r = runner.invoke(cli, ["--json", "source", "list"])
     assert r.exit_code == 0
     import json
     names = json.loads(r.output)
     assert "sales" in names
 
 
-def test_sources_add_sqlite(runner, tmp_path):
+def test_source_add_sqlite(runner, tmp_path):
     r = runner.invoke(cli, [
-        "sources", "add", "newdb",
+        "source", "add", "newdb",
         "--type", "sqlite",
         "--database-dir", str(tmp_path),
     ])
@@ -29,55 +29,55 @@ def test_sources_add_sqlite(runner, tmp_path):
     assert "newdb" in r.output
 
 
-def test_sources_add_and_remove(runner, tmp_path):
-    runner.invoke(cli, ["sources", "add", "tmp_src", "--type", "sqlite",
+def test_source_add_and_remove(runner, tmp_path):
+    runner.invoke(cli, ["source", "add", "tmp_src", "--type", "sqlite",
                         "--database-dir", str(tmp_path)])
-    r = runner.invoke(cli, ["sources", "remove", "tmp_src"])
+    r = runner.invoke(cli, ["source", "remove", "tmp_src"])
     assert r.exit_code == 0
     assert "Removed" in r.output
 
 
-def test_sources_remove_not_found(runner):
-    r = runner.invoke(cli, ["sources", "remove", "ghost"])
+def test_source_remove_not_found(runner):
+    r = runner.invoke(cli, ["source", "remove", "ghost"])
     assert r.exit_code != 0
     assert "not found" in r.output
 
 
 # ---------------------------------------------------------------------------
-# sync / stats / enrich / metadata
+# source sync / stats / enrich / metadata
 # ---------------------------------------------------------------------------
 
-def test_sync(runner):
-    r = runner.invoke(cli, ["sync", "sales"])
+def test_source_sync(runner):
+    r = runner.invoke(cli, ["source", "sync", "sales"])
     assert r.exit_code == 0
     assert "Synced" in r.output
 
 
-def test_sync_unknown_source(runner):
-    r = runner.invoke(cli, ["sync", "ghost"])
+def test_source_sync_unknown(runner):
+    r = runner.invoke(cli, ["source", "sync", "ghost"])
     assert r.exit_code != 0
 
 
-def test_stats(runner):
-    r = runner.invoke(cli, ["stats", "sales"])
+def test_source_stats(runner):
+    r = runner.invoke(cli, ["source", "stats", "sales"])
     assert r.exit_code == 0
     assert "Stats collected" in r.output
 
 
-def test_enrich(runner):
-    r = runner.invoke(cli, ["enrich", "sales"])
+def test_source_enrich(runner):
+    r = runner.invoke(cli, ["source", "enrich", "sales"])
     assert r.exit_code == 0
     assert "Enriched" in r.output
 
 
-def test_metadata(runner):
-    r = runner.invoke(cli, ["metadata", "sales"])
+def test_source_metadata(runner):
+    r = runner.invoke(cli, ["source", "metadata", "sales"])
     assert r.exit_code == 0
     assert "complete" in r.output
 
 
-def test_metadata_rebuild(runner):
-    r = runner.invoke(cli, ["metadata", "sales", "--rebuild"])
+def test_source_metadata_rebuild(runner):
+    r = runner.invoke(cli, ["source", "metadata", "sales", "--rebuild"])
     assert r.exit_code == 0
 
 
@@ -110,49 +110,49 @@ def test_search_type_filter(runner):
 
 
 # ---------------------------------------------------------------------------
-# inspect
+# source inspect
 # ---------------------------------------------------------------------------
 
 def test_inspect_source(runner):
-    r = runner.invoke(cli, ["inspect", "source", "sales"])
+    r = runner.invoke(cli, ["source", "inspect", "sales"])
     assert r.exit_code == 0
     assert "sales" in r.output
 
 
 def test_inspect_source_not_found(runner):
-    r = runner.invoke(cli, ["inspect", "source", "ghost"])
+    r = runner.invoke(cli, ["source", "inspect", "ghost"])
     assert r.exit_code != 0
 
 
 def test_inspect_database(runner):
-    r = runner.invoke(cli, ["inspect", "database", "sales", "prod"])
+    r = runner.invoke(cli, ["source", "inspect", "sales", "prod"])
     assert r.exit_code == 0
     assert "prod" in r.output
     assert "public" in r.output
 
 
 def test_inspect_collection(runner):
-    r = runner.invoke(cli, ["inspect", "collection", "sales", "prod", "public"])
+    r = runner.invoke(cli, ["source", "inspect", "sales", "prod", "public"])
     assert r.exit_code == 0
     assert "orders" in r.output
     assert "customers" in r.output
 
 
 def test_inspect_entity(runner):
-    r = runner.invoke(cli, ["inspect", "entity", "sales", "prod", "public", "orders"])
+    r = runner.invoke(cli, ["source", "inspect", "sales", "prod", "public", "orders"])
     assert r.exit_code == 0
     assert "total" in r.output
     assert "status" in r.output
 
 
 def test_inspect_attribute(runner):
-    r = runner.invoke(cli, ["inspect", "attribute", "sales", "prod", "public", "orders", "total"])
+    r = runner.invoke(cli, ["source", "inspect", "sales", "prod", "public", "orders", "total"])
     assert r.exit_code == 0
     assert "total" in r.output
 
 
 def test_inspect_json(runner):
-    r = runner.invoke(cli, ["--json", "inspect", "entity", "sales", "prod", "public", "orders"])
+    r = runner.invoke(cli, ["--json", "source", "inspect", "sales", "prod", "public", "orders"])
     assert r.exit_code == 0
     import json
     data = json.loads(r.output)
@@ -160,14 +160,14 @@ def test_inspect_json(runner):
 
 
 # ---------------------------------------------------------------------------
-# query
+# source query
 # ---------------------------------------------------------------------------
 
 def test_query(runner):
-    r = runner.invoke(cli, ["query", "sales", "SELECT * FROM orders", "--database", "prod"])
+    r = runner.invoke(cli, ["source", "query", "sales", "SELECT * FROM orders", "--database", "prod"])
     assert r.exit_code == 0
 
 
 def test_query_invalid(runner):
-    r = runner.invoke(cli, ["query", "sales", "SELECT * FROM nope", "--database", "prod"])
+    r = runner.invoke(cli, ["source", "query", "sales", "SELECT * FROM nope", "--database", "prod"])
     assert r.exit_code != 0

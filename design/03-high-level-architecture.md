@@ -76,7 +76,7 @@ Five interface adapters sit in front of `DataRegistry` and delegate to it. They 
 
 **REST API** — HTTP/JSON interface (FastAPI, port 8000). Three routers: records (search, list), sources (CRUD, sync, stats, enrich), and hierarchy (CRUD at every level). No business logic in handlers.
 
-**CLI** — Click command group (`blue-data`). Commands: `sources add/list/remove`, `sync`, `stats`, `enrich`, `metadata`, `search`, `inspect`, `query`.
+**CLI** — Click command group (`blue-data`). Commands: `source add/list/remove/sync/stats/enrich/metadata/query/inspect`, `search`.
 
 ---
 

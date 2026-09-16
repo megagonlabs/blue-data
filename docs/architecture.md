@@ -67,10 +67,10 @@
   │  ┌──────────▼───────────┐   ┌──────────▼────────────┐                    │
   │  │        cli           │   │      json-mcp          │                   │
   │  │  (Click CLI)         │   │  (FastMCP server)      │                   │
-  │  │  sources add/remove  │   │  stdio/MCP protocol    │                   │
-  │  │  sync / stats        │   │  5 tools: json_get,    │                   │
-  │  │  enrich / search     │   │  json_set, json_delete,│                   │
-  │  │  inspect / query     │   │  json_list_keys,       │                   │
+  │  │  source add/remove   │   │  stdio/MCP protocol    │                   │
+  │  │  source sync/stats   │   │  5 tools: json_get,    │                   │
+  │  │  source enrich       │   │  json_set, json_delete,│                   │
+  │  │  source inspect      │   │  json_list_keys,       │                   │
   │  └──────────┬───────────┘   │  json_get_all          │                   │
   │             │               │  (memory + file only)  │                   │
   │             │               └──────────┬─────────────┘                   │

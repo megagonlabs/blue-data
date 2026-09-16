@@ -440,12 +440,12 @@ blue-data-api  # starts on http://localhost:8000
 **CLI:**
 
 ```bash
-blue-data sources add shop --type sqlite --database-dir /data/shop
-blue-data sync shop
-blue-data stats shop
-blue-data enrich shop
+blue-data source add shop --type sqlite --database-dir /data/shop
+blue-data source sync shop
+blue-data source stats shop
+blue-data source enrich shop
 blue-data search "revenue"
-blue-data inspect entity shop mydb public orders
+blue-data source inspect shop mydb public orders
 ```
 
 See [`docs/api.md`](api.md) and [`docs/cli.md`](cli.md) for full references.

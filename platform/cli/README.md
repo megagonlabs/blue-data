@@ -55,50 +55,94 @@ Pre-load sources at startup:
 
 ## Commands
 
-### `sources`
+### `source`
+
+All source operations are grouped under `source`.
+
+#### `source list`
 
 ```bash
-blue-data sources list                              # list registered sources
-blue-data sources add NAME --type sqlite --database-dir /path/to/dbs
-blue-data sources add NAME --type postgres --host localhost --dbname mydb \
-    --user app --password <password>
-blue-data sources remove NAME                       # deregister a source
+blue-data source list
 ```
 
-### `sync`
+#### `source add`
+
+```bash
+blue-data source add NAME --type sqlite --database-dir /path/to/dbs
+blue-data source add NAME --type postgres --host localhost --dbname mydb \
+    --user app --password <password>
+```
+
+#### `source remove`
+
+```bash
+blue-data source remove NAME
+```
+
+#### `source sync`
 
 Walk the live source and register all databases, collections, entities, and attributes.
 
 ```bash
-blue-data sync mydb                    # recursive by default
-blue-data sync mydb --no-recursive     # top-level only
+blue-data source sync mydb                    # recursive by default
+blue-data source sync mydb --no-recursive     # top-level only
 ```
 
-### `stats`
+#### `source stats`
 
 Collect row counts, null rates, and value statistics from the live source.
 
 ```bash
-blue-data stats mydb
+blue-data source stats mydb
+blue-data source stats mydb --no-recursive
 ```
 
-### `enrich`
+#### `source enrich`
 
 Run deterministic semantic type inference (BOOLEAN, INTEGER, EMAIL, UUID, etc.) on all attributes.
 
 ```bash
-blue-data enrich mydb
+blue-data source enrich mydb
 ```
 
-### `metadata`
+#### `source metadata`
 
 Run the full MetaData enrichment pipeline (semantic roles, VST, process semantics, semantic links,
 and — when `BLUE_DATA_LLM_PROVIDER=anthropic` — LLM-augmented enrichment).
 
 ```bash
-blue-data metadata mydb
-blue-data metadata mydb --rebuild      # overwrite existing enrichment
+blue-data source metadata mydb
+blue-data source metadata mydb --rebuild      # overwrite existing enrichment
 ```
+
+#### `source query`
+
+Execute raw SQL against a live source:
+
+```bash
+blue-data source query mydb "SELECT * FROM orders LIMIT 5" --database prod
+blue-data --json source query mydb "SELECT status, COUNT(*) FROM orders GROUP BY status" --database prod
+```
+
+#### `source inspect`
+
+Drill into any level of the hierarchy by passing 1–5 positional arguments:
+
+```bash
+blue-data source inspect mydb                                  # source
+blue-data source inspect mydb prod                             # database
+blue-data source inspect mydb prod public                      # collection
+blue-data source inspect mydb prod public orders               # entity
+blue-data source inspect mydb prod public orders total         # attribute
+```
+
+With `--json` for full records:
+
+```bash
+blue-data --json source inspect mydb prod public orders | jq .record.properties
+```
+
+---
 
 ### `search`
 
@@ -110,51 +154,24 @@ blue-data search "orders" --type entity --limit 5
 blue-data --json search "total revenue" | jq '.[].name'
 ```
 
-### `inspect`
-
-Drill into any level of the hierarchy:
-
-```bash
-blue-data inspect source mydb
-blue-data inspect database mydb prod
-blue-data inspect collection mydb prod public
-blue-data inspect entity mydb prod public orders
-blue-data inspect attribute mydb prod public orders total
-```
-
-With `--json` for full records:
-
-```bash
-blue-data --json inspect entity mydb prod public orders | jq .record.properties
-```
-
-### `query`
-
-Execute raw SQL against a live source:
-
-```bash
-blue-data query mydb "SELECT * FROM orders LIMIT 5" --database prod
-blue-data --json query mydb "SELECT status, COUNT(*) FROM orders GROUP BY status" --database prod
-```
-
 ---
 
 ## Typical workflow
 
 ```bash
 # 1. Register a source (or use BLUE_DATA_CONFIG)
-blue-data sources add shop --type sqlite --database-dir /data/shop
+blue-data source add shop --type sqlite --database-dir /data/shop
 
 # 2. Sync structure, collect stats, enrich
-blue-data sync shop
-blue-data stats shop
-blue-data enrich shop
-blue-data metadata shop
+blue-data source sync shop
+blue-data source stats shop
+blue-data source enrich shop
+blue-data source metadata shop
 
 # 3. Explore
 blue-data search "revenue"
-blue-data inspect collection shop prod public
-blue-data inspect entity shop prod public orders
+blue-data source inspect shop prod public
+blue-data source inspect shop prod public orders
 ```
 
 ## Running tests

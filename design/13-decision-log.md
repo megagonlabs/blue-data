@@ -192,7 +192,7 @@ The root key `$` holds top-level registry metadata.
 **Rationale:** Registering sources via the API or CLI on every deploy is error-prone and order-dependent. A declarative config file is idempotent and version-controllable. It is the primary deployment mechanism for environments where the source topology is known ahead of time.
 
 **Consequences:**
-- Dynamic source registration (via `POST /{source_name}` equivalent or CLI `sources add`) still works and is the only option for sources added after deploy.
+- Dynamic source registration (via `POST /{source_name}` equivalent or CLI `source add`) still works and is the only option for sources added after deploy.
 - `BLUE_DATA_SOURCES_SYNC=false` can be set to load sources without syncing — useful when the live source is slow to respond at startup.
 
 ---

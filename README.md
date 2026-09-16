@@ -242,8 +242,8 @@ See [`docs/api.md`](docs/api.md) for the full endpoint reference.
 ### cli
 
 ```bash
-blue-data sources add mydb --type sqlite --database-dir /data
-blue-data sync mydb && blue-data enrich mydb
+blue-data source add mydb --type sqlite --database-dir /data
+blue-data source sync mydb && blue-data source enrich mydb
 blue-data search "revenue"
 ```
 
