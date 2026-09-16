@@ -1,0 +1,2 @@
+Registered sources: ['sqlite']
+Query result: [{'id': 1, 'name': 'Alice'}]

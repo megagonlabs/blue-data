@@ -1,0 +1,33 @@
+  1. SQLite database created: /tmp/blue-export-demo-<tmpdir>/db/shop.db
+  2. Registered sources: ['shop_db']
+
+------------------------------------------------------------
+3. Export customers → CSV
+------------------------------------------------------------
+  result: {'status': 'success', 'rows_written': 4, 'path': '/tmp/blue-export-demo-<tmpdir>/exports/customers.csv', 'format': 'csv'}
+  preview (4 rows):
+    {'id': '1', 'email': 'alice@example.com', 'country': 'US', 'age': '30'}
+    {'id': '2', 'email': 'bob@example.com', 'country': 'UK', 'age': '25'}
+    {'id': '3', 'email': 'carol@example.com', 'country': 'US', 'age': '35'}
+    {'id': '4', 'email': 'dave@example.com', 'country': 'CA', 'age': '28'}
+
+------------------------------------------------------------
+4. Export orders → JSON
+------------------------------------------------------------
+  result: {'status': 'success', 'rows_written': 4, 'path': '/tmp/blue-export-demo-<tmpdir>/exports/orders.json', 'format': 'json'}
+  preview (4 rows):
+    {'id': 1, 'customer_id': 1, 'amount': 99.9, 'status': 'paid'}
+    {'id': 2, 'customer_id': 1, 'amount': 149.0, 'status': 'paid'}
+    {'id': 3, 'customer_id': 2, 'amount': 49.5, 'status': 'pending'}
+    {'id': 4, 'customer_id': 3, 'amount': 200.0, 'status': 'paid'}
+
+------------------------------------------------------------
+5. Filtered export — paid orders → JSONL
+------------------------------------------------------------
+  result: {'status': 'success', 'rows_written': 3, 'path': '/tmp/blue-export-demo-<tmpdir>/exports/paid_orders.jsonl', 'format': 'jsonl'}
+  preview (3 rows):
+    {'id': 1, 'customer_id': 1, 'amount': 99.9, 'status': 'paid'}
+    {'id': 2, 'customer_id': 1, 'amount': 149.0, 'status': 'paid'}
+    {'id': 4, 'customer_id': 3, 'amount': 200.0, 'status': 'paid'}
+
+Demo complete.

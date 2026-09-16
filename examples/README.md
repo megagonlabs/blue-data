@@ -134,7 +134,7 @@ format inference from extension and filtered export.
 python3 examples/feature-demos/export_data_demo.py
 ```
 
-**API key:** not required
+**API key:** not required | **[Sample output](feature-demos/export_data_demo.output.txt)** (temp paths normalised to `<tmpdir>`)
 
 ---
 
@@ -182,7 +182,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 python3 examples/feature-demos/nl_tools_demo.py
 ```
 
-**API key:** Anthropic required
+**API key:** Anthropic required | **Output not captured — LLM tool-loop responses are non-deterministic**
 
 ---
 
@@ -198,7 +198,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 python3 examples/feature-demos/nl_tools_graph_demo.py
 ```
 
-**API key:** Anthropic required
+**API key:** Anthropic required | **Output not captured — LLM tool-loop responses are non-deterministic**
 
 ---
 
@@ -332,6 +332,8 @@ Start here when integrating blue-data into a new application.
 python3 examples/backends/sqlite_example.py
 ```
 
+**[Sample output](backends/sqlite_example.output.txt)**
+
 ### SQLite DataRegistry full pipeline (`sqlite_data_registry_demo.py`)
 
 Every major `DataRegistry` operation: register → sync → stats → enrich →
@@ -378,18 +380,18 @@ python3 examples/backends/redis_demo.py
 | `description_search_demo.py` | scenario-demos | none at runtime | — | [output](scenario-demos/description_search_demo.output.txt) |
 | `process_reasoning_demo.py` | scenario-demos | none (default) | — | [output](scenario-demos/process_reasoning_demo.output.txt) |
 | `data_quality_demo.py` | feature-demos | none | — | [output](feature-demos/data_quality_demo.output.txt) |
-| `export_data_demo.py` | feature-demos | none | — | — |
+| `export_data_demo.py` | feature-demos | none | — | [output](feature-demos/export_data_demo.output.txt) |
 | `import_data_demo.py` | feature-demos | none | — | [output](feature-demos/import_data_demo.output.txt) |
 | `nl_query_demo.py` | feature-demos | OpenAI | — | [output](feature-demos/nl_query_demo.output.txt) |
-| `nl_tools_demo.py` | feature-demos | Anthropic | — | — |
-| `nl_tools_graph_demo.py` | feature-demos | Anthropic | — | — |
+| `nl_tools_demo.py` | feature-demos | Anthropic | — | non-deterministic |
+| `nl_tools_graph_demo.py` | feature-demos | Anthropic | — | non-deterministic |
 | `schema_creation_demo.py` | feature-demos | none | — | [output](feature-demos/schema_creation_demo.output.txt) |
 | `enrichment_demo.py` | feature-demos | Anthropic (optional) | — | [output](feature-demos/enrichment_demo.output.txt) |
 | `sql_semantic_enrichment_demo.py` | integration-demos | none | — | [output](integration-demos/sql_semantic_enrichment_demo.output.txt) |
 | `langgraph_direct_demo.py` | framework-demos | OpenAI | — | [output](framework-demos/langgraph_direct_demo.output.txt) |
 | `langgraph_mcp_demo.py` | framework-demos | OpenAI | MCP server | [output](framework-demos/langgraph_mcp_demo.output.txt) |
 | `langgraph_api_demo.py` | framework-demos | OpenAI | — | [output](framework-demos/langgraph_api_demo.output.txt) |
-| `sqlite_example.py` | backends | none | — | — |
+| `sqlite_example.py` | backends | none | — | [output](backends/sqlite_example.output.txt) |
 | `sqlite_data_registry_demo.py` | backends | none | — | [output](backends/sqlite_data_registry_demo.output.txt) |
 | `registry_memory_example.py` | backends | none | — | [output](backends/registry_memory_example.output.txt) |
 | `redis_demo.py` | backends | none | Redis Stack | [output](backends/redis_demo.output.txt) |
