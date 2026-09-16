@@ -525,10 +525,10 @@ def test_fetch_property_stats_text_has_no_min_max(src):
     assert stats["max"] is None
 
 
-def test_fetch_property_stats_most_common_vals_empty(src):
+def test_fetch_property_stats_most_common_vals(src):
     _create_table(src, "testdb", "t", rows=["INSERT INTO t VALUES (1, 'x', 1.0);"])
     stats = src.fetch_property_stats("testdb", "public", "t", "id")
-    assert stats["most_common_vals"] == []
+    assert stats["most_common_vals"] == [(1, 1)]
 
 
 # ===========================================================================

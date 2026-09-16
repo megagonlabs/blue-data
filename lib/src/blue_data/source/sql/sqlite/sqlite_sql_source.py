@@ -133,21 +133,21 @@ class SQLiteDBSource(SQLSource):
                 self.logger.info(f"Database file '{db_path}' already exists, skipping creation")
                 return {"status": "skipped"}
 
-        db_connection = self._db_connect(database)
+        db_connection = self._db_connect(database, create=True)
         self._db_disconnect(db_connection)
         self.logger.info(f"Successfully created SQLite database '{database}' at '{db_path}'")
         return {"status": "success"}
 
-    def _db_connect(self, database):
-        # connect to database
+    def _db_connect(self, database, create=False):
+        if not create:
+            db_path = self._get_database_path(database)
+            if not os.path.exists(db_path):
+                raise FileNotFoundError(f"Database '{database}' does not exist at '{db_path}'")
         c = copy.deepcopy(self.properties['connection'])
         if 'protocol' in c:
             del c['protocol']
-        # override database
         c['database'] = database
-
-        db_connection = self._connect(**c)
-        return db_connection
+        return self._connect(**c)
 
  ######### database/collection
     def fetch_database_collections(self, database):
@@ -483,7 +483,7 @@ class SQLiteDBSource(SQLSource):
                 - sample_values: list of sample non-null values
                 - min: minimum value (if numeric/date)
                 - max: maximum value (if numeric/date)
-                - most_common_vals: empty list (not supported in SQLite)
+                - most_common_vals: list of (value, count) pairs for the top-20 most frequent non-null values, descending by frequency
         """
         db_path = self._get_database_path(database)
 
