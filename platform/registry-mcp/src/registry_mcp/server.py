@@ -21,10 +21,10 @@ Quick start
     blue-data-registry-mcp
 
     # With a pre-loaded SQLite source
-    BLUE_DATA_CONFIG=/path/to/config.json blue-data-registry-mcp
+    BLUE_DATA_SOURCES_CONFIG=/path/to/config.json blue-data-registry-mcp
 
     # With Redis-backed persistent registry
-    BLUE_DATA_STORE=redis BLUE_DATA_REDIS_URL=redis://localhost:6379/0 \\
+    BLUE_DATA_REGISTRY_STORE=redis BLUE_DATA_REGISTRY_REDIS_URL=redis://localhost:6379/0 \\
         blue-data-registry-mcp
 
     # With LLM enrichment (Anthropic)
@@ -37,8 +37,8 @@ Claude Desktop config (~/.config/claude-desktop/claude_desktop_config.json):
         "blue-data-registry": {
           "command": "blue-data-registry-mcp",
           "env": {
-            "BLUE_DATA_STORE": "memory",
-            "BLUE_DATA_CONFIG": "/path/to/sources.json"
+            "BLUE_DATA_REGISTRY_STORE": "memory",
+            "BLUE_DATA_SOURCES_CONFIG": "/path/to/sources.json"
           }
         }
       }

@@ -50,7 +50,7 @@ print('Created:', tmp)
     "blue-data-registry": {
       "command": "blue-data-registry-mcp",
       "env": {
-        "BLUE_DATA_CONFIG": "/Users/you/.config/blue-data/sources.json"
+        "BLUE_DATA_SOURCES_CONFIG": "/Users/you/.config/blue-data/sources.json"
       }
     }
   }

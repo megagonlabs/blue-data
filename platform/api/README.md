@@ -24,17 +24,17 @@ Same set as `registry-mcp`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `BLUE_DATA_STORE` | `memory` | `memory` or `redis` |
-| `BLUE_DATA_REDIS_URL` | `redis://localhost:6379` | Redis connection URL (when store=redis) |
-| `BLUE_DATA_REDIS_NAMESPACE` | `blue-data` | Key prefix for Redis |
+| `BLUE_DATA_REGISTRY_STORE` | `memory` | `memory` or `redis` |
+| `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379` | Redis connection URL (when store=redis) |
+| `BLUE_DATA_REGISTRY_REDIS_NAMESPACE` | `blue-data` | Key prefix for Redis |
 | `BLUE_DATA_LLM_PROVIDER` | _(none)_ | `anthropic` to enable LLM enrichment |
 | `ANTHROPIC_API_KEY` | _(none)_ | Required when LLM provider is anthropic |
 | `BLUE_DATA_LLM_MODEL` | `claude-opus-4-8` | Model ID for LLM enrichment |
-| `BLUE_DATA_CONFIG` | _(none)_ | Path to JSON source config file |
+| `BLUE_DATA_SOURCES_CONFIG` | _(none)_ | Path to JSON source config file |
 
 ## Source config file
 
-Pre-load sources at startup by pointing `BLUE_DATA_CONFIG` at a JSON file:
+Pre-load sources at startup by pointing `BLUE_DATA_SOURCES_CONFIG` at a JSON file:
 
 ```json
 {
@@ -163,7 +163,7 @@ Errors use standard HTTP status codes with a `{"detail": "..."}` body.
 ```bash
 BASE=http://localhost:8000
 
-# 1. Sync a source that was pre-loaded via BLUE_DATA_CONFIG
+# 1. Sync a source that was pre-loaded via BLUE_DATA_SOURCES_CONFIG
 curl -X PUT $BASE/mydb/sync
 
 # 2. Collect stats

@@ -32,11 +32,11 @@ pip install -e ".[llm]"
 blue-data-registry-mcp
 
 # Pre-load sources from a JSON config file
-BLUE_DATA_CONFIG=/path/to/sources.json blue-data-registry-mcp
+BLUE_DATA_SOURCES_CONFIG=/path/to/sources.json blue-data-registry-mcp
 
 # Persistent registry backed by Redis
-BLUE_DATA_STORE=redis \
-BLUE_DATA_REDIS_URL=redis://localhost:6379/0 \
+BLUE_DATA_REGISTRY_STORE=redis \
+BLUE_DATA_REGISTRY_REDIS_URL=redis://localhost:6379/0 \
     blue-data-registry-mcp
 
 # LLM-augmented enrichment (Anthropic)
@@ -57,7 +57,7 @@ Add to `~/.config/claude-desktop/claude_desktop_config.json`:
     "blue-data-registry": {
       "command": "blue-data-registry-mcp",
       "env": {
-        "BLUE_DATA_CONFIG": "/path/to/sources.json"
+        "BLUE_DATA_SOURCES_CONFIG": "/path/to/sources.json"
       }
     }
   }
@@ -72,7 +72,7 @@ If `blue-data-registry-mcp` is not on the system PATH, use the full path:
     "blue-data-registry": {
       "command": "/path/to/venv/bin/blue-data-registry-mcp",
       "env": {
-        "BLUE_DATA_CONFIG": "/path/to/sources.json"
+        "BLUE_DATA_SOURCES_CONFIG": "/path/to/sources.json"
       }
     }
   }
@@ -89,9 +89,9 @@ All configuration is via environment variables.
 
 | Variable | Default | Description |
 |---|---|---|
-| `BLUE_DATA_STORE` | `memory` | `memory` — ephemeral in-process registry. `redis` — persistent Redis-backed registry (requires Redis Stack). |
-| `BLUE_DATA_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. Used when `BLUE_DATA_STORE=redis`. |
-| `BLUE_DATA_REDIS_NAMESPACE` | `blue_data` | Key prefix used to isolate registry records in Redis. |
+| `BLUE_DATA_REGISTRY_STORE` | `memory` | `memory` — ephemeral in-process registry. `redis` — persistent Redis-backed registry (requires Redis Stack). |
+| `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. Used when `BLUE_DATA_REGISTRY_STORE=redis`. |
+| `BLUE_DATA_REGISTRY_REDIS_NAMESPACE` | `blue_data` | Key prefix used to isolate registry records in Redis. |
 
 ### LLM enrichment
 
@@ -105,7 +105,7 @@ All configuration is via environment variables.
 
 | Variable | Default | Description |
 |---|---|---|
-| `BLUE_DATA_CONFIG` | _(none)_ | Path to a JSON file defining data sources to register on startup. |
+| `BLUE_DATA_SOURCES_CONFIG` | _(none)_ | Path to a JSON file defining data sources to register on startup. |
 
 **Config file format:**
 
@@ -367,8 +367,8 @@ The server holds a single `DataRegistry` instance per process. All tool calls
 share that instance, so state (registered sources, synced records, enrichment)
 persists for the lifetime of the server process.
 
-With `BLUE_DATA_STORE=redis`, the registry state persists across server restarts.
-With `BLUE_DATA_STORE=memory` (default), it is ephemeral.
+With `BLUE_DATA_REGISTRY_STORE=redis`, the registry state persists across server restarts.
+With `BLUE_DATA_REGISTRY_STORE=memory` (default), it is ephemeral.
 
 ---
 

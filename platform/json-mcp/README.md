@@ -34,8 +34,8 @@ pip install -e .
 blue-data-json-mcp
 
 # Persistent file-backed store
-BLUE_DATA_STORE=file \
-BLUE_DATA_FILE=/path/to/store.json \
+BLUE_DATA_REGISTRY_STORE=file \
+BLUE_DATA_REGISTRY_FILE=/path/to/store.json \
     blue-data-json-mcp
 ```
 
@@ -63,8 +63,8 @@ With a persistent file store:
     "blue-data-json": {
       "command": "blue-data-json-mcp",
       "env": {
-        "BLUE_DATA_STORE": "file",
-        "BLUE_DATA_FILE": "/path/to/store.json"
+        "BLUE_DATA_REGISTRY_STORE": "file",
+        "BLUE_DATA_REGISTRY_FILE": "/path/to/store.json"
       }
     }
   }
@@ -89,8 +89,8 @@ If `blue-data-json-mcp` is not on the system PATH, use the full path:
 
 | Variable | Default | Description |
 |---|---|---|
-| `BLUE_DATA_STORE` | `memory` | `memory` — ephemeral in-process dict. `file` — persists to a JSON file on disk. |
-| `BLUE_DATA_FILE` | `blue_data_store.json` | Path to the JSON file. Used only when `BLUE_DATA_STORE=file`. |
+| `BLUE_DATA_REGISTRY_STORE` | `memory` | `memory` — ephemeral in-process dict. `file` — persists to a JSON file on disk. |
+| `BLUE_DATA_REGISTRY_FILE` | `blue_data_store.json` | Path to the JSON file. Used only when `BLUE_DATA_REGISTRY_STORE=file`. |
 
 ---
 
@@ -211,13 +211,13 @@ json_mcp.config   ← singleton JSONSource factory
         │
         ▼
    JSONSource
-   ├── MemoryJSONSource   ← BLUE_DATA_STORE=memory (default)
-   └── FileJSONSource     ← BLUE_DATA_STORE=file
+   ├── MemoryJSONSource   ← BLUE_DATA_REGISTRY_STORE=memory (default)
+   └── FileJSONSource     ← BLUE_DATA_REGISTRY_STORE=file
 ```
 
 The server holds a single `JSONSource` instance per process. All tool calls
-share that instance. With `BLUE_DATA_STORE=file`, state persists across server
-restarts. With `BLUE_DATA_STORE=memory` (default), it is ephemeral.
+share that instance. With `BLUE_DATA_REGISTRY_STORE=file`, state persists across server
+restarts. With `BLUE_DATA_REGISTRY_STORE=memory` (default), it is ephemeral.
 
 ---
 

@@ -10,7 +10,7 @@ blue-data ships two MCP servers. Choose based on what you need to do.
 |---|---|---|
 | **Use when** | You want an LLM to explore data sources, search the catalog, run enrichment, or issue natural-language queries | You want direct key/value access to the raw registry store for inspection or manual edits |
 | **Exposes** | `DataRegistry` — full source hierarchy, search, enrichment, stats | `JSONSource` — raw `get`/`set`/`delete`/`list_keys` on the underlying store |
-| **Persistence** | Memory (default) or Redis (`BLUE_DATA_STORE=redis`) | Memory (default) or file (`BLUE_DATA_STORE=file`) |
+| **Persistence** | Memory (default) or Redis (`BLUE_DATA_REGISTRY_STORE=redis`) | Memory (default) or file (`BLUE_DATA_REGISTRY_STORE=file`) |
 | **LLM enrichment** | Optional (`BLUE_DATA_LLM_PROVIDER=anthropic\|openai`) | Not available |
 | **Package** | `platform/registry-mcp` | `platform/json-mcp` |
 
@@ -27,7 +27,7 @@ cd platform/registry-mcp
 pip install -e ../../lib -e .
 
 # Start with a pre-loaded source config
-BLUE_DATA_CONFIG=/path/to/sources.json blue-data-registry-mcp
+BLUE_DATA_SOURCES_CONFIG=/path/to/sources.json blue-data-registry-mcp
 ```
 
 Claude Desktop config (`~/.config/claude-desktop/claude_desktop_config.json`):
@@ -38,7 +38,7 @@ Claude Desktop config (`~/.config/claude-desktop/claude_desktop_config.json`):
     "blue-data-registry": {
       "command": "blue-data-registry-mcp",
       "env": {
-        "BLUE_DATA_CONFIG": "/path/to/sources.json"
+        "BLUE_DATA_SOURCES_CONFIG": "/path/to/sources.json"
       }
     }
   }
@@ -58,7 +58,7 @@ cd platform/json-mcp
 pip install -e ../../lib -e .
 
 # Start with a persistent file-backed store
-BLUE_DATA_STORE=file BLUE_DATA_FILE=/path/to/store.json blue-data-json-mcp
+BLUE_DATA_REGISTRY_STORE=file BLUE_DATA_REGISTRY_FILE=/path/to/store.json blue-data-json-mcp
 ```
 
 Claude Desktop config:
@@ -69,8 +69,8 @@ Claude Desktop config:
     "blue-data-json": {
       "command": "blue-data-json-mcp",
       "env": {
-        "BLUE_DATA_STORE": "file",
-        "BLUE_DATA_FILE": "/path/to/store.json"
+        "BLUE_DATA_REGISTRY_STORE": "file",
+        "BLUE_DATA_REGISTRY_FILE": "/path/to/store.json"
       }
     }
   }
@@ -90,11 +90,11 @@ The two servers are independent processes. You can run both simultaneously if yo
   "mcpServers": {
     "blue-data-registry": {
       "command": "blue-data-registry-mcp",
-      "env": { "BLUE_DATA_CONFIG": "/path/to/sources.json" }
+      "env": { "BLUE_DATA_SOURCES_CONFIG": "/path/to/sources.json" }
     },
     "blue-data-json": {
       "command": "blue-data-json-mcp",
-      "env": { "BLUE_DATA_STORE": "memory" }
+      "env": { "BLUE_DATA_REGISTRY_STORE": "memory" }
     }
   }
 }

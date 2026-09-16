@@ -5,8 +5,8 @@ Usage:
 
 Global options:
     --json    Output raw JSON instead of formatted text
-    --store   Override BLUE_DATA_STORE (memory|redis)
-    --config  Override BLUE_DATA_CONFIG path
+    --store   Override BLUE_DATA_REGISTRY_STORE (memory|redis)
+    --config  Override BLUE_DATA_SOURCES_CONFIG path
 
 Commands:
     source  Manage and operate on registered data sources

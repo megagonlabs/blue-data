@@ -11,8 +11,8 @@ Run:
     blue-data-api
 
 Env vars (same as registry-mcp):
-    BLUE_DATA_STORE, BLUE_DATA_REDIS_URL, BLUE_DATA_LLM_PROVIDER,
-    ANTHROPIC_API_KEY, BLUE_DATA_CONFIG
+    BLUE_DATA_REGISTRY_STORE, BLUE_DATA_REGISTRY_REDIS_URL, BLUE_DATA_LLM_PROVIDER,
+    ANTHROPIC_API_KEY, BLUE_DATA_SOURCES_CONFIG
 """
 from contextlib import asynccontextmanager
 

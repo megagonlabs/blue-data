@@ -26,8 +26,8 @@ Same set as `registry-mcp` and `api`:
 | Variable | Default | Description |
 |---|---|---|
 | `BLUE_DATA_REGISTRY_STORE` | `memory` | `memory` or `redis` |
-| `BLUE_DATA_REDIS_URL` | `redis://localhost:6379/0` | Redis URL (when store=redis) |
-| `BLUE_DATA_REDIS_NAMESPACE` | `blue_data` | Key prefix for Redis |
+| `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379/0` | Redis URL (when store=redis) |
+| `BLUE_DATA_REGISTRY_REDIS_NAMESPACE` | `blue_data` | Key prefix for Redis |
 | `BLUE_DATA_LLM_PROVIDER` | _(none)_ | `anthropic` to enable LLM enrichment |
 | `ANTHROPIC_API_KEY` | _(none)_ | Required when LLM provider is anthropic |
 | `BLUE_DATA_LLM_MODEL` | `claude-opus-4-8` | Model ID for LLM enrichment |
@@ -159,7 +159,7 @@ blue-data --json search "total revenue" | jq '.[].name'
 ## Typical workflow
 
 ```bash
-# 1. Register a source (or use BLUE_DATA_CONFIG)
+# 1. Register a source (or use BLUE_DATA_SOURCES_CONFIG)
 blue-data source add shop --type sqlite --database-dir /data/shop
 
 # 2. Sync structure, collect stats, enrich

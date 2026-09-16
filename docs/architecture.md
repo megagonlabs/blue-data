@@ -95,12 +95,12 @@ own `DataRegistry` singleton (or `JSONSource` for `json-mcp`).
 **Registry-backed components** (`registry-mcp`, `api`, `cli`) each hold a
 `DataRegistry` singleton backed by either `MemoryJSONSource` (ephemeral) or
 `RedisJSONSource` (shared, persistent). The backend is selected via the
-`BLUE_DATA_STORE` environment variable.
+`BLUE_DATA_REGISTRY_STORE` environment variable.
 
 **`json-mcp`** is a lightweight JSON key/value MCP server that operates
 directly on a `JSONSource` — no `DataRegistry` overhead. It supports two
-backends only: `BLUE_DATA_STORE=memory` (default) or `BLUE_DATA_STORE=file`
-with `BLUE_DATA_FILE=<path>`. Redis is intentionally excluded.
+backends only: `BLUE_DATA_REGISTRY_STORE=memory` (default) or `BLUE_DATA_REGISTRY_STORE=file`
+with `BLUE_DATA_REGISTRY_FILE=<path>`. Redis is intentionally excluded.
 
 ---
 
