@@ -37,13 +37,8 @@ registry.sync_source("mydb", recursive=True)
 
 ```python
 registry.list_source_databases("mydb")
-# → ['northwind']
-
 registry.list_database_collections("mydb", "northwind")
-# → ['public']
-
 registry.list_collection_entities("mydb", "northwind", "public")
-# → ['customers', 'orders', 'products', ...]
 ```
 
 ### 3. Collect statistics
@@ -67,6 +62,10 @@ registry.enrich_source("mydb")
 Detects ENUM columns, event-log tables, event-time columns, value axes, and coded domain values from sample data alone.
 
 **LLM-augmented enrichment** (Anthropic or OpenAI):
+
+```bash
+pip install anthropic
+```
 
 ```python
 import anthropic
@@ -111,7 +110,7 @@ from blue_data.source.vector.memory_vector_source import MemoryVectorSource
 def embed(text: str) -> list[float]:
     ...  # your embedding function (OpenAI, sentence-transformers, etc.)
 
-registry = DataRegistry(
+hybrid_registry = DataRegistry(
     vector_source=MemoryVectorSource(),
     embedding_fn=embed,
     vector_dim=1536,
@@ -122,9 +121,10 @@ registry = DataRegistry(
 
 ## Natural language queries
 
-Once enriched, issue plain-English queries against a registered source:
+Once the LLM-augmented enrichment from step 4 is complete, `execute_query_nl` translates a plain-English question into SQL and runs it:
 
 ```python
+# Requires the LLM-augmented registry from step 4 (ANTHROPIC_API_KEY must be set)
 rows = registry.execute_query_nl(
     "mydb",
     "show me all orders over $100",
@@ -133,7 +133,7 @@ rows = registry.execute_query_nl(
 )
 ```
 
-Requires `llm_fn` to be wired via `MetaData`. Returns `[]` when no LLM is configured.
+Raises `ValueError` if no `llm_fn` is configured. See **[guide.md — Natural language queries](guide.md#natural-language-queries)** for the full setup.
 
 ---
 

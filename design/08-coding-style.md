@@ -2,11 +2,11 @@
 
 ## Tools
 
-| Tool | Role |
-|------|------|
-| `ruff` | Linter + formatter (replaces Black, isort, flake8) |
-| `pyright` (strict) | Static type checker |
-| `pytest` | Test runner |
+| Tool | Role | Config |
+|------|------|--------|
+| `ruff` | Linter + formatter (replaces Black, isort, flake8) | `lib/pyproject.toml` → `[tool.ruff]` |
+| `pyright` (strict) | Static type checker | `lib/pyproject.toml` → `[tool.pyright]` |
+| `pytest` | Test runner | `lib/pyproject.toml` → `[tool.pytest.ini_options]` |
 
 All three are declared as `dev` dependencies. CI fails on any lint, type, or test failure.
 
@@ -27,7 +27,7 @@ line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
+select = ["E", "F", "I", "UP"]
 ```
 
 - `ruff format` is the formatter (Black-compatible, 100-character lines).
@@ -143,5 +143,5 @@ Each module follows this order:
 - Test function names: `test_{what}_{condition}`.
 - Use real in-process doubles (`MemoryJSONSource`, `MemoryVectorSource`) — never mock internal collaborators.
 - Mock only external APIs (`anthropic.Anthropic`, `openai.OpenAI`) via `unittest.mock.patch`.
-- `DataRegistry(_rebuild=False)` is the standard test construction — suppresses embedding calls in all registry writes.
+- `DataRegistry(rebuild=False)` is the standard test construction — suppresses embedding calls in all registry writes.
 - Unit tests run with `testpaths = ["tests/unit"]` (default). Integration tests require Redis Stack.

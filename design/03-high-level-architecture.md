@@ -162,6 +162,8 @@ Sources are organized into families. `VectorSource` and `JSONSource` are also `D
 | Backend | Class | Status |
 |---------|-------|--------|
 | In-memory (numpy cosine) | `MemoryVectorSource` | Full |
+| File-persisted | `FileVectorSource` | Full |
+| ChromaDB | `ChromaDBVectorSource` | Full |
 | Redis Stack (RediSearch KNN) | `RedisVectorSource` | Full |
 
 ---
@@ -180,7 +182,7 @@ Sources are organized into families. `VectorSource` and `JSONSource` are also `D
 
 Two-layer enrichment applied to registry records after sync and stats collection.
 
-**Layer 1 — Deterministic** (`enrich_source`): `SemanticTypeInferencer` reads `attribute.properties["stats"]["sample_values"]` and classifies each attribute as `ENUM`, `BINARY_FLAG`, `NUMERIC_ID`, `CONTINUOUS`, `DATE`, `FREE_TEXT`, etc. Also detects entity-level signals: `EVENT_LOG`, `SNAPSHOT`, `REFERENCE` process semantics; value axes; semantic links between attributes. No API call — always available.
+**Layer 1 — Deterministic** (`enrich_source`): `SemanticTypeInferencer` reads `attribute.properties["stats"]["sample_values"]` and classifies each attribute as `ENUM_CATEGORY`, `INTEGER`, `FLOAT`, `DATE`, `DATETIME`, `EMAIL`, `UUID`, `FREE_TEXT`, etc. `MetaData` then adds entity-level signals: `EVENT` / `SEQUENCE_EVENT` / `ATOMIC_EVENT` process semantics; value axes; semantic links between attributes. No API call — always available.
 
 **Layer 2 — LLM-augmented** (`enrich_source_metadata`): Runs Layer 1 first, then calls `MetaData` for LLM-dependent enrichments: natural-language entity and attribute descriptions, richer value semantics inference, and semantic discovery (related concepts, synonyms). Skipped when no `BLUE_DATA_LLM_PROVIDER` is set.
 
@@ -205,4 +207,6 @@ Search index for hybrid BM25 + vector search. Separate from `JSONSource` and `Da
 | Backend | Class | Notes |
 |---------|-------|-------|
 | Memory | `MemoryVectorSource` | In-process numpy cosine; for dev/test |
+| File | `FileVectorSource` | File-persisted vectors |
+| ChromaDB | `ChromaDBVectorSource` | ChromaDB backend |
 | Redis | `RedisVectorSource` | RediSearch KNN; requires Redis Stack |

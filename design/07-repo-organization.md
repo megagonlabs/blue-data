@@ -5,25 +5,43 @@
 ```
 blue-data/
 │
+├── .gitignore                           # ignored files (venvs, __pycache__, .env, build artifacts)
+├── example.envrc                        # environment variable template — copy to .envrc and fill in values
+├── README.md                            # project overview, quick start, platform table
+│
+├── data/                                # demo datasets (Northwind, Czech banking, finance)
+│
 ├── design/                              # design documents and ADRs
-│   ├── 01-overview.md
-│   ├── 02-scenarios.md
-│   ├── 06-library.md
-│   ├── adr-001-registry-path-convention.md
-│   └── adr-002-rebuild-flag-three-state.md
+│   ├── 01-overview.md                   # objective, what blue-data does, design philosophy
+│   ├── 02-scenarios.md                  # motivating scenarios that drive design decisions
+│   ├── 03-high-level-architecture.md    # component map and data flow overview
+│   ├── 04-detailed-architecture.md      # per-component design
+│   ├── 05-software-stack.md             # language, frameworks, runtime dependencies
+│   ├── 06-library.md                    # library package structure and import conventions
+│   ├── 07-repo-organization.md          # directory layout, naming, and module boundaries
+│   ├── 08-coding-style.md               # linting, typing, naming, and testing conventions
+│   ├── 09-api-interface-spec.md         # REST API contract and OpenAPI alignment
+│   ├── 10-data-model.md                 # registry record schema and JSONSource path conventions
+│   ├── 11-testing-strategy.md           # unit vs integration tests, fixture policy, coverage
+│   ├── 12-deployment-ops.md             # container, Redis Stack, and secrets configuration
+│   ├── 13-decision-log.md               # Architectural Decision Records (ADRs)
+│   └── design-process.md               # how to read and update the design documents
 │
 ├── docs/                                # user-facing documentation
-│   ├── api-reference.md                 # full REST API reference
-│   ├── api.md                           # API quick start
+│   ├── README.md                        # docs index
+│   ├── quickstart.md                    # five-step workflow: install, sync, stats, enrich, search
+│   ├── guide.md                         # developer guide: syncing, enrichment, DQ profiling, search, NL queries
+│   ├── features.md                      # feature-by-feature documentation with code examples
+│   ├── installation.md                  # install instructions and extras
 │   ├── architecture.md                  # three-hierarchy design explanation
-│   ├── cli.md                           # CLI command reference
+│   ├── api-reference.md                 # full REST API reference
 │   ├── datasource-hierarchy-mapping.md  # source → database → collection → entity → attribute path convention
 │   ├── extending.md                     # adding a new DataSource backend
-│   ├── features.md                      # feature-by-feature documentation with code examples
-│   ├── guide.md                         # quick start and how-to guide
-│   ├── installation.md                  # install instructions and extras
-│   ├── json-mcp.md                      # JSON MCP server setup and tool reference
-│   └── registry-mcp.md                  # Registry MCP server setup and tool reference
+│   ├── mcp.md                           # MCP overview — which server to use and when
+│   ├── api.md                           # stub → see platform/api/README.md
+│   ├── cli.md                           # stub → see platform/cli/README.md
+│   ├── json-mcp.md                      # stub → see platform/json-mcp/README.md
+│   └── registry-mcp.md                  # stub → see platform/registry-mcp/README.md
 │
 ├── examples/                            # runnable demos
 │   ├── README.md
@@ -35,7 +53,7 @@ blue-data/
 │   │   └── sqlite_example.py            # bare SQLiteDBSource usage
 │   ├── benchmarks/                      # benchmark scripts and result markdown
 │   ├── feature-demos/
-│   │   ├── enrichment_demo.py           # MetadataEnricher: value semantics, semantic roles
+│   │   ├── enrichment_demo.py           # MetaData: value semantics, semantic roles
 │   │   ├── export_data_demo.py          # DataSource.import_data / export flow
 │   │   ├── import_data_demo.py          # import_data from one source into another
 │   │   ├── nl_query_demo.py             # execute_query_nl: NL → native query via LLM
@@ -54,6 +72,7 @@ blue-data/
 │       └── process_reasoning_demo.py    # process semantics: EVENT, AGGREGATE_OVER_TIME
 │
 ├── lib/                                 # Python library (blue-data PyPI package)
+│   ├── README.md                        # library quick start and source layout
 │   ├── pyproject.toml                   # package metadata, dependencies, extras, tool config
 │   ├── src/
 │   │   └── blue_data/
@@ -77,7 +96,7 @@ blue-data/
 │   │       │   ├── data_registry.py     # DataRegistry — Registry + typed source helpers + search engine
 │   │       │   ├── enrichment/
 │   │       │   │   ├── description_generation.py  # LLM-based record description generation
-│   │       │   │   ├── metadata.py      # MetadataEnricher — full attribute/entity enrichment pipeline
+│   │       │   │   ├── metadata.py      # MetaData — full attribute/entity enrichment pipeline
 │   │       │   │   ├── metadata_utils.py # statistical utilities used by enrichment (pearson, temporal alignment, etc.)
 │   │       │   │   ├── prompts.py       # LLM prompt templates for enrichment
 │   │       │   │   ├── semantic_types.py # SemanticTypeInferencer — column type inference (deterministic)
@@ -183,6 +202,7 @@ blue-data/
 │
 └── platform/                                # external interface services
     ├── api/                                 # REST API (blue-data-api PyPI package)
+    │   ├── README.md                        # install, run, endpoint reference, configuration
     │   ├── pyproject.toml
     │   ├── src/registry_api/
     │   │   ├── main.py                      # FastAPI app; lifespan; uvicorn entry point (port 8000)
@@ -199,6 +219,7 @@ blue-data/
     │       ├── test_records.py
     │       └── test_sources.py
     ├── cli/                                 # CLI (blue-data-cli PyPI package)
+    │   ├── README.md                        # install and command reference
     │   ├── pyproject.toml
     │   ├── src/registry_cli/
     │   │   ├── main.py                      # Click command groups: sources, inspect, search, sync, enrich
@@ -207,6 +228,7 @@ blue-data/
     │       ├── conftest.py
     │       └── test_cli.py
     ├── json-mcp/                            # MCP server for JSONSource operations
+    │   ├── README.md                        # install, tool reference, Claude Desktop config
     │   ├── pyproject.toml
     │   ├── src/json_mcp/
     │   │   ├── server.py                    # fastmcp server; JSONSource tools
@@ -214,6 +236,7 @@ blue-data/
     │   └── tests/
     │       └── test_tools.py
     └── registry-mcp/                        # MCP server for Registry/DataRegistry operations
+        ├── README.md                        # install, tool reference, Claude Desktop config
         ├── pyproject.toml
         ├── src/registry_mcp/
         │   ├── server.py                    # fastmcp server; registry discovery tools
@@ -252,7 +275,7 @@ The codebase implements three abstract hierarchies that never share base classes
 | `source/vector/vector_source.py` | `VectorSource` — search index ABC; create_index/upsert/delete/knn + execute_query dispatch |
 | `registry/registry.py` | `Registry` — generic key/value record store over any JSONSource |
 | `registry/data_registry.py` | `DataRegistry` — Registry + typed source helpers + search engine wiring |
-| `registry/enrichment/metadata.py` | `MetadataEnricher` — LLM + deterministic attribute/entity enrichment pipeline |
+| `registry/enrichment/metadata.py` | `MetaData` — LLM + deterministic attribute/entity enrichment pipeline |
 | `registry/enrichment/semantic_types.py` | `SemanticTypeInferencer` — deterministic column type inference |
 | `registry/search/registry_search.py` | `RegistrySearch` — wires HybridSearch + RecordIndexer |
 | `registry/search/hybrid_search.py` | `HybridSearch` — BM25 + vector score fusion |

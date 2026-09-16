@@ -59,10 +59,12 @@ The root key `$` holds top-level registry metadata.
 **Date:** 2024-Q4  
 **Status:** Accepted
 
-**Decision:** The three storage concerns are three completely separate ABCs with no shared base class:
+**Decision:** The three storage concerns are three separate ABCs with distinct contracts:
 - `DataSource` — external data systems (SQL, NoSQL, files)
-- `JSONSource` — registry state persistence (key-value)
-- `VectorSource` — search index
+- `JSONSource` — registry state persistence (key-value); inherits `DataSource` for the lifecycle/property protocol only
+- `VectorSource` — search index; inherits `DataSource` for the lifecycle/property protocol only
+
+`JSONSource` and `VectorSource` share the `DataSource` lifecycle base but are not external data sources — they back the registry store and search index respectively.
 
 **Rationale:** These hierarchies have fundamentally different contracts. Merging them into a single hierarchy would create an ABC with dozens of methods, most irrelevant to any given implementation. Separating them keeps each ABC minimal and lets concrete classes mix only the hierarchies they need.
 
@@ -77,7 +79,7 @@ The root key `$` holds top-level registry metadata.
 **Date:** 2024-Q4  
 **Status:** Accepted
 
-**Decision:** `DataSource` base class provides no-op implementations of all interface methods. Subclasses override only the methods relevant to their source type. `execute_query` raises `NotImplementedError` by default.
+**Decision:** `DataSource` base class provides no-op implementations of all interface methods. Subclasses override only the methods relevant to their source type. `execute_query` returns `[]` by default (no-op, not an error).
 
 **Rationale:** Not all sources support all operations. A file-based source cannot `create_database`; a read-only source cannot run DDL. Forcing all subclasses to implement every method would produce dozens of `raise NotImplementedError` stubs across every implementation. Default no-ops are safer and produce cleaner subclasses.
 
@@ -122,7 +124,7 @@ The root key `$` holds top-level registry metadata.
 **Date:** 2024-Q4  
 **Status:** Accepted
 
-**Decision:** Statistical summaries (row counts, nulls, sample values) and semantic enrichment (value_semantics, semantic_role, quantitative_vst) are stored as named properties on the existing registry record under the keys `"stats"` and `"metadata"`. No separate record type is created.
+**Decision:** Statistical summaries (row counts, nulls, sample values) and semantic enrichment properties are stored directly on the existing registry record's `"properties"` dict. No separate record type is created. Stats are stored under the key `"stats"`; enrichment properties (`value_semantics`, `semantic_role`, `quantitative_vst`, etc.) are stored as top-level keys on `"properties"` — not nested under a `"metadata"` wrapper.
 
 **Rationale:** A separate record type for stats would double the number of registry paths and require callers to join two records to get a complete picture of an attribute. Properties on the same record are simpler to read and write, and the `get_entity` MCP tool can return a fully enriched view in a single call.
 

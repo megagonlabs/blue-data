@@ -49,6 +49,9 @@ Optional extras (install with `pip install -e ".[redis]"` etc.):
 | `mysql` | `mysql-connector-python` | `MySQLDBSource` |
 | `mongodb` | `pymongo` | `MongoDBJSONSource` |
 | `neo4j` | `neo4j` | `Neo4jGraphSource` |
+| `chromadb` | `chromadb` | `ChromaDBVectorSource` |
+| `bn` | `pgmpy`, `networkx` | `BayesianNetworkSource` |
+| `parquet` | `pyarrow` | Parquet file source |
 | `llm` | `anthropic` | LLM-augmented enrichment via `MetaData(llm_fn=...)` |
 
 > **Redis Stack required:** `RedisJSONSource` and `RedisVectorSource` use `JSON.SET` and `FT.CREATE` commands that are not available in standard Redis. You need **Redis Stack** (`redis-stack-server`), not plain `redis`.
