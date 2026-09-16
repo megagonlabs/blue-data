@@ -21,9 +21,10 @@ is set one parameter at a time. `cast` both validates input and converts it.
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 CASTS = ("directory", "file", "str", "int", "float", "bool", "secret")
 
