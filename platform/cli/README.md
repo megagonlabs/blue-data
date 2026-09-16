@@ -17,7 +17,7 @@ blue-data [--json] [--store memory|redis] [--config PATH] COMMAND
 ```
 
 `--json` switches all output to raw JSON. `--store` and `--config` override the
-`BLUE_DATA_STORE` and `BLUE_DATA_CONFIG` environment variables respectively.
+`BLUE_DATA_REGISTRY_STORE` and `BLUE_DATA_SOURCES_CONFIG` environment variables respectively.
 
 ## Environment variables
 
@@ -25,13 +25,13 @@ Same set as `registry-mcp` and `api`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `BLUE_DATA_STORE` | `memory` | `memory` or `redis` |
+| `BLUE_DATA_REGISTRY_STORE` | `memory` | `memory` or `redis` |
 | `BLUE_DATA_REDIS_URL` | `redis://localhost:6379/0` | Redis URL (when store=redis) |
 | `BLUE_DATA_REDIS_NAMESPACE` | `blue_data` | Key prefix for Redis |
 | `BLUE_DATA_LLM_PROVIDER` | _(none)_ | `anthropic` to enable LLM enrichment |
 | `ANTHROPIC_API_KEY` | _(none)_ | Required when LLM provider is anthropic |
 | `BLUE_DATA_LLM_MODEL` | `claude-opus-4-8` | Model ID for LLM enrichment |
-| `BLUE_DATA_CONFIG` | _(none)_ | Path to JSON source config file |
+| `BLUE_DATA_SOURCES_CONFIG` | _(none)_ | Path to JSON source config file |
 
 ## Source config file
 

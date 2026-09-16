@@ -71,8 +71,8 @@ def _err(msg: str) -> None:
 
 @click.group()
 @click.option("--json", "as_json", is_flag=True, default=False, help="Output raw JSON.")
-@click.option("--store", envvar="BLUE_DATA_STORE", default=None, help="memory or redis.")
-@click.option("--config", "config_path", envvar="BLUE_DATA_CONFIG", default=None,
+@click.option("--store", envvar="BLUE_DATA_REGISTRY_STORE", default=None, help="memory or redis.")
+@click.option("--config", "config_path", envvar="BLUE_DATA_SOURCES_CONFIG", default=None,
               help="Path to source config JSON file.")
 @click.pass_context
 def cli(ctx: click.Context, as_json: bool, store: Optional[str], config_path: Optional[str]):
@@ -80,9 +80,9 @@ def cli(ctx: click.Context, as_json: bool, store: Optional[str], config_path: Op
     ctx.ensure_object(dict)
     ctx.obj["as_json"] = as_json
     if store:
-        os.environ["BLUE_DATA_STORE"] = store
+        os.environ["BLUE_DATA_REGISTRY_STORE"] = store
     if config_path:
-        os.environ["BLUE_DATA_CONFIG"] = config_path
+        os.environ["BLUE_DATA_SOURCES_CONFIG"] = config_path
     ctx.obj["registry"] = get_registry()
 
 
