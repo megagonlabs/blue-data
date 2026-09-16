@@ -65,6 +65,13 @@ class SQLSource(DataSource, ABC):
                 df = pd.DataFrame(data, columns=columns)
                 df.fillna(value=np.nan, inplace=True)
                 result = json.loads(df.to_json(orient="records"))
+            else:
+                if not optional_properties.get("commit"):
+                    conn.rollback()
+                    raise ValueError(
+                        "Write query executed without commit=True. "
+                        "Pass optional_properties={'commit': True} to commit writes."
+                    )
             if optional_properties.get("commit"):
                 conn.commit()
             return result

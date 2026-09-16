@@ -314,17 +314,11 @@ def test_execute_query_requires_database(src):
         src.execute_query("SELECT 1;")
 
 
-def test_execute_query_insert_without_commit_not_persisted(src, tmp_path):
+def test_execute_query_insert_without_commit_raises(src):
     _create_table(src, "testdb", "t", cols=[{"name": "id", "type": "INTEGER"}])
-    # insert without commit flag
-    src.execute_query('INSERT INTO t VALUES (99);', database="testdb")
-    # open a fresh connection — row should NOT be visible without commit
-    conn = sqlite3.connect(str(tmp_path / "testdb.db"))
-    cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM t;")
-    count = cur.fetchone()[0]
-    conn.close()
-    assert count == 0
+    import pytest
+    with pytest.raises(ValueError, match="commit=True"):
+        src.execute_query('INSERT INTO t VALUES (99);', database="testdb")
 
 
 def test_execute_query_ops_sql_query(src):
