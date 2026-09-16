@@ -47,8 +47,8 @@ Optional extras (install with `pip install -e ".[redis]"` etc.):
 | `redis` | `redis` | `RedisJSONSource`, `RedisVectorSource`, `RedisStreamSource` |
 | `postgres` | `psycopg2-binary` | `PostgresDBSource` |
 | `mysql` | `mysql-connector-python` | `MySQLDBSource` |
-| `mongodb` | `pymongo` | `MongoDBJSONSource` |
-| `neo4j` | `neo4j` | `Neo4jGraphSource` |
+| `mongodb` | `pymongo` | `MongoDBSource` |
+| `neo4j` | `neo4j` | `NEO4JSource` |
 | `chromadb` | `chromadb` | `ChromaDBVectorSource` |
 | `bn` | `pgmpy`, `networkx` | `BayesianNetworkSource` |
 | `parquet` | `pyarrow` | Parquet file source |

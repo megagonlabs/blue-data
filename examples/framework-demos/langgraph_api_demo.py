@@ -32,6 +32,9 @@ import tempfile
 import time
 from typing import TypedDict
 
+if not os.environ.get("OPENAI_API_KEY"):
+    raise SystemExit("Set OPENAI_API_KEY to run this demo.")
+
 import httpx
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph

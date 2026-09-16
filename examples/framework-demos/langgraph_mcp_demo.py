@@ -32,6 +32,9 @@ import os
 import sqlite3
 import tempfile
 
+if not os.environ.get("OPENAI_API_KEY"):
+    raise SystemExit("Set OPENAI_API_KEY to run this demo.")
+
 from langchain_openai import ChatOpenAI
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent

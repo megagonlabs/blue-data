@@ -127,7 +127,7 @@ All configuration is via environment variables.
           "host": "localhost",
           "port": 5432,
           "user": "postgres",
-          "password": "secret",
+          "password": "<password>",
           "database": "warehouse"
         }
       }
@@ -136,7 +136,7 @@ All configuration is via environment variables.
 }
 ```
 
-Supported source types: `sqlite`, `postgres`, `mysql`, `mongodb`.
+Supported source types: `sqlite`, `postgres`.
 
 ---
 
@@ -285,6 +285,36 @@ enrichments (value semantics inference, semantic discovery, entity descriptions)
 | `recursive` | `bool` | `True` | Enrich all levels |
 | `rebuild` | `bool` | `False` | `False` = skip already-enriched properties (idempotent). `True` = overwrite everything. |
 
+### Query tools
+
+#### `execute_query`
+
+Execute a native query against a registered data source and return rows.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `source` | `str` | required | Source name |
+| `query` | `str` | required | Native query string (e.g. a SQL SELECT statement) |
+| `database` | `str \| None` | `None` | Database name (required for SQL sources) |
+| `collection` | `str \| None` | `None` | Collection / schema name (optional) |
+
+Returns a JSON array of row objects.
+
+---
+
+#### `import_data`
+
+Import rows from one registered data source into another.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `source` | `str` | required | Source data source (origin) |
+| `target` | `str` | required | Target data source (destination) |
+| `collection` | `str` | `"default"` | Collection / table / file name to read from the source |
+| `database` | `str` | `"default"` | Database name on the target |
+| `entity` | `str \| None` | `None` | Destination table name on the target (required for SQL targets) |
+| `mode` | `str` | `"append"` | `append` adds rows; `overwrite` clears the target first |
+
 ---
 
 ## Typical session
@@ -322,7 +352,7 @@ get_entity("sales", "prod", "public", "orders")
 Claude / MCP client
         │  MCP (stdio transport)
         ▼
-registry_mcp.server   ← FastMCP app, 10 tool handlers
+registry_mcp.server   ← FastMCP app, 13 tool handlers
         │
 registry_mcp.config   ← singleton DataRegistry factory
         │

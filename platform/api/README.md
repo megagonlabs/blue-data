@@ -77,7 +77,7 @@ Errors use standard HTTP status codes with a `{"detail": "..."}` body.
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/` | List all records; optional `?type=` and `?scope=` filters |
-| `GET` | `/search?q=<query>` | Hybrid BM25 + vector search; optional `?type=` filter |
+| `GET` | `/search?q=<query>` | Hybrid BM25 + vector search; optional `?type=`, `?scope=`, `?page=` (default 0), `?page_size=` (default 10) |
 | `GET` | `/record?name=&type=&scope=` | Get one record by identity triple |
 
 ### Sources
@@ -92,10 +92,10 @@ Errors use standard HTTP status codes with a `{"detail": "..."}` body.
 | `POST` | `/{source}/property/{key}` | Set a property |
 | `DELETE` | `/{source}/property/{key}` | Delete a property |
 | `GET` | `/{source}/databases` | List registered databases |
-| `PUT` | `/{source}/sync` | Sync source structure from live data source |
-| `PUT` | `/{source}/stats` | Collect stats from live source |
+| `PUT` | `/{source}/sync` | Sync source structure from live data source; optional `?recursive=true` (default: true) |
+| `PUT` | `/{source}/stats` | Collect stats from live source; optional `?recursive=true` (default: true) |
 | `PUT` | `/{source}/enrich` | Run semantic type inference on all attributes |
-| `PUT` | `/{source}/metadata` | Run MetaData enrichment pipeline; optional `?rebuild=true` |
+| `PUT` | `/{source}/metadata` | Run MetaData enrichment pipeline; optional `?recursive=true` (default: true), `?rebuild=false` |
 | `POST` | `/{source}/connect` | Connect and inspect live source tree |
 | `POST` | `/{source}/query` | Execute a query; body: `{"query": "...", "database": "..."}` |
 
@@ -147,6 +147,14 @@ Errors use standard HTTP status codes with a `{"detail": "..."}` body.
 | `DELETE` | `.../attribute/{attr}` | Deregister attribute |
 | `PUT` | `.../attribute/{attr}/stats` | Collect attribute stats |
 | `PUT` | `.../attribute/{attr}/metadata` | Run metadata enrichment |
+
+### Relations
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `.../relation/{rel}` | Get relation record |
+| `PUT` | `.../relation/{rel}/sync` | Sync relation |
+| `PUT` | `.../relation/{rel}/stats` | Collect relation stats |
 
 ---
 

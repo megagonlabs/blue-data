@@ -185,8 +185,8 @@ def load_sources(registry) -> None:
             from blue_data.source.sql.mysql.mysql_sql_source import MySQLDBSource
             registry.register_source(MySQLDBSource(name=name, properties=props))
         elif src_type == "mongodb":
-            from blue_data.source.json.mongodb.mongodb_json_source import MongoDBJSONSource
-            registry.register_source(MongoDBJSONSource(name=name, properties=props))
+            from blue_data.source.json.mongodb.mongodb_json_source import MongoDBSource
+            registry.register_source(MongoDBSource(name=name, properties=props))
         else:
             continue
 

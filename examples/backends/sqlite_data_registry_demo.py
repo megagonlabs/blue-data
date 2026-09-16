@@ -256,7 +256,10 @@ lazy_reg.register_record(
     "sqlite",
     "source",
     "/",
-    properties={"connection": {"protocol": "sqlite", "database_directory": tmp}},
+    properties={
+        "_class": "blue_data.source.sql.sqlite.sqlite_sql_source.SQLiteDBSource",
+        "connection": {"protocol": "sqlite", "database_directory": tmp},
+    },
 )
 
 source_obj = lazy_reg.connect_source("sqlite")

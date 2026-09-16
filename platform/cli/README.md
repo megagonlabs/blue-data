@@ -61,7 +61,7 @@ Pre-load sources at startup:
 blue-data sources list                              # list registered sources
 blue-data sources add NAME --type sqlite --database-dir /path/to/dbs
 blue-data sources add NAME --type postgres --host localhost --dbname mydb \
-    --user app --password secret
+    --user app --password <password>
 blue-data sources remove NAME                       # deregister a source
 ```
 

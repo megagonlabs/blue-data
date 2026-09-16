@@ -179,10 +179,12 @@ Abstract base class for all external data adapters. Each implementation exposes 
 | Class | Backend | Status |
 |-------|---------|--------|
 | `SQLiteDBSource` | SQLite `.db` files | Full |
-| `PostgresDBSource` | PostgreSQL | Stub |
-| `MongoDBSource` | MongoDB | Stub |
-| `RedisSource` | Redis | Stub |
-| `Neo4jGraphSource` | Neo4j property graph | Full |
+| `PostgresDBSource` | PostgreSQL | Full |
+| `MongoDBSource` | MongoDB | Full |
+| `NEO4JSource` | Neo4j property graph | Full |
+| `MySQLDBSource` | MySQL | Full |
+| `FileSource` | CSV / JSON / JSONL files | Full |
+| `RedisSource` | Redis key-value | **Not yet implemented** |
 
 ---
 

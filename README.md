@@ -207,7 +207,7 @@ Source config file format:
 }
 ```
 
-Supported source types: `sqlite`, `postgres`, `mysql`, `mongodb`, `neo4j`, `file`.
+Supported source types: `sqlite`, `postgres`, `mysql`, `mongodb`. (`neo4j` and `file` sources exist as DataSource classes but are not yet wired into the config loader.)
 
 ---
 

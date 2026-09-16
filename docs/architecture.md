@@ -28,9 +28,8 @@
   ┌──────────▼──────────┐  ┌─────────▼──────────┐
   │  SQLiteDBSource     │  │   JSONSource (ABC)  │
   │  PostgresDBSource   │  │  MemoryJSONSource   │
-  │  RedisSource        │  │  RedisJSONSource    │
-  │  Neo4jGraphSource   │  └────────────────────-┘
-  │  ...                │
+  │  Neo4jGraphSource   │  │  RedisJSONSource    │
+  │  ...                │  └────────────────────-┘
   └─────────────────────┘
 
   Vector search backend (injected into RegistrySearch):
