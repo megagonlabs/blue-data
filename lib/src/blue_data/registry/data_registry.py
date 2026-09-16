@@ -1,14 +1,32 @@
 from __future__ import annotations
 
+import copy
+
 from blue_data.registry.registry import Registry
 from blue_data.registry.search.registry_search import RegistrySearch
 
 from blue_data.source.source import DataSource
-    
 
 
-            
 from blue_data.registry.enrichment.semantic_types import SemanticTypeInferencer
+
+
+_CREDENTIAL_KEYS = frozenset({
+    "password", "passwd", "pwd",
+    "token", "access_token", "refresh_token",
+    "secret", "client_secret", "api_secret",
+    "api_key", "private_key",
+})
+
+
+def _sanitize_properties(properties: dict) -> dict:
+    """Return a deep copy of *properties* with credential keys stripped from connection."""
+    props = copy.deepcopy(properties)
+    conn = props.get("connection")
+    if isinstance(conn, dict):
+        for key in _CREDENTIAL_KEYS:
+            conn.pop(key, None)
+    return props
 
 
 class DataRegistry(Registry):
@@ -58,20 +76,23 @@ class DataRegistry(Registry):
             self.search_engine.remove_record_from_index(name, type, scope)
 
     def register_source(self, source: DataSource) -> None:
-        """Register a DataSource and add a corresponding top-level registry record."""
+        """Register a DataSource and add a corresponding top-level registry record.
+
+        Credentials (password, token, api_key, etc.) are stripped from the stored
+        record so they are never persisted to the registry store or returned by any
+        read tool.  The live DataSource object in self.sources retains full credentials.
+        """
         self.sources[source.name] = source
 
         cls = type(source)
-        properties = {
-            **source.properties,
-            "_class": f"{cls.__module__}.{cls.__qualname__}",
-        }
+        safe_properties = _sanitize_properties(source.properties)
+        safe_properties["_class"] = f"{cls.__module__}.{cls.__qualname__}"
         self.register_record(
             name=source.name,
             type="source",
             scope="/",
             description=f"{source.name} data source",
-            properties=properties,
+            properties=safe_properties,
         )
 
     def get_source(self, name: str) -> DataSource | None:

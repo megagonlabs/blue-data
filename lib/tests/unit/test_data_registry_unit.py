@@ -83,6 +83,30 @@ def test_get_sources_returns_source_records(reg):
     assert {"s1", "s2"} == names
 
 
+def test_register_source_strips_credentials_from_registry(reg):
+    """Credentials must not be persisted to the registry store."""
+    source = StubSource("warehouse")
+    source.properties = {
+        "connection": {
+            "host": "db.example.com",
+            "port": 5432,
+            "database": "prod",
+            "user": "app",
+            "password": "s3cr3t",
+        }
+    }
+    reg.register_source(source)
+
+    stored = reg.get_source_record("warehouse")
+    conn = stored["properties"]["connection"]
+    assert "password" not in conn
+    assert conn["host"] == "db.example.com"
+
+    # live source must retain the original credentials
+    live = reg.get_source("warehouse")
+    assert live.properties["connection"]["password"] == "s3cr3t"
+
+
 def test_source_property_helpers(reg):
     reg.register_source(StubSource("mydb"))
     reg.set_source_property("mydb", "owner", "team-a")
