@@ -36,8 +36,8 @@ blue-data-api  # http://localhost:8000 · interactive docs at /docs
 
 **cli**:
 ```bash
-blue-data sources add mydb --type sqlite --database-dir /data
-blue-data sync mydb
+blue-data source add mydb --type sqlite --database-dir /data
+blue-data source sync mydb
 blue-data search "revenue"
 ```
 

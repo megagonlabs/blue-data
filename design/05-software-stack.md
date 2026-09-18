@@ -111,7 +111,7 @@ Routes are split across three routers: `records` (search, health, registry CRUD)
 | Argument parsing | Click |
 | Output | plain text (default) or JSON (`--json` flag) |
 
-Command groups: `sources` (list, add, remove), `inspect` (source, database, collection, entity, attribute), `search`, `sync`, `enrich`. All delegate to `DataRegistry` via the `config.py` singleton.
+Command groups: `source` (list, add, remove, sync, stats, enrich, metadata, query, inspect), `search`. All delegate to `DataRegistry` via the `config.py` singleton.
 
 ### MCP Servers (`platform/registry-mcp/`, `platform/json-mcp/`)
 

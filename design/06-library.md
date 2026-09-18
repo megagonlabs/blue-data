@@ -206,6 +206,8 @@ Abstract base class for the registry's persistence backend. Exposes a minimal ge
 | Class | Storage | Use |
 |-------|---------|-----|
 | `MemoryJSONSource` | Python `dict` in process | Development, testing |
+| `FileJSONSource` | Atomic JSON file on disk | Lightweight persistence; no server |
+| `MongoDBJSONSource` | MongoDB | Production alternative to Redis |
 | `RedisJSONSource` | Redis Stack (`JSON.SET` / `JSON.GET`) | Production; requires `redis-stack-server` |
 
 `RedisJSONSource` stores each registry path as a separate Redis key prefixed by a configurable namespace. `list_keys` performs a SCAN. All operations are synchronous.
@@ -230,6 +232,8 @@ Pluggable vector index used by the search engine. Completely separate from `Data
 | Class | Storage | Use |
 |-------|---------|-----|
 | `MemoryVectorSource` | Python `dict` + numpy cosine distance | Development, testing |
+| `FileVectorSource` | File-persisted vectors | Lightweight persistence; no server |
+| `ChromaDBVectorSource` | ChromaDB | Production alternative to Redis |
 | `RedisVectorSource` | RedisJSON + RediSearch KNN (`FT.CREATE` / `FT.SEARCH`) | Production; requires `redis-stack-server` |
 
 ---

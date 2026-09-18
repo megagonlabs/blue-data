@@ -9,7 +9,8 @@ blue-data/
 ├── example.envrc                        # environment variable template — copy to .envrc and fill in values
 ├── README.md                            # project overview, quick start, platform table
 │
-├── data/                                # demo datasets (Northwind, Czech banking, finance)
+├── data/                                # demo datasets (Northwind, Czech banking/finance, BIRD)
+│   ├── bird/                            # 11 BIRD benchmark databases (.sqlite + discovery queries + entity mappings)
 │
 ├── design/                              # design documents and ADRs
 │   ├── 01-overview.md                   # objective, what blue-data does, design philosophy
@@ -51,8 +52,9 @@ blue-data/
 │   │   ├── registry_memory_example.py   # MemoryJSONSource + MemoryVectorSource, offline
 │   │   ├── sqlite_data_registry_demo.py # DataRegistry with SQLiteDBSource
 │   │   └── sqlite_example.py            # bare SQLiteDBSource usage
-│   ├── benchmarks/                      # benchmark scripts and result markdown
+│   ├── benchmarks/                      # placeholder directory (benchmark scripts live in lib/tests/benchmarks/)
 │   ├── feature-demos/
+│   │   ├── data_quality_demo.py         # four-tier data quality profiling pipeline
 │   │   ├── enrichment_demo.py           # MetaData: value semantics, semantic roles
 │   │   ├── export_data_demo.py          # DataSource.import_data / export flow
 │   │   ├── import_data_demo.py          # import_data from one source into another
@@ -68,6 +70,7 @@ blue-data/
 │   │   └── sql_semantic_enrichment_demo.py  # sync SQLite source, enrich schema, NL2SQL
 │   └── scenario-demos/
 │       ├── coded_value_demo.py          # coded-value column semantics (ENUM / FLAG)
+│       ├── data_quality_demo.py         # four-tier data quality profiling pipeline
 │       ├── description_search_demo.py   # hybrid search across enriched registry records
 │       └── process_reasoning_demo.py    # process semantics: EVENT, AGGREGATE_OVER_TIME
 │
@@ -193,11 +196,18 @@ blue-data/
 │       │   ├── test_sqlite_registry.py
 │       │   └── test_sync_source_e2e.py
 │       └── benchmarks/                      # LLM-backed NL2SQL, search, and enrichment benchmarks
+│           ├── _discovery_runner.py         # shared runner for discovery benchmarks
+│           ├── _set_retrieval_runner.py     # shared runner for set-retrieval benchmarks
+│           ├── bird_converter.py            # converts BIRD benchmark format to blue-data queries
+│           ├── bird_lake_benchmark.py       # BIRD data lake benchmark across multiple DBs
+│           ├── bird_set_benchmark.py        # BIRD set-retrieval benchmark
 │           ├── enrichment_benchmark.py
 │           ├── finance_discovery_benchmark.py
+│           ├── finance_set_benchmark.py     # finance set-retrieval benchmark
 │           ├── nl2q_benchmark.py
 │           ├── nl2q_enrichment_benchmark.py
 │           ├── northwind_discovery_benchmark.py
+│           ├── northwind_set_benchmark.py   # Northwind set-retrieval benchmark
 │           └── search_benchmark.py
 │
 └── platform/                                # external interface services
@@ -222,7 +232,7 @@ blue-data/
     │   ├── README.md                        # install and command reference
     │   ├── pyproject.toml
     │   ├── src/registry_cli/
-    │   │   ├── main.py                      # Click command groups: sources, inspect, search, sync, enrich
+    │   │   ├── main.py                      # Click command groups: source, search
     │   │   └── config.py                    # DataRegistry singleton from env vars
     │   └── tests/
     │       ├── conftest.py

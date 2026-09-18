@@ -29,7 +29,7 @@ All tools are declared as `dev` dependencies in `lib/pyproject.toml` (lib) and `
 
 ```
 lib/tests/
-├── unit/                              # 28 test files; all I/O mocked or in-memory
+├── unit/                              # 26 test files; all I/O mocked or in-memory
 │   ├── test_bayesian_network_source.py
 │   ├── test_chromadb_vector_source.py
 │   ├── test_data_registry_unit.py
@@ -68,11 +68,18 @@ lib/tests/
 │   ├── test_sqlite_registry.py        # SQLite DataRegistry integration
 │   └── test_sync_source_e2e.py        # full sync_source pipeline
 └── benchmarks/                        # LLM + external services required
+    ├── _discovery_runner.py           # shared runner for discovery benchmarks
+    ├── _set_retrieval_runner.py       # shared runner for set-retrieval benchmarks
+    ├── bird_converter.py              # converts BIRD benchmark format to blue-data queries
+    ├── bird_lake_benchmark.py         # BIRD data lake benchmark across multiple DBs
+    ├── bird_set_benchmark.py          # BIRD set-retrieval benchmark
     ├── enrichment_benchmark.py        # enrichment quality on sample datasets
     ├── finance_discovery_benchmark.py # NL discovery on finance schema
+    ├── finance_set_benchmark.py       # finance set-retrieval benchmark
     ├── nl2q_benchmark.py              # NL2SQL accuracy on curated query set
     ├── nl2q_enrichment_benchmark.py   # NL2SQL accuracy post-enrichment
     ├── northwind_discovery_benchmark.py
+    ├── northwind_set_benchmark.py     # Northwind set-retrieval benchmark
     └── search_benchmark.py            # hybrid search ranking quality
 
 platform/api/tests/
@@ -200,7 +207,11 @@ Benchmarks measure accuracy (not speed) of LLM-backed features. They require `AN
 | `enrichment_benchmark.py` | Enrichment property correctness on known-answer column sets |
 | `search_benchmark.py` | Hybrid search: P@k and MRR on curated relevance sets |
 | `finance_discovery_benchmark.py` | End-to-end discovery flow on a finance schema |
+| `finance_set_benchmark.py` | Set-retrieval recall on finance discovery queries |
 | `northwind_discovery_benchmark.py` | End-to-end discovery flow on Northwind |
+| `northwind_set_benchmark.py` | Set-retrieval recall on Northwind discovery queries |
+| `bird_set_benchmark.py` | Set-retrieval recall across BIRD benchmark databases |
+| `bird_lake_benchmark.py` | Discovery across a multi-DB BIRD data lake |
 
 Results are recorded in `benchmarks/*.md` files committed to the repo.
 
