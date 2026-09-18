@@ -207,7 +207,7 @@ Abstract base class for the registry's persistence backend. Exposes a minimal ge
 |-------|---------|-----|
 | `MemoryJSONSource` | Python `dict` in process | Development, testing |
 | `FileJSONSource` | Atomic JSON file on disk | Lightweight persistence; no server |
-| `MongoDBJSONSource` | MongoDB | Production alternative to Redis |
+| `MongoDBSource` | MongoDB | Production alternative to Redis |
 | `RedisJSONSource` | Redis Stack (`JSON.SET` / `JSON.GET`) | Production; requires `redis-stack-server` |
 
 `RedisJSONSource` stores each registry path as a separate Redis key prefixed by a configurable namespace. `list_keys` performs a SCAN. All operations are synchronous.

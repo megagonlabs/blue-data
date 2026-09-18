@@ -17,7 +17,7 @@ This document records how each adapter maps its native concepts onto that hierar
 | **SQLiteDBSource** | `.db` file (without extension) | always `"public"` | table | column |
 | **PostgresDBSource** | Postgres database | schema (e.g. `public`, `analytics`) | table | column |
 | **MySQLDBSource** | MySQL database | always `"public"` | table | column |
-| **MongoDBJSONSource** | MongoDB database | MongoDB collection | inferred document shape (sampled) | document field |
+| **MongoDBSource** | MongoDB database | MongoDB collection | inferred document shape (sampled) | document field |
 | **RedisJSONSource** | scan-prefix namespace | key-group (first segment after prefix) | inferred JSON document shape (sampled) | JSON field |
 | **Neo4jGraphSource** | Neo4j database (e.g. `neo4j`) | same as database | node label | node property |
 | **FileSource** | always `"default"` | file stem (e.g. `orders` for `orders.csv`) | same as collection | column / JSON field |

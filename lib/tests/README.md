@@ -6,7 +6,7 @@
 lib/tests/
 ├── unit/          — fast, no external dependencies (SQLite + in-memory backends only)
 ├── integration/   — require external servers (Postgres, MySQL, Neo4j, Redis)
-└── benchmarks/    — NL2SQL quality benchmark (requires Anthropic API key)
+└── benchmarks/    — NL2SQL, search, discovery, and BIRD benchmarks (require Anthropic API key)
 ```
 
 ## Running tests
@@ -33,7 +33,8 @@ Each integration test file auto-skips if the required server is not reachable �
 | `test_redis_registry.py` | Redis Stack | `localhost:6379` |
 | `test_redis_stream_source.py` | Redis Stream | `localhost:6379` |
 | `test_sqlite_registry.py` | — | SQLite only, always runs |
-| `test_search_e2e.py` | — | SQLite only, always runs |
+| `test_search_e2e.py` | — | In-memory backends, always runs |
+| `test_search_scenarios.py` | — | In-memory backends, always runs |
 | `test_sync_source_e2e.py` | — | SQLite only, always runs |
 
 Override connection details via environment variables:
@@ -74,4 +75,4 @@ python3 -m pytest lib/tests/ -v
 
 ## Benchmarks
 
-See [benchmarks/README.md](benchmarks/README.md) for the NL2SQL enrichment benchmark. It requires an OpenAI or Anthropic API key and is not part of the normal test run.
+See [benchmarks/README.md](benchmarks/README.md) for the full benchmark suite (NL2SQL, search ranking, discovery, BIRD set-retrieval). Benchmarks require an Anthropic API key and are not part of the normal test run.

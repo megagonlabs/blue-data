@@ -107,23 +107,33 @@ Predicted impact of enrichment:
 
 ---
 
-## Comparison with DMRAL
+## Comparison with published systems
 
-The closest published benchmark is DMRAL (Luo et al., 2026), which uses BirdWild:
-109,949 tables, 461 numeric-answer questions.
+### Setup summary
 
-| | DMRAL BirdWild | Our lake |
-|---|---|---|
-| Table pool | ~109,949 | ~86 |
-| Questions | 461 (numeric only) | 1,534 (all types) |
-| Best F1@3 | 59.6% | — |
-| Baseline F1@3 | ~46% (JARUnion) | — |
+| | **Ours (keyword)** | **Ours (hybrid)** | **CORE-T** | **DMRAL** |
+|---|---|---|---|---|
+| Benchmark | BIRD lake | BIRD lake | BIRD lake | BirdWild |
+| Questions | 1,534 (all types) | 1,534 (all types) | 44 (curated subset) | 461 (numeric only) |
+| Table pool | ~86 (11 DBs) | ~86 (11 DBs) | ~79 (12 DBs) | ~109,949 |
+| Indexing | metadata only | metadata only | content-aware | content-aware |
+| Retrieval | BM25 | BM25 + vector | dense + LLM | NL sub-queries + join graph |
 
-Our lake is ~1,300× smaller, making retrieval easier in absolute terms. Yet our F1@Ideal
-is near zero because we index **metadata only** (table/column names), while DMRAL uses
-table content for retrieval. The gap quantifies the value of content-aware retrieval and
-enrichment beyond bare schema metadata.
+### F1@Ideal-K (entity-level table retrieval)
 
-Direct metric comparison is not meaningful due to different pool sizes, question types,
-and k values. A fair comparison would require running on BirdWild-scale data with
-enriched descriptions.
+| System | F1@Ideal-K | F1@K=5 | Avg tables returned | Avg search time |
+|--------|-----------|--------|---------------------|-----------------|
+| **Ours (keyword)** | 0.020 | — | — | — |
+| **Ours (hybrid)** | 0.024 | — | — | — |
+| CORE-T (Soliman et al., arxiv 2026) | 0.814 | 0.666 | 4.07 | 0.84s |
+| DMRAL (Luo et al., ICDE 2026) | 0.553¹ | 0.480¹ | 10.14¹ | 2.07s¹ |
+
+¹ DMRAL numbers here are from a BIRD lake evaluation (44-question subset, ~79 tables, 12 DBs), not from DMRAL's own BirdWild evaluation (F1@3=59.6%, ~109,949 tables).
+
+### Reading the comparison
+
+**CORE-T** uses the same BIRD dev-set lake setup (multiple databases pooled) and the same F1@Ideal-K metric — the most direct published comparison available. The gap (0.814 vs 0.024) is large but explainable: CORE-T indexes **table content** (column values, row samples) in addition to metadata. We index **metadata only** — table and column names, plus LLM-generated descriptions when enrichment has run. An internal content-aware prototype evaluated on the same 44-question BIRD subset achieves F1@Ideal-K=0.870–0.898, consistent with what content indexing buys over metadata-only.
+
+**DMRAL** operates on BirdWild (~109,949 tables, 461 numeric questions) — a different scale and question distribution. Its F1@3=59.6% on BirdWild is not directly comparable to our F1@Ideal-K on BIRD lake.
+
+**What the gap quantifies:** The ~0.81–0.90 F1@Ideal-K ceiling from content-aware systems on the same BIRD lake problem quantifies the combined value of content indexing, answer-table generation, and join-aware graph traversal — none of which are currently in our pipeline. Enrichment (Layer 2 descriptions) is our primary lever to close the metadata-to-content gap.

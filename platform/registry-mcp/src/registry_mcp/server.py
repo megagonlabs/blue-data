@@ -10,6 +10,7 @@ Explore   — search_records, list_sources, list_source_databases,
 Inspect   — get_entity, get_record
 Manage    — sync_source, collect_source_stats, enrich_source,
             enrich_source_metadata
+Query     — execute_query, import_data
 
 Quick start
 -----------

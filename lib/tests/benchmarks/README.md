@@ -300,11 +300,11 @@ python3 lib/tests/benchmarks/bird_converter.py dev.json --out-dir data/bird --db
 
 | File | Description |
 |------|-------------|
-| `data/finance_sqlite.sql` | Czech banking schema + data (8 tables) |
-| `data/northwind_sqlite.sql` | Northwind e-commerce schema + data (13 tables) |
+| `data/finance_sqlite.sql` | Czech banking schema + data (5 tables) |
+| `data/northwind_sqlite.sql` | Northwind e-commerce schema + data (7 tables) |
 | `data/finance_discovery_queries.json` | 80 Finance discovery queries |
 | `data/northwind_discovery_queries.json` | 80 Northwind discovery queries |
 | `data/finance_entity_mapping.json` | Finance query → relevant tables mapping |
 | `data/northwind_entity_mapping.json` | Northwind query → relevant tables mapping |
 | `data/finance_benchmark_queries.json` | 25 NL2SQL enrichment benchmark questions |
-| `data/bird/` | BIRD dev queries + entity mappings (SQLite DBs excluded — too large) |
+| `data/bird/` | BIRD dev queries + entity mappings + 11 SQLite databases |

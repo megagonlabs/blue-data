@@ -13,7 +13,7 @@
 | File | Description |
 |---|---|
 | [features.md](features.md) | Full feature list with descriptions and metric definitions |
-| [api-reference.md](api-reference.md) | REST API endpoint reference |
+| [api-reference.md](api-reference.md) | Python library API reference (DataSource, Registry, DataRegistry, search, enrichment) |
 | [architecture.md](architecture.md) | System architecture overview |
 | [datasource-hierarchy-mapping.md](datasource-hierarchy-mapping.md) | How source hierarchy maps to registry records |
 | [extending.md](extending.md) | Implementing a new DataSource or custom NL translation |

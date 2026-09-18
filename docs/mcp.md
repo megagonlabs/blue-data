@@ -45,7 +45,7 @@ Claude Desktop config (`~/.config/claude-desktop/claude_desktop_config.json`):
 }
 ```
 
-Tools available: `search_records`, `list_sources`, `list_source_databases`, `list_database_collections`, `list_collection_entities`, `get_entity`, `get_record`, `sync_source`, `collect_source_stats`, `enrich_source`, `enrich_source_metadata`.
+Tools available: `search_records`, `list_sources`, `list_source_databases`, `list_database_collections`, `list_collection_entities`, `get_entity`, `get_record`, `sync_source`, `collect_source_stats`, `enrich_source`, `enrich_source_metadata`, `execute_query`, `import_data`.
 
 ---
 

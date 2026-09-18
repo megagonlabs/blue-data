@@ -66,7 +66,7 @@ python3 -m pytest tests/integration/ -v
 lib/
 ├── src/
 │   └── blue_data/
-│       ├── core/           # DataSource, Registry, DataSchema
+│       ├── core/           # DataSchema and shared utilities
 │       ├── source/         # SQL, file, vector, JSON backends
 │       ├── registry/       # DataRegistry, search, enrichment
 │       └── utils/

@@ -10,7 +10,7 @@ blue-data/
 ├── README.md                            # project overview, quick start, platform table
 │
 ├── data/                                # demo datasets (Northwind, Czech banking/finance, BIRD)
-│   ├── bird/                            # 11 BIRD benchmark databases (.sqlite + discovery queries + entity mappings)
+│   ├── bird/                            # BIRD benchmark: discovery queries + entity mappings (11 DBs); .sqlite files are gitignored — download separately
 │
 ├── design/                              # design documents and ADRs
 │   ├── 01-overview.md                   # objective, what blue-data does, design philosophy
