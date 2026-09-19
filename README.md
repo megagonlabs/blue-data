@@ -53,7 +53,7 @@ blue-data/
 │   └── tests/
 ├── platform/
 │   ├── api/                      # REST API (blue-data-api)
-│   ├── cli/                      # Command-line interface (blue-data)
+│   ├── cli/                      # Command-line interface (blue-registry)
 │   ├── json-mcp/                 # MCP server for JSONSource operations
 │   └── registry-mcp/            # MCP server for registry operations
 ├── docs/                         # Documentation
@@ -242,9 +242,9 @@ See [`docs/api.md`](docs/api.md) for the full endpoint reference.
 ### cli
 
 ```bash
-blue-data source add mydb --type sqlite --database-dir /data
-blue-data source sync mydb && blue-data source enrich mydb
-blue-data search "revenue"
+blue-registry source add mydb --type sqlite --database-dir /data
+blue-registry source sync mydb && blue-registry source enrich mydb
+blue-registry search "revenue"
 ```
 
 See [`docs/cli.md`](docs/cli.md) for the full command reference.

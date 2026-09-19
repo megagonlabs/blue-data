@@ -1,5 +1,5 @@
 [project]
-name = "blue-data-cli"
+name = "blue-registry-cli"
 version = "0.1.0"
 description = "Command-line interface for blue-data DataRegistry"
 requires-python = ">=3.10"
@@ -21,7 +21,7 @@ all     = ["redis", "anthropic", "openai"]
 dev     = ["pytest"]
 
 [project.scripts]
-blue-data = "registry_cli.main:cli"
+blue-registry = "registry_cli.main:cli"
 
 [build-system]
 requires = ["setuptools>=61"]

@@ -1,6 +1,6 @@
-# blue-data CLI
+# blue-registry CLI
 
-`platform/cli` is a command-line interface for blue-data DataRegistry operations.
+`platform/cli` is a command-line interface for blue-registry DataRegistry operations.
 
 ## Installation
 
@@ -13,7 +13,7 @@ pip install -e .
 ## Usage
 
 ```
-blue-data [--json] [--store memory|redis] [--config PATH] COMMAND
+blue-registry [--json] [--store memory|redis] [--config PATH] COMMAND
 ```
 
 `--json` switches all output to raw JSON. `--store` and `--config` override the
@@ -62,21 +62,21 @@ All source operations are grouped under `source`.
 #### `source list`
 
 ```bash
-blue-data source list
+blue-registry source list
 ```
 
 #### `source add`
 
 ```bash
-blue-data source add NAME --type sqlite --database-dir /path/to/dbs
-blue-data source add NAME --type postgres --host localhost --dbname mydb \
+blue-registry source add NAME --type sqlite --database-dir /path/to/dbs
+blue-registry source add NAME --type postgres --host localhost --dbname mydb \
     --user app --password <password>
 ```
 
 #### `source remove`
 
 ```bash
-blue-data source remove NAME
+blue-registry source remove NAME
 ```
 
 #### `source sync`
@@ -84,8 +84,8 @@ blue-data source remove NAME
 Walk the live source and register all databases, collections, entities, and attributes.
 
 ```bash
-blue-data source sync mydb                    # recursive by default
-blue-data source sync mydb --no-recursive     # top-level only
+blue-registry source sync mydb                    # recursive by default
+blue-registry source sync mydb --no-recursive     # top-level only
 ```
 
 #### `source stats`
@@ -93,8 +93,8 @@ blue-data source sync mydb --no-recursive     # top-level only
 Collect row counts, null rates, and value statistics from the live source.
 
 ```bash
-blue-data source stats mydb
-blue-data source stats mydb --no-recursive
+blue-registry source stats mydb
+blue-registry source stats mydb --no-recursive
 ```
 
 #### `source enrich`
@@ -102,7 +102,7 @@ blue-data source stats mydb --no-recursive
 Run deterministic semantic type inference (BOOLEAN, INTEGER, EMAIL, UUID, etc.) on all attributes.
 
 ```bash
-blue-data source enrich mydb
+blue-registry source enrich mydb
 ```
 
 #### `source metadata`
@@ -111,8 +111,8 @@ Run the full MetaData enrichment pipeline (semantic roles, VST, process semantic
 and — when `BLUE_DATA_LLM_PROVIDER=anthropic` — LLM-augmented enrichment).
 
 ```bash
-blue-data source metadata mydb
-blue-data source metadata mydb --rebuild      # overwrite existing enrichment
+blue-registry source metadata mydb
+blue-registry source metadata mydb --rebuild      # overwrite existing enrichment
 ```
 
 #### `source query`
@@ -120,8 +120,8 @@ blue-data source metadata mydb --rebuild      # overwrite existing enrichment
 Execute raw SQL against a live source:
 
 ```bash
-blue-data source query mydb "SELECT * FROM orders LIMIT 5" --database prod
-blue-data --json source query mydb "SELECT status, COUNT(*) FROM orders GROUP BY status" --database prod
+blue-registry source query mydb "SELECT * FROM orders LIMIT 5" --database prod
+blue-registry --json source query mydb "SELECT status, COUNT(*) FROM orders GROUP BY status" --database prod
 ```
 
 #### `source inspect`
@@ -129,17 +129,17 @@ blue-data --json source query mydb "SELECT status, COUNT(*) FROM orders GROUP BY
 Drill into any level of the hierarchy by passing 1–5 positional arguments:
 
 ```bash
-blue-data source inspect mydb                                  # source
-blue-data source inspect mydb prod                             # database
-blue-data source inspect mydb prod public                      # collection
-blue-data source inspect mydb prod public orders               # entity
-blue-data source inspect mydb prod public orders total         # attribute
+blue-registry source inspect mydb                                  # source
+blue-registry source inspect mydb prod                             # database
+blue-registry source inspect mydb prod public                      # collection
+blue-registry source inspect mydb prod public orders               # entity
+blue-registry source inspect mydb prod public orders total         # attribute
 ```
 
 With `--json` for full records:
 
 ```bash
-blue-data --json source inspect mydb prod public orders | jq .record.properties
+blue-registry --json source inspect mydb prod public orders | jq .record.properties
 ```
 
 ---
@@ -149,9 +149,9 @@ blue-data --json source inspect mydb prod public orders | jq .record.properties
 Hybrid BM25 + vector search across all registry records.
 
 ```bash
-blue-data search "customer email"
-blue-data search "orders" --type entity --limit 5
-blue-data --json search "total revenue" | jq '.[].name'
+blue-registry search "customer email"
+blue-registry search "orders" --type entity --limit 5
+blue-registry --json search "total revenue" | jq '.[].name'
 ```
 
 ---
@@ -160,18 +160,18 @@ blue-data --json search "total revenue" | jq '.[].name'
 
 ```bash
 # 1. Register a source (or use BLUE_DATA_SOURCES_CONFIG)
-blue-data source add shop --type sqlite --database-dir /data/shop
+blue-registry source add shop --type sqlite --database-dir /data/shop
 
 # 2. Sync structure, collect stats, enrich
-blue-data source sync shop
-blue-data source stats shop
-blue-data source enrich shop
-blue-data source metadata shop
+blue-registry source sync shop
+blue-registry source stats shop
+blue-registry source enrich shop
+blue-registry source metadata shop
 
 # 3. Explore
-blue-data search "revenue"
-blue-data source inspect shop prod public
-blue-data source inspect shop prod public orders
+blue-registry search "revenue"
+blue-registry source inspect shop prod public
+blue-registry source inspect shop prod public orders
 ```
 
 ## Running tests

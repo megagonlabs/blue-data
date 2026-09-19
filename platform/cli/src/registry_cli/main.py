@@ -1,7 +1,7 @@
-"""blue-data CLI.
+"""blue-registry CLI.
 
 Usage:
-    blue-data [OPTIONS] COMMAND [ARGS]...
+    blue-registry [OPTIONS] COMMAND [ARGS]...
 
 Global options:
     --json    Output raw JSON instead of formatted text
@@ -76,7 +76,7 @@ def _err(msg: str) -> None:
               help="Path to source config JSON file.")
 @click.pass_context
 def cli(ctx: click.Context, as_json: bool, store: Optional[str], config_path: Optional[str]):
-    """blue-data — inspect and manage your data registry."""
+    """blue-registry — inspect and manage your data registry."""
     ctx.ensure_object(dict)
     ctx.obj["as_json"] = as_json
     if store:
@@ -100,15 +100,14 @@ def source():
 def source_list(ctx: click.Context):
     """List all registered sources."""
     reg = ctx.obj["registry"]
-    names = reg.list_sources()
+    records = reg.list_records(record_type="source", scope="/")
     if ctx.obj["as_json"]:
-        click.echo(json.dumps(names))
+        click.echo(json.dumps([r["name"] for r in records]))
     else:
-        if not names:
+        if not records:
             click.echo("No sources registered.")
-        for name in names:
-            record = reg.get_source_record(name)
-            click.echo(f"  {name}" + (f"  — {record.get('description', '')}" if record else ""))
+        for record in records:
+            click.echo(f"  {record['name']}" + (f"  — {record.get('description', '')}" if record.get('description') else ""))
 
 
 @source.command("add")
@@ -156,7 +155,7 @@ def source_add(ctx: click.Context, name: str, src_type: str, database_dir: Optio
 def source_remove(ctx: click.Context, name: str):
     """Deregister a source."""
     reg = ctx.obj["registry"]
-    if reg.get_source(name) is None:
+    if reg.get_source_record(name) is None:
         _err(f"Source '{name}' not found.")
     reg.deregister_source(name)
     click.echo(f"Removed source '{name}'.")
@@ -258,11 +257,11 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
 
     \b
     Examples:
-      blue-data source inspect mydb
-      blue-data source inspect mydb prod
-      blue-data source inspect mydb prod public
-      blue-data source inspect mydb prod public orders
-      blue-data source inspect mydb prod public orders total
+      blue-registry source inspect mydb
+      blue-registry source inspect mydb prod
+      blue-registry source inspect mydb prod public
+      blue-registry source inspect mydb prod public orders
+      blue-registry source inspect mydb prod public orders total
     """
     reg = ctx.obj["registry"]
     as_json = ctx.obj["as_json"]
@@ -343,9 +342,9 @@ def search(ctx: click.Context, query: str, record_type: Optional[str], limit: in
     reg = ctx.obj["registry"]
     try:
         results = reg.search_records(query, type=record_type, page_size=limit)
+        _out(results, ctx.obj["as_json"])
     except Exception as e:
         _err(str(e))
-    _out(results, ctx.obj["as_json"])
 
 
 if __name__ == "__main__":
