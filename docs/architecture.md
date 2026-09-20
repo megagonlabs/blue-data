@@ -84,8 +84,8 @@
 | Component | Entry point | Transport | Backed by |
 |---|---|---|---|
 | `registry-mcp` | `platform/registry-mcp/` | stdio (MCP) | `DataRegistry` |
-| `api` | `platform/api/` | HTTP (FastAPI) | `DataRegistry` |
-| `cli` | `platform/cli/` | Terminal (Click) | `DataRegistry` |
+| `api` | `platform/registry-api/` | HTTP (FastAPI) | `DataRegistry` |
+| `cli` | `platform/registry-cli/` | Terminal (Click) | `DataRegistry` |
 | `json-mcp` | `platform/json-mcp/` | stdio (MCP) | `JSONSource` only — memory or file |
 
 The platform components are independent processes that import `lib` as a

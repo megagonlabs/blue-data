@@ -311,7 +311,7 @@ REST API. The API server launches automatically as a subprocess.
 
 ```bash
 pip install langgraph langchain-core langchain-openai httpx
-pip install -e lib/ -e platform/api/
+pip install -e lib/ -e platform/registry-api/
 export OPENAI_API_KEY=sk-...
 python3 examples/framework-demos/langgraph_api_demo.py
 ```

@@ -1,11 +1,11 @@
 # blue-data REST API
 
-`platform/api` exposes DataRegistry operations over HTTP via FastAPI.
+`platform/registry-api` exposes DataRegistry operations over HTTP via FastAPI.
 
 ## Installation & running
 
 ```bash
-cd platform/api
+cd platform/registry-api
 pip install -e ../../lib
 pip install -e .
 
@@ -183,6 +183,6 @@ curl $BASE/mydb/database/prod/collection/public/entity/customers
 ## Running tests
 
 ```bash
-cd platform/api
+cd platform/registry-api
 python3 -m pytest tests/ -v
 ```

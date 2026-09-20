@@ -94,7 +94,7 @@ Hybrid search fuses BM25 scores and vector similarity scores using a configurabl
 
 ## External Interfaces
 
-### REST API (`platform/api/`)
+### REST API (`platform/registry-api/`)
 
 | Concern | Choice |
 |---------|--------|
@@ -104,7 +104,7 @@ Hybrid search fuses BM25 scores and vector similarity scores using a configurabl
 
 Routes are split across three routers: `records` (search, health, registry CRUD), `sources` (database/collection/entity inspection), `hierarchy` (path-based traversal). Request/response models are Pydantic `BaseModel`. No business logic in route handlers.
 
-### CLI (`platform/cli/`)
+### CLI (`platform/registry-cli/`)
 
 | Concern | Choice |
 |---------|--------|
@@ -153,8 +153,8 @@ All tools are declared as `dev` dependencies in `lib/pyproject.toml`. Unit tests
 | `networkx` | latest | `[bn]` | Graph representation for BN |
 | `pyarrow` | latest | `[parquet]` | Parquet file I/O |
 | `anthropic` | latest | `[llm]` | MetadataEnricher; execute_query_nl_tools |
-| `fastapi[standard]` | ≥0.100.0 | `platform/api` | REST API framework + uvicorn |
-| `click` | latest | `platform/cli` | CLI argument parsing |
+| `fastapi[standard]` | ≥0.100.0 | `platform/registry-api` | REST API framework + uvicorn |
+| `click` | latest | `platform/registry-cli` | CLI argument parsing |
 | `pytest` | latest | `dev` | Test runner |
 | `pytest-cov` | latest | `dev` | Coverage measurement |
-| `httpx` | latest | `platform/api dev` | FastAPI TestClient HTTP transport |
+| `httpx` | latest | `platform/registry-api dev` | FastAPI TestClient HTTP transport |

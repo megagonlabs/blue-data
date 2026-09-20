@@ -39,8 +39,8 @@ blue-data/
 │   ├── datasource-hierarchy-mapping.md  # source → database → collection → entity → attribute path convention
 │   ├── extending.md                     # adding a new DataSource backend
 │   ├── mcp.md                           # MCP overview — which server to use and when
-│   ├── api.md                           # stub → see platform/api/README.md
-│   ├── cli.md                           # stub → see platform/cli/README.md
+│   ├── api.md                           # stub → see platform/registry-api/README.md
+│   ├── cli.md                           # stub → see platform/registry-cli/README.md
 │   ├── json-mcp.md                      # stub → see platform/json-mcp/README.md
 │   └── registry-mcp.md                  # stub → see platform/registry-mcp/README.md
 │
@@ -211,7 +211,7 @@ blue-data/
 │           └── search_benchmark.py
 │
 └── platform/                                # external interface services
-    ├── api/                                 # REST API (blue-data-api PyPI package)
+    ├── registry-api/                        # REST API (blue-registry-api PyPI package)
     │   ├── README.md                        # install, run, endpoint reference, configuration
     │   ├── pyproject.toml
     │   ├── src/registry_api/
@@ -228,7 +228,7 @@ blue-data/
     │       ├── test_hierarchy.py
     │       ├── test_records.py
     │       └── test_sources.py
-    ├── cli/                                 # CLI (blue-data-cli PyPI package)
+    ├── registry-cli/                        # CLI (blue-registry-cli PyPI package)
     │   ├── README.md                        # install and command reference
     │   ├── pyproject.toml
     │   ├── src/registry_cli/

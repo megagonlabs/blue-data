@@ -62,7 +62,7 @@ All variables are read once at startup during singleton construction. Changing t
 ### Development
 
 ```bash
-cd platform/api
+cd platform/registry-api
 pip install -e ".[dev]"
 BLUE_DATA_REGISTRY_STORE=redis BLUE_DATA_REGISTRY_REDIS_URL=redis://localhost:6379/0 \
   uvicorn registry_api.main:app --reload --host 0.0.0.0 --port 8000
@@ -74,7 +74,7 @@ BLUE_DATA_REGISTRY_STORE=redis BLUE_DATA_REGISTRY_REDIS_URL=redis://localhost:63
 FROM python:3.10-slim
 WORKDIR /app
 COPY . .
-RUN pip install -e "lib/" && pip install -e "platform/api/"
+RUN pip install -e "lib/" && pip install -e "platform/registry-api/"
 EXPOSE 8000
 CMD ["uvicorn", "registry_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
@@ -140,7 +140,7 @@ BLUE_DATA_REGISTRY_STORE=redis BLUE_DATA_REGISTRY_REDIS_URL=redis://localhost:63
 ## Running the CLI
 
 ```bash
-pip install -e "lib/" -e "platform/cli/"
+pip install -e "lib/" -e "platform/registry-cli/"
 
 export BLUE_DATA_REGISTRY_STORE=redis
 export BLUE_DATA_REGISTRY_REDIS_URL=redis://localhost:6379/0

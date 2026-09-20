@@ -19,9 +19,9 @@ Platform adapter tests exercise the translation layer (HTTP routes, CLI commands
 | `pytest` | lib + all platforms | Test runner |
 | `pytest-asyncio` | lib | `asyncio_mode = "auto"` for async test support |
 | `pytest-cov` | lib | Coverage measurement |
-| `httpx` | platform/api | FastAPI `TestClient` HTTP transport |
+| `httpx` | platform/registry-api | FastAPI `TestClient` HTTP transport |
 
-All tools are declared as `dev` dependencies in `lib/pyproject.toml` (lib) and `platform/api/pyproject.toml` (REST API).
+All tools are declared as `dev` dependencies in `lib/pyproject.toml` (lib) and `platform/registry-api/pyproject.toml` (REST API).
 
 ---
 
@@ -82,13 +82,13 @@ lib/tests/
     ├── northwind_set_benchmark.py     # Northwind set-retrieval benchmark
     └── search_benchmark.py            # hybrid search ranking quality
 
-platform/api/tests/
+platform/registry-api/tests/
 ├── conftest.py      # mock DataRegistry fixture; FastAPI TestClient
 ├── test_hierarchy.py
 ├── test_records.py
 └── test_sources.py
 
-platform/cli/tests/
+platform/registry-cli/tests/
 ├── conftest.py      # patched DataRegistry singleton
 └── test_cli.py
 
@@ -221,7 +221,7 @@ Results are recorded in `benchmarks/*.md` files committed to the repo.
 
 Each platform adapter is tested independently. The `DataRegistry` singleton is replaced with a `MagicMock` — adapter tests exercise the translation layer only.
 
-### REST API (`platform/api/tests/`)
+### REST API (`platform/registry-api/tests/`)
 
 Uses FastAPI's `TestClient` (sync wrapper over ASGI). Tests assert on:
 - HTTP status codes (200, 422, 404)
@@ -237,7 +237,7 @@ def test_search_delegates_to_registry(client, mock_registry):
     mock_registry.search_records.assert_called_once_with("customer orders", k=5)
 ```
 
-### CLI (`platform/cli/tests/`)
+### CLI (`platform/registry-cli/tests/`)
 
 Uses Click's `CliRunner`. The DataRegistry singleton is patched. Tests assert on:
 - Exit codes
@@ -262,10 +262,10 @@ pytest lib/tests/integration/test_search_e2e.py lib/tests/integration/test_searc
 pytest lib/tests/integration/test_sqlite_registry.py lib/tests/integration/test_sync_source_e2e.py -v
 
 # REST API adapter tests
-pytest platform/api/tests/ -v
+pytest platform/registry-api/tests/ -v
 
 # CLI adapter tests
-pytest platform/cli/tests/ -v
+pytest platform/registry-cli/tests/ -v
 
 # MCP adapter tests
 pytest platform/registry-mcp/tests/ platform/json-mcp/tests/ -v

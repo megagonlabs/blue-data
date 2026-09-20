@@ -209,10 +209,10 @@ blue-data (core library)
     └── jsonpath-ng         (JSONSource path queries)
 
 Platform services
-    ├── platform/api/       FastAPI + Uvicorn (REST API, port 8000)
+    ├── platform/registry-api/       FastAPI + Uvicorn (REST API, port 8000)
     ├── platform/registry-mcp/  fastmcp (Registry MCP server)
     ├── platform/json-mcp/      fastmcp (JSON MCP server)
-    └── platform/cli/       Click (CLI, blue-data command)
+    └── platform/registry-cli/       Click (CLI, blue-data command)
 
 Optional backends (deferred imports in config.py)
     ├── redis[hiredis]      RedisJSONSource + RedisVectorSource

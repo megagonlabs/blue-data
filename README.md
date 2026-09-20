@@ -52,8 +52,8 @@ blue-data/
 │   ├── src/blue_data/
 │   └── tests/
 ├── platform/
-│   ├── api/                      # REST API (blue-data-api)
-│   ├── cli/                      # Command-line interface (blue-registry)
+│   ├── registry-api/             # REST API (blue-registry-api)
+│   ├── registry-cli/             # Command-line interface (blue-registry)
 │   ├── json-mcp/                 # MCP server for JSONSource operations
 │   └── registry-mcp/            # MCP server for registry operations
 ├── docs/                         # Documentation
@@ -219,8 +219,8 @@ The `platform/` directory contains deployable components built on top of `lib/`.
 |---|---|---|
 | [`lib`](lib/README.md) | Core Python library — DataRegistry, DataSource, enrichment, search | ✅ Done |
 | [`platform/registry-mcp`](platform/registry-mcp/README.md) | MCP server — exposes registry ops as tools for Claude and MCP clients | ✅ Done |
-| [`platform/api`](platform/api/README.md) | REST API | ✅ Done |
-| [`platform/cli`](platform/cli/README.md) | Command-line interface | ✅ Done |
+| [`platform/registry-api`](platform/registry-api/README.md) | REST API | ✅ Done |
+| [`platform/registry-cli`](platform/registry-cli/README.md) | Command-line interface | ✅ Done |
 | [`platform/json-mcp`](platform/json-mcp/README.md) | MCP server for raw JSONSource operations (memory + file) | ✅ Done |
 
 ### registry-mcp

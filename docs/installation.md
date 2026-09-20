@@ -16,8 +16,8 @@ Each component has a `scripts/` directory. Run scripts from the component's root
 
 ```bash
 cd lib && ./scripts/install.sh
-cd platform/api && ./scripts/install.sh
-cd platform/cli && ./scripts/install.sh
+cd platform/registry-api && ./scripts/install.sh
+cd platform/registry-cli && ./scripts/install.sh
 cd platform/json-mcp && ./scripts/install.sh
 cd platform/registry-mcp && ./scripts/install.sh
 ```
@@ -26,8 +26,8 @@ cd platform/registry-mcp && ./scripts/install.sh
 
 ```bash
 cd lib && ./scripts/build.sh
-cd platform/api && ./scripts/build.sh
-cd platform/cli && ./scripts/build.sh
+cd platform/registry-api && ./scripts/build.sh
+cd platform/registry-cli && ./scripts/build.sh
 cd platform/json-mcp && ./scripts/build.sh
 cd platform/registry-mcp && ./scripts/build.sh
 ```
@@ -64,8 +64,8 @@ Run from each component's root directory:
 
 ```bash
 cd lib && pytest tests/unit -v           # lib unit tests
-cd platform/api && pytest -v             # REST API tests
-cd platform/cli && pytest -v             # CLI tests
+cd platform/registry-api && pytest -v             # REST API tests
+cd platform/registry-cli && pytest -v             # CLI tests
 cd platform/json-mcp && pytest -v        # JSON MCP tests
 cd platform/registry-mcp && pytest -v   # registry MCP tests
 ```

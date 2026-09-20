@@ -1,11 +1,11 @@
 # blue-registry CLI
 
-`platform/cli` is a command-line interface for blue-registry DataRegistry operations.
+`platform/registry-cli` is a command-line interface for blue-registry DataRegistry operations.
 
 ## Installation
 
 ```bash
-cd platform/cli
+cd platform/registry-cli
 pip install -e ../../lib
 pip install -e .
 ```
@@ -177,6 +177,6 @@ blue-registry source inspect shop prod public orders
 ## Running tests
 
 ```bash
-cd platform/cli
+cd platform/registry-cli
 python3 -m pytest tests/ -v
 ```
