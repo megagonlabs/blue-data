@@ -60,8 +60,8 @@ def _fmt_record(r: dict) -> str:
     return "\n".join(parts)
 
 
-def _err(msg: str) -> None:
-    click.echo(f"Error: {msg}", err=True)
+def _err(code: str, msg: str) -> None:
+    click.echo(f"ERROR: {code} {msg}", err=True)
     sys.exit(1)
 
 
@@ -70,6 +70,7 @@ def _err(msg: str) -> None:
 # ---------------------------------------------------------------------------
 
 @click.group()
+@click.version_option(package_name="blue-registry-cli", prog_name="blue-registry")
 @click.option("--json", "as_json", is_flag=True, default=False, help="Output raw JSON.")
 @click.option("--store", envvar="BLUE_DATA_REGISTRY_STORE", default=None, help="memory or redis.")
 @click.option("--config", "config_path", envvar="BLUE_DATA_SOURCES_CONFIG", default=None,
@@ -125,7 +126,13 @@ def source_list(ctx: click.Context):
 def source_add(ctx: click.Context, name: str, src_type: str, database_dir: Optional[str],
                host: str, port: int, dbname: Optional[str], user: Optional[str],
                password: Optional[str]):
-    """Register a new data source."""
+    """Register a new data source.
+
+    \b
+    Examples:
+      blue-registry source add mydb --type sqlite --database-dir /data/sqlite
+      blue-registry source add prod --type postgres --host localhost --dbname mydb --user app
+    """
     reg = ctx.obj["registry"]
     try:
         if src_type == "sqlite":
@@ -146,7 +153,7 @@ def source_add(ctx: click.Context, name: str, src_type: str, database_dir: Optio
         reg.register_source(src)
         click.echo(f"Registered source '{name}' ({src_type}).")
     except Exception as e:
-        _err(str(e))
+        _err("COMMAND_FAILED", str(e))
 
 
 @source.command("remove")
@@ -156,7 +163,7 @@ def source_remove(ctx: click.Context, name: str):
     """Deregister a source."""
     reg = ctx.obj["registry"]
     if reg.get_source_record(name) is None:
-        _err(f"Source '{name}' not found.")
+        _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     reg.deregister_source(name)
     click.echo(f"Removed source '{name}'.")
 
@@ -169,12 +176,12 @@ def source_sync(ctx: click.Context, name: str, no_recursive: bool):
     """Sync registry records from the live source."""
     reg = ctx.obj["registry"]
     if reg.get_source(name) is None:
-        _err(f"Source '{name}' not found.")
+        _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         reg.sync_source(name, recursive=not no_recursive)
         click.echo(f"Synced '{name}'.")
     except Exception as e:
-        _err(str(e))
+        _err("COMMAND_FAILED", str(e))
 
 
 @source.command("stats")
@@ -185,12 +192,12 @@ def source_stats(ctx: click.Context, name: str, no_recursive: bool):
     """Collect statistics from the live source."""
     reg = ctx.obj["registry"]
     if reg.get_source(name) is None:
-        _err(f"Source '{name}' not found.")
+        _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         reg.collect_source_stats(name, recursive=not no_recursive)
         click.echo(f"Stats collected for '{name}'.")
     except Exception as e:
-        _err(str(e))
+        _err("COMMAND_FAILED", str(e))
 
 
 @source.command("enrich")
@@ -200,12 +207,12 @@ def source_enrich(ctx: click.Context, name: str):
     """Run semantic type inference on all attributes."""
     reg = ctx.obj["registry"]
     if reg.get_source(name) is None:
-        _err(f"Source '{name}' not found.")
+        _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         reg.enrich_source(name)
         click.echo(f"Enriched '{name}'.")
     except Exception as e:
-        _err(str(e))
+        _err("COMMAND_FAILED", str(e))
 
 
 @source.command("metadata")
@@ -216,12 +223,12 @@ def source_metadata(ctx: click.Context, name: str, rebuild: bool):
     """Run the full MetaData enrichment pipeline."""
     reg = ctx.obj["registry"]
     if reg.get_source(name) is None:
-        _err(f"Source '{name}' not found.")
+        _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         reg.enrich_source_metadata(name, recursive=True, rebuild=rebuild)
         click.echo(f"Metadata enrichment complete for '{name}'.")
     except Exception as e:
-        _err(str(e))
+        _err("COMMAND_FAILED", str(e))
 
 
 @source.command("query")
@@ -233,14 +240,14 @@ def source_query(ctx: click.Context, name: str, sql: str, database: Optional[str
     """Execute a SQL query against a live source."""
     reg = ctx.obj["registry"]
     if reg.get_source(name) is None:
-        _err(f"Source '{name}' not found.")
+        _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         results = reg.execute_query(
             name, sql, database=database, optional_properties={"commit": True}
         )
         _out(results or [], ctx.obj["as_json"])
     except Exception as e:
-        _err(str(e))
+        _err("COMMAND_FAILED", str(e))
 
 
 @source.command("inspect")
@@ -271,13 +278,13 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
             name, database, collection, entity, attribute
         )
         if record is None:
-            _err(f"Attribute '{attribute}' not found.")
+            _err("RECORD_NOT_FOUND", f"Attribute '{attribute}' not found.")
         _out(record, as_json)
 
     elif entity is not None:
         record = reg.get_source_database_collection_entity(name, database, collection, entity)
         if record is None:
-            _err(f"Entity '{entity}' not found.")
+            _err("RECORD_NOT_FOUND", f"Entity '{entity}' not found.")
         attributes = reg.list_entity_attributes(name, database, collection, entity)
         if as_json:
             click.echo(json.dumps({"record": record, "attributes": attributes}, indent=2, default=str))
@@ -292,7 +299,7 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
     elif collection is not None:
         record = reg.get_source_database_collection(name, database, collection)
         if record is None:
-            _err(f"Collection '{collection}' not found.")
+            _err("RECORD_NOT_FOUND", f"Collection '{collection}' not found.")
         entities = reg.list_collection_entities(name, database, collection)
         relations = reg.list_collection_relations(name, database, collection)
         if as_json:
@@ -308,7 +315,7 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
     elif database is not None:
         record = reg.get_source_database(name, database)
         if record is None:
-            _err(f"Database '{database}' not found under source '{name}'.")
+            _err("RECORD_NOT_FOUND", f"Database '{database}' not found under source '{name}'.")
         cols = reg.list_database_collections(name, database)
         if as_json:
             click.echo(json.dumps({"record": record, "collections": cols}, indent=2, default=str))
@@ -319,7 +326,7 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
     else:
         record = reg.get_source_record(name)
         if record is None:
-            _err(f"Source '{name}' not found.")
+            _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
         dbs = reg.list_source_databases(name)
         if as_json:
             click.echo(json.dumps({"record": record, "databases": dbs}, indent=2, default=str))
@@ -344,7 +351,7 @@ def search(ctx: click.Context, query: str, record_type: Optional[str], limit: in
         results = reg.search_records(query, type=record_type, page_size=limit)
         _out(results, ctx.obj["as_json"])
     except Exception as e:
-        _err(str(e))
+        _err("COMMAND_FAILED", str(e))
 
 
 if __name__ == "__main__":
