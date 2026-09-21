@@ -9,6 +9,10 @@ from __future__ import annotations
 import pytest
 
 from blue_data.registry.enrichment.metadata import MetaData
+from blue_data.registry.enrichment.metadata_utils import (
+    functional_dependency_signal,
+    grouped_distribution_signal,
+)
 
 
 @pytest.fixture
@@ -36,19 +40,19 @@ def _attr(name, semantic_type, sample_values=None, is_identifier=False):
 def test_grouped_distribution_detects_spread(md):
     group = _attr("status", "ENUM_CATEGORY", sample_values=["A", "B", "A", "B", "A", "B", "A", "B", "A", "B"])
     value = _attr("amount", "FLOAT", sample_values=[100, 200, 100, 200, 100, 200, 100, 200, 100, 200])
-    assert md.grouped_distribution_signal(group, value) is True
+    assert grouped_distribution_signal(group, value) is True
 
 
 def test_grouped_distribution_rejects_flat(md):
     group = _attr("status", "ENUM_CATEGORY", sample_values=["A", "B", "A", "B"])
     value = _attr("amount", "FLOAT", sample_values=[100, 100, 100, 100])
-    assert md.grouped_distribution_signal(group, value) is False
+    assert grouped_distribution_signal(group, value) is False
 
 
 def test_grouped_distribution_requires_two_groups(md):
     group = _attr("status", "ENUM_CATEGORY", sample_values=["A", "A", "A", "A", "A"])
     value = _attr("amount", "FLOAT", sample_values=[1, 2, 3, 4, 5])
-    assert md.grouped_distribution_signal(group, value) is False
+    assert grouped_distribution_signal(group, value) is False
 
 
 # ------------------------------------------------------------------ functional_dependency_signal
@@ -58,7 +62,7 @@ def test_functional_dependency_high_correlation(md):
     ys = [x * 2 for x in xs]
     a = _attr("x", "INTEGER", sample_values=xs)
     b = _attr("y", "INTEGER", sample_values=ys)
-    assert md.functional_dependency_signal(a, b) is True
+    assert functional_dependency_signal(a, b) is True
 
 
 def test_functional_dependency_no_correlation(md):
@@ -66,13 +70,13 @@ def test_functional_dependency_no_correlation(md):
     ys = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
     a = _attr("x", "INTEGER", sample_values=xs)
     b = _attr("y", "INTEGER", sample_values=ys)
-    assert md.functional_dependency_signal(a, b) is False
+    assert functional_dependency_signal(a, b) is False
 
 
 def test_functional_dependency_requires_min_samples(md):
     a = _attr("x", "INTEGER", sample_values=[1, 2, 3])
     b = _attr("y", "INTEGER", sample_values=[2, 4, 6])
-    assert md.functional_dependency_signal(a, b) is False
+    assert functional_dependency_signal(a, b) is False
 
 
 # ------------------------------------------------------------------ infer_semantic_links (no duplicate bidirectional)

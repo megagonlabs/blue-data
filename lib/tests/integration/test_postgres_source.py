@@ -437,14 +437,14 @@ def import_table(src, testdb):
 
 @pytest.fixture
 def file_src(tmp_path):
-    """FileSource with a two-row items.csv."""
+    """FileSource with a two-row public.csv (collection name matches Postgres schema)."""
     from blue_data.source.file.file_source import FileSource
     import pandas as pd
 
     d = tmp_path / "files"
     d.mkdir()
     pd.DataFrame([{"id": 1, "name": "alpha"}, {"id": 2, "name": "beta"}]).to_csv(
-        d / "items.csv", index=False
+        d / "public.csv", index=False
     )
     return FileSource("files", directory=str(d))
 
@@ -506,7 +506,7 @@ def test_import_data_e2e_filesource_to_postgres(src, testdb, tmp_path):
         {"id": 1, "product": "apple",  "price": 1.2},
         {"id": 2, "product": "banana", "price": 0.5},
         {"id": 3, "product": "cherry", "price": 3.0},
-    ]).to_csv(d / "products.csv", index=False)
+    ]).to_csv(d / "public.csv", index=False)
 
     src.create_database_collection_entity(
         testdb, "public", "products",

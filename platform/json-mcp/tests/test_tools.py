@@ -18,7 +18,7 @@ def fresh_store():
 @pytest.fixture
 def file_store(tmp_path):
     path = str(tmp_path / "store.json")
-    store = FileJSONSource(path)
+    store = FileJSONSource(properties={"connection": {"path": path}})
     config_module._store = store
     yield store
     config_module._store = None
