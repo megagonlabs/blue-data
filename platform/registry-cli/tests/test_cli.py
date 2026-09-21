@@ -12,7 +12,7 @@ def test_source_list(runner):
 
 
 def test_source_list_json(runner):
-    r = runner.invoke(cli, ["--json", "source", "list"])
+    r = runner.invoke(cli, ["--format", "json", "source", "list"])
     assert r.exit_code == 0
     import json
     names = json.loads(r.output)
@@ -92,7 +92,7 @@ def test_search_returns_results(runner):
 
 
 def test_search_json(runner):
-    r = runner.invoke(cli, ["--json", "search", "orders"])
+    r = runner.invoke(cli, ["--format", "json", "search", "orders"])
     assert r.exit_code == 0
     import json
     results = json.loads(r.output)
@@ -102,7 +102,7 @@ def test_search_json(runner):
 
 
 def test_search_type_filter(runner):
-    r = runner.invoke(cli, ["--json", "search", "orders", "--type", "entity"])
+    r = runner.invoke(cli, ["--format", "json", "search", "orders", "--type", "entity"])
     assert r.exit_code == 0
     import json
     results = json.loads(r.output)
@@ -152,7 +152,7 @@ def test_inspect_attribute(runner):
 
 
 def test_inspect_json(runner):
-    r = runner.invoke(cli, ["--json", "source", "inspect", "sales", "prod", "public", "orders"])
+    r = runner.invoke(cli, ["--format", "json", "source", "inspect", "sales", "prod", "public", "orders"])
     assert r.exit_code == 0
     import json
     data = json.loads(r.output)

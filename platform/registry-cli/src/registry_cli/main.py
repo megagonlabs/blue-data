@@ -4,7 +4,7 @@ Usage:
     blue-registry [OPTIONS] COMMAND [ARGS]...
 
 Global options:
-    --json    Output raw JSON instead of formatted text
+    --format  Output format: table (default), json, or nl
     --store   Override BLUE_DATA_REGISTRY_STORE (memory|redis)
     --config  Override BLUE_DATA_SOURCES_CONFIG path
 
@@ -28,19 +28,31 @@ from registry_cli.config import get_registry, reset_registry
 # Output helpers
 # ---------------------------------------------------------------------------
 
-def _out(data, as_json: bool) -> None:
-    if as_json:
+def _out(data, fmt: str) -> None:
+    if fmt == "json":
         click.echo(json.dumps(data, indent=2, default=str))
-    elif isinstance(data, list):
-        for item in data:
-            if isinstance(item, dict):
-                click.echo(_fmt_record(item))
-            else:
-                click.echo(str(item))
-    elif isinstance(data, dict):
-        click.echo(_fmt_record(data))
-    else:
-        click.echo(str(data))
+    elif fmt == "nl":
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict):
+                    click.echo(item.get("name", str(item)))
+                else:
+                    click.echo(str(item))
+        elif isinstance(data, dict):
+            click.echo(data.get("name", str(data)))
+        else:
+            click.echo(str(data))
+    else:  # table
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict):
+                    click.echo(_fmt_record(item))
+                else:
+                    click.echo(str(item))
+        elif isinstance(data, dict):
+            click.echo(_fmt_record(data))
+        else:
+            click.echo(str(data))
 
 
 def _fmt_record(r: dict) -> str:
@@ -60,6 +72,10 @@ def _fmt_record(r: dict) -> str:
     return "\n".join(parts)
 
 
+def _status(msg: str, fmt: str) -> None:
+    click.echo(msg, err=(fmt == "json"))
+
+
 def _err(code: str, msg: str) -> None:
     click.echo(f"ERROR: {code} {msg}", err=True)
     sys.exit(1)
@@ -71,15 +87,18 @@ def _err(code: str, msg: str) -> None:
 
 @click.group()
 @click.version_option(package_name="blue-registry-cli", prog_name="blue-registry")
-@click.option("--json", "as_json", is_flag=True, default=False, help="Output raw JSON.")
+@click.option("--format", "fmt",
+              type=click.Choice(["table", "json", "nl"]),
+              default="table", show_default=True,
+              help="Output format.")
 @click.option("--store", envvar="BLUE_DATA_REGISTRY_STORE", default=None, help="memory or redis.")
 @click.option("--config", "config_path", envvar="BLUE_DATA_SOURCES_CONFIG", default=None,
               help="Path to source config JSON file.")
 @click.pass_context
-def cli(ctx: click.Context, as_json: bool, store: Optional[str], config_path: Optional[str]):
+def cli(ctx: click.Context, fmt: str, store: Optional[str], config_path: Optional[str]):
     """blue-registry — inspect and manage your data registry."""
     ctx.ensure_object(dict)
-    ctx.obj["as_json"] = as_json
+    ctx.obj["fmt"] = fmt
     if store:
         os.environ["BLUE_DATA_REGISTRY_STORE"] = store
     if config_path:
@@ -101,9 +120,13 @@ def source():
 def source_list(ctx: click.Context):
     """List all registered sources."""
     reg = ctx.obj["registry"]
+    fmt = ctx.obj["fmt"]
     records = reg.list_records(record_type="source", scope="/")
-    if ctx.obj["as_json"]:
+    if fmt == "json":
         click.echo(json.dumps([r["name"] for r in records]))
+    elif fmt == "nl":
+        for record in records:
+            click.echo(record["name"])
     else:
         if not records:
             click.echo("No sources registered.")
@@ -117,21 +140,21 @@ def source_list(ctx: click.Context):
               type=click.Choice(["sqlite", "postgres"]),
               help="Source type.")
 @click.option("--database-dir", default=None, help="SQLite database directory.")
-@click.option("--host", default="localhost", help="Postgres host.")
-@click.option("--port", default=5432, type=int, help="Postgres port.")
-@click.option("--dbname", default=None, help="Postgres database name.")
+@click.option("--host", default="localhost", show_default=True, help="Postgres host.")
+@click.option("--port", default=5432, type=int, show_default=True, help="Postgres port.")
+@click.option("--db-name", default=None, help="Postgres database name.")
 @click.option("--user", default=None, help="Postgres user.")
-@click.option("--password", default=None, help="Postgres password.")
 @click.pass_context
 def source_add(ctx: click.Context, name: str, src_type: str, database_dir: Optional[str],
-               host: str, port: int, dbname: Optional[str], user: Optional[str],
-               password: Optional[str]):
+               host: str, port: int, db_name: Optional[str], user: Optional[str]):
     """Register a new data source.
+
+    Password is read from the BLUE_REGISTRY_SOURCE_PASSWORD environment variable.
 
     \b
     Examples:
       blue-registry source add mydb --type sqlite --database-dir /data/sqlite
-      blue-registry source add prod --type postgres --host localhost --dbname mydb --user app
+      BLUE_REGISTRY_SOURCE_PASSWORD=secret blue-registry source add prod --type postgres --host localhost --db-name mydb --user app
     """
     reg = ctx.obj["registry"]
     try:
@@ -147,11 +170,12 @@ def source_add(ctx: click.Context, name: str, src_type: str, database_dir: Optio
                 name=name,
                 properties={"connection": {
                     "host": host, "port": port,
-                    "database": dbname, "user": user, "password": password,
+                    "database": db_name, "user": user,
+                    "password": os.environ.get("BLUE_REGISTRY_SOURCE_PASSWORD"),
                 }},
             )
         reg.register_source(src)
-        click.echo(f"Registered source '{name}' ({src_type}).")
+        _status(f"Registered source '{name}' ({src_type}).", ctx.obj["fmt"])
     except Exception as e:
         _err("COMMAND_FAILED", str(e))
 
@@ -165,7 +189,7 @@ def source_remove(ctx: click.Context, name: str):
     if reg.get_source_record(name) is None:
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     reg.deregister_source(name)
-    click.echo(f"Removed source '{name}'.")
+    _status(f"Removed source '{name}'.", ctx.obj["fmt"])
 
 
 @source.command("sync")
@@ -179,7 +203,7 @@ def source_sync(ctx: click.Context, name: str, no_recursive: bool):
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         reg.sync_source(name, recursive=not no_recursive)
-        click.echo(f"Synced '{name}'.")
+        _status(f"Synced '{name}'.", ctx.obj["fmt"])
     except Exception as e:
         _err("COMMAND_FAILED", str(e))
 
@@ -195,7 +219,7 @@ def source_stats(ctx: click.Context, name: str, no_recursive: bool):
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         reg.collect_source_stats(name, recursive=not no_recursive)
-        click.echo(f"Stats collected for '{name}'.")
+        _status(f"Stats collected for '{name}'.", ctx.obj["fmt"])
     except Exception as e:
         _err("COMMAND_FAILED", str(e))
 
@@ -210,7 +234,7 @@ def source_enrich(ctx: click.Context, name: str):
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         reg.enrich_source(name)
-        click.echo(f"Enriched '{name}'.")
+        _status(f"Enriched '{name}'.", ctx.obj["fmt"])
     except Exception as e:
         _err("COMMAND_FAILED", str(e))
 
@@ -226,7 +250,7 @@ def source_metadata(ctx: click.Context, name: str, rebuild: bool):
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         reg.enrich_source_metadata(name, recursive=True, rebuild=rebuild)
-        click.echo(f"Metadata enrichment complete for '{name}'.")
+        _status(f"Metadata enrichment complete for '{name}'.", ctx.obj["fmt"])
     except Exception as e:
         _err("COMMAND_FAILED", str(e))
 
@@ -245,7 +269,7 @@ def source_query(ctx: click.Context, name: str, sql: str, database: Optional[str
         results = reg.execute_query(
             name, sql, database=database, optional_properties={"commit": True}
         )
-        _out(results or [], ctx.obj["as_json"])
+        _out(results or [], ctx.obj["fmt"])
     except Exception as e:
         _err("COMMAND_FAILED", str(e))
 
@@ -271,7 +295,7 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
       blue-registry source inspect mydb prod public orders total
     """
     reg = ctx.obj["registry"]
-    as_json = ctx.obj["as_json"]
+    fmt = ctx.obj["fmt"]
 
     if attribute is not None:
         record = reg.get_source_database_collection_entity_attribute(
@@ -279,14 +303,14 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
         )
         if record is None:
             _err("RECORD_NOT_FOUND", f"Attribute '{attribute}' not found.")
-        _out(record, as_json)
+        _out(record, fmt)
 
     elif entity is not None:
         record = reg.get_source_database_collection_entity(name, database, collection, entity)
         if record is None:
             _err("RECORD_NOT_FOUND", f"Entity '{entity}' not found.")
         attributes = reg.list_entity_attributes(name, database, collection, entity)
-        if as_json:
+        if fmt == "json":
             click.echo(json.dumps({"record": record, "attributes": attributes}, indent=2, default=str))
         else:
             click.echo(_fmt_record(record))
@@ -302,7 +326,7 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
             _err("RECORD_NOT_FOUND", f"Collection '{collection}' not found.")
         entities = reg.list_collection_entities(name, database, collection)
         relations = reg.list_collection_relations(name, database, collection)
-        if as_json:
+        if fmt == "json":
             click.echo(json.dumps(
                 {"record": record, "entities": entities, "relations": relations},
                 indent=2, default=str,
@@ -317,7 +341,7 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
         if record is None:
             _err("RECORD_NOT_FOUND", f"Database '{database}' not found under source '{name}'.")
         cols = reg.list_database_collections(name, database)
-        if as_json:
+        if fmt == "json":
             click.echo(json.dumps({"record": record, "collections": cols}, indent=2, default=str))
         else:
             click.echo(_fmt_record(record))
@@ -328,7 +352,7 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
         if record is None:
             _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
         dbs = reg.list_source_databases(name)
-        if as_json:
+        if fmt == "json":
             click.echo(json.dumps({"record": record, "databases": dbs}, indent=2, default=str))
         else:
             click.echo(_fmt_record(record))
@@ -349,7 +373,7 @@ def search(ctx: click.Context, query: str, record_type: Optional[str], limit: in
     reg = ctx.obj["registry"]
     try:
         results = reg.search_records(query, type=record_type, page_size=limit)
-        _out(results, ctx.obj["as_json"])
+        _out(results, ctx.obj["fmt"])
     except Exception as e:
         _err("COMMAND_FAILED", str(e))
 

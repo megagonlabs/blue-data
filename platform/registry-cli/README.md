@@ -13,10 +13,10 @@ pip install -e .
 ## Usage
 
 ```
-blue-registry [--json] [--store memory|redis] [--config PATH] COMMAND
+blue-registry [--format table|json|nl] [--store memory|redis] [--config PATH] COMMAND
 ```
 
-`--json` switches all output to raw JSON. `--store` and `--config` override the
+`--format` controls output representation: `table` (default, human-readable), `json` (raw JSON), or `nl` (names only, one per line). `--store` and `--config` override the
 `BLUE_DATA_REGISTRY_STORE` and `BLUE_DATA_SOURCES_CONFIG` environment variables respectively.
 
 ## Environment variables
@@ -69,8 +69,7 @@ blue-registry source list
 
 ```bash
 blue-registry source add NAME --type sqlite --database-dir /path/to/dbs
-blue-registry source add NAME --type postgres --host localhost --dbname mydb \
-    --user app --password <password>
+BLUE_REGISTRY_SOURCE_PASSWORD=secret blue-registry source add NAME --type postgres --host localhost --db-name mydb --user app
 ```
 
 #### `source remove`
@@ -121,7 +120,7 @@ Execute raw SQL against a live source:
 
 ```bash
 blue-registry source query mydb "SELECT * FROM orders LIMIT 5" --database prod
-blue-registry --json source query mydb "SELECT status, COUNT(*) FROM orders GROUP BY status" --database prod
+blue-registry --format json source query mydb "SELECT status, COUNT(*) FROM orders GROUP BY status" --database prod
 ```
 
 #### `source inspect`
@@ -136,10 +135,10 @@ blue-registry source inspect mydb prod public orders               # entity
 blue-registry source inspect mydb prod public orders total         # attribute
 ```
 
-With `--json` for full records:
+With `--format json` for full records:
 
 ```bash
-blue-registry --json source inspect mydb prod public orders | jq .record.properties
+blue-registry --format json source inspect mydb prod public orders | jq .record.properties
 ```
 
 ---
@@ -151,7 +150,7 @@ Hybrid BM25 + vector search across all registry records.
 ```bash
 blue-registry search "customer email"
 blue-registry search "orders" --type entity --limit 5
-blue-registry --json search "total revenue" | jq '.[].name'
+blue-registry --format json search "total revenue" | jq '.[].name'
 ```
 
 ---
