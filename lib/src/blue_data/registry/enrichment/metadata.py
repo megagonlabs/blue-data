@@ -332,6 +332,51 @@ OUTPUT FORMAT (STRICT JSON ONLY):
 Return ONLY this JSON structure, filled in appropriately.
 """.strip()
 
+    def build_vsi_batch_prompt(self, entity_name: str, attrs_context: list[dict]) -> str:
+        """Single VSI prompt covering all attributes for one entity."""
+        attrs_json = json.dumps(attrs_context, indent=2)
+        allowed_types_json = json.dumps(self.VALUE_SEMANTIC_TYPES, indent=2)
+        return f"""
+You are performing Value Semantics Inference (VSI) for multiple attributes in entity "{entity_name}".
+Infer WHAT THE VALUES *ARE* for each attribute — not their domain meaning.
+
+Rules:
+- Use ONLY value patterns + statistics.
+- Use ONLY the allowed semantic types listed below.
+- DO NOT invent new types.
+
+ENTITY: {entity_name}
+
+ATTRIBUTES:
+{attrs_json}
+
+ALLOWED_SEMANTIC_TYPES:
+{allowed_types_json}
+
+For EACH attribute produce a result with this structure:
+{{
+  "primary_type": "<ONE_OF_ALLOWED_TYPES>",
+  "secondary_types": [],
+  "is_categorical": false,
+  "is_identifier": false,
+  "is_free_text": false,
+  "numeric": {{"is_numeric": false, "is_continuous": false, "is_discrete": false, "min": null, "max": null}},
+  "temporal": {{"is_date": false, "is_datetime": false, "is_duration": false, "granularity": null}},
+  "normalization": {{"can_normalize": false, "normalized_examples": [], "normalization_strategy": null}},
+  "confidence": 0.0,
+  "examples_used": [],
+  "notes": []
+}}
+
+Return a single JSON object mapping each attribute name to its result:
+{{
+  "<attr_name>": {{ ... }},
+  ...
+}}
+
+Return ONLY valid JSON, no other text.
+""".strip()
+
     def build_sdi_prompt(self, entity_name: str, attr_name: str, attr_properties: dict, context: dict | None = None) -> str:
         """Open-world SDI prompt. Generates new semantic types when the closed VSI taxonomy does not fit."""
         stats = attr_properties.get("stats", {}) or {}
@@ -446,6 +491,51 @@ INTERPRETATION GUIDELINES:
 - examples: must be drawn from the provided sample values.
 
 Now infer the most accurate semantics and return ONLY valid JSON.
+""".strip()
+
+    def build_sdi_batch_prompt(self, entity_name: str, attrs_context: list[dict]) -> str:
+        """Single SDI prompt covering all attributes for one entity.
+
+        All attributes are embedded together so per-attribute sibling context is
+        not needed — each attribute can reference its siblings directly from the
+        shared list. This reduces N serial calls (each carrying O(N) sibling data)
+        to one call with O(N) total data.
+        """
+        attrs_json = json.dumps(attrs_context, indent=2)
+        return f"""
+You are an advanced semantic discovery engine for enterprise-scale, heterogeneous data.
+Infer the intrinsic semantic meaning of VALUES in each attribute listed below.
+Use an OPEN-WORLD model — generate new semantic types when supported by value patterns.
+
+THE THREE-LAYER SEMANTIC MODEL:
+- LAYER 1 STRUCTURAL: shape of values (STRING, NUMBER, DATE, URL, CODE, etc.)
+- LAYER 2 LINGUISTIC/ENTITY: what type of entity values resemble (person names, locations, product names, etc.)
+- LAYER 3 CONCEPTUAL/CATEGORY: semantic class implied (demographic groups, risk tiers, measurement categories, etc.)
+Produce the most informative semantic type for each attribute.
+
+ENTITY: {entity_name}
+
+ATTRIBUTES:
+{attrs_json}
+
+For EACH attribute produce a result with this structure:
+{{
+  "semantic_type": "string",
+  "subcategory": "string or null",
+  "confidence": 0.0,
+  "range": {{"min": null, "max": null}},
+  "criteria": "string or null",
+  "rationale": "short explanation",
+  "examples": []
+}}
+
+Return a single JSON object mapping each attribute name to its result:
+{{
+  "<attr_name>": {{ ... }},
+  ...
+}}
+
+Return ONLY valid JSON, no other text.
 """.strip()
 
     def build_domain_concept_prompt(self, entity_name: str, attr_name: str, attr_properties: dict) -> str:
@@ -619,6 +709,51 @@ Return JSON ONLY:
             self.logger.warning(f"Invalid VSI JSON for {entity_name}.{attr_name}")
             return None
 
+    # Maximum attributes per batch call. Large tables (e.g. 115-col Match) exceed
+    # the model's max_tokens if sent in one shot, causing truncated JSON.
+    BATCH_CHUNK_SIZE = 25
+
+    def _attrs_to_context(self, attributes: list) -> list[dict]:
+        return [
+            {
+                "name": attr.get("name"),
+                "type": attr.get("properties", {}).get("info", {}).get("type", "unknown"),
+                "sample_values": (attr.get("properties", {}).get("stats", {}) or {}).get("sample_values", [])[:10]
+                    or ["<NO SAMPLE VALUES AVAILABLE>"],
+                "stats": {
+                    k: v for k, v in ((attr.get("properties", {}).get("stats", {}) or {})).items()
+                    if k != "sample_values"
+                },
+            }
+            for attr in attributes
+        ]
+
+    def infer_attributes_vsi_batch(self, entity_name: str, attributes: list) -> dict:
+        """Run VSI for all attributes, chunked to avoid response truncation.
+
+        Returns a dict mapping attribute name → value_semantics result.
+        """
+        result = {}
+        attrs_context = self._attrs_to_context(attributes)
+        for i in range(0, len(attrs_context), self.BATCH_CHUNK_SIZE):
+            chunk = attrs_context[i: i + self.BATCH_CHUNK_SIZE]
+            prompt = self.build_vsi_batch_prompt(entity_name, chunk)
+            raw = self._call_llm(prompt)
+            if raw is None:
+                continue
+            try:
+                parsed = safe_json_parse(raw)
+                if not isinstance(parsed, dict):
+                    continue
+                for attr_name, vs in parsed.items():
+                    if isinstance(vs, dict):
+                        if "primary_type" in vs:
+                            vs["semantic_type"] = vs["primary_type"]
+                        result[attr_name] = vs
+            except Exception:
+                self.logger.warning(f"Invalid batch VSI JSON for {entity_name} (chunk {i})")
+        return result
+
     def infer_attribute_sdi(self, entity_name: str, attr: dict) -> dict | None:
         """Run open-world SDI for a single attribute via LLM.
 
@@ -637,6 +772,27 @@ Return JSON ONLY:
         except Exception:
             self.logger.warning(f"Invalid SDI JSON for {entity_name}.{attr_name}")
             return None
+
+    def infer_attributes_sdi_batch(self, entity_name: str, attributes: list) -> dict:
+        """Run SDI for all attributes, chunked to avoid response truncation.
+
+        Returns a dict mapping attribute name → SDI result.
+        """
+        result = {}
+        attrs_context = self._attrs_to_context(attributes)
+        for i in range(0, len(attrs_context), self.BATCH_CHUNK_SIZE):
+            chunk = attrs_context[i: i + self.BATCH_CHUNK_SIZE]
+            prompt = self.build_sdi_batch_prompt(entity_name, chunk)
+            raw = self._call_llm(prompt)
+            if raw is None:
+                continue
+            try:
+                parsed = safe_json_parse(raw)
+                if isinstance(parsed, dict):
+                    result.update(parsed)
+            except Exception:
+                self.logger.warning(f"Invalid batch SDI JSON for {entity_name} (chunk {i})")
+        return result
 
     def infer_domain_concept(self, entity_name: str, attr: dict) -> dict | None:
         """Map an attribute to a canonical domain concept from the taxonomy via LLM.
@@ -1622,23 +1778,44 @@ Return JSON ONLY:
         list (re-fetched after each stage so later stages see earlier results).
         Attributes without stats are skipped for LLM-based steps.
         """
-        # VSI + SDI
-        for attr in attributes:
-            attr_name = attr.get("name")
-            if not attr.get("properties", {}).get("stats"):
-                continue
-
-            if self.properties.get("enable_value_semantics_inference", True):
-                existing = data_registry.get_source_database_collection_entity_attribute_property(source, database, collection, entity_name, attr_name, "value_semantics")
-                if not existing or rebuild:
-                    vsi = self.infer_attribute_vsi(entity_name, attr)
+        # VSI (batched — one LLM call for all attributes)
+        if self.properties.get("enable_value_semantics_inference", True):
+            attrs_needing_vsi = [
+                attr for attr in attributes
+                if attr.get("properties", {}).get("stats")
+                and (
+                    rebuild
+                    or not data_registry.get_source_database_collection_entity_attribute_property(
+                        source, database, collection, entity_name, attr.get("name"), "value_semantics"
+                    )
+                )
+            ]
+            if attrs_needing_vsi:
+                vsi_results = self.infer_attributes_vsi_batch(entity_name, attrs_needing_vsi)
+                for attr in attrs_needing_vsi:
+                    attr_name = attr.get("name")
+                    vsi = vsi_results.get(attr_name)
                     if vsi:
                         data_registry.set_source_database_collection_entity_attribute_property(source, database, collection, entity_name, attr_name, "value_semantics", vsi, rebuild=rebuild)
 
-            if self.properties.get("enable_semantic_discovery_inference", True):
-                existing_sdi = data_registry.get_source_database_collection_entity_attribute_property(source, database, collection, entity_name, attr_name, "semantic_discovery")
-                if not existing_sdi or rebuild:
-                    sdi = self.infer_attribute_sdi(entity_name, attr)
+        # SDI (batched — one LLM call for all attributes; avoids O(N²) token cost
+        # from per-attribute sibling context embedding)
+        if self.properties.get("enable_semantic_discovery_inference", True):
+            attrs_needing_sdi = [
+                attr for attr in attributes
+                if attr.get("properties", {}).get("stats")
+                and (
+                    rebuild
+                    or not data_registry.get_source_database_collection_entity_attribute_property(
+                        source, database, collection, entity_name, attr.get("name"), "semantic_discovery"
+                    )
+                )
+            ]
+            if attrs_needing_sdi:
+                sdi_results = self.infer_attributes_sdi_batch(entity_name, attrs_needing_sdi)
+                for attr in attrs_needing_sdi:
+                    attr_name = attr.get("name")
+                    sdi = sdi_results.get(attr_name)
                     if sdi:
                         data_registry.set_source_database_collection_entity_attribute_property(source, database, collection, entity_name, attr_name, "semantic_discovery", sdi, rebuild=rebuild)
 
@@ -1741,7 +1918,10 @@ Return JSON ONLY:
                     if not self.validate_relational_link_signal(src, tgt, link["signal"], row_samples):
                         continue
 
-                    result = self.validate_semantic_link(src, tgt, link["signal"])
+                    if self.properties.get("enable_semantic_link_validation", False):
+                        result = self.validate_semantic_link(src, tgt, link["signal"])
+                    else:
+                        result = None
                     relationship = result.get("relationship") if result else None
 
                     # fall back to deterministic assignment when LLM is absent
