@@ -12,6 +12,7 @@ from blue_data.registry.enrichment.metadata import MetaData
 from blue_data.registry.enrichment.metadata_utils import (
     functional_dependency_signal,
     grouped_distribution_signal,
+    parse_timestamp,
 )
 
 
@@ -806,3 +807,95 @@ def test_temporal_density_signal_yyyymm_monthly_cadence(md):
     rows = [{"date": f"{2020 + i // 12}{(i % 12) + 1:02d}"} for i in range(15)]
     result = md.temporal_density_signal("date", rows)
     assert result in (0.0, 0.2, 0.4)
+
+
+# ------------------------------------------------------------------ parse_timestamp
+
+def test_parse_timestamp_yyyymm():
+    import numpy as np
+    assert parse_timestamp("201112") == np.datetime64("2011-12-01")
+    assert parse_timestamp(201112) == np.datetime64("2011-12-01")
+    assert parse_timestamp(" 201112 ") == np.datetime64("2011-12-01")
+
+
+def test_parse_timestamp_yyyymmdd():
+    import numpy as np
+    assert parse_timestamp("20111215") == np.datetime64("2011-12-15")
+
+
+def test_parse_timestamp_bare_year_pinned_to_period_start():
+    import numpy as np
+    assert parse_timestamp("2011") == np.datetime64("2011-01-01")
+    assert parse_timestamp("2011-12") == np.datetime64("2011-12-01")
+
+
+def test_parse_timestamp_preserves_sub_day_resolution():
+    import numpy as np
+    assert parse_timestamp("2011-12-01T10:30:00") == np.datetime64("2011-12-01T10:30:00")
+
+
+def test_parse_timestamp_rejects_unparseable():
+    # Digit runs of an implausible length would otherwise become absurd years
+    # (np.datetime64("999999") is the year 999999).
+    assert parse_timestamp("999999") is None
+    assert parse_timestamp("12345") is None
+    assert parse_timestamp("not-a-date") is None
+    assert parse_timestamp("") is None
+    assert parse_timestamp(None) is None
+
+
+def test_parse_timestamp_result_divides_by_days():
+    # The whole point: every returned value must survive a day-resolution delta.
+    import numpy as np
+    a, b = parse_timestamp("201111"), parse_timestamp("201112")
+    assert float((b - a) / np.timedelta64(1, "D")) == 30.0
+
+
+# ------------------------------------------------------------------ YYYYMM handling across callers
+
+def _yearmonth_rows(key="date", n=15, start_year=2011):
+    return [{key: f"{start_year + i // 12}{(i % 12) + 1:02d}"} for i in range(n)]
+
+
+def test_time_grain_candidates_yyyymm(md):
+    # Same TypeError as #67, via infer_time_grain_candidates.
+    grains = md.infer_time_grain_candidates("date", _yearmonth_rows())
+    assert "monthly" in grains
+
+
+def test_time_grain_candidates_integer_yyyymm(md):
+    # SQLite stores such columns as INTEGER just as often as TEXT.
+    rows = [{"date": int(r["date"])} for r in _yearmonth_rows()]
+    assert "monthly" in md.infer_time_grain_candidates("date", rows)
+
+
+def test_process_patterns_yyyymm(md):
+    rows = []
+    for user in range(4):
+        for row in _yearmonth_rows(n=6):
+            rows.append({"user_id": user, **row})
+    ps = {"entity_keys": ["user_id"], "event_time": "date"}
+    patterns = md.infer_process_patterns("yearmonth", _make_process_attrs(), rows, ps)
+    assert patterns is not None
+    assert patterns["cadence"] == "monthly"
+
+
+def test_temporal_trends_yyyymm(md):
+    rows = [{**row, "revenue": float(i)} for i, row in enumerate(_yearmonth_rows())]
+    attrs = [_numeric_attr("revenue", "FLOAT", [1.0])]
+    ps = {"entity_keys": ["user_id"], "event_time": "date"}
+    trends = md.infer_temporal_trends(attrs, rows, ps)
+    assert trends is not None
+    assert trends["trends"][0]["trend_direction"] == "increasing"
+
+
+def test_temporal_trends_skips_rows_with_non_numeric_measure(md):
+    # A non-numeric measure used to append the timestamp before float() raised,
+    # leaving t_vals and v_vals misaligned for every later row.
+    rows = [{**row, "revenue": float(i)} for i, row in enumerate(_yearmonth_rows(n=14))]
+    rows.insert(3, {"date": "201204", "revenue": "n/a"})
+    attrs = [_numeric_attr("revenue", "FLOAT", [1.0])]
+    ps = {"entity_keys": ["user_id"], "event_time": "date"}
+    trends = md.infer_temporal_trends(attrs, rows, ps)
+    assert trends is not None
+    assert trends["trends"][0]["trend_direction"] == "increasing"
