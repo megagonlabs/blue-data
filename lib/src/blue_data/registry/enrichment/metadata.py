@@ -55,6 +55,8 @@ from blue_data.registry.enrichment.metadata_utils import (
     is_sparse_count_axis,
     infer_tail_threshold,
     build_attribute_context,
+    parse_timestamp,
+    parse_timestamps,
 )
 
 
@@ -1132,20 +1134,7 @@ Return JSON ONLY:
         return 0.0
 
     def temporal_density_signal(self, event_time_attr: str, row_samples: list) -> float:
-        times = []
-        for row in row_samples:
-            v = row.get(event_time_attr)
-            if v is None:
-                continue
-            try:
-                v_str = str(v).strip()
-                # YYYYMM (e.g. "201112") — np.datetime64 would parse this as year
-                # 201112 (datetime64[Y]), making the day-resolution delta division fail.
-                if len(v_str) == 6 and v_str.isdigit():
-                    v_str = f"{v_str[:4]}-{v_str[4:6]}-01"
-                times.append(np.datetime64(v_str).astype("datetime64[D]"))
-            except Exception:
-                pass
+        times = parse_timestamps(row_samples, event_time_attr)
         if len(times) < 10:
             return 0.0
         times = sorted(times)
@@ -1268,10 +1257,10 @@ Return JSON ONLY:
             t = row.get(event_time)
             if k is None or t is None:
                 continue
-            try:
-                sequences.setdefault(k, []).append(np.datetime64(t))
-            except Exception:
-                pass
+            ts = parse_timestamp(t)
+            if ts is None:
+                continue
+            sequences.setdefault(k, []).append(ts)
 
         if len(sequences) < 3 or sum(1 for s in sequences.values() if len(s) >= 3) < 3:
             return None
@@ -1331,11 +1320,15 @@ Return JSON ONLY:
                 t, v = row.get(event_time), row.get(measure)
                 if t is None or v is None:
                     continue
+                ts = parse_timestamp(t)
+                if ts is None:
+                    continue
                 try:
-                    t_vals.append(int(np.datetime64(t).astype("datetime64[D]").astype(int)))
-                    v_vals.append(float(v))
+                    v_float = float(v)
                 except Exception:
-                    pass
+                    continue
+                t_vals.append(int(ts.astype("datetime64[D]").astype(int)))
+                v_vals.append(v_float)
             if len(t_vals) < 10:
                 continue
             idx = np.argsort(t_vals)
@@ -1431,16 +1424,7 @@ Return JSON ONLY:
 
     def infer_time_grain_candidates(self, event_time_attr: str, row_samples: list) -> list[str]:
         """Infer appropriate time bucketing granularities from timestamp distribution."""
-        times = []
-        for row in row_samples:
-            v = row.get(event_time_attr)
-            if v is None:
-                continue
-            try:
-                times.append(np.datetime64(v))
-            except Exception:
-                pass
-
+        times = parse_timestamps(row_samples, event_time_attr)
         if len(times) < 10:
             return []
 

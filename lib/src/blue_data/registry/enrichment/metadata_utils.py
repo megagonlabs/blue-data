@@ -8,6 +8,8 @@ from __future__ import annotations
 import math
 from typing import Any
 
+import numpy as np
+
 
 # ------------------------------------------------------------------
 # Math helpers
@@ -38,6 +40,68 @@ def get_numeric_samples(attr: dict) -> list[float]:
         except Exception:
             pass
     return nums
+
+
+# ------------------------------------------------------------------
+# Temporal helpers
+# ------------------------------------------------------------------
+
+_COARSE_DATETIME_DTYPES = (np.dtype("datetime64[Y]"), np.dtype("datetime64[M]"))
+
+
+def parse_timestamp(value: Any) -> np.datetime64 | None:
+    """Parse a sampled value into a day-or-finer ``np.datetime64``, or ``None``.
+
+    Bare ``np.datetime64(value)`` is unsafe on sampled data for two reasons:
+
+    * Compact numeric dates carry no separators, so numpy reads them as *years*:
+      ``np.datetime64("201112")`` is the year 201112, not December 2011.  A
+      year- or month-resolution value cannot be divided by a day-based
+      ``timedelta64`` ("incompatible nonlinear base time units"), which crashed
+      every caller that computed deltas in days.
+    * Integer columns (``201112``) raise ``ValueError`` outright, since numpy
+      requires an explicit unit for integers.
+
+    ``YYYYMM`` and ``YYYYMMDD`` are therefore normalized before parsing, other
+    digit-only strings that numpy would silently read as an implausible year are
+    rejected, and anything coarser than a day is pinned to the period start so
+    the result is always safe to subtract and divide by days.
+    """
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    if text.isdigit():
+        if len(text) == 6:  # YYYYMM
+            text = f"{text[:4]}-{text[4:6]}-01"
+        elif len(text) == 8:  # YYYYMMDD
+            text = f"{text[:4]}-{text[4:6]}-{text[6:8]}"
+        elif len(text) != 4:  # not a bare year either
+            return None
+    try:
+        parsed = np.datetime64(text)
+    except Exception:
+        return None
+    if np.isnat(parsed):
+        return None
+    if parsed.dtype in _COARSE_DATETIME_DTYPES:
+        return parsed.astype("datetime64[D]")
+    return parsed
+
+
+def parse_timestamps(row_samples: list, key: str) -> list:
+    """Parse ``key`` out of every row into day-or-finer ``np.datetime64`` values.
+
+    Unparseable and missing values are dropped, so the result may be shorter
+    than ``row_samples``.
+    """
+    times = []
+    for row in row_samples:
+        parsed = parse_timestamp(row.get(key))
+        if parsed is not None:
+            times.append(parsed)
+    return times
 
 
 # ------------------------------------------------------------------
