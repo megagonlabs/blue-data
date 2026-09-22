@@ -17,6 +17,7 @@ class SQLiteDBSource(SQLSource):
 
         connection.setdefault("protocol", "sql/sqlite")
         connection.setdefault("database_directory", ".")
+        connection.setdefault("stat_sample_size", 2000)
 
         self.properties["connection"] = connection
 
@@ -50,6 +51,10 @@ class SQLiteDBSource(SQLSource):
 
     def _get_database_path(self, database):
         database_directory = self._get_database_directory()
+        for suffix in (".db", ".sqlite"):
+            path = os.path.join(database_directory, database + suffix)
+            if os.path.exists(path):
+                return path
         return os.path.join(database_directory, database + ".db")
 
     ######### source
@@ -84,18 +89,21 @@ class SQLiteDBSource(SQLSource):
         List all SQLite databases in the configured data directory.
 
         Returns:
-            list[str]: Names of database files (without the '.db' extension).
+            list[str]: Names of database files (without extension). Recognises
+            both ``.db`` and ``.sqlite`` files; if both exist for the same name
+            only one entry is returned.
         """
-        # get list of dbs from data directory
         ls = os.listdir(self._get_database_directory())
-        # return only .db files
+        seen = set()
         dbs = []
-        for d in ls:
-            db = d[:-3]
-            suffix = d[-3:]
-            if suffix == '.db':
-                dbs.append(db)
-
+        for filename in ls:
+            for suffix in (".db", ".sqlite"):
+                if filename.endswith(suffix):
+                    name = filename[: -len(suffix)]
+                    if name not in seen:
+                        seen.add(name)
+                        dbs.append(name)
+                    break
         return dbs
 
     def fetch_database_metadata(self, database):
@@ -378,7 +386,10 @@ class SQLiteDBSource(SQLSource):
         """
         try:
             directory = self._get_database_directory()
-            db_files = [f for f in os.listdir(directory) if f.endswith(".db")]
+            db_files = [
+                f for f in os.listdir(directory)
+                if f.endswith(".db") or f.endswith(".sqlite")
+            ]
             total_size = sum(
                 os.path.getsize(os.path.join(directory, f))
                 for f in db_files
@@ -486,6 +497,7 @@ class SQLiteDBSource(SQLSource):
                 - most_common_vals: list of (value, count) pairs for the top-20 most frequent non-null values, descending by frequency
         """
         db_path = self._get_database_path(database)
+        stat_sample_size = self.properties["connection"].get("stat_sample_size") or 0
 
         stats = {}
 
@@ -496,26 +508,37 @@ class SQLiteDBSource(SQLSource):
 
             # Find column type from PRAGMA
             cursor.execute(f'PRAGMA table_info("{table}");')
-
             columns = cursor.fetchall()
             column_type = None
-
             for col in columns:
-                if col[1] == property_name:  # col[1] = column name, col[2] = type
+                if col[1] == property_name:
                     column_type = col[2]
                     break
 
             column = f'"{property_name}"'
 
-            # Basic counts
+            # Decide whether to sample. Row count is cheap (SQLite stores it).
+            cursor.execute(f'SELECT COUNT(*) FROM "{table}";')
+            row_count = cursor.fetchone()[0]
+
+            if stat_sample_size and row_count > stat_sample_size:
+                cte = f'WITH _sample AS (SELECT * FROM "{table}" LIMIT {stat_sample_size})'
+                src = "_sample"
+            else:
+                cte = ""
+                src = f'"{table}"'
+
+            prefix = cte + " " if cte else ""
+
+            # Basic counts (from sample when large)
             cursor.execute(
                 f"""
-                SELECT 
+                {prefix}SELECT
                     COUNT({column}) AS non_null_count,
                     COUNT(DISTINCT {column}) AS distinct_count,
                     SUM(CASE WHEN {column} IS NULL THEN 1 ELSE 0 END) AS null_count
-                FROM {table};
-            """
+                FROM {src};
+                """
             )
             row = cursor.fetchone()
             stats["count"] = row[0]
@@ -525,19 +548,18 @@ class SQLiteDBSource(SQLSource):
             # Sample values
             cursor.execute(
                 f"""
-                SELECT {column}
-                FROM {table}
+                {prefix}SELECT {column}
+                FROM {src}
                 WHERE {column} IS NOT NULL
                 LIMIT {sample_limit};
-            """
+                """
             )
-
             stats["sample_values"] = [r[0] for r in cursor.fetchall()]
 
-            # Min / Max (only if numeric or date-ish type)
+            # Min / Max
             include_min_max = column_type and any(t in column_type.upper() for t in ["INT", "REAL", "NUM", "DATE", "TIME"])
             if include_min_max:
-                cursor.execute(f"SELECT MIN({column}), MAX({column}) FROM {table};")
+                cursor.execute(f"{prefix}SELECT MIN({column}), MAX({column}) FROM {src};")
                 min_val, max_val = cursor.fetchone()
                 stats["min"] = min_val
                 stats["max"] = max_val
@@ -545,28 +567,28 @@ class SQLiteDBSource(SQLSource):
                 stats["min"] = None
                 stats["max"] = None
 
-            # Mean + variance for numeric columns (outlier_rate computation)
+            # Mean + variance for numeric columns
             is_numeric = include_min_max and any(
                 t in column_type.upper() for t in ["INT", "REAL", "NUM", "FLOAT", "DOUBLE"]
             )
             if is_numeric:
                 cursor.execute(
-                    f"SELECT AVG({column}),"
-                    f"       AVG({column} * {column}) - AVG({column}) * AVG({column})"
-                    f" FROM {table};"
+                    f"{prefix}SELECT AVG({column}),"
+                    f" AVG({column} * {column}) - AVG({column}) * AVG({column})"
+                    f" FROM {src};"
                 )
                 mean_val, var_val = cursor.fetchone()
-                stats["mean"]     = mean_val
+                stats["mean"] = mean_val
                 stats["variance"] = var_val
             else:
-                stats["mean"]     = None
+                stats["mean"] = None
                 stats["variance"] = None
 
-            # Top-20 values by frequency (value, count) pairs, descending
+            # Top-20 most common values
             cursor.execute(
                 f"""
-                SELECT {column}, COUNT(*) AS freq
-                FROM {table}
+                {prefix}SELECT {column}, COUNT(*) AS freq
+                FROM {src}
                 WHERE {column} IS NOT NULL
                 GROUP BY {column}
                 ORDER BY freq DESC
