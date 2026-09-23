@@ -1,0 +1,39 @@
+{
+  "BLUE_DATA_REGISTRY_STORE": {
+    "default": "memory",
+    "prompt": "Registry backend (memory, file, or redis)",
+    "required": true,
+    "cast": "str"
+  },
+  "BLUE_DATA_REGISTRY_REDIS_URL": {
+    "default": null,
+    "prompt": "Redis URL — required when store=redis (e.g. redis://localhost:6379/0)",
+    "required": false,
+    "cast": "str"
+  },
+  "BLUE_DATA_REGISTRY_REDIS_NAMESPACE": {
+    "default": "blue_data",
+    "prompt": "Redis key namespace",
+    "required": false,
+    "cast": "str"
+  },
+  "BLUE_DATA_REGISTRY_FILE": {
+    "default": null,
+    "prompt": "Path to the registry JSON file — required when store=file",
+    "required": false,
+    "cast": "file"
+  },
+  "BLUE_DATA_SOURCES_CONFIG": {
+    "default": null,
+    "prompt": "Path to the sources config JSON file",
+    "required": false,
+    "cast": "file"
+  },
+  "BLUE_DATA_REGISTRY_METADATA_LLM_MODEL": {
+    "default": null,
+    "prompt": "LLM model for `blue-registry source metadata` (overrides BLUE_DATA_LLM_MODEL)",
+    "required": false,
+    "cast": "str",
+    "inherits": ["BLUE_DATA_LLM_MODEL"]
+  }
+}

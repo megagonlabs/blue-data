@@ -4,13 +4,15 @@ Usage:
     blue-registry [OPTIONS] COMMAND [ARGS]...
 
 Global options:
-    --format  Output format: table (default), json, or nl
-    --store   Override BLUE_DATA_REGISTRY_STORE (memory|redis)
-    --config  Override BLUE_DATA_SOURCES_CONFIG path
+    --profile  Configuration profile (default: the selected one in ~/.blue-registry)
+    --format   Output format: table (default), json, or nl
+    --store    Override BLUE_DATA_REGISTRY_STORE (memory|redis|file)
+    --config   Override BLUE_DATA_SOURCES_CONFIG path
 
 Commands:
-    source  Manage and operate on registered data sources
-    search  Search registry records
+    profile  Manage profiles and configuration
+    source   Manage and operate on registered data sources
+    search   Search registry records
 """
 from __future__ import annotations
 
@@ -22,6 +24,7 @@ from typing import Optional
 import click
 
 from registry_cli.config import get_registry, reset_registry
+from registry_cli.profile import _cli_home, profile_group, profile_store, resolver_for
 
 
 # ---------------------------------------------------------------------------
@@ -87,23 +90,52 @@ def _err(code: str, msg: str) -> None:
 
 @click.group()
 @click.version_option(package_name="blue-registry-cli", prog_name="blue-registry")
+@click.option("--profile", "profile_name",
+              envvar="BLUE_DATA_PROFILE", default=None,
+              help="Configuration profile. Overrides BLUE_DATA_PROFILE. "
+                   "Defaults to the selection in ~/.blue-registry/.selected.profile.")
 @click.option("--format", "fmt",
               type=click.Choice(["table", "json", "nl"]),
-              default="table", show_default=True,
-              help="Output format.")
-@click.option("--store", envvar="BLUE_DATA_REGISTRY_STORE", default=None, help="memory or redis.")
+              default=None, show_default=True,
+              help="Output format (table, json, or nl). Overrides BLUE_DATA_CLI_FORMAT.")
+@click.option("--store", envvar="BLUE_DATA_REGISTRY_STORE", default=None,
+              help="Registry backend (memory, file, or redis). Overrides BLUE_DATA_REGISTRY_STORE.")
 @click.option("--config", "config_path", envvar="BLUE_DATA_SOURCES_CONFIG", default=None,
-              help="Path to source config JSON file.")
+              help="Path to sources config JSON file. Overrides BLUE_DATA_SOURCES_CONFIG.")
 @click.pass_context
-def cli(ctx: click.Context, fmt: str, store: Optional[str], config_path: Optional[str]):
+def cli(ctx: click.Context, profile_name: Optional[str], fmt: Optional[str],
+        store: Optional[str], config_path: Optional[str]):
     """blue-registry — inspect and manage your data registry."""
-    ctx.ensure_object(dict)
-    ctx.obj["fmt"] = fmt
+    home = _cli_home()
+
+    # A fresh install gets its `default` profile on first command rather than
+    # requiring `blue-registry profile add` before anything works.
+    profile_store(home).initialize()
+
+    # Apply the profile: resolved values are written into the environment so the
+    # library, env-var-aware options, and downstream config readers all see them.
+    # Command-line flags (--store, --config) applied below take precedence.
+    resolver = resolver_for(home, profile_name)
+    resolver.export()
+
+    # Explicit CLI flags override the profile-exported values.
     if store:
         os.environ["BLUE_DATA_REGISTRY_STORE"] = store
     if config_path:
         os.environ["BLUE_DATA_SOURCES_CONFIG"] = config_path
+
+    # fmt: command flag > profile BLUE_DATA_CLI_FORMAT > default "table"
+    effective_fmt = fmt or resolver.get("BLUE_DATA_CLI_FORMAT") or "table"
+
+    ctx.ensure_object(dict)
+    ctx.obj["fmt"]     = effective_fmt
+    ctx.obj["home"]    = home
+    ctx.obj["profile"] = resolver.profile
+    ctx.obj["config"]  = resolver
     ctx.obj["registry"] = get_registry()
+
+
+cli.add_command(profile_group)
 
 
 # ---------------------------------------------------------------------------
