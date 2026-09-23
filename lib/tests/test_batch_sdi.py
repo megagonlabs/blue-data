@@ -1,17 +1,29 @@
-"""Smoke-test for batch SDI on BIRD databases.
+"""Metadata enrichment profiler — timing and coverage across all enrichment stages.
+
+Stages per entity:
+  1. descriptions  — entity + attribute descriptions (LLM)
+  2. attr          — VSI, SDI, DCM, IVS, quantitative_vst, safe_aggregation (LLM + det)
+  3. relations     — semantic_links, semantic_role, role_query_constraints,
+                     value_axis, conditional_value_distribution (deterministic)
+  4. process       — process_semantics, process_patterns, process_trends,
+                     process_operators, process_query_constraints,
+                     process_vst_role, time_grain_candidates,
+                     derived_metric_candidates (deterministic)
+
+Also verifies VSI/SDI batch call structure (PASS/FAIL).
 
 Usage:
-    # Mock LLM — verifies call structure only (no API key needed)
-    python3 test_batch_sdi.py
+    # Mock LLM — verifies call structure (no API key)
+    python3 lib/tests/test_batch_sdi.py --database european_football_2
 
-    # Real LLM — Anthropic
-    ANTHROPIC_API_KEY=sk-ant-... python3 test_batch_sdi.py --live --model claude-haiku-4-5-20251001
+    # Live — OpenAI
+    OPENAI_API_KEY=sk-... python3 lib/tests/test_batch_sdi.py --live --model gpt-4o-mini --database european_football_2
 
-    # Real LLM — OpenAI
-    OPENAI_API_KEY=sk-... python3 test_batch_sdi.py --live --model gpt-4o-mini
+    # Live — Anthropic
+    ANTHROPIC_API_KEY=sk-ant-... python3 lib/tests/test_batch_sdi.py --live --model claude-haiku-4-5-20251001 --database european_football_2
 
-    # Single database only
-    ANTHROPIC_API_KEY=sk-ant-... python3 test_batch_sdi.py --live --database european_football_2
+    # Full per-entity, per-stage profile
+    OPENAI_API_KEY=sk-... python3 lib/tests/test_batch_sdi.py --live --model gpt-4o-mini --database european_football_2 --profile
 """
 from __future__ import annotations
 
@@ -30,7 +42,42 @@ DB_DIR = "data/bird"
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 
 # ---------------------------------------------------------------------------
-# LLM backends
+# Complete property catalogue
+# ---------------------------------------------------------------------------
+
+# (property_key, stage, llm_or_det)
+ATTR_PROPS = [
+    ("description",                    "descriptions", "LLM"),
+    ("value_semantics",                "attr",         "LLM"),
+    ("semantic_discovery",             "attr",         "LLM"),
+    ("domain_concept",                 "attr",         "LLM"),
+    ("interpretive_semantics",         "attr",         "LLM"),
+    ("quantitative_vst",               "attr",         "det"),
+    ("safe_aggregation",               "attr",         "det"),
+    ("value_axis",                     "relations",    "det"),
+    ("semantic_role",                  "relations",    "det"),
+    ("role_query_constraints",         "relations",    "det"),
+    ("conditional_value_distribution", "relations",    "det"),
+    ("process_vst_role",               "process",      "det"),
+    ("time_grain_candidates",          "process",      "det"),
+]
+
+ENTITY_PROPS = [
+    ("description",              "descriptions", "LLM"),
+    ("semantic_links",           "relations",    "det"),
+    ("total_component_measures", "attr",         "det"),
+    ("derived_metric_candidates","process",      "det"),
+    ("process_semantics",        "process",      "det"),
+    ("process_patterns",         "process",      "det"),
+    ("process_trends",           "process",      "det"),
+    ("process_operators",        "process",      "det"),
+    ("process_query_constraints","process",      "det"),
+]
+
+STAGES = ["descriptions", "attr", "relations", "process"]
+
+# ---------------------------------------------------------------------------
+# LLM call counters
 # ---------------------------------------------------------------------------
 
 llm_call_count = 0
@@ -81,7 +128,8 @@ def make_mock_llm():
                        "range": {"min": None, "max": None}, "criteria": None, "rationale": "mock", "examples": []}
                 for name in names
             })
-        return json.dumps({"semantic_type": "MOCK", "confidence": 0.5})
+        return json.dumps({"semantic_type": "MOCK", "confidence": 0.5,
+                           "table_description": "mock", "attributes": {}})
     return mock_llm
 
 
@@ -90,12 +138,16 @@ def _is_openai_model(model: str) -> bool:
 
 
 def make_live_llm(api_key: str, model: str):
+    # gpt-4o-mini VSI batch responses can exceed 4096 tokens for 25-attr chunks;
+    # use 8192 to avoid truncated JSON (which causes low value_semantics coverage)
+    max_tokens = 8192
+
     def _call(prompt: str) -> str:
         if _is_openai_model(model):
             import openai
             client = openai.OpenAI(api_key=api_key)
             resp = client.chat.completions.create(
-                model=model, max_tokens=4096, temperature=0,
+                model=model, max_tokens=max_tokens, temperature=0,
                 messages=[{"role": "user", "content": prompt}],
             )
             return resp.choices[0].message.content or ""
@@ -103,7 +155,7 @@ def make_live_llm(api_key: str, model: str):
             import anthropic
             client = anthropic.Anthropic(api_key=api_key)
             resp = client.messages.create(
-                model=model, max_tokens=4096, temperature=0,
+                model=model, max_tokens=max_tokens, temperature=0,
                 messages=[{"role": "user", "content": prompt}],
             )
             return next((b.text for b in resp.content if b.type == "text"), "")
@@ -115,15 +167,169 @@ def make_live_llm(api_key: str, model: str):
             names = re.findall(r'"name":\s*"([^"]+)"', prompt)
             vsi_batch_call_count += 1
             vsi_batch_attr_count += len(names)
-            print(f"    [VSI batch #{vsi_batch_call_count}] {len(names)} attrs → calling LLM ...")
+            print(f"    [VSI batch #{vsi_batch_call_count}] {len(names)} attrs → LLM ...")
         elif _is_batch_sdi(prompt):
             names = re.findall(r'"name":\s*"([^"]+)"', prompt)
             sdi_batch_call_count += 1
             sdi_batch_attr_count += len(names)
-            print(f"    [SDI batch #{sdi_batch_call_count}] {len(names)} attrs → calling LLM ...")
+            print(f"    [SDI batch #{sdi_batch_call_count}] {len(names)} attrs → LLM ...")
         return _call(prompt)
 
     return live_llm
+
+
+# ---------------------------------------------------------------------------
+# Coverage helpers
+# ---------------------------------------------------------------------------
+
+def _snapshot_attr_coverage(reg, source, db, coll, entity_name, attributes):
+    """Return {prop: filled_count} for all attribute-level properties."""
+    cov = {p: 0 for p, _, _ in ATTR_PROPS}
+    for attr in attributes:
+        props = attr.get("properties", {})
+        for p, _, _ in ATTR_PROPS:
+            if p == "description":
+                if attr.get("description"):
+                    cov[p] += 1
+            elif props.get(p):
+                cov[p] += 1
+    return cov
+
+
+def _snapshot_entity_coverage(reg, source, db, coll, entity_name):
+    """Return {prop: bool} for all entity-level properties."""
+    cov = {}
+    for p, _, _ in ENTITY_PROPS:
+        if p == "description":
+            val = reg.get_source_database_collection_entity_description(source, db, coll, entity_name)
+            cov[p] = bool(val)
+        else:
+            val = reg.get_source_database_collection_entity_property(source, db, coll, entity_name, p)
+            cov[p] = bool(val)
+    return cov
+
+
+def _delta(before: dict, after: dict) -> dict:
+    return {k: after[k] - before.get(k, 0) for k in after}
+
+
+# ---------------------------------------------------------------------------
+# Per-stage enrichment runner
+# ---------------------------------------------------------------------------
+
+def run_entity_staged(md, reg, source, db, coll, entity, attributes, rebuild):
+    """Run all 4 enrichment stages with per-stage timing and coverage deltas."""
+    entity_name = entity.get("name")
+    entity_stats = entity.get("properties", {}).get("stats", {})
+    row_samples = entity_stats.get("row_samples", [])
+
+    md.current_entity_row_samples = row_samples
+    md.current_entity_attributes = attributes
+
+    n_cols = len(attributes)
+    stage_times = {}
+    stage_attr_deltas = {}
+    stage_entity_deltas = {}
+
+    def snap():
+        attrs = reg.list_entity_attributes(source, db, coll, entity_name)
+        return (
+            _snapshot_attr_coverage(reg, source, db, coll, entity_name, attrs),
+            _snapshot_entity_coverage(reg, source, db, coll, entity_name),
+            attrs,
+        )
+
+    attr_cov0, ent_cov0, attributes = snap()
+
+    for stage_name, stage_fn in [
+        ("descriptions", lambda: md.enrich_entity_metadata(reg, source, db, coll, entity, attributes, rebuild)),
+        ("attr",         lambda: md.enrich_attributes(reg, source, db, coll, entity_name, attributes, rebuild)),
+        ("relations",    lambda: md.enrich_relations(reg, source, db, coll, entity_name, attributes, row_samples, rebuild)),
+        ("process",      lambda: md.enrich_process_semantics(reg, source, db, coll, entity_name, attributes, row_samples, rebuild)),
+    ]:
+        t0 = time.time()
+        result = stage_fn()
+        stage_times[stage_name] = time.time() - t0
+
+        # refresh attributes after stages that write to them
+        attr_cov1, ent_cov1, attributes = snap()
+        if stage_name == "attr":
+            md.current_entity_attributes = attributes
+
+        stage_attr_deltas[stage_name] = _delta(attr_cov0, attr_cov1)
+        stage_entity_deltas[stage_name] = {k: ent_cov1[k] and not ent_cov0.get(k) for k in ent_cov1}
+        attr_cov0, ent_cov0 = attr_cov1, ent_cov1
+
+    final_attr_cov, final_ent_cov, attributes = snap()
+    return {
+        "entity": entity_name,
+        "cols": n_cols,
+        "stage_times": stage_times,
+        "total_time": sum(stage_times.values()),
+        "stage_attr_deltas": stage_attr_deltas,
+        "stage_entity_deltas": stage_entity_deltas,
+        "final_attr_cov": final_attr_cov,
+        "final_ent_cov": final_ent_cov,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Report
+# ---------------------------------------------------------------------------
+
+def print_profile_report(rows, total_cols, total_time):
+    DIV  = "-" * 100
+    DIV2 = "-" * 60
+
+    print()
+    print("=" * 100)
+    print("METADATA ENRICHMENT PROFILE REPORT")
+    print("=" * 100)
+
+    # ── Per-entity timing by stage ──────────────────────────────────────────
+    print(f"\n{'Per-entity timing (seconds)':}")
+    hdr = f"  {'Entity':<28} {'Cols':>4}  {'total':>6}"
+    for s in STAGES:
+        hdr += f"  {s:>12}"
+    print(hdr)
+    print(DIV)
+    for r in rows:
+        line = f"  {r['entity']:<28} {r['cols']:>4}  {r['total_time']:>6.1f}"
+        for s in STAGES:
+            line += f"  {r['stage_times'].get(s, 0):>12.1f}"
+        print(line)
+    print(DIV)
+    total_by_stage = {s: sum(r["stage_times"].get(s, 0) for r in rows) for s in STAGES}
+    line = f"  {'TOTAL':<28} {total_cols:>4}  {total_time:>6.1f}"
+    for s in STAGES:
+        line += f"  {total_by_stage[s]:>12.1f}"
+    print(line)
+
+    # ── Attribute property coverage ─────────────────────────────────────────
+    print(f"\n{'Attribute property coverage (filled / total columns)':}")
+    print(f"  {'Property':<35} {'Stage':<12} {'Type':<5}  {'Filled':>6} / {'Cols':>6}  {'%':>5}  {'Written in stage':}")
+    print(DIV2)
+    for prop, stage, kind in ATTR_PROPS:
+        filled = sum(r["final_attr_cov"].get(prop, 0) for r in rows)
+        pct    = filled / total_cols * 100 if total_cols else 0
+        # which stage wrote most of this property
+        by_stage = {s: sum(r["stage_attr_deltas"].get(s, {}).get(prop, 0) for r in rows) for s in STAGES}
+        top_stage = max(by_stage, key=by_stage.get) if any(by_stage.values()) else "—"
+        print(f"  {prop:<35} {stage:<12} {kind:<5}  {filled:>6} / {total_cols:>6}  {pct:>4.0f}%  {top_stage}")
+
+    # ── Entity property coverage ─────────────────────────────────────────────
+    n = len(rows)
+    print(f"\n{'Entity property coverage (entities that have this property)':}")
+    print(f"  {'Property':<35} {'Stage':<12} {'Type':<5}  {'Present':>7} / {'Total':>5}")
+    print(DIV2)
+    for prop, stage, kind in ENTITY_PROPS:
+        present = sum(1 for r in rows if r["final_ent_cov"].get(prop))
+        print(f"  {prop:<35} {stage:<12} {kind:<5}  {present:>7} / {n:>5}")
+
+    # ── Sample enriched attributes from widest table ─────────────────────────
+    widest = max(rows, key=lambda r: r["cols"])
+    print(f"\nSample from '{widest['entity']}' ({widest['cols']} cols) — stage times: "
+          + "  ".join(f"{s}={widest['stage_times'].get(s,0):.1f}s" for s in STAGES))
 
 
 # ---------------------------------------------------------------------------
@@ -131,64 +337,47 @@ def make_live_llm(api_key: str, model: str):
 # ---------------------------------------------------------------------------
 
 def main():
-    global llm_call_count, sdi_batch_call_count, sdi_batch_attr_count
-
     p = argparse.ArgumentParser()
-    p.add_argument("--live", action="store_true", help="Use real LLM (requires ANTHROPIC_API_KEY or OPENAI_API_KEY)")
-    p.add_argument("--database", default=None, help="Restrict to a single BIRD database name (e.g. european_football_2)")
-    p.add_argument("--model", default=DEFAULT_MODEL, help=f"Model to use (default: {DEFAULT_MODEL}; use gpt-4o-mini for OpenAI)")
+    p.add_argument("--live",     action="store_true", help="Use real LLM")
+    p.add_argument("--database", default=None,        help="Single BIRD database (e.g. european_football_2)")
+    p.add_argument("--model",    default=DEFAULT_MODEL)
+    p.add_argument("--profile",  action="store_true", help="Per-entity, per-stage timing and coverage")
     args = p.parse_args()
 
     if args.live:
-        if _is_openai_model(args.model):
-            api_key = os.environ.get("OPENAI_API_KEY")
-            if not api_key:
-                print("ERROR: OPENAI_API_KEY not set.")
-                return
-        else:
-            api_key = os.environ.get("ANTHROPIC_API_KEY")
-            if not api_key:
-                print("ERROR: ANTHROPIC_API_KEY not set.")
-                return
+        env_key = "OPENAI_API_KEY" if _is_openai_model(args.model) else "ANTHROPIC_API_KEY"
+        api_key = os.environ.get(env_key)
+        if not api_key:
+            print(f"ERROR: {env_key} not set.")
+            return
         llm_fn = make_live_llm(api_key, args.model)
-        print(f"Mode: LIVE  model={args.model}")
+        print(f"Mode: LIVE  model={args.model}  max_tokens=8192")
     else:
         llm_fn = make_mock_llm()
-        print("Mode: MOCK  (pass --live to use real LLM)")
+        print("Mode: MOCK  (pass --live for real LLM)")
 
     source_name = args.database or "bird_all"
-    db_dir = DB_DIR
-
-    # If --database given, only that one .sqlite file is in scope by pointing to
-    # a sub-source. We still use the same directory but filter after sync.
-    print(f"Setting up SQLiteDBSource  dir={db_dir}")
+    print(f"Setting up SQLiteDBSource  dir={DB_DIR}")
     source = SQLiteDBSource(
         name=source_name,
-        properties={"connection": {"database_directory": db_dir, "stat_sample_size": 500}},
+        properties={"connection": {"database_directory": DB_DIR, "stat_sample_size": 500}},
     )
-
-    md = MetaData(
-        llm_fn=llm_fn,
-        properties={"enable_semantic_link_validation": False},
-    )
+    md  = MetaData(llm_fn=llm_fn, properties={"enable_semantic_link_validation": False})
     reg = DataRegistry(store=MemoryJSONSource(), metadata_enricher=md)
     reg.register_source(source)
 
     print("Syncing ...")
     reg.sync_all(recursive=True)
 
-    # If --database, only enrich that one DB
     databases_to_enrich = reg.list_source_databases(source_name)
     if args.database:
         databases_to_enrich = [d for d in databases_to_enrich if d.get("name") == args.database]
         if not databases_to_enrich:
-            available = [d.get("name") for d in reg.list_source_databases(source_name)]
-            print(f"ERROR: database '{args.database}' not found. Available: {available}")
+            avail = [d.get("name") for d in reg.list_source_databases(source_name)]
+            print(f"ERROR: '{args.database}' not found. Available: {avail}")
             return
 
-    # Count total columns in scope
-    total_entities = 0
-    total_cols = 0
+    total_entities, total_cols = 0, 0
     for db in databases_to_enrich:
         for coll in reg.list_database_collections(source_name, db.get("name")):
             for e in reg.list_collection_entities(source_name, db.get("name"), coll.get("name")):
@@ -203,60 +392,54 @@ def main():
     print("Running metadata enrichment ...")
     global llm_call_count, vsi_batch_call_count, vsi_batch_attr_count, sdi_batch_call_count, sdi_batch_attr_count
     llm_call_count = vsi_batch_call_count = vsi_batch_attr_count = sdi_batch_call_count = sdi_batch_attr_count = 0
-    t0 = time.time()
-    rebuild = args.live  # live mode uses rebuild=True so VSI/SDI actually fire despite deterministic pre-fill
+    rebuild = args.live
+    profile_rows = []
+    t_total = time.time()
+
     for db in databases_to_enrich:
-        md.collect_source_database_metadata(reg, source_name, db.get("name"), recursive=True, rebuild=rebuild)
-    elapsed = time.time() - t0
+        db_name = db.get("name")
+        for coll in reg.list_database_collections(source_name, db_name):
+            coll_name = coll.get("name")
+            for entity in reg.list_collection_entities(source_name, db_name, coll_name):
+                attributes = reg.list_entity_attributes(source_name, db_name, coll_name, entity.get("name"))
+                if args.profile:
+                    row = run_entity_staged(md, reg, source_name, db_name, coll_name, entity, attributes, rebuild)
+                    profile_rows.append(row)
+                    print(f"  {entity.get('name'):<30} {len(attributes):>3} cols  "
+                          f"{row['total_time']:>6.1f}s  {llm_call_count} total LLM calls  "
+                          + "  ".join(f"{s}={row['stage_times'][s]:.1f}s" for s in STAGES))
+                else:
+                    md.enrich_entity_full(reg, source_name, db_name, coll_name, entity, attributes, rebuild)
 
-    # Spot-check Match table if present
-    match_sdi_info = ""
-    try:
-        match_attrs = reg.list_entity_attributes(source_name, "european_football_2", "public", "Match")
-        if match_attrs:
-            covered = sum(1 for a in match_attrs if a.get("properties", {}).get("semantic_discovery"))
-            match_sdi_info = f"\n  Match SDI          : {covered}/{len(match_attrs)} attributes enriched"
-            if args.live and covered > 0:
-                # Show a few real results
-                samples = [(a["name"], a["properties"]["semantic_discovery"])
-                           for a in match_attrs if a.get("properties", {}).get("semantic_discovery")][:3]
-                match_sdi_info += "\n  Match SDI samples  :"
-                for name, sdi in samples:
-                    match_sdi_info += f"\n    {name}: {sdi.get('semantic_type')} / {sdi.get('subcategory')} — {sdi.get('rationale', '')[:60]}"
-    except Exception:
-        pass
+    elapsed = time.time() - t_total
 
+    # Summary
     print()
     print("Results:")
     print(f"  Databases          : {len(databases_to_enrich)}")
     print(f"  Entities           : {total_entities}")
     print(f"  Columns            : {total_cols}")
     print(f"  Total LLM calls    : {llm_call_count}  (old path ~{total_cols * 4}+)")
-    print(f"  VSI batch calls    : {vsi_batch_call_count}  (one per entity — old was {total_cols})")
-    print(f"  VSI attrs covered  : {vsi_batch_attr_count}")
-    print(f"  SDI batch calls    : {sdi_batch_call_count}  (one per entity — old was {total_cols})")
-    print(f"  SDI attrs covered  : {sdi_batch_attr_count}")
+    print(f"  VSI batch calls    : {vsi_batch_call_count}  (old was {total_cols})")
+    print(f"  SDI batch calls    : {sdi_batch_call_count}  (old was {total_cols})")
     print(f"  VSI+SDI reduction  : {total_cols * 2 / max(vsi_batch_call_count + sdi_batch_call_count, 1):.1f}x")
     print(f"  Time               : {elapsed:.1f}s")
-    print(match_sdi_info)
 
+    if args.profile and profile_rows:
+        print_profile_report(profile_rows, total_cols, elapsed)
+
+    # PASS/FAIL
     print()
-    # PASS: calls << total_cols (batching working) and ≥90% attrs covered.
-    # VSI only fires when rebuild=True (live mode); rebuild=False skips it because the
-    # deterministic pre-fill already set value_semantics — 0 VSI calls is correct there.
     sdi_ok = sdi_batch_call_count < total_cols and sdi_batch_attr_count >= total_cols * 0.9
     vsi_ok = (vsi_batch_call_count < total_cols and vsi_batch_attr_count >= total_cols * 0.9) \
              or (not args.live and vsi_batch_call_count == 0)
-
     if vsi_ok and sdi_ok:
-        print("PASS — VSI and SDI both batched correctly (<1 call per attr, ≥90% attrs covered)")
+        print("PASS — VSI and SDI batched correctly (<1 call per attr, ≥90% attrs covered)")
     else:
         if not vsi_ok:
-            print(f"FAIL VSI — {vsi_batch_call_count} calls covering {vsi_batch_attr_count} attrs "
-                  f"(expected <{total_cols} calls, ≥{int(total_cols*0.9)} attrs)")
+            print(f"FAIL VSI — {vsi_batch_call_count} calls / {vsi_batch_attr_count} attrs (expected <{total_cols} / ≥{int(total_cols*0.9)})")
         if not sdi_ok:
-            print(f"FAIL SDI — {sdi_batch_call_count} calls covering {sdi_batch_attr_count} attrs "
-                  f"(expected <{total_cols} calls, ≥{int(total_cols*0.9)} attrs)")
+            print(f"FAIL SDI — {sdi_batch_call_count} calls / {sdi_batch_attr_count} attrs (expected <{total_cols} / ≥{int(total_cols*0.9)})")
 
 
 if __name__ == "__main__":
