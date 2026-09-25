@@ -120,7 +120,7 @@ def build_enricher():
         if api_key:
             try:
                 import anthropic
-                model = os.environ.get("BLUE_DATA_LLM_MODEL", "claude-opus-4-8")
+                model = os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL") or os.environ.get("BLUE_DATA_LLM_MODEL", "claude-opus-4-8")
                 client = anthropic.Anthropic(api_key=api_key)
 
                 def llm_fn(prompt: str) -> str:
@@ -142,7 +142,7 @@ def build_enricher():
         if api_key:
             try:
                 import openai
-                model = os.environ.get("BLUE_DATA_LLM_MODEL", "gpt-4o")
+                model = os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL") or os.environ.get("BLUE_DATA_LLM_MODEL", "gpt-4o")
                 client = openai.OpenAI(api_key=api_key)
 
                 def llm_fn(prompt: str) -> str:

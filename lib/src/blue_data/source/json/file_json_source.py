@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 from typing import Any
 
 from blue_data.source.json.json_source import JSONSource
@@ -29,10 +30,22 @@ class FileJSONSource(JSONSource):
         return json.loads(content) if content else {}
 
     def _write(self, data: dict) -> None:
+        parent = Path(self.path).parent
+        parent_existed = parent.exists()
+        parent.mkdir(parents=True, exist_ok=True)
+        if not parent_existed:
+            try:
+                os.chmod(parent, 0o700)
+            except PermissionError:
+                pass
         tmp = self.path + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         os.replace(tmp, self.path)
+        try:
+            os.chmod(self.path, 0o600)
+        except PermissionError:
+            pass
 
     def get(self, path: str | None = None) -> Any:
         data = self._read()

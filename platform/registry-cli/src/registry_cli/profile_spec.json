@@ -29,11 +29,65 @@
     "required": false,
     "cast": "file"
   },
+  "BLUE_DATA_SOURCES_SYNC": {
+    "default": "true",
+    "prompt": "Sync sources on startup when BLUE_DATA_SOURCES_CONFIG is set",
+    "required": false,
+    "cast": "bool"
+  },
   "BLUE_DATA_REGISTRY_METADATA_LLM_MODEL": {
     "default": null,
     "prompt": "LLM model for `blue-registry source metadata` (overrides BLUE_DATA_LLM_MODEL)",
     "required": false,
     "cast": "str",
     "inherits": ["BLUE_DATA_LLM_MODEL"]
+  },
+  "BLUE_DATA_REGISTRY_VECTOR_DIM": {
+    "default": 1536,
+    "prompt": "Embedding vector dimensions (must match the embedding model)",
+    "required": false,
+    "cast": "int"
+  },
+  "BLUE_DATA_REGISTRY_SEARCH_BM25_WEIGHT": {
+    "default": null,
+    "prompt": "BM25 score weight in hybrid search (0.0–1.0)",
+    "required": false,
+    "cast": "float"
+  },
+  "BLUE_DATA_REGISTRY_SEARCH_VECTOR_WEIGHT": {
+    "default": null,
+    "prompt": "Vector score weight in hybrid search (0.0–1.0)",
+    "required": false,
+    "cast": "float"
+  },
+  "BLUE_DATA_REGISTRY_SEARCH_VALUE_WEIGHT": {
+    "default": null,
+    "prompt": "Value score weight in hybrid search (0.0–1.0)",
+    "required": false,
+    "cast": "float"
+  },
+  "BLUE_DATA_REGISTRY_SEARCH_BM25_THRESHOLD": {
+    "default": null,
+    "prompt": "Minimum BM25 score to include a result",
+    "required": false,
+    "cast": "float"
+  },
+  "BLUE_DATA_REGISTRY_SEARCH_VECTOR_THRESHOLD": {
+    "default": null,
+    "prompt": "Minimum vector score to include a result",
+    "required": false,
+    "cast": "float"
+  },
+  "BLUE_DATA_REGISTRY_SEARCH_COMBINED_THRESHOLD": {
+    "default": null,
+    "prompt": "Minimum combined score to include a result",
+    "required": false,
+    "cast": "float"
+  },
+  "BLUE_DATA_REGISTRY_SEARCH_HIERARCHICAL": {
+    "default": null,
+    "prompt": "Enable hierarchical search boosting (true/false)",
+    "required": false,
+    "cast": "bool"
   }
 }

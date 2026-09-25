@@ -124,10 +124,14 @@ def profile_remove(obj: dict, name: str, confirm: bool) -> None:
 
 
 @profile_group.command("list")
-@click.option("--format", "fmt", type=click.Choice(["table", "json"]), default="table", show_default=True)
+@click.option("--format", "fmt", type=click.Choice(["table", "json"]), default=None)
 @click.pass_obj
-def profile_list(obj: dict, fmt: str) -> None:
+def profile_list(obj: dict, fmt: str | None) -> None:
     """List profiles."""
+    effective_fmt = fmt or ((obj or {}).get("fmt") or "table")
+    if effective_fmt not in ("table", "json"):
+        effective_fmt = "table"
+    fmt = effective_fmt
     store = profile_store(obj["home"])
     names = store.list_profiles()
     selected = store.selected()
@@ -150,7 +154,7 @@ def profile_list(obj: dict, fmt: str) -> None:
 @click.argument("name")
 @click.pass_obj
 def profile_select(obj: dict, name: str) -> None:
-    """Set the default profile."""
+    """Set the default profile (written to ~/.blue-registry/.selected.profile)."""
     try:
         profile_store(obj["home"]).select(name)
     except ProfileError as exc:
@@ -160,14 +164,18 @@ def profile_select(obj: dict, name: str) -> None:
 
 @profile_group.command("inspect")
 @click.argument("name", required=False)
-@click.option("--format", "fmt", type=click.Choice(["table", "json"]), default="table", show_default=True)
+@click.option("--format", "fmt", type=click.Choice(["table", "json"]), default=None)
 @click.pass_obj
-def profile_inspect(obj: dict, name: str | None, fmt: str) -> None:
+def profile_inspect(obj: dict, name: str | None, fmt: str | None) -> None:
     """Show configuration values and their sources.
 
     Secrets are masked; a `$VAR` reference is shown by name, with whether it
     currently resolves, so you can see what to export.
     """
+    effective_fmt = fmt or ((obj or {}).get("fmt") or "table")
+    if effective_fmt not in ("table", "json"):
+        effective_fmt = "table"
+    fmt = effective_fmt
     target = _target(obj, name)
     store = profile_store(obj["home"])
     spec = cli_spec()

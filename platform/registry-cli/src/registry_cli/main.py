@@ -214,12 +214,15 @@ def source_add(ctx: click.Context, name: str, src_type: str, database_dir: Optio
 
 @source.command("remove")
 @click.argument("name")
+@click.option("--yes", is_flag=True, default=False, help="Skip the confirmation prompt.")
 @click.pass_context
-def source_remove(ctx: click.Context, name: str):
+def source_remove(ctx: click.Context, name: str, yes: bool):
     """Deregister a source."""
     reg = ctx.obj["registry"]
     if reg.get_source_record(name) is None:
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
+    if not yes:
+        click.confirm(f"Remove source '{name}' from the registry?", abort=True)
     reg.deregister_source(name)
     _status(f"Removed source '{name}'.", ctx.obj["fmt"])
 
@@ -357,7 +360,18 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
         )
         if record is None:
             _err("RECORD_NOT_FOUND", f"Attribute '{attribute}' not found.")
-        _out(record, fmt)
+        if fmt == "json":
+            click.echo(json.dumps({"record": record}, indent=2, default=str))
+        else:
+            props = record.get("properties") or {}
+            info = props.get("info") or {}
+            sql_type = info.get("type", "")
+            sem = props.get("semantic_type", "")
+            click.echo(_fmt_record(record))
+            if sql_type:
+                click.echo(f"  sql_type: {sql_type}")
+            if sem:
+                click.echo(f"  semantic_type: {sem}")
 
     elif entity is not None:
         record = reg.get_source_database_collection_entity(name, database, collection, entity)
@@ -370,8 +384,11 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
             click.echo(_fmt_record(record))
             click.echo("  attributes:")
             for attr in attributes:
-                sem = (attr.get("properties") or {}).get("semantic_type", "")
-                suffix = f"  [{sem}]" if sem else ""
+                props = attr.get("properties") or {}
+                sem = props.get("semantic_type", "")
+                sql_type = (props.get("info") or {}).get("type", "")
+                tag = sem or sql_type
+                suffix = f"  [{tag}]" if tag else ""
                 click.echo(f"    {attr['name']}{suffix}")
 
     elif collection is not None:
@@ -381,8 +398,12 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
         entities = reg.list_collection_entities(name, database, collection)
         relations = reg.list_collection_relations(name, database, collection)
         if fmt == "json":
+            # Strip the raw schema string — it duplicates the entities/relations lists.
+            rec = {k: v for k, v in record.items() if k != "properties"}
+            rec["properties"] = {k: v for k, v in (record.get("properties") or {}).items()
+                                  if k != "schema"}
             click.echo(json.dumps(
-                {"record": record, "entities": entities, "relations": relations},
+                {"record": rec, "entities": entities, "relations": relations},
                 indent=2, default=str,
             ))
         else:
@@ -420,7 +441,7 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
 @cli.command()
 @click.argument("query")
 @click.option("--type", "record_type", default=None, help="Filter by record type.")
-@click.option("--limit", default=10, show_default=True, help="Max results.")
+@click.option("--top-k", "limit", default=10, show_default=True, help="Maximum results to return.")
 @click.pass_context
 def search(ctx: click.Context, query: str, record_type: Optional[str], limit: int):
     """Search records using hybrid BM25 + vector search."""
