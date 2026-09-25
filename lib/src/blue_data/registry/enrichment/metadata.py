@@ -2082,7 +2082,7 @@ Return JSON ONLY:
     # Source-level entry points (mirror the original collect_source_* API)
     # ------------------------------------------------------------------
 
-    def collect_source_database_collection_metadata(self, data_registry, source, database, collection, recursive=False, rebuild=False):
+    def collect_source_database_collection_metadata(self, data_registry, source, database, collection, recursive=False, rebuild=False, on_progress=None, _progress_state=None):
         """Run full enrichment for every entity in a collection, then generate the collection-level description."""
         entities = data_registry.list_collection_entities(source, database, collection)
         entity_descriptions = {}
@@ -2090,14 +2090,15 @@ Return JSON ONLY:
         for entity in entities:
             entity_name = entity.get("name")
             attributes = data_registry.list_entity_attributes(source, database, collection, entity_name)
-            entity_stats = entity.get("properties", {}).get("stats", {})
-            row_samples = entity_stats.get("row_samples", [])
 
             self.enrich_entity_full(data_registry, source, database, collection, entity, attributes, rebuild)
 
-            # collect entity description for collection-level aggregation
             desc = data_registry.get_source_database_collection_entity_description(source, database, collection, entity_name)
             entity_descriptions[entity_name] = desc
+
+            if on_progress is not None and _progress_state is not None:
+                _progress_state["done"] += 1
+                on_progress(entity_name, database, collection, _progress_state["done"], _progress_state["total"])
 
         if self.properties.get("enable_collection_description_generation", True):
             current = data_registry.get_source_database_collection_description(source, database, collection)
@@ -2107,7 +2108,7 @@ Return JSON ONLY:
                 if desc:
                     data_registry.set_source_database_collection_description(source, database, collection, desc, rebuild=rebuild)
 
-    def collect_source_database_metadata(self, data_registry, source, database, recursive=False, rebuild=False):
+    def collect_source_database_metadata(self, data_registry, source, database, recursive=False, rebuild=False, on_progress=None, _progress_state=None):
         """Enrich all collections in a database (when recursive) and generate the database-level description."""
         collections = data_registry.list_database_collections(source, database)
         collection_descriptions = {}
@@ -2115,7 +2116,11 @@ Return JSON ONLY:
         if recursive:
             for coll in collections:
                 coll_name = coll.get("name")
-                self.collect_source_database_collection_metadata(data_registry, source, database, coll_name, recursive=True, rebuild=rebuild)
+                self.collect_source_database_collection_metadata(
+                    data_registry, source, database, coll_name,
+                    recursive=True, rebuild=rebuild,
+                    on_progress=on_progress, _progress_state=_progress_state,
+                )
 
         if self.properties.get("enable_database_description_generation", True):
             current = data_registry.get_source_database_description(source, database)
@@ -2128,8 +2133,13 @@ Return JSON ONLY:
                 if desc:
                     data_registry.set_source_database_description(source, database, desc, rebuild=rebuild)
 
-    def collect_source_metadata(self, data_registry, source, recursive=False, rebuild=False):
+    def collect_source_metadata(self, data_registry, source, recursive=False, rebuild=False, on_progress=None, total=0):
         """Top-level entry point. Call from DataRegistry.enrich_source_metadata()."""
+        _progress_state = {"done": 0, "total": total} if on_progress is not None else None
         databases = data_registry.list_source_databases(source)
         for db in databases:
-            self.collect_source_database_metadata(data_registry, source, db.get("name"), recursive=recursive, rebuild=rebuild)
+            self.collect_source_database_metadata(
+                data_registry, source, db.get("name"),
+                recursive=recursive, rebuild=rebuild,
+                on_progress=on_progress, _progress_state=_progress_state,
+            )

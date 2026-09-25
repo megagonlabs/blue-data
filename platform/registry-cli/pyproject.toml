@@ -12,6 +12,7 @@ maintainers = [
 
 dependencies = [
     "click>=8.0",
+    "rich>=13.0",
 ]
 
 [project.optional-dependencies]

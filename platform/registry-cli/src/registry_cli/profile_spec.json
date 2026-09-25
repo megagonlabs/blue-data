@@ -18,8 +18,8 @@
     "cast": "str"
   },
   "BLUE_DATA_REGISTRY_FILE": {
-    "default": null,
-    "prompt": "Path to the registry JSON file — required when store=file",
+    "default": "~/.blue-registry/registry.json",
+    "prompt": "Path to the registry JSON file (used when store=file)",
     "required": false,
     "cast": "file"
   },

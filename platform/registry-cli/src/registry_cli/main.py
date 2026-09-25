@@ -277,12 +277,34 @@ def source_enrich(ctx: click.Context, name: str):
 @click.pass_context
 def source_metadata(ctx: click.Context, name: str, rebuild: bool):
     """Run the full MetaData enrichment pipeline."""
+    import sys
+    from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeElapsedColumn
+
     reg = ctx.obj["registry"]
+    fmt = ctx.obj["fmt"]
     if reg.get_source(name) is None:
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
-        reg.enrich_source_metadata(name, recursive=True, rebuild=rebuild)
-        _status(f"Metadata enrichment complete for '{name}'.", ctx.obj["fmt"])
+        if fmt == "json" or not sys.stderr.isatty():
+            reg.enrich_source_metadata(name, recursive=True, rebuild=rebuild)
+        else:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                TextColumn("{task.completed}/{task.total}"),
+                TimeElapsedColumn(),
+                transient=True,
+            ) as progress:
+                task = progress.add_task("Enriching…", total=None)
+
+                def on_progress(entity_name, database, collection, done, total):
+                    progress.update(task, total=total, completed=done,
+                                    description=f"[bold]{entity_name}[/bold]")
+
+                reg.enrich_source_metadata(name, recursive=True, rebuild=rebuild,
+                                           on_progress=on_progress)
+        _status(f"Metadata enrichment complete for '{name}'.", fmt)
     except Exception as e:
         _err("COMMAND_FAILED", str(e))
 

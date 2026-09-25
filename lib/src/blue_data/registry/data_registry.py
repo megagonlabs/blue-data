@@ -1644,6 +1644,7 @@ class DataRegistry(Registry):
         source: str,
         recursive: bool = True,
         rebuild: bool = False,
+        on_progress=None,
     ):
         """Run the full metadata enrichment pipeline via the injected ``metadata_enricher``.
 
@@ -1655,10 +1656,24 @@ class DataRegistry(Registry):
         the base-layer types with richer ones; if not, only the deterministic
         enrichments (semantic-links, process-semantics, quantitative-VST, value-axis,
         semantic-roles) run — they can now read the VSI set in the base layer.
+
+        ``on_progress``, when supplied, is called after each entity completes::
+
+            def on_progress(entity_name, database, collection, done, total):
+                ...
         """
         self.enrich_source(source)
         if self.metadata_enricher is not None:
-            self.metadata_enricher.collect_source_metadata(self, source, recursive=recursive, rebuild=rebuild)
+            # Count total entities upfront so on_progress can report X/N.
+            total = 0
+            if on_progress is not None:
+                for db in self.list_source_databases(source):
+                    for coll in self.list_database_collections(source, db.get("name")):
+                        total += len(self.list_collection_entities(source, db.get("name"), coll.get("name")))
+            self.metadata_enricher.collect_source_metadata(
+                self, source, recursive=recursive, rebuild=rebuild,
+                on_progress=on_progress, total=total,
+            )
 
     # ---------- source record helpers ----------
 
