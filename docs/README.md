@@ -6,6 +6,7 @@
 |---|---|
 | [quickstart.md](quickstart.md) | Five-step workflow: install, sync, stats, enrich, search |
 | [installation.md](installation.md) | Full install and test setup including Redis Stack |
+| [configuration.md](configuration.md) | Environment variables and profiles: store, LLM, search tuning, sources |
 | [guide.md](guide.md) | Developer guide: syncing, enrichment, DQ profiling, search, NL queries |
 
 ## Reference
