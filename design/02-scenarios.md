@@ -52,17 +52,17 @@ Stats are stored as `record["properties"]["stats"]` and persist between sessions
 
 ## Scenario 3: Detecting Coded Values (Layer 1 Enrichment)
 
-A database uses opaque coded values — integer flags, short strings — that have semantic meaning not reflected in the schema. A query for "discontinued products" against a bare schema will produce `WHERE discontinued = 'discontinued'`, returning zero rows. Layer 1 enrichment detects ENUM-like columns from sample values alone, without any LLM, and writes the actual coded values to the attribute record.
+A database uses opaque coded values — integer flags, short strings — that have semantic meaning not reflected in the schema. A query for "discontinued products" against a bare schema will produce `WHERE discontinued = 'discontinued'`, returning zero rows. Layer 1 enrichment detects categorical and coded-value columns from sample values alone, without any LLM, and records the observed values on the attribute record.
 
 **Example (Northwind):**
 
-`products.discontinued` has sample values `[0, 1]` — two distinct integers covering every row. The inferencer classifies it as `BINARY_FLAG` and records the values.
+`products.discontinued` has sample values `[0, 1]` — two distinct integers covering every row. The inferencer classifies it as `INTEGER`, and the observed values `[0, 1]` are recorded in the result's `examples`.
 
 An agent given this enriched record knows to write `WHERE discontinued = 1` rather than a string predicate.
 
 **Example (Czech banking):**
 
-`trans.type` has sample values `['PRIJEM', 'VYDAJ', 'UVER']`. The inferencer classifies it as `ENUM`. An agent given this record now knows the only valid values and writes `WHERE type = 'PRIJEM'` for credit transactions.
+`trans.type` has sample values `['PRIJEM', 'VYDAJ', 'UVER']`. The inferencer classifies it as `ENUM_CATEGORY`. An agent given this record now knows the only valid values and writes `WHERE type = 'PRIJEM'` for credit transactions.
 
 ```python
 registry.enrich_source("northwind")
@@ -71,7 +71,7 @@ attr = registry.get_record(
     "/source/northwind/.../entity/products/attribute/discontinued"
 )
 print(attr["properties"]["value_semantics"])
-# {"semantic_type": "BINARY_FLAG", "sample_values": [0, 1], ...}
+# {"semantic_type": "INTEGER", "confidence": 0.9, "examples": [0, 1], ...}
 ```
 
 ---
