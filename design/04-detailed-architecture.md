@@ -51,7 +51,7 @@ Sync is **idempotent** — calling it twice on an unchanged source produces no d
 1. Caller calls `registry.enrich_source(name)`
 2. For each attribute record with a `stats.sample_values` property, `SemanticTypeInferencer.infer(sample_values)` classifies the attribute
 3. Detected properties written to `attribute_record["properties"]`:
-   - `value_semantics.semantic_type` — `ENUM`, `BINARY_FLAG`, `NUMERIC_ID`, `CONTINUOUS`, `DATE`, `FREE_TEXT`, `UUID`, etc.
+   - `value_semantics.semantic_type` — `ENUM_CATEGORY`, `INTEGER`, `ID_NUMERIC`, `FLOAT`, `DATE`, `FREE_TEXT`, `UUID`, etc.
 4. Entity-level signals are also detected from attribute patterns:
    - `process_semantics` — `EVENT_LOG`, `SNAPSHOT`, `REFERENCE`
    - `semantic_links` — foreign-key and natural join candidates

@@ -256,7 +256,7 @@ Runs `SemanticTypeInferencer` on `attribute.properties["stats"]["sample_values"]
 
 | Property | Location | Description |
 |----------|----------|-------------|
-| `value_semantics.semantic_type` | `attribute` | `ENUM`, `BINARY_FLAG`, `NUMERIC_ID`, `CONTINUOUS`, etc. |
+| `value_semantics.semantic_type` | `attribute` | `ENUM_CATEGORY`, `INTEGER`, `ID_NUMERIC`, `FLOAT`, etc. |
 | `process_semantics` | `entity` | `EVENT_LOG`, `SNAPSHOT`, `REFERENCE` |
 | `semantic_links` | `entity` | Foreign-key and natural join candidates |
 | `value_axis` | `entity` | Whether the entity has a natural value axis (event time) |
