@@ -21,3 +21,6 @@ __pycache__/
 dist/
 build/
 data/bird/*.sqlite
+
+# Local registry store artifacts
+blue_data_store.json
