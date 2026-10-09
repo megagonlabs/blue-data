@@ -855,9 +855,9 @@ class DataRegistry(Registry):
         collections as well (otherwise only new/merged databases are descended).
         Also stores any top-level source metadata returned by the source.
         """
-        source_obj = self.get_source(source)
+        source_obj = self.connect_source(source)
         if source_obj is None:
-            raise ValueError(f"Source not registered: {source}")
+            raise ValueError(f"Source not registered or connectable: {source}")
 
         metadata = source_obj.fetch_metadata()
         if metadata:
