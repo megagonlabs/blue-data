@@ -42,6 +42,9 @@ class PostgresDBSource(SQLSource):
         config["database"] = database
         return psycopg2.connect(**config)
 
+    def _set_read_only(self, conn):
+        conn.set_session(readonly=True)
+
     # ---------- source ----------
 
     def fetch_metadata(self):

@@ -43,6 +43,13 @@ class MySQLDBSource(SQLSource):
         config["database"] = database
         return cpy.connect(**config)
 
+    def _set_read_only(self, conn):
+        c = conn.cursor()
+        try:
+            c.execute("SET SESSION TRANSACTION READ ONLY")
+        finally:
+            c.close()
+
     # ---------- source ----------
 
     def fetch_metadata(self):

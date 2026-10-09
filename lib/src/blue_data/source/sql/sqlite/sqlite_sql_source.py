@@ -38,6 +38,9 @@ class SQLiteDBSource(SQLSource):
         # SQLite uses per-query connections via _db_connect — no persistent connection to close.
         return None
 
+    def _set_read_only(self, conn):
+        conn.execute("PRAGMA query_only=ON")
+
    
     # database  path
     def _get_database_directory(self):
