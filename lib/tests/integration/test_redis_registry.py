@@ -1,7 +1,7 @@
 """
 DataRegistry with Redis backends — integration tests.
 
-Requires Redis running on localhost:6379.
+Requires Redis Stack, at localhost:6379 or REDIS_HOST:REDIS_PORT.
 Auto-skipped when Redis is unavailable.
 
 Uses db=15 and a unique namespace/scan_prefix to avoid polluting real data.
@@ -9,6 +9,7 @@ All keys are flushed before and after each test.
 """
 import hashlib
 import math
+import os
 
 import pytest
 
@@ -17,6 +18,9 @@ TEST_NAMESPACE = "test_registry"
 TEST_SCAN_PREFIX = "test_registry_vec"
 TEST_INDEX = "test_registry_index"
 DIM = 64
+
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
 
 
 def simple_embedding(text: str) -> list[float]:
@@ -31,7 +35,7 @@ def redis_conn():
     """Session-scoped Redis connection — skip entire module if Redis unavailable."""
     try:
         import redis
-        r = redis.Redis(host="localhost", port=6379, db=TEST_DB, decode_responses=True)
+        r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=TEST_DB, decode_responses=True)
         r.ping()
         # Verify Redis Stack (JSON module) is available
         r.json().set("__probe__", "$", {"ok": True})
@@ -74,15 +78,15 @@ def registry(redis_conn):
         "test_store",
         properties={
             "namespace": TEST_NAMESPACE,
-            "connection": {"host": "localhost", "port": 6379, "db": TEST_DB},
+            "connection": {"host": REDIS_HOST, "port": REDIS_PORT, "db": TEST_DB},
         },
     )
     vector_source = RedisVectorSource(
         "test_vec",
         properties={
             "connection": {
-                "host": "localhost",
-                "port": 6379,
+                "host": REDIS_HOST,
+                "port": REDIS_PORT,
                 "db": TEST_DB,
                 "scan_prefix": TEST_SCAN_PREFIX,
             }
@@ -105,7 +109,7 @@ def registry(redis_conn):
 
 def test_redis_json_source_set_and_get(redis_conn):
     from blue_data.source.json.redis.redis_json_source import RedisJSONSource
-    store = RedisJSONSource("test_store", properties={"namespace": TEST_NAMESPACE, "connection": {"host": "localhost", "port": 6379, "db": TEST_DB}})
+    store = RedisJSONSource("test_store", properties={"namespace": TEST_NAMESPACE, "connection": {"host": REDIS_HOST, "port": REDIS_PORT, "db": TEST_DB}})
 
     store.set("/source/mydb", {"name": "mydb", "type": "source"})
     result = store.get("/source/mydb")
@@ -114,7 +118,7 @@ def test_redis_json_source_set_and_get(redis_conn):
 
 def test_redis_json_source_delete(redis_conn):
     from blue_data.source.json.redis.redis_json_source import RedisJSONSource
-    store = RedisJSONSource("test_store", properties={"namespace": TEST_NAMESPACE, "connection": {"host": "localhost", "port": 6379, "db": TEST_DB}})
+    store = RedisJSONSource("test_store", properties={"namespace": TEST_NAMESPACE, "connection": {"host": REDIS_HOST, "port": REDIS_PORT, "db": TEST_DB}})
 
     store.set("/source/mydb", {"name": "mydb"})
     store.delete("/source/mydb")
@@ -123,7 +127,7 @@ def test_redis_json_source_delete(redis_conn):
 
 def test_redis_json_source_root_key(redis_conn):
     from blue_data.source.json.redis.redis_json_source import RedisJSONSource
-    store = RedisJSONSource("test_store", properties={"namespace": TEST_NAMESPACE, "connection": {"host": "localhost", "port": 6379, "db": TEST_DB}})
+    store = RedisJSONSource("test_store", properties={"namespace": TEST_NAMESPACE, "connection": {"host": REDIS_HOST, "port": REDIS_PORT, "db": TEST_DB}})
 
     store.set("$", {"contents": {"meta": 1}})
     result = store.get("$")
@@ -132,7 +136,7 @@ def test_redis_json_source_root_key(redis_conn):
 
 def test_redis_json_source_data_property(redis_conn):
     from blue_data.source.json.redis.redis_json_source import RedisJSONSource
-    store = RedisJSONSource("test_store", properties={"namespace": TEST_NAMESPACE, "connection": {"host": "localhost", "port": 6379, "db": TEST_DB}})
+    store = RedisJSONSource("test_store", properties={"namespace": TEST_NAMESPACE, "connection": {"host": REDIS_HOST, "port": REDIS_PORT, "db": TEST_DB}})
 
     store.set("$", {"contents": {}})
     store.set("/source/a", {"name": "a"})
@@ -238,7 +242,7 @@ def test_dump_and_load_round_trip(registry):
         "test_store_copy",
         properties={
             "namespace": TEST_NAMESPACE + "_copy",
-            "connection": {"host": "localhost", "port": 6379, "db": TEST_DB},
+            "connection": {"host": REDIS_HOST, "port": REDIS_PORT, "db": TEST_DB},
         },
     )
     registry2 = DataRegistry(store=store2)
@@ -251,3 +255,34 @@ def test_dump_and_load_round_trip(registry):
     finally:
         # clean up the copy namespace
         _flush_pattern(store2.connection, f"{TEST_NAMESPACE}_copy:*")
+
+
+# ---------- #91: special characters in record names ----------
+
+@pytest.mark.parametrize("name", ["sales.v2", "a/b", "$special", "with space", "a.b.c"])
+def test_special_char_names_round_trip_redis(registry, name):
+    """A dot in a name must not be treated as a JSON sub-path by Redis (#91)."""
+    registry.register_record(name=name, type="entity", scope="/source/mydb")
+
+    record = registry.get_record(name, "entity", "/source/mydb")
+    assert record is not None
+    assert record["name"] == name
+
+    listed = [r["name"] for r in registry.list_records(record_type="entity", scope="/source/mydb")]
+    assert listed == [name]
+
+
+def test_dotted_and_plain_siblings_independent_redis(registry):
+    registry.register_record(name="sales", type="database", scope="/source/src")
+    registry.register_record(name="sales.v2", type="database", scope="/source/src")
+
+    registry.set_record_property("sales", "database", "/source/src", "stats", {"rows": 1})
+    registry.set_record_property("sales.v2", "database", "/source/src", "stats", {"rows": 2})
+
+    databases = sorted(r["name"] for r in registry.list_records(record_type="database", scope="/source/src"))
+    assert databases == ["sales", "sales.v2"]
+
+    sales = registry.get_record("sales", "database", "/source/src")
+    assert "v2" not in sales
+    assert registry.get_record_property("sales", "database", "/source/src", "stats") == {"rows": 1}
+    assert registry.get_record_property("sales.v2", "database", "/source/src", "stats") == {"rows": 2}

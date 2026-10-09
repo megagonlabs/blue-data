@@ -90,7 +90,8 @@ class Registry:
         self._on_record_deleted(name, type, scope, rebuild=rebuild)
 
     def _record_key(self, name, type, scope="/"):
-        return f"{scope.rstrip('/')}/{type}/{name}"
+        # Encode so the flat key is never split by the stores on "." (or Redis "*"/"?").
+        return self._encode(f"{scope.rstrip('/')}/{type}/{name}")
 
     def get_record_properties(self, name, type, scope="/"):
         record = self.get_record(name, type, scope)
