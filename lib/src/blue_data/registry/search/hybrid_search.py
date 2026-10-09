@@ -149,7 +149,7 @@ class HybridSearch:
         **overrides,
     ) -> list[dict]:
         params = self.prepare_parameters(input_query, record_type=record_type, scope=scope, **overrides)
-        candidates = self._filter_records(records, record_type, scope)[: params["search_limit"]]
+        candidates = self._filter_records(records, record_type, scope)
 
         query_vector = self.vector_searcher.compute_embedding(input_query)
         if query_vector is None:
@@ -157,13 +157,23 @@ class HybridSearch:
             bw, _, vaw = normalize_weights(params["bm25_weight"] + params["vector_weight"], 0.0, params["value_weight"])
             params["bm25_weight"], params["vector_weight"], params["value_weight"] = bw, 0.0, vaw
 
-        # --- BM25 pass ---
-        raw_bm25: list[float] = []
+        # --- BM25 pass (all candidates) ---
         schema_enabled = params["enable_schema"]
-        for r in candidates:
-            doc_text = self._record_doc_text(r)
-            schema_text = self._schema_text(r) if schema_enabled else None
-            raw_bm25.append(compute_bm25_score(input_query, doc_text, schema_text))
+        raw_bm25: list[float] = [
+            compute_bm25_score(
+                input_query,
+                self._record_doc_text(r),
+                self._schema_text(r) if schema_enabled else None,
+            )
+            for r in candidates
+        ]
+
+        # --- cost cap: rank by BM25, bound the expensive per-record vector lookups ---
+        search_limit = params.get("search_limit")
+        if query_vector is not None and search_limit and len(candidates) > search_limit:
+            keep = sorted(range(len(candidates)), key=lambda i: raw_bm25[i], reverse=True)[:search_limit]
+            candidates = [candidates[i] for i in keep]
+            raw_bm25 = [raw_bm25[i] for i in keep]
 
         norm_bm25 = normalize_bm25_scores(raw_bm25, method=params["bm25_normalization"])
 
@@ -222,7 +232,7 @@ class HybridSearch:
             params["vector_threshold"] = 0.0
             bw, _, vaw = normalize_weights(params["bm25_weight"] + params["vector_weight"], 0.0, params["value_weight"])
             params["bm25_weight"], params["vector_weight"], params["value_weight"] = bw, 0.0, vaw
-        all_candidates = records[: params["search_limit"]]
+        all_candidates = records
 
         # BM25 over everything
         raw_bm25 = []
