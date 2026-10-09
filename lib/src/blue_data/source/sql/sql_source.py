@@ -54,10 +54,34 @@ class SQLSource(DataSource, ABC):
             if collection is None:
                 raise ValueError("collection is required when query is None")
             query = f"SELECT * FROM {collection}"
+
+        commit = bool(optional_properties.get("commit"))
+        write_guard_msg = (
+            "Write query executed without commit=True. "
+            "Pass optional_properties={'commit': True} to commit writes."
+        )
+
+        if not commit and self._is_multi_statement(query):
+            raise ValueError(
+                "Multiple SQL statements require commit=True. "
+                "Pass optional_properties={'commit': True} to execute writes."
+            )
+
         conn = self._db_connect(database)
         cur = conn.cursor()
         try:
-            cur.execute(query)
+            if not commit:
+                self._set_read_only(conn)
+            try:
+                cur.execute(query)
+            except Exception as e:
+                if not commit and self._is_read_only_error(e):
+                    try:
+                        conn.rollback()
+                    except Exception:
+                        pass
+                    raise ValueError(write_guard_msg) from None
+                raise
             result = []
             if cur.description:
                 data = cur.fetchall()
@@ -65,19 +89,29 @@ class SQLSource(DataSource, ABC):
                 df = pd.DataFrame(data, columns=columns)
                 df.fillna(value=np.nan, inplace=True)
                 result = json.loads(df.to_json(orient="records"))
-            else:
-                if not optional_properties.get("commit"):
-                    conn.rollback()
-                    raise ValueError(
-                        "Write query executed without commit=True. "
-                        "Pass optional_properties={'commit': True} to commit writes."
-                    )
-            if optional_properties.get("commit"):
+            elif not commit:
+                conn.rollback()
+                raise ValueError(write_guard_msg)
+            if commit:
                 conn.commit()
             return result
         finally:
             cur.close()
             self._db_disconnect(conn)
+
+    def _is_multi_statement(self, query) -> bool:
+        if not isinstance(query, str):
+            return False
+        return ";" in query.strip().rstrip(";").rstrip()
+
+    def _set_read_only(self, conn) -> None:
+        """Make *conn* reject writes/DDL before the statement runs. Override per dialect."""
+        return None
+
+    @staticmethod
+    def _is_read_only_error(exc) -> bool:
+        msg = str(exc).lower()
+        return "readonly" in msg or "read-only" in msg or "read only" in msg
 
     def get_nl_tools(self, database=None, collection=None):
         tools = super().get_nl_tools(database=database, collection=collection)
