@@ -234,7 +234,7 @@ def source_remove(ctx: click.Context, name: str, yes: bool):
 def source_sync(ctx: click.Context, name: str, no_recursive: bool):
     """Sync registry records from the live source."""
     reg = ctx.obj["registry"]
-    if reg.get_source(name) is None:
+    if reg.connect_source(name) is None:
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         reg.sync_source(name, recursive=not no_recursive)
@@ -250,7 +250,7 @@ def source_sync(ctx: click.Context, name: str, no_recursive: bool):
 def source_stats(ctx: click.Context, name: str, no_recursive: bool):
     """Collect statistics from the live source."""
     reg = ctx.obj["registry"]
-    if reg.get_source(name) is None:
+    if reg.connect_source(name) is None:
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         reg.collect_source_stats(name, recursive=not no_recursive)
@@ -265,7 +265,7 @@ def source_stats(ctx: click.Context, name: str, no_recursive: bool):
 def source_enrich(ctx: click.Context, name: str):
     """Run semantic type inference on all attributes."""
     reg = ctx.obj["registry"]
-    if reg.get_source(name) is None:
+    if reg.connect_source(name) is None:
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         reg.enrich_source(name)
@@ -285,7 +285,7 @@ def source_metadata(ctx: click.Context, name: str, rebuild: bool):
 
     reg = ctx.obj["registry"]
     fmt = ctx.obj["fmt"]
-    if reg.get_source(name) is None:
+    if reg.connect_source(name) is None:
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         if fmt == "json" or not sys.stderr.isatty():
@@ -320,7 +320,7 @@ def source_metadata(ctx: click.Context, name: str, rebuild: bool):
 def source_query(ctx: click.Context, name: str, sql: str, database: Optional[str]):
     """Execute a SQL query against a live source."""
     reg = ctx.obj["registry"]
-    if reg.get_source(name) is None:
+    if reg.connect_source(name) is None:
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
     try:
         results = reg.execute_query(

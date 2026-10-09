@@ -31,7 +31,7 @@ router = APIRouter(tags=["sources"])
 
 
 def _require_source(registry: DataRegistry, source_name: str) -> dict:
-    source = registry.get_source(source_name)
+    source = registry.connect_source(source_name)
     if source is None:
         raise HTTPException(status_code=404, detail=f"Source '{source_name}' not found")
     return source
