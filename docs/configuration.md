@@ -104,3 +104,18 @@ Source config file format:
 ```
 
 Supported source types: `sqlite`, `postgres`, `mysql`, `mongodb`. (`neo4j` and `file` sources exist as DataSource classes but are not yet wired into the config loader.)
+
+---
+
+## REST API (`blue-data-api`)
+
+Controls the REST API's network exposure, authentication, and write access.
+
+| Variable | Default | Description |
+|---|---|---|
+| `BLUE_DATA_API_HOST` | `127.0.0.1` | Bind address. Defaults to loopback; set `0.0.0.0` to expose on all interfaces (e.g. in a container) |
+| `BLUE_DATA_API_PORT` | `8000` | Port to bind |
+| `BLUE_DATA_API_KEY` | _(empty)_ | When set, every data endpoint requires this key via `X-API-Key: <key>` or `Authorization: Bearer <key>`. Left blank, auth is disabled (a warning is logged at startup) — dev only. `/health` and the docs routes are always open |
+| `BLUE_DATA_API_ALLOW_WRITES` | `false` | When `true`, `POST /{source}/query` honors `commit=true` to execute writes. Otherwise the endpoint is read-only and a `commit=true` request returns `403` |
+
+> **Secure defaults:** the API binds loopback and runs read-only out of the box. For a deployment reachable by other hosts, set `BLUE_DATA_API_HOST`, **always set `BLUE_DATA_API_KEY`**, and enable `BLUE_DATA_API_ALLOW_WRITES` only if clients legitimately need to write.

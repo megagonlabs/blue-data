@@ -24,7 +24,7 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from blue_data.registry.data_registry import DataRegistry
-from registry_api.deps import get_registry
+from registry_api.deps import get_registry, writes_enabled
 from registry_api.models import QueryRequest
 
 router = APIRouter(tags=["sources"])
@@ -194,17 +194,28 @@ def execute_query(
     payload: QueryRequest,
     registry: DataRegistry = Depends(get_registry),
 ):
-    """Execute a query against a live source."""
+    """Execute a query against a live source.
+
+    Read-only by default. A write (commit=true) is honored only when the server
+    is started with BLUE_DATA_API_ALLOW_WRITES enabled.
+    """
     _require_source(registry, source_name)
+    if payload.commit and not writes_enabled():
+        raise HTTPException(
+            status_code=403,
+            detail="Writes are disabled. Start the API with BLUE_DATA_API_ALLOW_WRITES=true to allow commit=true.",
+        )
     try:
         results = registry.execute_query(
             source=source_name,
             query=payload.query,
             database=payload.database,
             collection=payload.collection,
-            optional_properties={"commit": True},
+            optional_properties={"commit": payload.commit},
         )
         return {"results": results or []}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

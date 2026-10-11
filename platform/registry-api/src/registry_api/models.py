@@ -15,3 +15,4 @@ class QueryRequest(BaseModel):
     query: str
     database: Optional[str] = None
     collection: Optional[str] = None
+    commit: bool = False

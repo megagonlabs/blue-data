@@ -14,17 +14,27 @@ Env vars (same as registry-mcp):
     BLUE_DATA_REGISTRY_STORE, BLUE_DATA_REGISTRY_REDIS_URL, BLUE_DATA_LLM_PROVIDER,
     ANTHROPIC_API_KEY, BLUE_DATA_SOURCES_CONFIG
 """
+import logging
+import os
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
+from registry_api.deps import require_api_key
 from registry_api.routers import records, sources, hierarchy
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     from registry_api.config import get_registry
+    if not os.environ.get("BLUE_DATA_API_KEY"):
+        logger.warning(
+            "BLUE_DATA_API_KEY is not set — the API is running without authentication. "
+            "Set it to require an X-API-Key / Bearer token on all data endpoints."
+        )
     get_registry()
     yield
 
@@ -34,6 +44,7 @@ app = FastAPI(
     description="REST API for discovering, exploring, and enriching data assets.",
     version="0.1.0",
     lifespan=lifespan,
+    dependencies=[Depends(require_api_key)],
 )
 
 # records router must be registered before sources so /search and /health
@@ -44,7 +55,9 @@ app.include_router(hierarchy.router)
 
 
 def run():
-    uvicorn.run("registry_api.main:app", host="0.0.0.0", port=8000, reload=False)
+    host = os.environ.get("BLUE_DATA_API_HOST", "127.0.0.1")
+    port = int(os.environ.get("BLUE_DATA_API_PORT", "8000"))
+    uvicorn.run("registry_api.main:app", host=host, port=port, reload=False)
 
 
 if __name__ == "__main__":
