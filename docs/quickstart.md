@@ -10,6 +10,21 @@ Runtime dependencies (`pandas`, `numpy`) are installed automatically. No build s
 
 ---
 
+## Create the sample database
+
+The workflow below reads the Northwind demo database from `/tmp/my-data`. Seed it from the SQL dump shipped in `data/` — SQLite needs no install (Python's `sqlite3` is built in):
+
+```bash
+mkdir -p /tmp/my-data
+sqlite3 /tmp/my-data/northwind.db < data/northwind_sqlite.sql
+# no sqlite3 CLI? use Python instead:
+# python3 -c "import sqlite3; c=sqlite3.connect('/tmp/my-data/northwind.db'); c.executescript(open('data/northwind_sqlite.sql').read()); c.commit()"
+```
+
+Without this step `/tmp/my-data` is empty, so `sync_source` finds no databases.
+
+---
+
 ## Five-step workflow
 
 ### 1. Register a source

@@ -363,11 +363,12 @@ Production backend: `RedisJSONSource` + `RedisVectorSource`. Covers namespace
 isolation, hybrid BM25 + vector search, serialization, and cleanup.
 
 ```bash
-redis-stack-server &   # or: docker run -p 6379:6379 redis/redis-stack
+pip install -e 'lib[redis]'              # the Python redis client (not in the base install)
+docker run -p 6379:6379 redis/redis-stack   # or a local redis-stack-server &
 python3 examples/backends/redis_demo.py
 ```
 
-**Requires:** Redis Stack on `localhost:6379` | **[Sample output](backends/redis_demo.output.txt)**
+**Requires:** Redis Stack on `localhost:6379` — see [docs/installation.md](../docs/installation.md) for getting it (the `docker run` above is the zero-install path). **[Sample output](backends/redis_demo.output.txt)**
 
 ---
 
