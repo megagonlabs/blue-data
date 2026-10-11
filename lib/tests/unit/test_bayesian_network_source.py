@@ -9,7 +9,10 @@ import os
 import pytest
 
 pgmpy = pytest.importorskip("pgmpy", reason="pgmpy not installed (pip install 'blue-data[bn]')")
-from pgmpy.models import BayesianNetwork as DiscreteBayesianNetwork
+try:
+    from pgmpy.models import DiscreteBayesianNetwork
+except ImportError:
+    from pgmpy.models import BayesianNetwork as DiscreteBayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
 
 from blue_data.source.network.bn.bn_utils import save_pgmpy_model
