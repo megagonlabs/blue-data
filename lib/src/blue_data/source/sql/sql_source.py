@@ -123,17 +123,18 @@ class SQLSource(DataSource, ABC):
                 )
         return tools
 
-    def execute_query_nl(self, query, database=None, collection=None, schema=None, llm_fn=None, optional_properties=None):
+    def execute_query_nl(self, query, database=None, collection=None, schema=None, llm_fn=None, optional_properties=None, read_only=True):
         """Translate *query* from natural language to SQL and execute it.
 
         Requires *llm_fn* — raises ``ValueError`` when absent, because SQL
         generation needs an LLM; there is no rule-based fallback.
         The schema prompt lists tables and columns so the LLM can produce
-        correct ``SELECT`` statements for this database.
+        correct ``SELECT`` statements for this database. Read-only by default;
+        pass ``read_only=False`` with ``commit`` to allow writes.
         """
         if llm_fn is None:
             raise ValueError("execute_query_nl requires an llm_fn")
-        return super().execute_query_nl(query, database=database, collection=collection, schema=schema, llm_fn=llm_fn, optional_properties=optional_properties)
+        return super().execute_query_nl(query, database=database, collection=collection, schema=schema, llm_fn=llm_fn, optional_properties=optional_properties, read_only=read_only)
 
     def _format_schema_for_nl(self, schema: dict | None) -> str:
         if not schema:

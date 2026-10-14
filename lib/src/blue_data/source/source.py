@@ -252,8 +252,13 @@ class DataSource:
         schema: dict | None = None,
         llm_fn=None,
         optional_properties: dict | None = None,
+        read_only: bool = True,
     ) -> list[dict]:
         """Translate *query* from natural language and execute it.
+
+        With *read_only* (the default) any ``commit`` is stripped, so a
+        model-generated write is rejected by the source's execute_query guard.
+        Pass ``read_only=False`` plus ``commit`` to opt into writes.
 
         Calls ``translate_nl_to_native_query`` to produce the dialect-specific
         query, then passes it to ``execute_query``.  Returns ``[]`` when
@@ -282,11 +287,14 @@ class DataSource:
         native_query = self.translate_nl_to_native_query(query, schema, llm_fn)
         if not native_query:
             return []
+        props = dict(optional_properties or {})
+        if read_only:
+            props.pop("commit", None)
         return self.execute_query(
             native_query,
             database=database,
             collection=collection,
-            optional_properties=optional_properties,
+            optional_properties=props,
         )
 
     # ---------- tool-based nl2q ----------
@@ -399,10 +407,16 @@ class DataSource:
         database: str | None = None,
         collection: str | None = None,
         optional_properties: dict | None = None,
+        read_only: bool = True,
     ):
-        """Dispatch a single tool call by name and return the result."""
-        db = tool_input.get("database", database)
-        coll = tool_input.get("collection", collection)
+        """Dispatch a single tool call by name and return the result.
+
+        Host-pinned *database*/*collection* override model-supplied tool input,
+        and with *read_only* (the default) the execute_query tool drops ``commit``
+        so a model-generated write is rejected by the source's execute_query guard.
+        """
+        db = database if database is not None else tool_input.get("database")
+        coll = collection if collection is not None else tool_input.get("collection")
 
         if name == "list_databases":
             return self.fetch_databases()
@@ -415,11 +429,14 @@ class DataSource:
         if name == "get_metadata":
             return self.fetch_database_collection_metadata(db, coll)
         if name == "execute_query":
+            props = dict(optional_properties or {})
+            if read_only:
+                props.pop("commit", None)
             return self.execute_query(
                 tool_input["query"],
                 database=db,
                 collection=coll,
-                optional_properties=optional_properties,
+                optional_properties=props,
             )
         if name == "get_sample":
             return self.fetch_entity_stats(
@@ -463,6 +480,7 @@ class DataSource:
         max_iterations: int = 10,
         extra_tools: list[dict] | None = None,
         extra_tool_fn=None,
+        read_only: bool = True,
     ) -> list[dict]:
         """Tool-based NL2Q: drive an LLM tool loop to answer *query*.
 
@@ -513,6 +531,15 @@ class DataSource:
                     continue
                 tool_name = block["name"]
                 tool_input = block.get("input", {})
+                # Pin host scope and enforce read-only at the loop level so every
+                # source's execute_nl_tool (incl. overrides) is covered unchanged.
+                if database is not None:
+                    tool_input = {**tool_input, "database": database}
+                if collection is not None:
+                    tool_input = {**tool_input, "collection": collection}
+                call_props = optional_properties
+                if read_only and optional_properties:
+                    call_props = {k: v for k, v in optional_properties.items() if k != "commit"}
                 tool_id = block["id"]
                 try:
                     if extra_tool_fn is not None:
@@ -522,13 +549,13 @@ class DataSource:
                             result = self.execute_nl_tool(
                                 tool_name, tool_input,
                                 database=database, collection=collection,
-                                optional_properties=optional_properties,
+                                optional_properties=call_props,
                             )
                     else:
                         result = self.execute_nl_tool(
                             tool_name, tool_input,
                             database=database, collection=collection,
-                            optional_properties=optional_properties,
+                            optional_properties=call_props,
                         )
                     if tool_name == "execute_query" and isinstance(result, list):
                         last_query_result = result
