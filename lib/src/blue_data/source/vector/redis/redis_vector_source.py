@@ -301,6 +301,10 @@ class RedisVectorSource(VectorSource):
         dialect = int(query.get("dialect", 2))
         filter_expression = query.get("filter", "*")
         return_fields = list(query.get("return_fields", []))
+        if not return_fields:
+            # Parity with MemoryVectorSource: return the full JSON document by default
+            # so rows carry text/url/title/… rather than only {id, score}.
+            return_fields = ["$"]
 
         if score_alias not in return_fields:
             return_fields.append(score_alias)
@@ -329,6 +333,10 @@ class RedisVectorSource(VectorSource):
         return command
 
     def _parse_search_results(self, response):
+        # RESP3 returns FT.SEARCH as a mapping ({"results": [...]}); RESP2 returns a
+        # flat [total, id, fields, id, fields, ...] list.
+        if isinstance(response, dict):
+            return self._parse_resp3_results(response)
         if not isinstance(response, (list, tuple)) or len(response) == 0:
             return []
 
@@ -365,6 +373,37 @@ class RedisVectorSource(VectorSource):
 
             rows.append(row)
 
+        return rows
+
+    @staticmethod
+    def _dget(mapping, key):
+        """Fetch *key* from a RESP3 reply mapping, tolerating str or bytes keys."""
+        if key in mapping:
+            return mapping[key]
+        bkey = key.encode() if isinstance(key, str) else key
+        return mapping.get(bkey)
+
+    def _parse_resp3_results(self, response):
+        rows = []
+        for item in self._dget(response, "results") or []:
+            if not isinstance(item, dict):
+                continue
+            row = {"id": self._decode_value(self._dget(item, "id"))}
+            attrs = self._dget(item, "extra_attributes")
+            if attrs is None:
+                attrs = self._dget(item, "fields")
+            if isinstance(attrs, dict):
+                for raw_name, raw_value in attrs.items():
+                    name = self._decode_value(raw_name)
+                    value = self._decode_value(raw_value)
+                    if name == "$" and isinstance(value, str):
+                        try:
+                            row["document"] = json.loads(value)
+                            continue
+                        except Exception:
+                            pass
+                    row[name] = value
+            rows.append(row)
         return rows
 
     # ---------- primitive operations ----------
