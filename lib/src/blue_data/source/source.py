@@ -287,6 +287,11 @@ class DataSource:
         native_query = self.translate_nl_to_native_query(query, schema, llm_fn)
         if not native_query:
             return []
+        if read_only and self._is_write_native_query(native_query):
+            raise ValueError(
+                "Natural-language query translated to a write operation. "
+                "Pass read_only=False to allow writes."
+            )
         props = dict(optional_properties or {})
         if read_only:
             props.pop("commit", None)
@@ -296,6 +301,12 @@ class DataSource:
             collection=collection,
             optional_properties=props,
         )
+
+    def _is_write_native_query(self, native_query) -> bool:
+        """Whether *native_query* mutates data. Default False — SQL sources rely on
+        the execute_query commit guard; dialects whose NL output can carry writes
+        (e.g. Cypher) override this to detect them before execution."""
+        return False
 
     # ---------- tool-based nl2q ----------
 
@@ -470,6 +481,12 @@ class DataSource:
         )
         return " ".join(parts)
 
+    def _read_only_tool_names(self) -> set[str]:
+        """NL tool names safe to run under read_only. Defaults to every tool this
+        source exposes (today all are reads); a source that adds write tools
+        overrides this to exclude them."""
+        return {t.get("name") for t in self.get_nl_tools() if isinstance(t, dict)}
+
     def execute_query_nl_tools(
         self,
         query: str,
@@ -481,6 +498,7 @@ class DataSource:
         extra_tools: list[dict] | None = None,
         extra_tool_fn=None,
         read_only: bool = True,
+        max_sample_size: int | None = None,
     ) -> list[dict]:
         """Tool-based NL2Q: drive an LLM tool loop to answer *query*.
 
@@ -509,6 +527,11 @@ class DataSource:
         tools = self.get_nl_tools(database=database, collection=collection)
         if extra_tools:
             tools = tools + extra_tools
+        read_only_tool_names = self._read_only_tool_names()
+        if extra_tools:
+            read_only_tool_names = read_only_tool_names | {
+                t.get("name") for t in extra_tools if isinstance(t, dict)
+            }
         system = self._build_nl_tools_system_prompt(database, collection)
         messages = [{"role": "user", "content": query}]
         last_query_result = None
@@ -540,7 +563,16 @@ class DataSource:
                 call_props = optional_properties
                 if read_only and optional_properties:
                     call_props = {k: v for k, v in optional_properties.items() if k != "commit"}
+                if max_sample_size is not None and isinstance(tool_input.get("sample_size"), int):
+                    tool_input = {**tool_input, "sample_size": min(tool_input["sample_size"], max_sample_size)}
                 tool_id = block["id"]
+                if read_only and tool_name not in read_only_tool_names:
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": tool_id,
+                        "content": f"Error: tool '{tool_name}' is not permitted in read-only mode",
+                    })
+                    continue
                 try:
                     if extra_tool_fn is not None:
                         try:
