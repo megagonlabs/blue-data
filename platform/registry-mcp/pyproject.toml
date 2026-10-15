@@ -4,10 +4,10 @@ version = "0.1.0"
 description = "MCP server exposing DataRegistry operations to LLM clients"
 requires-python = ">=3.10"
 authors = [
-    {name = "Jalal Mahmud", email = "jalal@megagon.ai"},
+    {name = "Jalal Mahmud", email = "contact_oss@megagon.ai"},
 ]
 maintainers = [
-    {name = "Jalal Mahmud", email = "jalal@megagon.ai"},
+    {name = "Jalal Mahmud", email = "contact_oss@megagon.ai"},
 ]
 
 dependencies = [
