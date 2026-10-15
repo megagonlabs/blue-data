@@ -872,17 +872,25 @@ class NEO4JSource(GraphSource):
             transaction_id=transaction_id,
         )
 
-    def execute_query_nl(self, query, database=None, collection=None, schema=None, llm_fn=None, optional_properties=None):
+    _WRITE_CYPHER_RE = re.compile(
+        r"\b(CREATE|MERGE|DELETE|SET|REMOVE|DROP|FOREACH|LOAD\s+CSV)\b", re.IGNORECASE
+    )
+
+    def execute_query_nl(self, query, database=None, collection=None, schema=None, llm_fn=None, optional_properties=None, read_only=True):
         """Translate *query* from natural language to Cypher and execute it.
 
         Requires *llm_fn* — raises ``ValueError`` when absent, because Cypher
         generation needs an LLM; there is no rule-based fallback.
         The schema prompt describes node labels and relationship types so the
-        LLM can produce correct ``MATCH`` statements for this graph.
+        LLM can produce correct ``MATCH`` statements for this graph. Read-only by
+        default; model-generated write Cypher is rejected unless read_only=False.
         """
         if llm_fn is None:
             raise ValueError("execute_query_nl requires an llm_fn")
-        return super().execute_query_nl(query, database=database, collection=collection, schema=schema, llm_fn=llm_fn, optional_properties=optional_properties)
+        return super().execute_query_nl(query, database=database, collection=collection, schema=schema, llm_fn=llm_fn, optional_properties=optional_properties, read_only=read_only)
+
+    def _is_write_native_query(self, native_query) -> bool:
+        return bool(isinstance(native_query, str) and self._WRITE_CYPHER_RE.search(native_query))
 
     def _format_schema_for_nl(self, schema: dict | None) -> str:
         if not schema:
