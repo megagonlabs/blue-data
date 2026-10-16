@@ -115,7 +115,10 @@ Controls the REST API's network exposure, authentication, and write access.
 |---|---|---|
 | `BLUE_DATA_API_HOST` | `127.0.0.1` | Bind address. Defaults to loopback; set `0.0.0.0` to expose on all interfaces (e.g. in a container) |
 | `BLUE_DATA_API_PORT` | `8000` | Port to bind |
-| `BLUE_DATA_API_KEY` | _(empty)_ | When set, every data endpoint requires this key via `X-API-Key: <key>` or `Authorization: Bearer <key>`. Left blank, auth is disabled (a warning is logged at startup) — dev only. `/health` and the docs routes are always open |
+| `BLUE_DATA_API_KEY` | _(empty)_ | Auth is **mandatory by default**. Clients send this key via `X-API-Key: <key>` or `Authorization: Bearer <key>`. If unset, every data endpoint returns `401` unless `BLUE_DATA_API_AUTH_DISABLED` is set. `/health` and the docs routes are always open |
+| `BLUE_DATA_API_AUTH_DISABLED` | `false` | Explicit opt-out to run **without** auth (dev only). Ignored when `BLUE_DATA_API_KEY` is set |
 | `BLUE_DATA_API_ALLOW_WRITES` | `false` | When `true`, `POST /{source}/query` honors `commit=true` to execute writes. Otherwise the endpoint is read-only and a `commit=true` request returns `403` |
 
-> **Secure defaults:** the API binds loopback and runs read-only out of the box. For a deployment reachable by other hosts, set `BLUE_DATA_API_HOST`, **always set `BLUE_DATA_API_KEY`**, and enable `BLUE_DATA_API_ALLOW_WRITES` only if clients legitimately need to write.
+State-changing routes (`POST`/`PUT`/`PATCH`/`DELETE`) reject browser-simple content types (`application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain`) with `415` as CSRF protection — use `application/json`.
+
+> **Secure defaults:** the API binds loopback and requires auth out of the box. For a deployment reachable by other hosts, set `BLUE_DATA_API_HOST`, set `BLUE_DATA_API_KEY` (don't use `BLUE_DATA_API_AUTH_DISABLED`), and enable `BLUE_DATA_API_ALLOW_WRITES` only if clients legitimately need to write.

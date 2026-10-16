@@ -21,7 +21,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import Depends, FastAPI
 
-from registry_api.deps import require_api_key
+from registry_api.deps import auth_disabled, require_api_key, require_safe_content_type
 from registry_api.routers import records, sources, hierarchy
 
 logger = logging.getLogger(__name__)
@@ -31,10 +31,16 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     from registry_api.config import get_registry
     if not os.environ.get("BLUE_DATA_API_KEY"):
-        logger.warning(
-            "BLUE_DATA_API_KEY is not set — the API is running without authentication. "
-            "Set it to require an X-API-Key / Bearer token on all data endpoints."
-        )
+        if auth_disabled():
+            logger.warning(
+                "BLUE_DATA_API_KEY not set and BLUE_DATA_API_AUTH_DISABLED is on — "
+                "the API is running WITHOUT authentication."
+            )
+        else:
+            logger.warning(
+                "BLUE_DATA_API_KEY not set — data endpoints will return 401. Set "
+                "BLUE_DATA_API_KEY, or BLUE_DATA_API_AUTH_DISABLED=true to disable auth."
+            )
     get_registry()
     yield
 
@@ -44,7 +50,7 @@ app = FastAPI(
     description="REST API for discovering, exploring, and enriching data assets.",
     version="0.1.0",
     lifespan=lifespan,
-    dependencies=[Depends(require_api_key)],
+    dependencies=[Depends(require_api_key), Depends(require_safe_content_type)],
 )
 
 # records router must be registered before sources so /search and /health
