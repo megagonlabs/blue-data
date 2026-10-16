@@ -11,7 +11,24 @@ from blue_data.core.schema import DataSchema
 class RedisVectorSource(VectorSource):
     """Redis Vector data source using RedisJSON + RediSearch."""
 
-    def __init__(self, name: str, embedding_fn=None, properties: dict | None = None):
+    def __init__(self, name: str, embedding_fn=None, properties: dict | None = None, **legacy):
+        # Deprecation shim: older callers passed host=/port=/db=/password= directly.
+        if legacy:
+            import warnings
+            properties = dict(properties or {})
+            connection = dict(properties.get("connection", {}))
+            for key in ("host", "port", "db", "password"):
+                if key in legacy:
+                    connection[key] = legacy.pop(key)
+            properties["connection"] = connection
+            if legacy:
+                raise TypeError(f"RedisVectorSource got unexpected arguments: {sorted(legacy)}")
+            warnings.warn(
+                "Passing host/port/db/password directly to RedisVectorSource is deprecated; "
+                "use properties={'connection': {...}}.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         super().__init__(name, embedding_fn=embedding_fn, properties=properties)
 
     def _initialize_connection_properties(self):
@@ -430,6 +447,9 @@ class RedisVectorSource(VectorSource):
         try:
             return self.connection.execute_command(*self._build_create_index_command(query))
         except Exception as e:
+            if "already exists" in str(e).lower():
+                self.logger.info("RedisVector index '%s' already exists; skipping create.", index_name)
+                return "OK"
             self.logger.error(f"RedisVector create_index failed: {e}")
             raise
 

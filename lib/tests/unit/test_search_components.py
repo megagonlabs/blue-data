@@ -491,18 +491,20 @@ class TestVectorSearchScoreRecord:
         searcher = VectorSearch(vector_source=vs, index_name="idx", vector_dim=len(emb))
         return searcher, doc_id
 
-    def test_no_vector_source_returns_zero(self):
+    def test_no_vector_source_returns_none(self):
+        # None signals "no vector signal" (vs a 0.0 score below threshold), so the
+        # hybrid ranker can fall back to keyword scoring instead of dropping the record.
         searcher = VectorSearch(vector_source=None)
         score = searcher.score_record({"name": "x", "type": "entity", "scope": "/"}, [1.0], {})
-        assert score == 0.0
+        assert score is None
 
-    def test_no_query_vector_returns_zero(self):
+    def test_no_query_vector_returns_none(self):
         vs = MemoryVectorSource()
         searcher = VectorSearch(vector_source=vs, index_name="idx")
         score = searcher.score_record({"name": "x", "type": "entity", "scope": "/"}, None, {})
-        assert score == 0.0
+        assert score is None
 
-    def test_record_not_indexed_returns_zero(self):
+    def test_record_not_indexed_returns_none(self):
         vs = MemoryVectorSource()
         vs.execute_query({"op": "VECTOR.CREATE_INDEX", "index": "idx",
                           "collection": "coll", "dim": 4})
@@ -510,7 +512,7 @@ class TestVectorSearchScoreRecord:
         score = searcher.score_record(
             {"name": "ghost", "type": "entity", "scope": "/"}, _unit_vec(0), {}
         )
-        assert score == 0.0
+        assert score is None
 
     def test_identical_vector_scores_near_one(self):
         emb = _unit_vec(0)

@@ -1,8 +1,15 @@
 from __future__ import annotations
 
+import re
 from typing import Callable
 
 from blue_data.core.utils.similarity_utils import compute_vector_score
+
+
+def _escape_tag(value: str) -> str:
+    """Escape RediSearch TAG special characters so an exact `@id:{...}` filter
+    matches keys containing `/`, `:`, `-`, etc. (record ids are `scope/type/name`)."""
+    return re.sub(r"([^a-zA-Z0-9_])", r"\\\1", value)
 
 
 class VectorSearch:
@@ -57,13 +64,16 @@ class VectorSearch:
             "return_fields": return_fields or ["name", "type", "scope", "description"],
         })
 
-    def score_record(self, record: dict, query_vector, params: dict) -> float:
+    def score_record(self, record: dict, query_vector, params: dict) -> float | None:
         """Return cosine similarity of query_vector to the record's stored embedding.
 
-        Falls back to 0.0 when the VectorSource is unavailable or the doc is not indexed.
+        Returns ``None`` to signal *no vector signal* — the VectorSource is
+        unavailable, the lookup failed, or the doc isn't indexed — so the caller
+        can fall back to keyword scoring instead of treating it as a 0.0 score
+        below threshold.
         """
         if query_vector is None or self.vector_source is None:
-            return 0.0
+            return None
 
         doc_key = (
             f"{record.get('scope', '/')}/{record.get('type', '')}/{record.get('name', '')}"
@@ -75,14 +85,14 @@ class VectorSearch:
                 "index": self.index_name,
                 "vector": query_vector,
                 "k": 1,
-                "filter": f"@id:{{{doc_key}}}",
+                "filter": f"@id:{{{_escape_tag(doc_key)}}}",
                 "return_fields": ["embedding", "schema_embedding"],
             })
         except Exception:
-            return 0.0
+            return None
 
         if not results:
-            return 0.0
+            return None
 
         doc = results[0]
         score = self.compute_similarity(query_vector, doc.get("embedding"))

@@ -182,23 +182,31 @@ class HybridSearch:
         for idx, r in enumerate(candidates):
             nbm = norm_bm25[idx]
             vec = self.vector_searcher.score_record(r, query_vector, params)
+            has_vec = vec is not None
             value_norm = min(1.0, max(
                 r.get("value_relevance_score", 0.0) if isinstance(r, dict) else getattr(r, "value_relevance_score", 0.0),
                 r.get("aggregated_value_relevance", 0.0) if isinstance(r, dict) else getattr(r, "aggregated_value_relevance", 0.0),
             ))
 
             value_ok = value_norm >= params["value_threshold"]
-            if not value_ok and (
-                nbm < params["bm25_threshold"]
-                or vec < params["vector_threshold"]
-            ):
+            below_vec = has_vec and vec < params["vector_threshold"]
+            if not value_ok and (nbm < params["bm25_threshold"] or below_vec):
                 continue
 
-            combined = combine_scores(
-                params["bm25_weight"], nbm,
-                params["vector_weight"], vec,
-                params["value_weight"], value_norm,
-            )
+            if has_vec:
+                combined = combine_scores(
+                    params["bm25_weight"], nbm,
+                    params["vector_weight"], vec,
+                    params["value_weight"], value_norm,
+                )
+            else:
+                # No vector signal (e.g. doc not indexed / lookup failed): score on
+                # BM25 + value with the vector weight renormalized out, instead of
+                # dropping an otherwise-strong keyword match.
+                bw_nv, _, vaw_nv = normalize_weights(
+                    params["bm25_weight"], 0.0, params["value_weight"]
+                )
+                combined = combine_scores(bw_nv, nbm, 0.0, 0.0, vaw_nv, value_norm)
             if combined < params["combined_threshold"]:
                 continue
 
@@ -259,7 +267,7 @@ class HybridSearch:
             # Attach scores as attributes on a copy
             node_record = dict(r) if isinstance(r, dict) else dict(vars(r))
             node_record["normalized_bm25_score"] = norm_bm25[idx]
-            node_record["vector_score"] = vec
+            node_record["vector_score"] = vec if vec is not None else 0.0
 
             hierarchy[node_id] = {
                 "record": _SimpleRecord(node_record),
