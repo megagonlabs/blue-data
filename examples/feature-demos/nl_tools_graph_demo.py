@@ -91,7 +91,7 @@ def traced_llm_fn(messages, tools, system=None):
 
 
 def traced_execute_nl_tool(src, name, tool_input, **kwargs):
-    result = src.execute_nl_tool(name, tool_input, **kwargs)
+    result = _orig(name, tool_input, **kwargs)
     print(f"    ← tool result: {result}")
     return result
 
