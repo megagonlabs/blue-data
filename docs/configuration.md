@@ -122,3 +122,31 @@ Controls the REST API's network exposure, authentication, and write access.
 State-changing routes (`POST`/`PUT`/`PATCH`/`DELETE`) reject browser-simple content types (`application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain`) with `415` as CSRF protection — use `application/json`.
 
 > **Secure defaults:** the API binds loopback and requires auth out of the box. For a deployment reachable by other hosts, set `BLUE_DATA_API_HOST`, set `BLUE_DATA_API_KEY` (don't use `BLUE_DATA_API_AUTH_DISABLED`), and enable `BLUE_DATA_API_ALLOW_WRITES` only if clients legitimately need to write.
+
+### Shared server helper
+
+This policy (loopback default, mandatory auth, CSRF guard) lives in `blue_data.server` so every platform service applies it the same way. Each service picks its own env prefix and default port:
+
+```python
+from fastapi import FastAPI
+from blue_data.server import resolve_bind, security_dependencies
+
+app = FastAPI(dependencies=security_dependencies("BLUE_DOC_API"))   # <PREFIX>_KEY / _AUTH_DISABLED
+host, port = resolve_bind("BLUE_DOC_API", default_port=8001)         # <PREFIX>_HOST / _PORT
+```
+
+The registry API is the reference consumer (prefix `BLUE_DATA_API`). Install the helper's dependency with the `[server]` extra (`pip install -e 'lib[server]'`).
+
+### Default ports
+
+To avoid collisions when services run on one host, each takes a **distinct** default port (overridable via `<PREFIX>_PORT`):
+
+| Service | Prefix | Default port |
+|---|---|---|
+| registry API | `BLUE_DATA_API` | 8000 |
+| doc API | `BLUE_DOC_API` | 8001 |
+| web API | `BLUE_WEB_API` | 8002 |
+| user API | `BLUE_USER_API` | 8003 |
+| ops-mcp (HTTP) | `BLUE_OPS_MCP` | 8010 |
+
+blue-data's registry API keeps 8000; the other services adopt the helper + their port as they take it up.
