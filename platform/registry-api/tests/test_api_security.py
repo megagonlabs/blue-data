@@ -100,3 +100,30 @@ def test_run_respects_host_and_port_env(monkeypatch):
     m.run()
     assert captured["host"] == "0.0.0.0"
     assert captured["port"] == 9001
+
+
+# ---------- #116 A: auth mandatory by default ----------
+
+def test_auth_required_by_default(client, monkeypatch):
+    monkeypatch.delenv("BLUE_DATA_API_KEY", raising=False)
+    monkeypatch.delenv("BLUE_DATA_API_AUTH_DISABLED", raising=False)
+    assert client.get("/sources").status_code == 401       # refused with no key
+    assert client.get("/health").status_code == 200        # open path still works
+
+
+def test_auth_can_be_explicitly_disabled(client, monkeypatch):
+    monkeypatch.delenv("BLUE_DATA_API_KEY", raising=False)
+    monkeypatch.setenv("BLUE_DATA_API_AUTH_DISABLED", "true")
+    assert client.get("/sources").status_code == 200
+
+
+# ---------- #116 B: CSRF content-type guard on state-changing routes ----------
+
+def test_form_content_type_rejected_on_writes(client, monkeypatch):
+    monkeypatch.setenv("BLUE_DATA_API_ALLOW_WRITES", "true")
+    # a cross-site-forgeable form post is rejected
+    r = client.post("/sales/query", data={"query": "SELECT 1", "database": "prod"})
+    assert r.status_code == 415
+    # the same call as JSON is accepted (not a 415)
+    r2 = client.post("/sales/query", json={"query": "SELECT * FROM orders", "database": "prod"})
+    assert r2.status_code != 415

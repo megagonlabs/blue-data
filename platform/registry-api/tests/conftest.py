@@ -12,6 +12,14 @@ from registry_api.main import app
 from registry_api.deps import get_registry
 
 
+@pytest.fixture(autouse=True)
+def _api_auth_disabled(monkeypatch):
+    # Functional tests exercise behaviour, not auth; run with auth explicitly
+    # disabled. Auth-specific tests re-enable it by setting BLUE_DATA_API_KEY or
+    # clearing this flag.
+    monkeypatch.setenv("BLUE_DATA_API_AUTH_DISABLED", "true")
+
+
 def _embed(text: str) -> list:
     rng = np.random.RandomState(abs(hash(text)) % (2 ** 31))
     return rng.randn(64).tolist()
