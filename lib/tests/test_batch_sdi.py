@@ -147,7 +147,7 @@ def make_live_llm(api_key: str, model: str):
             import openai
             client = openai.OpenAI(api_key=api_key)
             resp = client.chat.completions.create(
-                model=model, max_tokens=max_tokens, temperature=0,
+                model=model, max_completion_tokens=max_tokens, temperature=0,
                 messages=[{"role": "user", "content": prompt}],
             )
             return resp.choices[0].message.content or ""

@@ -48,7 +48,7 @@ _client = openai.OpenAI(api_key=api_key)
 def llm_fn(prompt: str) -> str:
     resp = _client.chat.completions.create(
         model="gpt-4o-mini",
-        max_tokens=512,
+        max_completion_tokens=512,
         messages=[{"role": "user", "content": prompt}],
     )
     return resp.choices[0].message.content
