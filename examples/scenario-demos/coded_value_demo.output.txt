@@ -30,10 +30,12 @@ Step 2 — NL2SQL: baseline vs enriched   (SQL model: claude-haiku-4-5-20251001)
          Target: trans.type  |  baseline guesses type='credit' → 0 rows  |  correct code: PRIJEM
 
   baseline  SELECT COUNT(*) as credit_transactions_1997 FROM trans WHERE type = 'credit' AND…
-            → 1 row  {'credit_transactions_1997': 0} ✓
+            → 1 row  {'credit_transactions_1997': 0} ✗
 
   enriched  SELECT COUNT(*) FROM trans WHERE type = 'PRIJEM' AND strftime('%Y', date) = '199…
             → 1 row  {'COUNT(*)': 6} ✓
+
+  ✓ enrichment fixed this query
 
   [q2]  What is the total cash deposit amount per account?
          Target: trans.operation  |  baseline guesses operation='deposit' → 0 rows  |  correct code: VKLAD
@@ -45,7 +47,7 @@ Step 2 — NL2SQL: baseline vs enriched   (SQL model: claude-haiku-4-5-20251001)
             → 15 rows  {'account_id': 1, 'total_deposit_amount': 18500} ✓
 
   [q3]  Find all loans that were completed and fully repaid with no issues
-         Target: loan.status  |  baseline guesses status='paid' or 'completed' → 0 rows  |  correct code: C
+         Target: loan.status  |  baseline guesses status='paid' or 'completed' → 0 rows  |  correct code: A
 
   baseline  SELECT * FROM loan WHERE status = 'completed' OR status = 'fully repaid'
             → 0 rows ✗
@@ -56,7 +58,7 @@ Step 2 — NL2SQL: baseline vs enriched   (SQL model: claude-haiku-4-5-20251001)
   ✓ enrichment fixed this query
 
   [q4]  Find accounts with loans currently running with no payment issues
-         Target: loan.status  |  baseline guesses status='active' or 'running' → 0 rows  |  correct code: A
+         Target: loan.status  |  baseline guesses status='active' or 'running' → 0 rows  |  correct code: C
 
   baseline  SELECT DISTINCT a.account_id FROM account a INNER JOIN loan l ON a.account_id = …
             → 0 rows ✗
@@ -67,19 +69,21 @@ Step 2 — NL2SQL: baseline vs enriched   (SQL model: claude-haiku-4-5-20251001)
   ✓ enrichment fixed this query
 
   [q5]  How many accounts have active loans where the client is in debt?
-         Target: loan.status  |  baseline guesses status='bad' or 'overdue' → 0 rows  |  correct code: B
+         Target: loan.status  |  baseline guesses status='bad' or 'overdue' → 0 rows  |  correct code: D
 
   baseline  SELECT COUNT(DISTINCT a.account_id) FROM account a JOIN loan l ON a.account_id =…
-            → 1 row  {'COUNT(DISTINCT a.account_id)': 0} ✓
+            → 1 row  {'COUNT(DISTINCT a.account_id)': 0} ✗
 
   enriched  SELECT COUNT(DISTINCT a.account_id) FROM account a JOIN loan l ON a.account_id =…
             → 1 row  {'COUNT(DISTINCT a.account_id)': 3} ✓
+
+  ✓ enrichment fixed this query
 
 ====================================================================
 Result
 ====================================================================
 
-  baseline  3/5  (guessed English values, missed coded columns)
+  baseline  1/5  (guessed English values, missed coded columns)
   enriched  5/5  (used actual ENUM values from data)
 
   Layer 1 only — zero LLM enrichment cost.

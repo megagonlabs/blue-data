@@ -53,19 +53,19 @@ DEMO_QUERIES = [
     {
         "id": "q3",
         "question": "Find all loans that were completed and fully repaid with no issues",
-        "why":      "baseline guesses status='paid' or 'completed' → 0 rows  |  correct code: C",
+        "why":      "baseline guesses status='paid' or 'completed' → 0 rows  |  correct code: A",
         "target":   "loan.status",
     },
     {
         "id": "q4",
         "question": "Find accounts with loans currently running with no payment issues",
-        "why":      "baseline guesses status='active' or 'running' → 0 rows  |  correct code: A",
+        "why":      "baseline guesses status='active' or 'running' → 0 rows  |  correct code: C",
         "target":   "loan.status",
     },
     {
         "id": "q5",
         "question": "How many accounts have active loans where the client is in debt?",
-        "why":      "baseline guesses status='bad' or 'overdue' → 0 rows  |  correct code: B",
+        "why":      "baseline guesses status='bad' or 'overdue' → 0 rows  |  correct code: D",
         "target":   "loan.status",
     },
 ]
@@ -196,7 +196,22 @@ def _format_sql(sql: str | None, width: int = 80) -> str:
     return flat[:width] + "…" if len(flat) > width else flat
 
 
-def _format_result(rows: list, err: str | None) -> tuple[str, str]:
+def _is_hit(rows: list, err: str | None) -> bool:
+    """A successful execution is not a correct answer. A COUNT/SUM over the
+    wrong code still returns one row holding 0 (or NULL), so count a single
+    scalar aggregate as a hit only when it is a non-zero value."""
+    if err or not rows:
+        return False
+    if len(rows) == 1 and len(rows[0]) == 1:
+        (value,) = rows[0].values()
+        if value is None:
+            return False
+        if isinstance(value, (int, float)) and value == 0:
+            return False
+    return True
+
+
+def _format_result(rows: list, err: str | None, hit: bool) -> tuple[str, str]:
     if err:
         return f"error: {err[:50]}", "✗"
     if not rows:
@@ -204,7 +219,7 @@ def _format_result(rows: list, err: str | None) -> tuple[str, str]:
     # Show count and first row snippet
     snippet = str(rows[0])[:60]
     n = len(rows)
-    return f"{n} row{'s' if n != 1 else ''}  {snippet}", "✓"
+    return f"{n} row{'s' if n != 1 else ''}  {snippet}", "✓" if hit else "✗"
 
 
 # ── Main ───────────────────────────────────────────────────────────────────
@@ -278,14 +293,16 @@ def run():
 
         b_sql          = gen_sql(chat, baseline_ctx, q["question"])
         b_rows, b_err  = run_sql(db, b_sql) if b_sql else ([], "no SQL generated")
-        b_res, b_mark  = _format_result(b_rows, b_err)
-        if not b_err and len(b_rows) > 0:
+        b_hit          = _is_hit(b_rows, b_err)
+        b_res, b_mark  = _format_result(b_rows, b_err, b_hit)
+        if b_hit:
             baseline_ok += 1
 
         e_sql          = gen_sql(chat, enriched_ctx, q["question"])
         e_rows, e_err  = run_sql(db, e_sql) if e_sql else ([], "no SQL generated")
-        e_res, e_mark  = _format_result(e_rows, e_err)
-        if not e_err and len(e_rows) > 0:
+        e_hit          = _is_hit(e_rows, e_err)
+        e_res, e_mark  = _format_result(e_rows, e_err, e_hit)
+        if e_hit:
             enriched_ok += 1
 
         print(f"  baseline  {_format_sql(b_sql)}")
@@ -294,7 +311,7 @@ def run():
         print(f"  enriched  {_format_sql(e_sql)}")
         print(f"            → {e_res} {e_mark}")
 
-        if not (not b_err and len(b_rows) > 0) and (not e_err and len(e_rows) > 0):
+        if not b_hit and e_hit:
             print()
             print(f"  ✓ enrichment fixed this query")
 
