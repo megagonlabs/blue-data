@@ -467,7 +467,7 @@ def make_chat_fn(api_key: str, model: str, temperature: float | None = None):
         client = openai.OpenAI(api_key=api_key)
 
         def call_openai(system: str, prompt: str) -> str:
-            kwargs: dict = {"model": model, "max_tokens": 1024,
+            kwargs: dict = {"model": model, "max_completion_tokens": 1024,
                             "messages": [{"role": "system", "content": system},
                                          {"role": "user", "content": prompt}]}
             if temperature is not None:
@@ -503,7 +503,7 @@ def make_enrich_fn(api_key: str, model: str):
 
         def call_openai(prompt: str) -> str:
             resp = client.chat.completions.create(
-                model=model, max_tokens=1024, temperature=0,
+                model=model, max_completion_tokens=1024, temperature=0,
                 messages=[{"role": "user", "content": prompt}],
             )
             return resp.choices[0].message.content or ""

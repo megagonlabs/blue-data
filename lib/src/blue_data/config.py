@@ -147,7 +147,7 @@ def build_enricher():
 
                 def llm_fn(prompt: str) -> str:
                     resp = client.chat.completions.create(
-                        model=model, max_tokens=1024,
+                        model=model, max_completion_tokens=1024,
                         messages=[{"role": "user", "content": prompt}],
                     )
                     return resp.choices[0].message.content or ""
