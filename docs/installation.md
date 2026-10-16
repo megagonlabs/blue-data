@@ -15,21 +15,21 @@ Each component has a `scripts/` directory. Run scripts from the component's root
 **Editable install (development):**
 
 ```bash
-cd lib && ./scripts/install.sh
-cd platform/registry-api && ./scripts/install.sh
-cd platform/registry-cli && ./scripts/install.sh
-cd platform/json-mcp && ./scripts/install.sh
-cd platform/registry-mcp && ./scripts/install.sh
+(cd lib && ./scripts/install.sh)
+(cd platform/registry-api && ./scripts/install.sh)
+(cd platform/registry-cli && ./scripts/install.sh)
+(cd platform/json-mcp && ./scripts/install.sh)
+(cd platform/registry-mcp && ./scripts/install.sh)
 ```
 
 **Build distributable packages:**
 
 ```bash
-cd lib && ./scripts/build.sh
-cd platform/registry-api && ./scripts/build.sh
-cd platform/registry-cli && ./scripts/build.sh
-cd platform/json-mcp && ./scripts/build.sh
-cd platform/registry-mcp && ./scripts/build.sh
+(cd lib && ./scripts/build.sh)
+(cd platform/registry-api && ./scripts/build.sh)
+(cd platform/registry-cli && ./scripts/build.sh)
+(cd platform/json-mcp && ./scripts/build.sh)
+(cd platform/registry-mcp && ./scripts/build.sh)
 ```
 
 Requires the `build` package (`pip install build`).
@@ -63,11 +63,11 @@ Optional extras (install with `pip install -e ".[redis]"` etc.):
 Run from each component's root directory:
 
 ```bash
-cd lib && pytest tests/unit -v           # lib unit tests
-cd platform/registry-api && pytest -v             # REST API tests
-cd platform/registry-cli && pytest -v             # CLI tests
-cd platform/json-mcp && pytest -v        # JSON MCP tests
-cd platform/registry-mcp && pytest -v   # registry MCP tests
+(cd lib && pytest tests/unit -v)              # lib unit tests
+(cd platform/registry-api && pytest -v)       # REST API tests
+(cd platform/registry-cli && pytest -v)       # CLI tests
+(cd platform/json-mcp && pytest -v)           # JSON MCP tests
+(cd platform/registry-mcp && pytest -v)       # registry MCP tests
 ```
 
 Install packages with dev extras before running tests:
