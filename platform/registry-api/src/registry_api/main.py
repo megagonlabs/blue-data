@@ -61,8 +61,8 @@ app.include_router(hierarchy.router)
 
 
 def run():
-    host = os.environ.get("BLUE_DATA_API_HOST", "127.0.0.1")
-    port = int(os.environ.get("BLUE_DATA_API_PORT", "8000"))
+    from blue_data.server import resolve_bind
+    host, port = resolve_bind("BLUE_DATA_API", default_port=8000)
     uvicorn.run("registry_api.main:app", host=host, port=port, reload=False)
 
 
