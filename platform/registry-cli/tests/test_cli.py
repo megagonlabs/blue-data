@@ -32,7 +32,7 @@ def test_source_add_sqlite(runner, tmp_path):
 def test_source_add_and_remove(runner, tmp_path):
     runner.invoke(cli, ["source", "add", "tmp_src", "--type", "sqlite",
                         "--database-dir", str(tmp_path)])
-    r = runner.invoke(cli, ["source", "remove", "tmp_src"])
+    r = runner.invoke(cli, ["source", "remove", "tmp_src", "--yes"])
     assert r.exit_code == 0
     assert "Removed" in r.output
 
