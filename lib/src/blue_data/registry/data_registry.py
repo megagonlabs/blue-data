@@ -419,7 +419,17 @@ class DataRegistry(Registry):
                     if meta:
                         attr_entry["metadata"] = meta
                 attributes[attr_name] = attr_entry
-            entities.append({"name": entity_name, "attributes": attributes})
+
+            entity_entry: dict = {"name": entity_name, "attributes": attributes}
+            if include_metadata:
+                entity_props = record.get("properties", {})
+                process_semantics = entity_props.get("process_semantics")
+                if process_semantics:
+                    entity_entry["process_semantics"] = process_semantics
+                entity_meta = entity_props.get("metadata")
+                if entity_meta:
+                    entity_entry["metadata"] = entity_meta
+            entities.append(entity_entry)
 
         relation_records = self.list_collection_relations(source, database, collection)
         relations = []
