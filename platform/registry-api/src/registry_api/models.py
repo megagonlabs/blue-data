@@ -12,7 +12,8 @@ class RecordSchema(BaseModel):
 
 
 class QueryRequest(BaseModel):
-    query: str
+    # str for SQL sources; dict for sources that take JSON ops (doc, kb, web).
+    query: Union[str, JSONObject]
     database: Optional[str] = None
     collection: Optional[str] = None
     commit: bool = False

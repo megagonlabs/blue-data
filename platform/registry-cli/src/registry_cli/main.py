@@ -316,16 +316,26 @@ def source_metadata(ctx: click.Context, name: str, rebuild: bool):
 @click.argument("name")
 @click.argument("sql")
 @click.option("--database", default=None, help="Target database.")
+@click.option("--json", "as_json", is_flag=True, default=False,
+              help="Parse the query as a JSON op (for sources that take dict ops: doc, kb, web).")
 @click.pass_context
-def source_query(ctx: click.Context, name: str, sql: str, database: Optional[str]):
-    """Execute a SQL query against a live source."""
+def source_query(ctx: click.Context, name: str, sql: str, database: Optional[str], as_json: bool):
+    """Execute a query against a live source (read-only).
+
+    SQL sources take a SELECT string; sources that accept JSON ops (doc, kb, web)
+    take a JSON object — pass --json to parse the argument as one.
+    """
     reg = ctx.obj["registry"]
     if reg.connect_source(name) is None:
         _err("SOURCE_NOT_FOUND", f"Source '{name}' not found.")
+    query = sql
+    if as_json:
+        try:
+            query = json.loads(sql)
+        except ValueError as e:
+            _err("INVALID_ARGUMENT", f"--json given but query is not valid JSON: {e}")
     try:
-        results = reg.execute_query(
-            name, sql, database=database, optional_properties={"commit": True}
-        )
+        results = reg.execute_query(name, query, database=database)
         _out(results or [], ctx.obj["fmt"])
     except Exception as e:
         _err("COMMAND_FAILED", str(e))

@@ -47,7 +47,10 @@ Claude Desktop config (~/.config/claude-desktop/claude_desktop_config.json):
 """
 from __future__ import annotations
 
+import asyncio
+import functools
 import json
+import threading
 from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
@@ -73,6 +76,55 @@ def _ok(data) -> str:
 
 def _err(e: Exception) -> str:
     return json.dumps({"error": str(e)}, indent=2)
+
+
+def _tool(fn):
+    """Register *fn* as an MCP tool whose body runs off the event loop.
+
+    FastMCP 1.27 calls sync tools directly on its event loop; sibling sources
+    that run their own ``asyncio.run`` (or refuse synchronous IO while a loop is
+    running) then fail. When a loop is running the body is executed on a worker
+    thread (which has no running loop); with no loop (e.g. unit tests calling
+    the tool directly) it runs inline.
+    """
+    @mcp.tool()
+    @functools.wraps(fn)
+    def _wrapper(*args, **kwargs):
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return fn(*args, **kwargs)
+
+        box: dict = {}
+
+        def _target():
+            try:
+                box["value"] = fn(*args, **kwargs)
+            except BaseException as exc:  # re-raised on the calling thread
+                box["error"] = exc
+
+        thread = threading.Thread(target=_target, daemon=True)
+        thread.start()
+        thread.join()
+        if "error" in box:
+            raise box["error"]
+        return box["value"]
+
+    return _wrapper
+
+
+def _decode_query(query):
+    """Decode a query that arrives as a JSON-object/array string into the
+    native dict/list the source expects (doc, kb and web take dict ops).
+    A plain SQL string is returned unchanged."""
+    if isinstance(query, str):
+        stripped = query.strip()
+        if stripped[:1] in ("{", "["):
+            try:
+                return json.loads(stripped)
+            except ValueError:
+                return query
+    return query
 
 
 # ---------------------------------------------------------------------------
@@ -246,7 +298,7 @@ def get_record(name: str, record_type: str, scope: str) -> str:
 # Manage tools
 # ---------------------------------------------------------------------------
 
-@mcp.tool()
+@_tool
 def sync_source(source: str, recursive: bool = True) -> str:
     """Sync registry records from a live data source.
 
@@ -265,7 +317,7 @@ def sync_source(source: str, recursive: bool = True) -> str:
         return _err(e)
 
 
-@mcp.tool()
+@_tool
 def collect_source_stats(source: str, recursive: bool = True) -> str:
     """Collect statistics from a live data source into the registry.
 
@@ -284,7 +336,7 @@ def collect_source_stats(source: str, recursive: bool = True) -> str:
         return _err(e)
 
 
-@mcp.tool()
+@_tool
 def enrich_source(source: str) -> str:
     """Run deterministic semantic type inference on all attributes in a source.
 
@@ -302,7 +354,7 @@ def enrich_source(source: str) -> str:
         return _err(e)
 
 
-@mcp.tool()
+@_tool
 def enrich_source_metadata(
     source: str, recursive: bool = True, rebuild: bool = False
 ) -> str:
@@ -336,7 +388,7 @@ def enrich_source_metadata(
 # Query tools
 # ---------------------------------------------------------------------------
 
-@mcp.tool()
+@_tool
 def execute_query(
     source: str,
     query: str,
@@ -346,24 +398,27 @@ def execute_query(
     """Execute a native query against a registered data source and return rows.
 
     For SQL sources (SQLite, Postgres, MySQL) pass a SQL SELECT statement.
-    Results are returned as a JSON array of row objects.
+    For sources that take JSON ops (doc, kb, web) pass the op as a JSON object
+    string, e.g. '{"op": "DOCUMENT.SEARCH", "query": "..."}' — it is decoded to
+    the dict the source expects. Results are returned as a JSON array of rows.
 
     Args:
         source:     Name of the registered data source.
-        query:      Native query string (e.g. SQL SELECT statement).
+        query:      Native query — a SQL string, or a JSON-object string for
+                    sources that take dict ops.
         database:   Database name (required for SQL sources).
         collection: Collection / schema name (optional).
     """
     try:
         rows = get_registry().execute_query(
-            source, query, database=database, collection=collection
+            source, _decode_query(query), database=database, collection=collection
         )
         return _ok(rows)
     except Exception as e:
         return _err(e)
 
 
-@mcp.tool()
+@_tool
 def import_data(
     source: str,
     target: str,
