@@ -5,6 +5,7 @@ import os
 
 from blue_data.source.graph.graph_source import GraphTransaction
 from blue_data.source.graph.memory_graph_source import MemoryGraphSource
+from blue_data.core.utils.path_utils import contain
 
 
 class FileGraphSource(MemoryGraphSource):
@@ -40,7 +41,7 @@ class FileGraphSource(MemoryGraphSource):
     # ---------- persistence helpers (committed database) ----------
 
     def _db_path(self, database: str) -> str:
-        return os.path.join(self._directory, database + ".json")
+        return contain(self._directory, database, ".json")
 
     def _load(self, database: str) -> None:
         path = self._db_path(database)
@@ -59,7 +60,7 @@ class FileGraphSource(MemoryGraphSource):
     # ---------- persistence helpers (transactions) ----------
 
     def _txn_path(self, database: str, transaction_id: str) -> str:
-        return os.path.join(self._directory, f"{database}#{transaction_id}.txn")
+        return contain(self._directory, f"{database}#{transaction_id}", ".txn")
 
     def _hydrate_transaction(self, transaction_id: str) -> None:
         """Ensure self._transactions[transaction_id] reflects disk, loading it if needed."""

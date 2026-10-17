@@ -6,6 +6,7 @@ import pandas as pd
 
 from blue_data.source.sql.sql_source import SQLSource
 from blue_data.core.schema import DataSchema
+from blue_data.core.utils.path_utils import contain
 
 
 class SQLiteDBSource(SQLSource):
@@ -55,10 +56,10 @@ class SQLiteDBSource(SQLSource):
     def _get_database_path(self, database):
         database_directory = self._get_database_directory()
         for suffix in (".db", ".sqlite"):
-            path = os.path.join(database_directory, database + suffix)
+            path = contain(database_directory, database, suffix)
             if os.path.exists(path):
                 return path
-        return os.path.join(database_directory, database + ".db")
+        return contain(database_directory, database, ".db")
 
     ######### source
     def fetch_metadata(self):
