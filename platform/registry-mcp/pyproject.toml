@@ -11,14 +11,15 @@ maintainers = [
 ]
 
 dependencies = [
-    "mcp[cli]>=1.0.0,<2",
+    # <2: mcp 2.x removed mcp.server.fastmcp; >=1.28.1: skip the 1.27.x advisory.
+    "mcp[cli]>=1.28.1,<2",
 ]
 
 [project.optional-dependencies]
-redis   = ["redis"]
+redis   = ["redis>=5,<7"]
 llm     = ["anthropic", "openai"]
 dev     = ["pytest", "pytest-asyncio"]
-all     = ["redis", "anthropic", "openai"]
+all     = ["redis>=5,<7", "anthropic", "openai"]
 
 [project.scripts]
 blue-data-registry-mcp = "registry_mcp.server:main"

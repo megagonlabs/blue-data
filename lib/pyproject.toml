@@ -24,7 +24,7 @@ postgres  = ["psycopg2-binary"]
 mysql     = ["mysql-connector-python"]
 mongodb   = ["pymongo"]
 neo4j     = ["neo4j"]
-redis     = ["redis"]
+redis     = ["redis>=5,<7"]
 chromadb  = ["chromadb"]
 bn        = ["pgmpy", "networkx"]
 parquet   = ["pyarrow"]
@@ -36,7 +36,7 @@ all = [
     "mysql-connector-python",
     "pymongo",
     "neo4j",
-    "redis",
+    "redis>=5,<7",
     "chromadb",
     "pgmpy",
     "networkx",

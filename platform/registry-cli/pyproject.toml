@@ -16,9 +16,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-redis   = ["redis"]
+redis   = ["redis>=5,<7"]
 llm     = ["anthropic", "openai"]
-all     = ["redis", "anthropic", "openai"]
+all     = ["redis>=5,<7", "anthropic", "openai"]
 dev     = ["pytest"]
 
 [project.scripts]
