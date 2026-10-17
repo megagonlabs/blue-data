@@ -267,6 +267,7 @@ def test_import_infers_format_from_existing_file(src, tmp_path):
 
 
 def test_execute_query_parquet(src, tmp_path):
+    pytest.importorskip("pyarrow")
     rows = [{"id": 1, "val": "a"}, {"id": 2, "val": "b"}]
     pd.DataFrame(rows).to_parquet(tmp_path / "items.parquet", index=False)
     result = src.execute_query(None, collection="items")
@@ -274,6 +275,7 @@ def test_execute_query_parquet(src, tmp_path):
 
 
 def test_import_creates_parquet(src, tmp_path):
+    pytest.importorskip("pyarrow")
     (tmp_path / "src_data").mkdir()
     source = _source_with_rows(tmp_path, "data", [{"id": 1}])
     src.import_data(source, collection="data", options={"format": "parquet"})
@@ -305,6 +307,7 @@ def test_import_csv_source_to_json_target(src, tmp_path):
 
 
 def test_import_csv_source_to_parquet_target(src, tmp_path):
+    pytest.importorskip("pyarrow")
     (tmp_path / "src_orders").mkdir()
     source = _source_with_rows(tmp_path, "orders", [{"id": 1, "amount": 99.5}])
     src.import_data(source, collection="orders", options={"format": "parquet"})
@@ -314,6 +317,7 @@ def test_import_csv_source_to_parquet_target(src, tmp_path):
 
 
 def test_import_parquet_source_to_csv_target(src, tmp_path):
+    pytest.importorskip("pyarrow")
     src_dir = tmp_path / "parquet_src"
     src_dir.mkdir()
     pd.DataFrame([{"x": 10}, {"x": 20}]).to_parquet(src_dir / "data.parquet", index=False)
@@ -327,6 +331,7 @@ def test_import_parquet_source_to_csv_target(src, tmp_path):
 # ---------- parquet append ----------
 
 def test_import_parquet_append(src, tmp_path):
+    pytest.importorskip("pyarrow")
     (tmp_path / "src_a").mkdir()
     source_a = _source_with_rows(tmp_path, "a", [{"id": 1}])
     src.import_data(source_a, collection="a", options={"format": "parquet"})

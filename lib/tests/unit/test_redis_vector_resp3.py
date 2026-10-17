@@ -2,6 +2,7 @@
 document by default. Pure command/parse methods — no Redis server required."""
 import pytest
 
+pytest.importorskip("redis")
 from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
 
 
