@@ -100,8 +100,20 @@ class DataRegistry(Registry):
         return self.sources.get(name)
 
     def list_sources(self) -> list[str]:
-        """Return the names of all registered sources."""
-        return list(self.sources.keys())
+        """Return the names of all registered sources — both live (in-process)
+        and those persisted in the registry store but not yet instantiated.
+
+        Platform hosts (MCP/REST/CLI) load a persisted registry with an empty
+        live ``self.sources``; reading only the dict hid every persisted source.
+        """
+        names = list(self.sources.keys())
+        seen = set(names)
+        for record in self.get_sources():
+            name = record.get("name") if isinstance(record, dict) else None
+            if name and name not in seen:
+                seen.add(name)
+                names.append(name)
+        return names
 
     
     def execute_query(
