@@ -181,6 +181,22 @@ def run_sql(db_path: str, sql: str) -> tuple[list, str | None]:
         return [], str(e)
 
 
+def _result_signature(rows: list) -> list:
+    """Order-insensitive, column-name-insensitive signature of a result set, so
+    a query that returns the right data counts as correct regardless of column
+    aliases or row order."""
+    return sorted(tuple(sorted(str(v) for v in row.values())) for row in rows)
+
+
+def _matches_reference(rows: list, err: str | None, ref_rows: list) -> bool:
+    """A generated query is correct only if it executed without error and
+    returned the same data as the reference query. Missing SQL and execution
+    errors (``err`` set) count as failures, never as correct."""
+    if err or rows is None:
+        return False
+    return _result_signature(rows) == _result_signature(ref_rows)
+
+
 # ── Context builders ───────────────────────────────────────────────────────
 
 def _vsi(reg, name):
@@ -293,7 +309,8 @@ def _print_sql(label: str, sql: str, indent: str = "    ") -> None:
         print(f"{indent}{line}")
 
 
-def show_example(ex: dict, b_sql=None, e_sql=None, b_rows=None, e_rows=None, live=False) -> None:
+def show_example(ex: dict, b_sql=None, e_sql=None, b_rows=None, e_rows=None,
+                 b_err=None, e_err=None, b_ok=None, e_ok=None, live=False) -> None:
     print()
     print(f"  [{ex['id']}]  {ex['question']}")
     print(f"         Why hard: {ex['why']}")
@@ -303,13 +320,15 @@ def show_example(ex: dict, b_sql=None, e_sql=None, b_rows=None, e_rows=None, liv
     esql = e_sql or ex["enriched"]
 
     if live and b_rows is not None:
-        b_result = f"{len(b_rows)} rows" if b_rows is not None else ""
-        e_result = f"{len(e_rows)} rows" if e_rows is not None else ""
+        b_result = f"error: {b_err}" if b_err else f"{len(b_rows)} rows"
+        e_result = f"error: {e_err}" if e_err else f"{len(e_rows)} rows"
+        b_mark = "✓ matches reference" if b_ok else "✗ does not match reference"
+        e_mark = "✓ matches reference" if e_ok else "✗ does not match reference"
         _print_sql("baseline (no enrichment):", bsql)
-        print(f"  → {b_result}  ✗ {ex['baseline_problem']}")
+        print(f"  → {b_result}  {b_mark}  ({ex['baseline_problem']})")
         print()
         _print_sql("enriched (Layer 1):", esql)
-        print(f"  → {e_result}  ✓ {ex['enriched_fix']}")
+        print(f"  → {e_result}  {e_mark}  ({ex['enriched_fix']})")
     else:
         _print_sql("baseline (no enrichment):", bsql)
         print(f"  ✗ {ex['baseline_problem']}")
@@ -364,18 +383,22 @@ def run(live: bool, model: str) -> None:
 
     for ex in EXAMPLES:
         if live:
-            b_sql         = extract_sql(chat(SYSTEM_PROMPT,
+            b_sql          = extract_sql(chat(SYSTEM_PROMPT,
                 f"Schema:\n```\n{baseline_ctx}\n```\n\nQuestion: {ex['question']}\n\nWrite a SQLite query."))
-            e_sql         = extract_sql(chat(SYSTEM_PROMPT,
+            e_sql          = extract_sql(chat(SYSTEM_PROMPT,
                 f"Schema:\n```\n{enriched_ctx}\n```\n\nQuestion: {ex['question']}\n\nWrite a SQLite query."))
-            b_rows, _     = run_sql(db, b_sql) if b_sql else ([], None)
-            e_rows, _     = run_sql(db, e_sql) if e_sql else ([], None)
-            show_example(ex, b_sql=b_sql, e_sql=e_sql, b_rows=b_rows, e_rows=e_rows, live=True)
+            b_rows, b_err  = run_sql(db, b_sql) if b_sql else ([], "no SQL generated")
+            e_rows, e_err  = run_sql(db, e_sql) if e_sql else ([], "no SQL generated")
+            # Score against the reference answer rather than assuming correctness.
+            ref_rows, _    = run_sql(db, ex["enriched"])
+            b_ok           = _matches_reference(b_rows, b_err, ref_rows)
+            e_ok           = _matches_reference(e_rows, e_err, ref_rows)
+            baseline_correct += int(b_ok)
+            enriched_correct += int(e_ok)
+            show_example(ex, b_sql=b_sql, e_sql=e_sql, b_rows=b_rows, e_rows=e_rows,
+                         b_err=b_err, e_err=e_err, b_ok=b_ok, e_ok=e_ok, live=True)
         else:
             show_example(ex)
-
-        baseline_correct += 0  # pre-built examples: baseline always wrong by design
-        enriched_correct += 1  # enriched always correct by design
 
     print()
     print(DIV)
@@ -384,8 +407,8 @@ def run(live: bool, model: str) -> None:
     print()
     n = len(EXAMPLES)
     if live:
-        print(f"  baseline  {baseline_correct}/{n} queries had correct temporal SQL structure")
-        print(f"  enriched  {enriched_correct}/{n} queries had correct temporal SQL structure")
+        print(f"  baseline  {baseline_correct}/{n} queries matched the reference answer")
+        print(f"  enriched  {enriched_correct}/{n} queries matched the reference answer")
     else:
         print(f"  {n} process reasoning failure modes — all fixed by Layer 1 enrichment")
     print()
