@@ -1,3 +1,4 @@
+import inspect
 import logging
 from contextlib import contextmanager
 
@@ -160,6 +161,32 @@ class DataSource:
         collection: str,
     ) -> dict:
         return {}
+
+    # Per-entity / per-relation detail. Defaults derive from the bulk
+    # ``fetch_database_collection_entities``/``...relations`` so a source that
+    # only implements the bulk calls still answers the registry's granular
+    # sync methods instead of raising AttributeError.
+    def fetch_database_collection_entity_metadata(
+        self, database: str, collection: str, entity: str
+    ) -> dict:
+        return {}
+
+    def fetch_database_collection_entity_attributes(
+        self, database: str, collection: str, entity: str
+    ) -> dict:
+        entity_obj = self.fetch_database_collection_entities(database, collection).get(entity, {})
+        return entity_obj.get("contents", {}).get("attributes", {})
+
+    def fetch_database_collection_relation_metadata(
+        self, database: str, collection: str, relation: str
+    ) -> dict:
+        return {}
+
+    def fetch_database_collection_relation_attributes(
+        self, database: str, collection: str, relation: str
+    ) -> dict:
+        relation_obj = self.fetch_database_collection_relations(database, collection).get(relation, {})
+        return relation_obj.get("contents", {}).get("attributes", {})
 
     def create_database_collection(
         self,
@@ -450,12 +477,15 @@ class DataSource:
                 optional_properties=props,
             )
         if name == "get_sample":
-            return self.fetch_entity_stats(
-                db,
-                coll,
-                tool_input["entity"],
-                row_sample_size=tool_input.get("sample_size", 10),
-            )
+            # fetch_entity_stats signatures vary across sources — only pass
+            # row_sample_size to implementations that declare it (or **kwargs).
+            params = inspect.signature(self.fetch_entity_stats).parameters
+            extra = {}
+            if "row_sample_size" in params or any(
+                p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()
+            ):
+                extra["row_sample_size"] = tool_input.get("sample_size", 10)
+            return self.fetch_entity_stats(db, coll, tool_input["entity"], **extra)
         if name == "get_column_stats":
             return self.fetch_property_stats(
                 db,
@@ -672,5 +702,13 @@ class DataSource:
         entity: str,
         property_name: str,
         sample_limit: int | None = None,
+    ) -> dict | None:
+        return None
+
+    def fetch_relation_stats(
+        self,
+        database: str,
+        collection: str,
+        relation: str,
     ) -> dict | None:
         return None
