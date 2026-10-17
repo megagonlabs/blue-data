@@ -75,6 +75,7 @@ class TestFormatInference:
         assert out.exists()
 
     def test_parquet_extension(self, reg):
+        pytest.importorskip("pyarrow")
         r, _, tmp = reg
         out = tmp / "out.parquet"
         result = r.export_data("stub", str(out), collection="items")
@@ -152,6 +153,7 @@ class TestFileContent:
         assert parsed[0]["name"] == "Alice"
 
     def test_parquet_readable_as_dataframe(self, reg):
+        pytest.importorskip("pyarrow")
         r, _, tmp = reg
         out = tmp / "out.parquet"
         r.export_data("stub", str(out), collection="items")

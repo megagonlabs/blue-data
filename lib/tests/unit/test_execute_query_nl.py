@@ -1,12 +1,26 @@
 """Unit tests for execute_query_nl across DataSource, SQLSource, Neo4jGraphSource, MongoDBSource, and DataRegistry."""
+import importlib.util
+
 import pytest
 
 from blue_data.source.source import DataSource
 from blue_data.source.sql.sql_source import SQLSource
-from blue_data.source.graph.neo4j.neo4j_graph_source import NEO4JSource
-from blue_data.source.json.mongodb.mongodb_json_source import MongoDBSource
 from blue_data.registry.data_registry import DataRegistry
 from blue_data.source.json.memory_json_source import MemoryJSONSource
+
+# neo4j/pymongo are optional extras; skip their test classes when absent.
+_HAS_NEO4J = importlib.util.find_spec("neo4j") is not None
+_HAS_PYMONGO = importlib.util.find_spec("pymongo") is not None
+
+if _HAS_NEO4J:
+    from blue_data.source.graph.neo4j.neo4j_graph_source import NEO4JSource
+else:
+    NEO4JSource = object
+
+if _HAS_PYMONGO:
+    from blue_data.source.json.mongodb.mongodb_json_source import MongoDBSource
+else:
+    MongoDBSource = object
 
 
 # ---------- helpers ----------
@@ -129,6 +143,7 @@ class StubMongoDBSource(MongoDBSource):
         return [{"_id": "abc", "name": "test"}]
 
 
+@pytest.mark.skipif(not _HAS_PYMONGO, reason="requires the mongodb extra (pymongo)")
 class TestMongoDBSourceNL:
     def test_raises_without_llm_fn(self):
         src = StubMongoDBSource()
@@ -242,6 +257,7 @@ class StubNeo4jSource(NEO4JSource):
         return [{"n": "result"}]
 
 
+@pytest.mark.skipif(not _HAS_NEO4J, reason="requires the neo4j extra")
 class TestNeo4jSourceNL:
     def test_raises_without_llm_fn(self):
         src = StubNeo4jSource()
@@ -356,6 +372,7 @@ class TestBuildNlPrompt:
         assert "list all orders" in prompt
         assert "Table: orders" in prompt
 
+    @pytest.mark.skipif(not _HAS_PYMONGO, reason="requires the mongodb extra (pymongo)")
     def test_mongo_prompt_contains_dialect_and_query(self):
         src = StubMongoDBSource()
         prompt = src._build_nl_prompt("find active users", "Collection: users\n  - status (string)")
