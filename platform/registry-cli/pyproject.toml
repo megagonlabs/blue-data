@@ -31,6 +31,11 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+# Ship profile_spec.json inside the wheel — profile.py loads it next to the
+# module, so a non-editable install fails every command without this.
+registry_cli = ["*.json"]
+
 [tool.pytest.ini_options]
 pythonpath = ["../../lib/src/blue-data", "src"]
 testpaths  = ["tests"]
