@@ -168,34 +168,52 @@ def source_list(ctx: click.Context):
 
 @source.command("add")
 @click.argument("name")
-@click.option("--type", "src_type", required=True,
+@click.option("--type", "src_type", default=None,
               type=click.Choice(["sqlite", "postgres"]),
-              help="Source type.")
+              help="Built-in source type. Omit when using --class.")
+@click.option("--class", "class_path", default=None,
+              help="Fully-qualified DataSource subclass path, e.g. "
+                   "blue_data_kb_source.file_kb_source.FileKBSource "
+                   "(for siblings and any custom source).")
+@click.option("--properties", "properties_json", default=None,
+              help="JSON properties object for --class, e.g. '{\"connection\": {...}}'.")
 @click.option("--database-dir", default=None, help="SQLite database directory.")
 @click.option("--host", default="localhost", show_default=True, help="Postgres host.")
 @click.option("--port", default=5432, type=int, show_default=True, help="Postgres port.")
 @click.option("--db-name", default=None, help="Postgres database name.")
 @click.option("--user", default=None, help="Postgres user.")
 @click.pass_context
-def source_add(ctx: click.Context, name: str, src_type: str, database_dir: Optional[str],
+def source_add(ctx: click.Context, name: str, src_type: Optional[str], class_path: Optional[str],
+               properties_json: Optional[str], database_dir: Optional[str],
                host: str, port: int, db_name: Optional[str], user: Optional[str]):
     """Register a new data source.
 
+    Use a built-in --type (sqlite/postgres), or --class to register any
+    DataSource subclass by its fully-qualified path (sibling or custom sources).
     Password is read from the BLUE_REGISTRY_SOURCE_PASSWORD environment variable.
 
     \b
     Examples:
       blue-registry source add mydb --type sqlite --database-dir /data/sqlite
       BLUE_REGISTRY_SOURCE_PASSWORD=secret blue-registry source add prod --type postgres --host localhost --db-name mydb --user app
+      blue-registry source add kb --class blue_data_kb_source.file_kb_source.FileKBSource --properties '{"connection": {"directory": "/data/kb"}}'
     """
     reg = ctx.obj["registry"]
+    if not src_type and not class_path:
+        _err("INVALID_ARGUMENT", "Specify either --type (sqlite/postgres) or --class.")
     try:
-        if src_type == "sqlite":
+        if class_path:
+            from blue_data.source.source import DataSource
+            props = json.loads(properties_json) if properties_json else {}
+            src = DataSource.instantiate(class_path, name, properties=props)
+            label = class_path
+        elif src_type == "sqlite":
             from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
             src = SQLiteDBSource(
                 name=name,
                 properties={"connection": {"database_directory": database_dir or "."}},
             )
+            label = src_type
         elif src_type == "postgres":
             from blue_data.source.sql.postgres.postgres_sql_source import PostgresDBSource
             src = PostgresDBSource(
@@ -206,8 +224,9 @@ def source_add(ctx: click.Context, name: str, src_type: str, database_dir: Optio
                     "password": os.environ.get("BLUE_REGISTRY_SOURCE_PASSWORD"),
                 }},
             )
+            label = src_type
         reg.register_source(src)
-        _status(f"Registered source '{name}' ({src_type}).", ctx.obj["fmt"])
+        _status(f"Registered source '{name}' ({label}).", ctx.obj["fmt"])
     except Exception as e:
         _err("COMMAND_FAILED", str(e))
 
