@@ -187,6 +187,15 @@ def load_sources(registry) -> None:
         elif src_type == "mongodb":
             from blue_data.source.json.mongodb.mongodb_json_source import MongoDBSource
             registry.register_source(MongoDBSource(name=name, properties=props))
+        elif src_type == "class":
+            # Any DataSource subclass, incl. sibling sources (doc/kb/llm/user/web),
+            # instantiated from its fully-qualified path: {"type": "class",
+            # "_class": "pkg.mod.Cls", "properties": {...}}.
+            class_path = src.get("_class") or props.get("_class")
+            if not class_path:
+                continue
+            from blue_data.source.source import DataSource
+            registry.register_source(DataSource.instantiate(class_path, name, properties=props))
         else:
             continue
 
