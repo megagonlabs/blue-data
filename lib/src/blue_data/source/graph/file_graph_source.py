@@ -3,9 +3,10 @@ from __future__ import annotations
 import json
 import os
 
+from blue_data.core.utils.file_lock import file_lock, write_json_atomic
+from blue_data.core.utils.path_utils import contain
 from blue_data.source.graph.graph_source import GraphTransaction
 from blue_data.source.graph.memory_graph_source import MemoryGraphSource
-from blue_data.core.utils.path_utils import contain
 
 
 class FileGraphSource(MemoryGraphSource):
@@ -22,6 +23,11 @@ class FileGraphSource(MemoryGraphSource):
     transaction's working state survives a process restart and can be inspected
     or resumed by a fresh FileGraphSource instance that never called
     begin_transaction() itself.
+
+    Every file is written atomically (temp file + os.replace), so readers never
+    see a partial file. Mutating calls hold an exclusive per-database lock from
+    load through save, so concurrent writers in other processes don't lose
+    each other's updates.
     """
 
     def __init__(self, name: str, directory: str | None = None, properties: dict | None = None):
@@ -54,8 +60,12 @@ class FileGraphSource(MemoryGraphSource):
         self._edges[database] = data["edges"]
 
     def _save(self, database: str) -> None:
-        with open(self._db_path(database), "w") as f:
-            json.dump({"nodes": self._nodes[database], "edges": self._edges[database]}, f)
+        data = {"nodes": self._nodes[database], "edges": self._edges[database]}
+        write_json_atomic(self._db_path(database), data)
+
+    def _lock(self, database: str):
+        """Exclusive cross-process lock on *database*, held from load through save."""
+        return file_lock(self._db_path(database))
 
     # ---------- persistence helpers (transactions) ----------
 
@@ -75,8 +85,7 @@ class FileGraphSource(MemoryGraphSource):
 
     def _persist_transaction(self, transaction_id: str) -> None:
         txn = self._transactions[transaction_id]
-        with open(self._txn_path(txn.database, transaction_id), "w") as f:
-            json.dump(txn.to_dict(), f)
+        write_json_atomic(self._txn_path(txn.database, transaction_id), txn.to_dict())
 
     def _delete_transaction_file(self, database: str, transaction_id: str) -> None:
         path = self._txn_path(database, transaction_id)
@@ -98,24 +107,30 @@ class FileGraphSource(MemoryGraphSource):
     # ---------- node operations ----------
 
     def add_node(self, database, label, properties=None, node_id=None, transaction_id=None) -> str:
-        self._begin_call(database, transaction_id)
-        result = super().add_node(database, label, properties=properties, node_id=node_id, transaction_id=transaction_id)
-        self._end_call(database, transaction_id)
-        return result
+        with self._lock(database):
+            self._begin_call(database, transaction_id)
+            result = super().add_node(
+                database, label, properties=properties, node_id=node_id,
+                transaction_id=transaction_id,
+            )
+            self._end_call(database, transaction_id)
+            return result
 
     def get_node(self, database, node_id, transaction_id=None) -> dict | None:
         self._begin_call(database, transaction_id)
         return super().get_node(database, node_id, transaction_id=transaction_id)
 
     def delete_node(self, database, node_id, transaction_id=None) -> None:
-        self._begin_call(database, transaction_id)
-        super().delete_node(database, node_id, transaction_id=transaction_id)
-        self._end_call(database, transaction_id)
+        with self._lock(database):
+            self._begin_call(database, transaction_id)
+            super().delete_node(database, node_id, transaction_id=transaction_id)
+            self._end_call(database, transaction_id)
 
     def update_node(self, database, node_id, properties, transaction_id=None) -> None:
-        self._begin_call(database, transaction_id)
-        super().update_node(database, node_id, properties, transaction_id=transaction_id)
-        self._end_call(database, transaction_id)
+        with self._lock(database):
+            self._begin_call(database, transaction_id)
+            super().update_node(database, node_id, properties, transaction_id=transaction_id)
+            self._end_call(database, transaction_id)
 
     def match_nodes(self, database, label=None, properties=None, transaction_id=None) -> list[dict]:
         self._begin_call(database, transaction_id)
@@ -124,22 +139,30 @@ class FileGraphSource(MemoryGraphSource):
     # ---------- edge operations ----------
 
     def add_edge(self, database, source_id, edge_type, target_id, properties=None, transaction_id=None) -> str:
-        self._begin_call(database, transaction_id)
-        result = super().add_edge(
-            database, source_id, edge_type, target_id, properties=properties, transaction_id=transaction_id
-        )
-        self._end_call(database, transaction_id)
-        return result
+        with self._lock(database):
+            self._begin_call(database, transaction_id)
+            result = super().add_edge(
+                database, source_id, edge_type, target_id,
+                properties=properties, transaction_id=transaction_id,
+            )
+            self._end_call(database, transaction_id)
+            return result
 
     def delete_edge(self, database, source_id, edge_type, target_id, transaction_id=None) -> None:
-        self._begin_call(database, transaction_id)
-        super().delete_edge(database, source_id, edge_type, target_id, transaction_id=transaction_id)
-        self._end_call(database, transaction_id)
+        with self._lock(database):
+            self._begin_call(database, transaction_id)
+            super().delete_edge(
+                database, source_id, edge_type, target_id, transaction_id=transaction_id
+            )
+            self._end_call(database, transaction_id)
 
     def update_edge(self, database, source_id, edge_type, target_id, properties, transaction_id=None) -> None:
-        self._begin_call(database, transaction_id)
-        super().update_edge(database, source_id, edge_type, target_id, properties, transaction_id=transaction_id)
-        self._end_call(database, transaction_id)
+        with self._lock(database):
+            self._begin_call(database, transaction_id)
+            super().update_edge(
+                database, source_id, edge_type, target_id, properties, transaction_id=transaction_id
+            )
+            self._end_call(database, transaction_id)
 
     def match_edges(self, database, edge_type=None, source_id=None, target_id=None, properties=None, transaction_id=None) -> list[dict]:
         self._begin_call(database, transaction_id)
@@ -167,9 +190,10 @@ class FileGraphSource(MemoryGraphSource):
     def commit_transaction(self, transaction_id: str) -> None:
         self._hydrate_transaction(transaction_id)
         database = self._transactions[transaction_id].database
-        super().commit_transaction(transaction_id)
-        self._save(database)
-        self._delete_transaction_file(database, transaction_id)
+        with self._lock(database):
+            super().commit_transaction(transaction_id)
+            self._save(database)
+            self._delete_transaction_file(database, transaction_id)
 
     def rollback_transaction(self, transaction_id: str) -> None:
         self._hydrate_transaction(transaction_id)
@@ -199,11 +223,12 @@ class FileGraphSource(MemoryGraphSource):
 
     def create_database(self, database, properties=None, overwrite=False) -> dict:
         path = self._db_path(database)
-        if os.path.exists(path) and not overwrite:
-            return {"status": "skipped"}
-        self._nodes[database] = {}
-        self._edges[database] = {}
-        self._save(database)
+        with self._lock(database):
+            if os.path.exists(path) and not overwrite:
+                return {"status": "skipped"}
+            self._nodes[database] = {}
+            self._edges[database] = {}
+            self._save(database)
         return {"status": "success"}
 
     def fetch_databases(self) -> list[str]:

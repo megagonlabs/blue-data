@@ -5,8 +5,9 @@ import os
 from pathlib import Path
 from typing import Any
 
+from blue_data.core.utils.file_lock import file_lock, write_json_atomic
+from blue_data.core.utils.json_utils import json_query_delete, json_query_get, json_query_set
 from blue_data.source.json.json_source import JSONSource
-from blue_data.core.utils.json_utils import json_query_get, json_query_set, json_query_delete
 
 
 class FileJSONSource(JSONSource):
@@ -16,7 +17,10 @@ class FileJSONSource(JSONSource):
         super().__init__(name, properties=properties)
         self.path = self.properties["connection"]["path"]
         if not os.path.exists(self.path):
-            self._write({})
+            self._ensure_parent()
+            with file_lock(self.path):
+                if not os.path.exists(self.path):
+                    self._write({})
 
     def _initialize_connection_properties(self) -> None:
         conn = self.properties.get("connection", {})
@@ -25,11 +29,11 @@ class FileJSONSource(JSONSource):
         self.properties["connection"] = conn
 
     def _read(self) -> dict:
-        with open(self.path, "r", encoding="utf-8") as f:
+        with open(self.path, encoding="utf-8") as f:
             content = f.read().strip()
         return json.loads(content) if content else {}
 
-    def _write(self, data: dict) -> None:
+    def _ensure_parent(self) -> None:
         parent = Path(self.path).parent
         parent_existed = parent.exists()
         parent.mkdir(parents=True, exist_ok=True)
@@ -38,14 +42,11 @@ class FileJSONSource(JSONSource):
                 os.chmod(parent, 0o700)
             except PermissionError:
                 pass
-        tmp = self.path + ".tmp"
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        os.replace(tmp, self.path)
-        try:
-            os.chmod(self.path, 0o600)
-        except PermissionError:
-            pass
+
+    def _write(self, data: dict) -> None:
+        """Atomically replace the file; callers that read first must hold file_lock(self.path)."""
+        self._ensure_parent()
+        write_json_atomic(self.path, data, mode=0o600, indent=2, ensure_ascii=False)
 
     def get(self, path: str | None = None) -> Any:
         data = self._read()
@@ -54,20 +55,22 @@ class FileJSONSource(JSONSource):
         return json_query_get(data, path)
 
     def set(self, path: str | None, value: Any) -> None:
-        data = self._read()
-        if path in (None, "", "$"):
-            data = value
-        else:
-            json_query_set(data, path, value)
-        self._write(data)
+        with file_lock(self.path):
+            data = self._read()
+            if path in (None, "", "$"):
+                data = value
+            else:
+                json_query_set(data, path, value)
+            self._write(data)
 
     def delete(self, path: str | None = None) -> None:
-        data = self._read()
-        if path in (None, "", "$"):
-            data = {}
-        else:
-            json_query_delete(data, path)
-        self._write(data)
+        with file_lock(self.path):
+            data = self._read()
+            if path in (None, "", "$"):
+                data = {}
+            else:
+                json_query_delete(data, path)
+            self._write(data)
 
     # ---------- DataSource interface ----------
 
