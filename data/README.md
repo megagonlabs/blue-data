@@ -48,3 +48,18 @@ Databases: `california_schools`, `card_games`, `codebase_community`, `debit_card
 | File | Use |
 |---|---|
 | `search_benchmark_queries.json` | 20 registry search queries spanning both Northwind and finance schemas — used to evaluate hybrid BM25+vector search across mixed-source registries |
+
+## License & attribution
+
+These datasets include third-party content. See the **Disclosures** section of the
+[top-level README](../README.md) for the full table.
+
+- **BIRD** — the `bird/` databases, the BIRD-derived `finance_sqlite.sql`, and the
+  per-database discovery-query / entity-mapping annotations derive from the
+  [BIRD benchmark](https://bird-bench.github.io/), licensed
+  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Those portions
+  remain under CC BY-SA 4.0 (attribution + share-alike); the large `bird/*.sqlite`
+  databases are **not** redistributed here (git-ignored) — obtain them from the BIRD
+  project.
+- **Northwind** — adapted from the public Microsoft "Northwind" sample database
+  ([microsoft/sql-server-samples](https://github.com/microsoft/sql-server-samples), MIT License).
