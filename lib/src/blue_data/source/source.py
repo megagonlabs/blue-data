@@ -134,7 +134,9 @@ class DataSource:
     def fetch_database_schema(self, database: str) -> dict:
         return {}
 
-    def create_database(self, database: str, properties: dict | None = None) -> dict:
+    def create_database(
+        self, database: str, properties: dict | None = None, overwrite: bool = False
+    ) -> dict:
         return {}
 
     # ---------- collection ----------
@@ -193,6 +195,7 @@ class DataSource:
         database: str,
         collection: str,
         properties: dict | None = None,
+        overwrite: bool = False,
     ) -> dict:
         return {}
 
@@ -203,6 +206,7 @@ class DataSource:
         collection: str,
         entity: str,
         properties: dict | None = None,
+        overwrite: bool = False,
     ) -> dict:
         return {}
 
@@ -212,6 +216,7 @@ class DataSource:
         collection: str,
         relation: str,
         properties: dict | None = None,
+        overwrite: bool = False,
     ) -> dict:
         return {}
 
