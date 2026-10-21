@@ -95,3 +95,88 @@ For the full walkthrough — stats collection, LLM enrichment, hybrid search, an
 | [`platform/registry-cli/`](platform/registry-cli/README.md) | Command-line interface `blue-registry` over the core ops. Install: `pip install -e platform/registry-cli` |
 | [`platform/registry-mcp/`](platform/registry-mcp/README.md) | MCP server exposing registry ops as AI-callable tools, command `blue-data-registry-mcp`. Install: `pip install -e platform/registry-mcp` |
 | [`platform/json-mcp/`](platform/json-mcp/README.md) | MCP server for raw JSONSource key/value operations, command `blue-data-json-mcp`. Install: `pip install -e platform/json-mcp` |
+
+---
+
+## Code of Conduct
+
+This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
+By participating, you are expected to uphold this code. Report unacceptable behavior
+to contact_oss@megagon.ai.
+
+---
+
+## Disclosures
+
+This software may include, incorporate, or access open source software (OSS) components,
+datasets and other third party components, including those identified below. The license terms
+respectively governing the datasets and third-party components continue to govern those
+portions, and you agree to those license terms may limit any distribution, use, and copying.
+You may use any OSS components under the terms of their respective licenses, which may
+include BSD 3, Apache 2.0, and other licenses. In the event of conflicts between Megagon Labs,
+Inc. (“Megagon”) license conditions and the OSS license conditions, the applicable OSS
+conditions governing the corresponding OSS components shall prevail.
+You agree not to, and are not permitted to, distribute actual datasets used with the OSS
+components listed below. You agree and are limited to distribute only links to datasets from
+known sources by listing them in the datasets overview table below. You agree that any right to
+modify datasets originating from parties other than Megagon are governed by the respective
+third party’s license conditions.
+You agree that Megagon grants no license as to any of its intellectual property and patent rights.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS (INCLUDING
+MEGAGON) “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. You agree to cease using,
+incorporating, and distributing any part of the provided materials if you do not agree with the
+terms or the lack of any warranty herein.
+While Megagon makes commercially reasonable efforts to ensure that citations in this
+document are complete and accurate, errors may occur. If you see any error or omission, please
+help us improve this document by sending information to contact_oss@megagon.ai.
+
+### Datasets
+
+All datasets used within the product are listed below (including their copyright holders and the license information).
+
+For Datasets having different portions released under different licenses, please refer to the included source link specified for each of the respective datasets for identifications of dataset files released under the identified licenses.
+
+</br>
+
+| ID  | Dataset Name | Modified | Copyright Holder | Upstream Link | License  |
+|-----|----------------------------------|----------|------------------|-----------------------------------------------------------------------------------------------------------|--------------------|
+| 1 | BIRD benchmark databases (`data/bird/*` — fetched separately, not redistributed; derived subset `data/finance_sqlite.sql`; discovery-query and entity-mapping annotations) | Yes | BIRD benchmark authors (Li et al.) | [link](https://bird-bench.github.io/) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| 2 | Northwind sample database (`data/northwind_sqlite.sql`, `data/northwind_postgres.sql`) | Yes | Microsoft Corporation (original "Northwind" sample database) | [link](https://github.com/microsoft/sql-server-samples) | MIT License |
+
+### Open Source Software (OSS) Components
+
+All OSS components used within the product are listed below (including their copyright holders and the license information).
+
+For OSS components having different portions released under different licenses, please refer to the included Upstream link(s) specified for each of the respective OSS components for identifications of code files released under the identified licenses.
+
+</br>
+
+| ID  | OSS Component Name | Modified | Copyright Holder | Upstream Link | License  |
+|-----|----------------------------------|----------|------------------|-----------------------------------------------------------------------------------------------------------|--------------------|
+| 1 | anthropic | No | Anthropic, PBC | [link](https://github.com/anthropics/anthropic-sdk-python) | MIT License |
+| 2 | chromadb | No | Chroma | [link](https://github.com/chroma-core/chroma) | Apache Software License |
+| 3 | click | No | Pallets | [link](https://github.com/pallets/click) | BSD License |
+| 4 | fastapi | No | Sebastián Ramírez | [link](https://github.com/fastapi/fastapi) | MIT License |
+| 5 | jsonpath-ng | No | Tomas Aparicio | [link](https://github.com/h2non/jsonpath-ng) | Apache Software License |
+| 6 | MCP | No | Anthropic, PBC | [link](https://github.com/modelcontextprotocol/python-sdk) | MIT License |
+| 7 | mysql-connector-python | No | Oracle and/or its affiliates | [link](https://dev.mysql.com/doc/connector-python/en/) | GNU General Public License |
+| 8 | networkx | No | NetworkX Developers | [link](https://github.com/networkx/networkx) | BSD License |
+| 9 | neo4j | No | Neo4j, Inc. | [link](https://github.com/neo4j/neo4j-python-driver) | Apache Software License |
+| 10 | numpy | No | NumPy Developers | [link](https://numpy.org/) | BSD License |
+| 11 | pandas | No | AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development Team | [link](https://pandas.pydata.org/) | BSD License |
+| 12 | pgmpy | No | pgmpy contributors | [link](https://github.com/pgmpy/pgmpy) | MIT License |
+| 13 | psycopg2-binary | No | Federico Di Gregorio, Daniele Varrazzo, and The Psycopg Team | [link](https://github.com/psycopg/psycopg2) | GNU Lesser General Public License (LGPL) |
+| 14 | pyarrow | No | The Apache Software Foundation | [link](https://github.com/apache/arrow) | Apache Software License |
+| 15 | pydantic | No | Pydantic Services Inc. and individual contributors | [link](https://github.com/pydantic/pydantic) | MIT License |
+| 16 | pymongo | No | MongoDB, Inc. | [link](https://github.com/mongodb/mongo-python-driver) | Apache Software License |
+| 17 | redis | No | Redis, inc. | [link](https://github.com/redis/redis-py) | MIT License |
+| 18 | rich | No | Will McGugan | [link](https://github.com/Textualize/rich) | MIT License |
+| 19 | uvicorn | No | Encode OSS Ltd | [link](https://github.com/encode/uvicorn) | BSD License |
