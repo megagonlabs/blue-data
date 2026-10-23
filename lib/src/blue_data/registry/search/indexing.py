@@ -111,6 +111,10 @@ class RecordIndexer:
         embedding = self.embedding_fn(text)
 
         doc = {
+            # Store the composite id so per-record KNN can filter by @id:{...}.
+            # Without it the Redis index has no field matching the filter and every
+            # per-record lookup returns no rows (score_record -> None), #179.
+            "id": doc_id,
             "embedding": embedding,
             "name": name,
             "type": rtype,

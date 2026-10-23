@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from typing import Callable
 
@@ -10,6 +11,27 @@ def _escape_tag(value: str) -> str:
     """Escape RediSearch TAG special characters so an exact `@id:{...}` filter
     matches keys containing `/`, `:`, `-`, etc. (record ids are `scope/type/name`)."""
     return re.sub(r"([^a-zA-Z0-9_])", r"\\\1", value)
+
+
+def _coerce_vector(value):
+    """Coerce a stored embedding into a ``list[float]``.
+
+    MemoryVectorSource returns the embedding as a list of floats, but
+    RedisVectorSource returns the JSON source of the vector field as a string
+    (e.g. ``"[0.35, ...]"``). Returns ``None`` when the value can't be read as a
+    numeric vector, so scoring a string embedding yields no signal instead of
+    raising ValueError."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except (ValueError, TypeError):
+            return None
+    try:
+        return [float(x) for x in value]
+    except (TypeError, ValueError):
+        return None
 
 
 class VectorSearch:
@@ -95,10 +117,13 @@ class VectorSearch:
             return None
 
         doc = results[0]
-        score = self.compute_similarity(query_vector, doc.get("embedding"))
+        embedding = _coerce_vector(doc.get("embedding"))
+        if embedding is None:
+            return None
+        score = self.compute_similarity(query_vector, embedding)
 
         if params.get("enable_schema") and record.get("type") == "collection":
-            schema_vec = doc.get("schema_embedding")
+            schema_vec = _coerce_vector(doc.get("schema_embedding"))
             if schema_vec is not None:
                 score = max(score, self.compute_similarity(query_vector, schema_vec))
 

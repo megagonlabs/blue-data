@@ -213,6 +213,37 @@ def test_search_records_with_redis_vector(registry):
     assert results[0]["name"] == "users"
 
 
+def test_redis_vector_gives_nonnull_signal(registry):
+    # #179: per-record KNN must find the indexed record and return a real vector
+    # score — not None (which forced a BM25-only fallback on Redis).
+    from blue_data.registry.search.vector_search import VectorSearch
+    from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
+
+    scope = "/source/mydb/database/prod/collection/public"
+    registry.register_record(
+        name="orders", type="entity", scope=scope, description="customer purchase orders"
+    )
+
+    vs = RedisVectorSource(
+        "probe",
+        properties={
+            "connection": {
+                "host": REDIS_HOST,
+                "port": REDIS_PORT,
+                "db": TEST_DB,
+                "scan_prefix": TEST_SCAN_PREFIX,
+            }
+        },
+    )
+    searcher = VectorSearch(
+        vector_source=vs, embedding_fn=simple_embedding, index_name=TEST_INDEX, vector_dim=DIM
+    )
+    rec = {"name": "orders", "type": "entity", "scope": scope}
+    score = searcher.score_record(rec, simple_embedding("orders"), {})
+    assert score is not None
+    assert score == pytest.approx(1.0, abs=0.05)
+
+
 def test_search_type_filter_with_redis(registry):
     registry.register_record(name="users", type="entity", scope="/source/mydb/database/prod/collection/public")
     registry.register_record(name="prod", type="database", scope="/source/mydb")
