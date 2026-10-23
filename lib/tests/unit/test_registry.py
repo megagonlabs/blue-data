@@ -37,6 +37,42 @@ def test_deregister_record(registry):
     assert registry.get_record("users", "entity", "/source/mydb") is None
 
 
+def _register_source_tree(registry):
+    """Register a source -> database -> collection -> entity -> attribute chain."""
+    registry.register_record(name="src", type="source", scope="/")
+    registry.register_record(name="shop", type="database", scope="/source/src")
+    registry.register_record(name="public", type="collection", scope="/source/src/database/shop")
+    registry.register_record(
+        name="orders", type="entity", scope="/source/src/database/shop/collection/public"
+    )
+    registry.register_record(
+        name="total",
+        type="attribute",
+        scope="/source/src/database/shop/collection/public/entity/orders",
+    )
+
+
+def test_deregister_record_cascades_to_descendants(registry):
+    # design/06 #92: deregistering a source must remove every descendant record.
+    _register_source_tree(registry)
+    assert len(registry.list_records()) == 5
+
+    registry.deregister_record("src", "source", "/")
+
+    assert registry.list_records() == []
+
+
+def test_deregister_record_cascade_is_scoped_to_subtree(registry):
+    # Deregistering an intermediate node removes only its own subtree.
+    _register_source_tree(registry)
+    registry.register_record(name="other", type="database", scope="/source/src")
+
+    registry.deregister_record("shop", "database", "/source/src")
+
+    remaining = sorted(f"{r['type']}:{r['name']}" for r in registry.list_records())
+    assert remaining == ["database:other", "source:src"]
+
+
 def test_set_and_get_record_property(registry):
     registry.register_record(name="users", type="entity", scope="/source/mydb")
     registry.set_record_property("users", "entity", "/source/mydb", "stats", {"row_count": 42})
