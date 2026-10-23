@@ -60,6 +60,14 @@ from blue_data.registry.enrichment.metadata_utils import (
 )
 
 
+def _is_llm_sourced(value_semantics) -> bool:
+    """True when ``value_semantics`` was written by the LLM VSI step rather than
+    the deterministic base layer. The VSI step stamps ``source: "llm"`` on what it
+    writes, so this gates VSI by provenance: it runs when only a deterministic (or
+    no) value_semantics is present, and is skipped once an LLM result exists (#98)."""
+    return isinstance(value_semantics, dict) and value_semantics.get("source") == "llm"
+
+
 class MetaData:
     """Rich metadata enrichment pipeline (LLM-augmented, deterministic fallback)."""
 
@@ -1785,8 +1793,10 @@ Return JSON ONLY:
                 if attr.get("properties", {}).get("stats")
                 and (
                     rebuild
-                    or not data_registry.get_source_database_collection_entity_attribute_property(
-                        source, database, collection, entity_name, attr.get("name"), "value_semantics"
+                    or not _is_llm_sourced(
+                        data_registry.get_source_database_collection_entity_attribute_property(
+                            source, database, collection, entity_name, attr.get("name"), "value_semantics"
+                        )
                     )
                 )
             ]
@@ -1796,6 +1806,9 @@ Return JSON ONLY:
                     attr_name = attr.get("name")
                     vsi = vsi_results.get(attr_name)
                     if vsi:
+                        # Stamp provenance so the base layer won't clobber it and a
+                        # later rebuild=False pass won't re-run VSI (#98).
+                        vsi = {**vsi, "source": "llm"}
                         data_registry.set_source_database_collection_entity_attribute_property(source, database, collection, entity_name, attr_name, "value_semantics", vsi, rebuild=rebuild)
 
         # SDI (batched — one LLM call for all attributes; avoids O(N²) token cost

@@ -1597,13 +1597,23 @@ class DataRegistry(Registry):
         collection: str,
         entity: str,
         attribute: str,
+        rebuild: bool = False,
     ):
         """Infer and store semantic type information for *attribute*.
 
         Reads existing stats (or collects them on the fly) to obtain sample
         values, runs them through the ``SemanticTypeInferencer``, and writes
         the result as the ``value_semantics`` property on the attribute record.
+
+        The deterministic base layer never clobbers a richer LLM-sourced
+        ``value_semantics`` (``source == "llm"``) on a ``rebuild=False`` pass (#98).
         """
+        existing = self.get_source_database_collection_entity_attribute_property(
+            source, database, collection, entity, attribute, "value_semantics",
+        )
+        if not rebuild and isinstance(existing, dict) and existing.get("source") == "llm":
+            return existing
+
         stats = self.get_source_database_collection_entity_attribute_property(
             source,
             database,
@@ -1637,8 +1647,12 @@ class DataRegistry(Registry):
 
         return semantic_info
 
-    def enrich_source(self, source: str):
-        """Run deterministic semantic type enrichment on every attribute across all databases and collections."""
+    def enrich_source(self, source: str, rebuild: bool = False):
+        """Run deterministic semantic type enrichment on every attribute across all databases and collections.
+
+        With ``rebuild=False`` an attribute that already carries an LLM-sourced
+        ``value_semantics`` is left untouched so the base layer does not overwrite
+        a richer VSI result (#98)."""
         for database_record in self.list_source_databases(source):
             database = database_record["name"]
 
@@ -1659,6 +1673,7 @@ class DataRegistry(Registry):
                             collection,
                             entity,
                             attribute,
+                            rebuild=rebuild,
                         )
 
     def enrich_source_metadata(
@@ -1684,7 +1699,7 @@ class DataRegistry(Registry):
             def on_progress(entity_name, database, collection, done, total):
                 ...
         """
-        self.enrich_source(source)
+        self.enrich_source(source, rebuild=rebuild)
         if self.metadata_enricher is not None:
             # Count total entities upfront so on_progress can report X/N.
             total = 0
