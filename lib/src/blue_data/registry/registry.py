@@ -86,8 +86,23 @@ class Registry:
         
 
     def deregister_record(self, name, type, scope="/", rebuild: bool | None = None):
+        # Remove the record and all its descendants (design/06): a descendant is any
+        # record whose scope is this record's path or nested beneath it. Without this,
+        # deregistering a source/database/collection/entity leaves orphaned children in
+        # the store and the search index. Snapshot descendants before deleting anything.
+        path = f"{scope.rstrip('/')}/{type}/{name}"
+        descendants = [
+            r
+            for r in self.list_records()
+            if r.get("scope") == path or r.get("scope", "").startswith(path + "/")
+        ]
+
         self.store.delete(self._record_key(name, type, scope))
         self._on_record_deleted(name, type, scope, rebuild=rebuild)
+
+        for child in descendants:
+            self.store.delete(self._record_key(child["name"], child["type"], child["scope"]))
+            self._on_record_deleted(child["name"], child["type"], child["scope"], rebuild=rebuild)
 
     def _record_key(self, name, type, scope="/"):
         # Encode so the flat key is never split by the stores on "." (or Redis "*"/"?").
