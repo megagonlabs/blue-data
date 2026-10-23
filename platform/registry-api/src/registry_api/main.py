@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="blue-data Registry API",
     description="REST API for discovering, exploring, and enriching data assets.",
-    version="0.1.0",
+    version="1.0.0",
     lifespan=lifespan,
     dependencies=[Depends(require_api_key), Depends(require_safe_content_type)],
 )
