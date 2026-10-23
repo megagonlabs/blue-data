@@ -254,8 +254,10 @@ class RedisVectorSource(VectorSource):
         algorithm = query.get("algorithm", "HNSW")
         metric = query.get("metric", query.get("distance_metric", "COSINE"))
 
-        # Always index node_id/type/name so RETURN projections work for any caller.
+        # Always index id/node_id/type/name so RETURN projections and the registry's
+        # per-record @id:{...} filter work for any caller (#179).
         _standard_fields = [
+            ("$.id",      "id",      "TAG"),
             ("$.node_id", "node_id", "TAG"),
             ("$.type",    "type",    "TAG"),
             ("$.name",    "name",    "TAG"),
