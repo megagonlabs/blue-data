@@ -1741,7 +1741,7 @@ Return JSON ONLY:
     # Top-level collection enrichment methods
     # ------------------------------------------------------------------
 
-    def _write_entity_and_attribute_descriptions(self, data_registry, source, database, collection, entity_name, parsed, rebuild):
+    def _write_entity_and_attribute_descriptions(self, data_registry, source, database, collection, entity_name, parsed, rebuild, attributes=None):
         table_desc = parsed.get("table_description", "")
         attribute_descs = parsed.get("attributes", {})
 
@@ -1751,7 +1751,16 @@ Return JSON ONLY:
                 data_registry.set_source_database_collection_entity_description(source, database, collection, entity_name, table_desc, rebuild=rebuild)
 
         if self.properties.get("enable_attribute_description_generation", True):
+            # LLM output is untrusted: only write descriptions for attributes that
+            # exist in the registry, so one hallucinated name doesn't raise and abort
+            # enrich_source_metadata for the whole source (#99).
+            known = None if attributes is None else {a.get("name") for a in attributes}
             for attr, desc in attribute_descs.items():
+                if known is not None and attr not in known:
+                    self.logger.warning(
+                        "Skipping LLM description for unknown attribute %s.%s", entity_name, attr
+                    )
+                    continue
                 current = data_registry.get_source_database_collection_entity_attribute_description(source, database, collection, entity_name, attr)
                 if not current or current.strip() == "" or rebuild:
                     data_registry.set_source_database_collection_entity_attribute_description(source, database, collection, entity_name, attr, desc, rebuild=rebuild)
@@ -1777,7 +1786,7 @@ Return JSON ONLY:
                 return None
         except Exception:
             return None
-        return self._write_entity_and_attribute_descriptions(data_registry, source, database, collection, entity_name, parsed, rebuild)
+        return self._write_entity_and_attribute_descriptions(data_registry, source, database, collection, entity_name, parsed, rebuild, attributes=attributes)
 
     def enrich_attributes(self, data_registry, source, database, collection, entity_name, attributes, rebuild):
         """Run per-attribute enrichment: VSI, SDI, DCM, IVS, quantitative VST, total/component, and safe aggregation.
@@ -2104,7 +2113,12 @@ Return JSON ONLY:
             entity_name = entity.get("name")
             attributes = data_registry.list_entity_attributes(source, database, collection, entity_name)
 
-            self.enrich_entity_full(data_registry, source, database, collection, entity, attributes, rebuild)
+            # Isolate per-entity failures: one entity raising (e.g. on untrusted LLM
+            # output) must not abort enrichment for the rest of the source (#99).
+            try:
+                self.enrich_entity_full(data_registry, source, database, collection, entity, attributes, rebuild)
+            except Exception:
+                self.logger.exception("Enrichment failed for entity %s; continuing", entity_name)
 
             desc = data_registry.get_source_database_collection_entity_description(source, database, collection, entity_name)
             entity_descriptions[entity_name] = desc
