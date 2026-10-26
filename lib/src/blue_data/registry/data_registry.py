@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import os
+import re
 
 from blue_data.registry.registry import Registry
 from blue_data.registry.search.registry_search import RegistrySearch
@@ -12,21 +14,66 @@ from blue_data.registry.enrichment.semantic_types import SemanticTypeInferencer
 
 
 _CREDENTIAL_KEYS = frozenset({
-    "password", "passwd", "pwd",
+    "password", "passwd", "pwd", "pass",
     "token", "access_token", "refresh_token",
     "secret", "client_secret", "api_secret",
-    "api_key", "private_key",
+    "api_key", "apikey", "private_key", "credentials",
 })
+
+# scheme://[user]:password@host  ->  scheme://[user]@host  (keep user, drop password)
+_URI_USERINFO_RE = re.compile(
+    r"(?P<scheme>[a-zA-Z][a-zA-Z0-9+.\-]*://)(?P<user>[^/@:\s]*):(?P<pw>[^/@\s]+)@"
+)
+
+
+def _strip_uri_userinfo(value: str) -> str:
+    """Strip the password from any connection-URI userinfo so it isn't persisted."""
+    return _URI_USERINFO_RE.sub(lambda m: f"{m.group('scheme')}{m.group('user')}@", value)
+
+
+def _sanitize_value(value):
+    if isinstance(value, dict):
+        return {
+            k: _sanitize_value(v)
+            for k, v in value.items()
+            if not (isinstance(k, str) and k.lower() in _CREDENTIAL_KEYS)
+        }
+    if isinstance(value, list):
+        return [_sanitize_value(v) for v in value]
+    if isinstance(value, str):
+        return _strip_uri_userinfo(value)
+    return value
 
 
 def _sanitize_properties(properties: dict) -> dict:
-    """Return a deep copy of *properties* with credential keys stripped from connection."""
-    props = copy.deepcopy(properties)
-    conn = props.get("connection")
-    if isinstance(conn, dict):
-        for key in _CREDENTIAL_KEYS:
-            conn.pop(key, None)
-    return props
+    """Return a copy of *properties* with credential keys removed at every depth and
+    passwords stripped from connection-URI userinfo (#100). Reference keys such as
+    ``password_env`` (an env-var NAME, not the secret) are preserved so connect_source
+    can resolve them after a restart."""
+    return _sanitize_value(properties)
+
+
+def _resolve_credential_references(properties: dict) -> dict:
+    """Resolve ``<key>_env`` references against the environment so a persisted source
+    can reconnect: ``{"password_env": "PGPASSWORD"}`` sets ``password`` from
+    ``os.environ["PGPASSWORD"]``. Only the reference (a name) is ever stored; the
+    secret is read from the environment at connect time (#100)."""
+    def resolve(obj):
+        if isinstance(obj, dict):
+            out = {k: resolve(v) for k, v in obj.items()}
+            for key in list(out):
+                if isinstance(key, str) and key.endswith("_env") and isinstance(out[key], str):
+                    target = key[: -len("_env")]
+                    if target and target not in out:
+                        env_value = os.environ.get(out[key])
+                        if env_value is not None:
+                            out[target] = env_value
+            return out
+        if isinstance(obj, list):
+            return [resolve(v) for v in obj]
+        return obj
+
+    return resolve(properties)
 
 
 class DataRegistry(Registry):
@@ -2458,6 +2505,9 @@ class DataRegistry(Registry):
         class_path = properties.get("_class")
         if not class_path:
             raise ValueError(f"Source '{source}' has no '_class' property — cannot instantiate")
+        # Resolve any stored <key>_env credential references from the environment so a
+        # persisted source reconnects after a restart without the secret on disk (#100).
+        properties = _resolve_credential_references(properties)
         from blue_data.source.source import DataSource as _DS
         source_obj = _DS.instantiate(class_path, source, properties=properties)
 
