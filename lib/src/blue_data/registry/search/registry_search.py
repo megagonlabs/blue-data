@@ -91,7 +91,7 @@ class RegistrySearch(SearchEngine):
                     continue
             if scope:
                 rscope = (r.get("scope") if isinstance(r, dict) else getattr(r, "scope", "/")) or "/"
-                if not rscope.startswith(scope):
+                if not (rscope == scope or rscope.startswith(scope.rstrip("/") + "/")):
                     continue
             vec = self.hybrid_engine.vector_searcher.score_record(r, query_vector, {})
             scored.append((vec, r))
@@ -130,21 +130,16 @@ class RegistrySearch(SearchEngine):
         **kwargs,
     ):
         records = self.registry.list_records()
-        if self.vector_source is not None and self.embedding_fn is not None:
-            return self.hybrid_engine.search_hierarchical(
-                records=records,
-                input_query=query,
-                record_type=type,
-                scope=scope,
-                page=page,
-                page_size=page_size,
-                **kwargs,
-            )
-        return self.keyword_engine.search(
+        # Always score through the hybrid engine so database/collection searches use
+        # the same scorer and result shape (record + _score) as every other type. It
+        # degrades to BM25 when no vector source is configured, rather than switching
+        # to a whole-query substring KeywordSearch with a {'record','score'} shape. #102
+        return self.hybrid_engine.search_hierarchical(
             records=records,
-            query=query,
-            scope=scope,
+            input_query=query,
             record_type=type,
+            scope=scope,
             page=page,
             page_size=page_size,
+            **kwargs,
         )
