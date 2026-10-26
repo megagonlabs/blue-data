@@ -20,10 +20,9 @@ class KeywordSearch:
                     continue
 
             if scope:
-                if not record.get(
-                    "scope",
-                    "",
-                ).startswith(scope):
+                rscope = record.get("scope", "") or ""
+                # Path-boundary match so '/source/db' doesn't match '/source/db2'. #102
+                if not (rscope == scope or rscope.startswith(scope.rstrip("/") + "/")):
                     continue
 
             score = 0

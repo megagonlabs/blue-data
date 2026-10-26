@@ -95,7 +95,9 @@ class HybridSearch:
             if scope:
                 rscope = r.get("scope") if isinstance(r, dict) else getattr(r, "scope", None)
                 rscope = rscope or "/"
-                if not rscope.startswith(scope):
+                # Match on path boundaries so '/source/db' does not also match
+                # '/source/db2' (raw prefix match). #102
+                if not (rscope == scope or rscope.startswith(scope.rstrip("/") + "/")):
                     continue
             out.append(r)
         return out
@@ -295,6 +297,11 @@ class HybridSearch:
             rtype = getattr(record, "type", "")
             if record_type and rtype != record_type:
                 continue
+            if scope:
+                rscope = getattr(record, "scope", "/") or "/"
+                # Path-boundary match so '/source/db' doesn't match '/source/db2'. #102
+                if not (rscope == scope or rscope.startswith(scope.rstrip("/") + "/")):
+                    continue
 
             descendant_ids: set[str] = set()
             self._collect_descendants(node_id, hierarchy, descendant_ids, hierarchical_types)
