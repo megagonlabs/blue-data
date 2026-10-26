@@ -326,9 +326,21 @@ def source_metadata(ctx: click.Context, name: str, rebuild: bool):
 
                 reg.enrich_source_metadata(name, recursive=True, rebuild=rebuild,
                                            on_progress=on_progress)
-        _status(f"Metadata enrichment complete for '{name}'.", fmt)
     except Exception as e:
         _err("COMMAND_FAILED", str(e))
+
+    # A run where every LLM call failed (e.g. a model the provider rejects) must not
+    # report success and exit 0. #101
+    enricher = getattr(reg, "metadata_enricher", None)
+    if enricher is not None and getattr(enricher, "llm_call_count", 0) > 0 \
+            and getattr(enricher, "llm_success_count", 0) == 0:
+        _err(
+            "ENRICHMENT_FAILED",
+            f"All {enricher.llm_call_count} LLM calls failed for '{name}'; "
+            f"check BLUE_DATA_LLM_PROVIDER / model configuration.",
+        )
+
+    _status(f"Metadata enrichment complete for '{name}'.", fmt)
 
 
 @source.command("query")

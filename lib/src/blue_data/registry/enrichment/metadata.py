@@ -203,6 +203,11 @@ class MetaData:
         self.current_entity_row_samples: list[dict] = []
         self.current_entity_attributes: list[dict] = []
 
+        # LLM call accounting so callers can detect a run where every call failed
+        # (e.g. a wrong model sent to the provider) instead of reporting success. #101
+        self.llm_call_count = 0
+        self.llm_success_count = 0
+
     # ------------------------------------------------------------------
     # LLM helpers
     # ------------------------------------------------------------------
@@ -210,8 +215,11 @@ class MetaData:
     def _call_llm(self, prompt: str) -> str | None:
         if self._llm_fn is None:
             return None
+        self.llm_call_count += 1
         try:
-            return self._llm_fn(prompt)
+            result = self._llm_fn(prompt)
+            self.llm_success_count += 1
+            return result
         except Exception as e:
             self.logger.warning(f"LLM call failed: {e}")
             return None
