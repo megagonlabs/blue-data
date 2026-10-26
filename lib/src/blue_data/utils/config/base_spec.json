@@ -12,15 +12,15 @@
     "cast": "secret"
   },
   "BLUE_DATA_LLM_PROVIDER": {
-    "default": "openai",
-    "prompt": "Default LLM provider",
+    "default": "",
+    "prompt": "Default LLM provider (anthropic or openai; blank = deterministic-only)",
     "required": false,
     "cast": "str"
   },
   "BLUE_DATA_LLM_MODEL": {
-    "default": "gpt-4o",
-    "prompt": "Default LLM model",
-    "required": true,
+    "default": null,
+    "prompt": "Default LLM model (blank = provider default: claude-opus-4-8 / gpt-4o)",
+    "required": false,
     "cast": "str"
   },
   "BLUE_DATA_CLI_FORMAT": {

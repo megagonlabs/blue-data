@@ -120,7 +120,14 @@ def build_enricher():
         if api_key:
             try:
                 import anthropic
-                model = os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL") or os.environ.get("BLUE_DATA_LLM_MODEL", "claude-opus-4-8")
+                # Resolve the model after the provider: an empty/unset BLUE_DATA_LLM_MODEL
+                # must fall through to the Anthropic default, not a cross-provider value
+                # (e.g. the family default gpt-4o exported by the CLI). #101
+                model = (
+                    os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL")
+                    or os.environ.get("BLUE_DATA_LLM_MODEL")
+                    or "claude-opus-4-8"
+                )
                 client = anthropic.Anthropic(api_key=api_key)
 
                 def llm_fn(prompt: str) -> str:
@@ -142,7 +149,13 @@ def build_enricher():
         if api_key:
             try:
                 import openai
-                model = os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL") or os.environ.get("BLUE_DATA_LLM_MODEL", "gpt-4o")
+                # Resolve the model after the provider (#101): empty/unset falls
+                # through to the OpenAI default rather than a cross-provider value.
+                model = (
+                    os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL")
+                    or os.environ.get("BLUE_DATA_LLM_MODEL")
+                    or "gpt-4o"
+                )
                 client = openai.OpenAI(api_key=api_key)
 
                 def llm_fn(prompt: str) -> str:
