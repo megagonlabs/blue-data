@@ -1,9 +1,27 @@
 from __future__ import annotations
 
 import math
+import re
 from typing import Any
 
 import numpy as np
+
+
+# Split camelCase / PascalCase and acronym boundaries: shipCountry -> ship Country,
+# HTTPServer -> HTTP Server.
+_CAMEL_BOUNDARY_RE = re.compile(r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
+_NON_ALNUM_RE = re.compile(r"[^A-Za-z0-9]+")
+
+
+def tokenize_text(text: str) -> list[str]:
+    """Lowercase, split on non-alphanumerics (``_``, punctuation, whitespace) and
+    camelCase boundaries, and drop empties. So ``order_date`` and ``ShipCountry``
+    tokenize to the same words a natural-language query produces, and trailing
+    punctuation (``freight?``) is ignored. #103"""
+    if not text:
+        return []
+    spaced = _CAMEL_BOUNDARY_RE.sub(" ", str(text))
+    return [t.lower() for t in _NON_ALNUM_RE.split(spaced) if t]
 
 
 def compute_bm25_score(
@@ -15,17 +33,15 @@ def compute_bm25_score(
 
     Without a corpus, IDF is omitted and only the TF saturation term is used.
     schema_text is appended to the document when provided (used for collections).
+    Tokenization splits snake_case / camelCase and strips punctuation (#103).
     """
     k1 = 1.5
     b = 0.75
 
-    def tokenize(text: str) -> list[str]:
-        return text.lower().split()
-
-    query_tokens = tokenize(query) if query else []
-    doc_tokens = tokenize(doc_text)
+    query_tokens = tokenize_text(query) if query else []
+    doc_tokens = tokenize_text(doc_text)
     if schema_text:
-        doc_tokens = doc_tokens + tokenize(schema_text)
+        doc_tokens = doc_tokens + tokenize_text(schema_text)
 
     if not doc_tokens or not query_tokens:
         return 0.0
