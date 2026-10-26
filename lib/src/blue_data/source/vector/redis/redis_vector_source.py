@@ -208,8 +208,19 @@ class RedisVectorSource(VectorSource):
 
         return value
 
+    def _namespaced_index(self, index_name):
+        """Scope the FT index name by scan_prefix. Index names are global per Redis
+        database, so a fixed name (registry_index, a collection name, 'web', ...)
+        would be shared by two tenants with different scan_prefix values — the second
+        silently reuses the first's index and gets its data. Keys are already
+        scan_prefix-scoped; the index name must be too. Idempotent. #181"""
+        scan_prefix = self.properties.get("connection", {}).get("scan_prefix") or ""
+        if index_name and scan_prefix and not str(index_name).startswith(scan_prefix):
+            return f"{scan_prefix}{index_name}"
+        return index_name
+
     def _ft_info(self, index_name):
-        raw = self.connection.execute_command("FT.INFO", index_name)
+        raw = self.connection.execute_command("FT.INFO", self._namespaced_index(index_name))
 
         if isinstance(raw, dict):
             return self._decode_value(raw)
@@ -248,6 +259,7 @@ class RedisVectorSource(VectorSource):
             )
 
         prefix = f"{scan_prefix}{collection}:"
+        index_name = self._namespaced_index(index_name)
 
         vector_path = query.get("path", query.get("vector_path", "$.embedding"))
         vector_field = query.get("field", query.get("vector_field", "embedding"))
@@ -296,6 +308,7 @@ class RedisVectorSource(VectorSource):
         index_name = query.get("index")
         if not index_name:
             raise Exception("VECTOR.KNN requires index")
+        index_name = self._namespaced_index(index_name)
 
         vector = query.get("vector", query.get("embedding"))
 
@@ -425,6 +438,62 @@ class RedisVectorSource(VectorSource):
             rows.append(row)
         return rows
 
+    def _existing_index_matches(self, index_name, expected_prefix, dim):
+        """Best-effort check that an existing index targets *expected_prefix* with the
+        given *dim*, parsed from FT.INFO. Returns ``False`` only on a confirmed
+        mismatch; ``True`` when it matches; ``None`` when it can't be determined (so
+        create_index stays idempotent instead of raising spuriously). #181"""
+        try:
+            info = self._ft_info(index_name)
+        except Exception:
+            return None
+        if not isinstance(info, dict):
+            return None
+
+        def _to_dict(value):
+            if isinstance(value, dict):
+                return value
+            if isinstance(value, (list, tuple)):
+                return {
+                    self._decode_value(value[i]): value[i + 1]
+                    for i in range(0, len(value) - 1, 2)
+                }
+            return {}
+
+        prefixes = None
+        defn = _to_dict(info.get("index_definition"))
+        raw_prefixes = defn.get("prefixes", defn.get("prefix"))
+        if raw_prefixes is not None:
+            if not isinstance(raw_prefixes, (list, tuple)):
+                raw_prefixes = [raw_prefixes]
+            prefixes = [self._decode_value(p) for p in raw_prefixes]
+            if expected_prefix not in prefixes:
+                return False
+
+        dim_found = None
+        attrs = info.get("attributes")
+        if isinstance(attrs, (list, tuple)):
+            for attr in attrs:
+                flat = list(attr) if isinstance(attr, (list, tuple)) else None
+                if flat is None and isinstance(attr, dict):
+                    flat = [x for pair in attr.items() for x in pair]
+                if not flat:
+                    continue
+                decoded = [self._decode_value(x) for x in flat]
+                if "dim" in decoded:
+                    j = decoded.index("dim")
+                    if j + 1 < len(decoded):
+                        try:
+                            dim_found = int(decoded[j + 1])
+                        except (TypeError, ValueError):
+                            dim_found = None
+        if dim_found is not None and dim is not None and dim_found != dim:
+            return False
+
+        if prefixes is None and dim_found is None:
+            return None
+        return True
+
     # ---------- primitive operations ----------
 
     def create_index(
@@ -450,7 +519,16 @@ class RedisVectorSource(VectorSource):
             return self.connection.execute_command(*self._build_create_index_command(query))
         except Exception as e:
             if "already exists" in str(e).lower():
-                self.logger.info("RedisVector index '%s' already exists; skipping create.", index_name)
+                # Don't blindly reuse: an existing index whose PREFIX or DIM differs
+                # would serve another tenant's data (or mismatched vectors). #181
+                expected_prefix = f"{conn.get('scan_prefix')}{collection}:"
+                if self._existing_index_matches(index_name, expected_prefix, dim) is False:
+                    raise Exception(
+                        f"RedisVector index '{self._namespaced_index(index_name)}' already "
+                        f"exists with a different prefix or dimension (expected prefix "
+                        f"'{expected_prefix}', dim {dim}); refusing to reuse it."
+                    )
+                self.logger.info("RedisVector index '%s' already exists; reusing.", index_name)
                 return "OK"
             self.logger.error(f"RedisVector create_index failed: {e}")
             raise
