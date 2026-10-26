@@ -364,11 +364,11 @@ class RedisVectorSource(VectorSource):
 
         return command
 
-    def _parse_search_results(self, response):
+    def _parse_search_results(self, response, score_field="score"):
         # RESP3 returns FT.SEARCH as a mapping ({"results": [...]}); RESP2 returns a
         # flat [total, id, fields, id, fields, ...] list.
         if isinstance(response, dict):
-            return self._parse_resp3_results(response)
+            return self._parse_resp3_results(response, score_field=score_field)
         if not isinstance(response, (list, tuple)) or len(response) == 0:
             return []
 
@@ -401,11 +401,22 @@ class RedisVectorSource(VectorSource):
                         except Exception:
                             pass
 
-                    row[name] = decoded_value
+                    row[name] = self._coerce_score(decoded_value) if name == score_field else decoded_value
 
             rows.append(row)
 
         return rows
+
+    @staticmethod
+    def _coerce_score(value):
+        """KNN distance must be numeric. Redis returns the score field as a string
+        (e.g. '4.99e-05'), while MemoryVectorSource returns a float, so consumers
+        that sort on it get lexicographic order. Coerce to float; leave a
+        non-numeric value unchanged. #180"""
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return value
 
     @staticmethod
     def _dget(mapping, key):
@@ -415,7 +426,7 @@ class RedisVectorSource(VectorSource):
         bkey = key.encode() if isinstance(key, str) else key
         return mapping.get(bkey)
 
-    def _parse_resp3_results(self, response):
+    def _parse_resp3_results(self, response, score_field="score"):
         rows = []
         for item in self._dget(response, "results") or []:
             if not isinstance(item, dict):
@@ -434,7 +445,7 @@ class RedisVectorSource(VectorSource):
                             continue
                         except Exception:
                             pass
-                    row[name] = value
+                    row[name] = self._coerce_score(value) if name == score_field else value
             rows.append(row)
         return rows
 
@@ -574,7 +585,7 @@ class RedisVectorSource(VectorSource):
         }
         try:
             response = self.connection.execute_command(*self._build_knn_command(query))
-            return self._parse_search_results(response)
+            return self._parse_search_results(response, score_field=score_alias)
         except Exception as e:
             self.logger.error(f"RedisVector knn failed: {e}")
             raise

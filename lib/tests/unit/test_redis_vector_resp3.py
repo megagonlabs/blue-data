@@ -42,7 +42,7 @@ def test_parse_resp2_list_reply(vec):
     assert len(rows) == 1
     assert rows[0]["id"] == "t:web:1"
     assert rows[0]["document"] == {"text": "hello", "url": "http://x"}
-    assert rows[0]["score"] == "0.12"
+    assert rows[0]["score"] == 0.12 and isinstance(rows[0]["score"], float)  # #180
 
 
 def test_parse_resp3_mapping_reply(vec):
@@ -57,7 +57,7 @@ def test_parse_resp3_mapping_reply(vec):
     assert len(rows) == 1
     assert rows[0]["id"] == "t:web:1"
     assert rows[0]["document"] == {"text": "hello", "url": "http://x"}
-    assert rows[0]["score"] == "0.12"
+    assert rows[0]["score"] == 0.12 and isinstance(rows[0]["score"], float)  # #180
 
 
 def test_parse_resp3_bytes_keys(vec):
@@ -71,4 +71,4 @@ def test_parse_resp3_bytes_keys(vec):
     rows = vec._parse_search_results(resp)
     assert rows and rows[0]["id"] == "t:web:2"
     assert rows[0]["document"] == {"text": "hi"}
-    assert rows[0]["score"] == "0.5"
+    assert rows[0]["score"] == 0.5 and isinstance(rows[0]["score"], float)  # #180
