@@ -41,6 +41,27 @@ class SQLiteDBSource(SQLSource):
 
     def _set_read_only(self, conn):
         conn.execute("PRAGMA query_only=ON")
+        # query_only=ON blocks writes to the main database but NOT ATTACH/DETACH or
+        # VACUUM INTO (which attaches its output file), both of which create files
+        # outside database_directory before the post-execution write guard can fire.
+        # The authorizer runs at statement-prepare time, so it refuses them before any
+        # file is written. #177
+        conn.set_authorizer(self._read_only_authorizer)
+
+    @staticmethod
+    def _read_only_authorizer(action, arg1, arg2, db_name, trigger_or_view):
+        if action in (sqlite3.SQLITE_ATTACH, sqlite3.SQLITE_DETACH):
+            return sqlite3.SQLITE_DENY
+        return sqlite3.SQLITE_OK
+
+    @staticmethod
+    def _is_read_only_error(exc) -> bool:
+        # Map the authorizer's refusal onto the write guard so a blocked ATTACH/VACUUM
+        # surfaces the same "pass commit=True" message as any other read-only write. #177
+        msg = str(exc).lower()
+        if "not authorized" in msg or "authorization denied" in msg:
+            return True
+        return SQLSource._is_read_only_error(exc)
 
    
     # database  path
