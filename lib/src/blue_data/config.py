@@ -109,6 +109,64 @@ def get_vector_dim() -> int:
     return _getenv_int("BLUE_DATA_REGISTRY_VECTOR_DIM", 1536)
 
 
+def build_embedding_fn():
+    """Build an embedding function from env vars, or None when no embedding provider
+    is configured — in which case registry search runs keyword/BM25-only. #108
+
+    Configure with BLUE_DATA_EMBEDDING_PROVIDER=openai (+ OPENAI_API_KEY) and,
+    optionally, BLUE_DATA_EMBEDDING_MODEL (default text-embedding-3-small)."""
+    provider = os.environ.get("BLUE_DATA_EMBEDDING_PROVIDER", "").lower()
+
+    if provider == "openai":
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key:
+            try:
+                import openai
+                model = os.environ.get("BLUE_DATA_EMBEDDING_MODEL", "text-embedding-3-small")
+                client = openai.OpenAI(api_key=api_key)
+
+                def embedding_fn(text: str) -> list[float]:
+                    resp = client.embeddings.create(model=model, input=text)
+                    return resp.data[0].embedding
+
+                return embedding_fn
+            except ImportError:
+                pass
+
+    return None
+
+
+def build_vector_source(embedding_fn=None):
+    """Build a VectorSource from env vars so the platforms get real hybrid search. #108
+
+    Returns None when *embedding_fn* is None — vector search needs embeddings, so
+    without a provider the registry stays keyword-only rather than wiring a dead
+    vector source. Defaults to MemoryVectorSource; set
+    BLUE_DATA_REGISTRY_VECTOR_SOURCE=redis for RedisVectorSource."""
+    if embedding_fn is None:
+        return None
+
+    vs_type = os.environ.get("BLUE_DATA_REGISTRY_VECTOR_SOURCE", "memory").lower()
+
+    if vs_type == "redis":
+        import urllib.parse
+        from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
+        url = os.environ.get("BLUE_DATA_REGISTRY_REDIS_URL", "redis://localhost:6379/0")
+        parsed = urllib.parse.urlparse(url)
+        scan_prefix = os.environ.get("BLUE_DATA_REGISTRY_VECTOR_SCAN_PREFIX", "blue_data_vec:")
+        return RedisVectorSource(name="registry_vectors", properties={
+            "connection": {
+                "host": parsed.hostname or "localhost",
+                "port": parsed.port or 6379,
+                "db": int((parsed.path or "/0").lstrip("/") or "0"),
+                "scan_prefix": scan_prefix,
+            },
+        })
+
+    from blue_data.source.vector.memory_vector_source import MemoryVectorSource
+    return MemoryVectorSource(name="registry_vectors")
+
+
 def build_enricher():
     """Build a MetaData enricher from env vars."""
     from blue_data.registry.enrichment.metadata import MetaData
