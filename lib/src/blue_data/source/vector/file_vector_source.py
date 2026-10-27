@@ -89,8 +89,12 @@ class FileVectorSource(VectorSource):
         return "OK"
 
     def delete(self, collection: str, doc_id: str) -> int:
+        # Return the number of documents actually removed (0 or 1), matching the
+        # VectorSource contract and RedisVectorSource — not 1 unconditionally.
         docs = self._load_collection(collection)
-        docs.pop(doc_id, None)
+        if doc_id not in docs:
+            return 0
+        del docs[doc_id]
         self._save_collection(collection, docs)
         return 1
 
