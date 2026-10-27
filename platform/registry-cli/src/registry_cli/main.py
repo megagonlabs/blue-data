@@ -19,10 +19,11 @@ from __future__ import annotations
 import json
 import os
 import sys
-from typing import Optional
+from typing import NoReturn, Optional
 
 import click
 
+from blue_data.utils.config.profiles import ProfileError
 from registry_cli.config import get_registry, reset_registry
 from registry_cli.profile import _cli_home, profile_group, profile_store, resolver_for
 
@@ -79,7 +80,7 @@ def _status(msg: str, fmt: str) -> None:
     click.echo(msg, err=(fmt == "json"))
 
 
-def _err(code: str, msg: str) -> None:
+def _err(code: str, msg: str) -> NoReturn:
     click.echo(f"ERROR: {code} {msg}", err=True)
     sys.exit(1)
 
@@ -116,16 +117,18 @@ def cli(ctx: click.Context, profile_name: Optional[str], fmt: Optional[str],
     # library, env-var-aware options, and downstream config readers all see them.
     # Command-line flags (--store, --config) applied below take precedence.
     resolver = resolver_for(home, profile_name)
-    resolver.export()
+    try:
+        resolver.export()
+        # fmt: command flag > profile BLUE_DATA_CLI_FORMAT > default "table"
+        effective_fmt = fmt or resolver.get("BLUE_DATA_CLI_FORMAT") or "table"
+    except ProfileError as e:
+        _err("CONFIG_ERROR", f"{e}. Use 'blue-registry profile list' to see available profiles.")
 
     # Explicit CLI flags override the profile-exported values.
     if store:
         os.environ["BLUE_DATA_REGISTRY_STORE"] = store
     if config_path:
         os.environ["BLUE_DATA_SOURCES_CONFIG"] = config_path
-
-    # fmt: command flag > profile BLUE_DATA_CLI_FORMAT > default "table"
-    effective_fmt = fmt or resolver.get("BLUE_DATA_CLI_FORMAT") or "table"
 
     ctx.ensure_object(dict)
     ctx.obj["fmt"]     = effective_fmt

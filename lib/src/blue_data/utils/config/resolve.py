@@ -23,7 +23,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from .profiles import DEFAULT_PROFILE, ProfileStore
+from .profiles import DEFAULT_PROFILE, ProfileError, ProfileStore
 from .secrets import decode
 from .spec import ConfigError, ConfigSpec, ParamSpec
 
@@ -52,13 +52,21 @@ class ConfigResolver:
     # -------------------------------------------------------------- #
 
     def profile_values(self) -> dict[str, str]:
-        """Stored values for the active profile — empty if it doesn't exist yet,
-        so a CLI works before anyone has run `profile add`."""
+        """Stored values for the active profile.
+
+        A missing requested/selected profile is a configuration error and raises
+        ProfileError — running silently against the environment and defaults hides
+        a misspelled --profile/BLUE_DATA_PROFILE or a selection pointing at a
+        renamed/removed profile (#88). The sole tolerated case is a fresh install
+        where the profiles file has not been created yet: the default profile is
+        allowed to be absent (ProfileStore.initialize() creates it)."""
         if self._values is None:
-            try:
+            if self.store.exists(self.profile):
                 self._values = self.store.values(self.profile)
-            except Exception:
+            elif self.profile == DEFAULT_PROFILE and not self.store.profiles_path.exists():
                 self._values = {}
+            else:
+                raise ProfileError(f"no such profile: {self.profile!r}")
         return self._values
 
     # -------------------------------------------------------------- #
