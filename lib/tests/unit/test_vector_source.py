@@ -110,15 +110,16 @@ def test_upsert_overwrites_existing_doc(src):
 def test_delete_existing_doc(src):
     _create(src)
     _upsert(src, "d1", _unit(0))
-    _delete(src, "d1")
+    assert _delete(src, "d1") == 1  # reports the one document removed
     results = _knn(src, _unit(0), k=10)
     assert all(r["id"] != "d1" for r in results)
 
 
-def test_delete_missing_doc_no_error(src):
+def test_delete_missing_doc_returns_zero(src):
+    # delete() returns the count actually removed, so a doc that was never stored
+    # reports 0 — not 1 (which made callers over-report deletions).
     _create(src)
-    result = _delete(src, "ghost")
-    assert result == 1
+    assert _delete(src, "ghost") == 0
 
 
 def test_delete_missing_collection_raises(src):

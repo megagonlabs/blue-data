@@ -176,8 +176,14 @@ class MemoryVectorSource(VectorSource):
         return "OK"
 
     def delete(self, collection: str, doc_id: str) -> int:
-        self._store.get(collection, {}).pop(doc_id, None)
-        return 1
+        # Return the number of documents actually removed (0 or 1), matching the
+        # VectorSource contract and RedisVectorSource — not 1 unconditionally, which
+        # made callers report deletions of documents that were never stored.
+        store = self._store.get(collection)
+        if store is not None and doc_id in store:
+            del store[doc_id]
+            return 1
+        return 0
 
     def knn(
         self,
