@@ -142,6 +142,25 @@ class DataRegistry(Registry):
             properties=safe_properties,
         )
 
+    def register_unavailable_source(self, name, class_path=None, properties=None, error=None):
+        """Register a source *record* (no live object) for a configured source that
+        could not be constructed/connected, so it still appears in list_sources marked
+        unavailable rather than failing the whole registry. Credentials are stripped as
+        in register_source. #106"""
+        safe_properties = _sanitize_properties(properties or {})
+        if class_path:
+            safe_properties["_class"] = class_path
+        safe_properties["status"] = "unavailable"
+        if error is not None:
+            safe_properties["error"] = str(error)
+        self.register_record(
+            name=name,
+            type="source",
+            scope="/",
+            description=f"{name} data source (unavailable)",
+            properties=safe_properties,
+        )
+
     def get_source(self, name: str) -> DataSource | None:
         """Return the live DataSource object for *name*, or None if not registered."""
         return self.sources.get(name)
