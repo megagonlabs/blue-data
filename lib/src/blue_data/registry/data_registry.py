@@ -433,19 +433,10 @@ class DataRegistry(Registry):
         def extra_tool_fn(name, tool_input):
             if name != "get_enriched_metadata":
                 raise ValueError(f"Unknown registry tool: {name!r}")
-            entity = tool_input["entity"]
-            attribute = tool_input.get("attribute")
-            if attribute:
-                record = self.get_source_database_collection_entity_attribute(
-                    source, database, collection, entity, attribute
-                )
-            else:
-                record = self.get_source_database_collection_entity(
-                    source, database, collection, entity
-                )
-            if record is None:
-                return {}
-            return record.get("properties", {}).get("metadata", {})
+            return self.get_enriched_metadata(
+                source, database, collection,
+                tool_input["entity"], tool_input.get("attribute"),
+            )
 
         return source_obj.execute_query_nl_tools(
             query=query,
@@ -457,6 +448,56 @@ class DataRegistry(Registry):
             extra_tools=extra_tools,
             extra_tool_fn=extra_tool_fn,
         )
+
+    # Enrichment written directly under record["properties"] by the metadata
+    # pipeline. get_enriched_metadata returns all of these (not just "metadata"),
+    # so the tool exposes the semantic enrichment its description promises. #82
+    _ENRICHMENT_PROPERTY_KEYS = (
+        "metadata",
+        "value_semantics",
+        "semantic_discovery",
+        "domain_concept",
+        "interpretive_semantics",
+        "value_axis",
+        "quantitative_vst",
+        "safe_aggregation",
+        "semantic_role",
+        "role_query_constraints",
+        "process_vst_role",
+        "time_grain_candidates",
+        "data_quality",
+        # entity-level
+        "process_semantics",
+        "process_patterns",
+        "process_trends",
+        "process_operators",
+        "process_query_constraints",
+        "total_component_measures",
+        "derived_metric_candidates",
+    )
+
+    def get_enriched_metadata(self, source, database, collection, entity, attribute=None):
+        """Return the enrichment stored on an entity/attribute record — value
+        semantics, semantic discovery, domain concepts, roles, aggregation hints,
+        process semantics, data quality, and ``metadata`` — plus the record
+        description. Backs the ``get_enriched_metadata`` NL tool, which previously
+        returned only ``properties["metadata"]`` and so hid most enrichment. #82"""
+        if attribute:
+            record = self.get_source_database_collection_entity_attribute(
+                source, database, collection, entity, attribute
+            )
+        else:
+            record = self.get_source_database_collection_entity(
+                source, database, collection, entity
+            )
+        if record is None:
+            return {}
+        props = record.get("properties", {}) or {}
+        result = {k: props[k] for k in self._ENRICHMENT_PROPERTY_KEYS if k in props}
+        description = record.get("description")
+        if description:
+            result["description"] = description
+        return result
 
     def build_schema_for_nl(
         self,
