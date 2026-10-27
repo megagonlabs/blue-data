@@ -7,7 +7,18 @@ this logic.
 from __future__ import annotations
 
 import json
+import logging
 import os
+
+logger = logging.getLogger(__name__)
+
+# Built-in source types -> fully-qualified class path (instantiated via DataSource).
+_SOURCE_TYPE_CLASSES = {
+    "sqlite": "blue_data.source.sql.sqlite.sqlite_sql_source.SQLiteDBSource",
+    "postgres": "blue_data.source.sql.postgres.postgres_sql_source.PostgresDBSource",
+    "mysql": "blue_data.source.sql.mysql.mysql_sql_source.MySQLDBSource",
+    "mongodb": "blue_data.source.json.mongodb.mongodb_json_source.MongoDBSource",
+}
 
 
 def _getenv_float(key: str, default: float) -> float:
@@ -246,29 +257,30 @@ def load_sources(registry) -> None:
         name = src.get("name")
         props = src.get("properties", {})
 
-        if src_type == "sqlite":
-            from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
-            registry.register_source(SQLiteDBSource(name=name, properties=props))
-        elif src_type == "postgres":
-            from blue_data.source.sql.postgres.postgres_sql_source import PostgresDBSource
-            registry.register_source(PostgresDBSource(name=name, properties=props))
-        elif src_type == "mysql":
-            from blue_data.source.sql.mysql.mysql_sql_source import MySQLDBSource
-            registry.register_source(MySQLDBSource(name=name, properties=props))
-        elif src_type == "mongodb":
-            from blue_data.source.json.mongodb.mongodb_json_source import MongoDBSource
-            registry.register_source(MongoDBSource(name=name, properties=props))
-        elif src_type == "class":
+        class_path = _SOURCE_TYPE_CLASSES.get(src_type)
+        if src_type == "class":
             # Any DataSource subclass, incl. sibling sources (doc/kb/llm/user/web),
-            # instantiated from its fully-qualified path: {"type": "class",
-            # "_class": "pkg.mod.Cls", "properties": {...}}.
+            # from its fully-qualified path: {"type": "class", "_class": "pkg.mod.Cls", ...}.
             class_path = src.get("_class") or props.get("_class")
-            if not class_path:
-                continue
-            from blue_data.source.source import DataSource
-            registry.register_source(DataSource.instantiate(class_path, name, properties=props))
-        else:
+        if not class_path or not name:
             continue
 
-        if sync and name:
-            registry.sync_source(name, recursive=True)
+        # Isolate per-source failures: a source connects eagerly at construction, so one
+        # unreachable configured source must not abort get_registry() and take down every
+        # tool. Register it as unavailable and continue. #106
+        from blue_data.source.source import DataSource
+        try:
+            registry.register_source(DataSource.instantiate(class_path, name, properties=props))
+        except Exception as e:
+            logger.warning("Failed to load source %r (%s): %s", name, class_path, e)
+            try:
+                registry.register_unavailable_source(name, class_path, props, e)
+            except Exception:
+                logger.warning("Could not register placeholder record for source %r", name)
+            continue
+
+        if sync:
+            try:
+                registry.sync_source(name, recursive=True)
+            except Exception as e:
+                logger.warning("Failed to sync source %r: %s", name, e)
