@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from abc import ABC, abstractmethod
 
@@ -10,6 +11,21 @@ from blue_data.source.source import DataSource
 
 class SQLSource(DataSource, ABC):
     """Base class for SQL data sources."""
+
+    @staticmethod
+    def _resolve_env_refs(config: dict) -> dict:
+        """Resolve ``<key>_env`` credential references to ``<key>`` from the environment
+        and drop the reference, so a stored reference (e.g. ``password_env``) is never
+        passed to the DB driver, which rejects it as an unknown connection option (#207).
+        Mutates and returns *config*. An explicit base key already present wins."""
+        for key in [k for k in config if isinstance(k, str) and k.endswith("_env")]:
+            ref = config.pop(key)
+            base = key[: -len("_env")]
+            if base and base not in config and isinstance(ref, str):
+                value = os.environ.get(ref)
+                if value is not None:
+                    config[base] = value
+        return config
 
     @abstractmethod
     def _db_connect(self, database):

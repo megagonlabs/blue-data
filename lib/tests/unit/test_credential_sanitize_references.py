@@ -68,7 +68,8 @@ def test_resolve_credential_reference_from_env(monkeypatch):
         {"connection": {"host": "h", "password_env": "BD_TEST_PW"}}
     )
     assert resolved["connection"]["password"] == "s3cret"
-    assert resolved["connection"]["password_env"] == "BD_TEST_PW"
+    # The reference key is dropped after resolving so it never reaches a DB driver (#207).
+    assert "password_env" not in resolved["connection"]
 
 
 def test_resolve_does_not_override_an_explicit_value(monkeypatch):
@@ -77,6 +78,7 @@ def test_resolve_does_not_override_an_explicit_value(monkeypatch):
         {"connection": {"password": "explicit", "password_env": "BD_TEST_PW"}}
     )
     assert resolved["connection"]["password"] == "explicit"
+    assert "password_env" not in resolved["connection"]
 
 
 def test_persisted_source_reconnects_via_reference(monkeypatch):

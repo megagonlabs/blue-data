@@ -68,6 +68,9 @@ def _resolve_credential_references(properties: dict) -> dict:
                         env_value = os.environ.get(out[key])
                         if env_value is not None:
                             out[target] = env_value
+                    # Drop the reference so it is never passed on to a DB driver, which
+                    # rejects an unknown connection option like 'password_env' (#207).
+                    del out[key]
             return out
         if isinstance(obj, list):
             return [resolve(v) for v in obj]

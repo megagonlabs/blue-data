@@ -27,7 +27,7 @@ class PostgresDBSource(SQLSource):
         self.properties["connection"] = connection
 
     def _connect(self, **connection):
-        config = copy.deepcopy(connection)
+        config = self._resolve_env_refs(copy.deepcopy(connection))
         config.pop("protocol", None)
         return psycopg2.connect(**config)
 
@@ -37,7 +37,7 @@ class PostgresDBSource(SQLSource):
         return None
 
     def _db_connect(self, database):
-        config = copy.deepcopy(self.properties["connection"])
+        config = self._resolve_env_refs(copy.deepcopy(self.properties["connection"]))
         config.pop("protocol", None)
         config["database"] = database
         return psycopg2.connect(**config)

@@ -224,7 +224,12 @@ def source_add(ctx: click.Context, name: str, src_type: Optional[str], class_pat
                 properties={"connection": {
                     "host": host, "port": port,
                     "database": db_name, "user": user,
+                    # The literal password is used for this add-time connection, but
+                    # the sanitizer strips it from the stored record. Also store a
+                    # reference so a later process can reconnect by reading the secret
+                    # from BLUE_REGISTRY_SOURCE_PASSWORD at connect time (#207 / #100).
                     "password": os.environ.get("BLUE_REGISTRY_SOURCE_PASSWORD"),
+                    "password_env": "BLUE_REGISTRY_SOURCE_PASSWORD",
                 }},
             )
             label = src_type
