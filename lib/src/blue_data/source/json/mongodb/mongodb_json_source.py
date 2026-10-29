@@ -22,19 +22,27 @@ class MongoDBSource(JSONSource):
         self.properties["connection"] = connection
 
     def _connect(self, **connection):
-        protocol = connection.get("protocol", "mongodb")
+        # The registry "protocol" tag (json/mongodb) is NOT a URI scheme — using it as
+        # one made pymongo raise InvalidURI. The scheme is "mongodb" (or "mongodb+srv"
+        # when requested via the "scheme" property), independent of the protocol tag.
+        # Credentials are passed as kwargs so pymongo escapes @ : / in a password. #209
+        scheme = connection.get("scheme", "mongodb")
         host = connection.get("host", "localhost")
         port = connection.get("port", 27017)
 
         username = connection.get("username") or connection.get("user")
         password = connection.get("password")
 
-        if username and password:
-            url = f"{protocol}://{username}:{password}@{host}:{port}"
-        else:
-            url = f"{protocol}://{host}:{port}"
+        kwargs = {}
+        if username:
+            kwargs["username"] = username
+        if password:
+            kwargs["password"] = password
 
-        return MongoClient(url)
+        if scheme == "mongodb+srv":
+            # An SRV seedlist URI carries no port; the driver resolves the hosts.
+            return MongoClient(host=f"mongodb+srv://{host}", **kwargs)
+        return MongoClient(host=host, port=int(port), **kwargs)
 
     def _disconnect(self):
         if getattr(self, "connection", None):
