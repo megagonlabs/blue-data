@@ -8,6 +8,10 @@ from blue_data.source.source import DataSource
 class StreamSource(DataSource, ABC):
     """Base class for stream data sources."""
 
+    _WRITE_OPS = frozenset({
+        "STREAM.PUBLISH", "STREAM.CREATE", "STREAM.DELETE", "STREAM.ACKNOWLEDGE",
+    })
+
     @abstractmethod
     def publish(self, stream: str, message: dict) -> None:
         raise NotImplementedError

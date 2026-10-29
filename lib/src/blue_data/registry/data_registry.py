@@ -196,11 +196,22 @@ class DataRegistry(Registry):
         if source_obj is None:
             raise ValueError(f"Source not registered or connectable: {source}")
 
+        # Read-only by default (design/14): a write op on any source — not just SQL —
+        # requires an explicit commit. Guards Mongo/Redis-JSON/graph/vector/stream
+        # mutations that previously ran on REST /query and MCP execute_query with
+        # writes disabled. #206
+        optional_properties = optional_properties or {}
+        if not optional_properties.get("commit") and source_obj._query_requires_commit(query):
+            raise ValueError(
+                "Write operation requires optional_properties={'commit': True}; "
+                "queries are read-only by default."
+            )
+
         return source_obj.execute_query(
             query=query,
             database=database,
             collection=collection,
-            optional_properties=optional_properties or {},
+            optional_properties=optional_properties,
         )
 
     def import_data(

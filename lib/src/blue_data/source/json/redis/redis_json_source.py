@@ -12,6 +12,8 @@ from blue_data.core.schema import DataSchema
 class RedisJSONSource(JSONSource):
     """Redis-backed JSON source — registry backend and data source for Redis introspection."""
 
+    _WRITE_OPS = frozenset({"JSON.SET", "JSON.DEL"})
+
     def __init__(self, name: str = "redis_json", properties: dict | None = None):
         super().__init__(name, properties=properties)
         self._namespace = self.properties.get("namespace", "registry")

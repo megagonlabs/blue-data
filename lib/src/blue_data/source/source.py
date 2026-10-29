@@ -1,4 +1,5 @@
 import inspect
+import json
 import logging
 from contextlib import contextmanager
 
@@ -6,12 +7,36 @@ from contextlib import contextmanager
 class DataSource:
     """Base abstraction for all Blue data sources."""
 
+    # Op names (for dict/JSON-op sources) that mutate data. A query whose op is here
+    # is refused by DataRegistry.execute_query unless optional_properties["commit"] is
+    # true, so writes are read-only-by-default on every surface — not only SQL, whose
+    # string queries are guarded inside SQLSource.execute_query instead. #206
+    _WRITE_OPS: frozenset = frozenset()
+
     def __init__(self, name: str, properties: dict | None = None):
         if properties is None:
             properties = {}
         self.name = name
         self._initialize(properties=properties)
         self._start()
+
+    def _query_requires_commit(self, query) -> bool:
+        """True when *query* is a write op (per ``_WRITE_OPS``) and therefore needs
+        ``commit``. Accepts a dict op or a JSON-encoded op string (the form MCP/REST
+        may pass through); a plain SQL string is never classed as a write here."""
+        op = None
+        if isinstance(query, dict):
+            op = query.get("op")
+        elif isinstance(query, str):
+            stripped = query.strip()
+            if stripped.startswith("{"):
+                try:
+                    parsed = json.loads(stripped)
+                except (ValueError, TypeError):
+                    parsed = None
+                if isinstance(parsed, dict):
+                    op = parsed.get("op")
+        return isinstance(op, str) and op.upper() in self._WRITE_OPS
 
     # ---------- initialization chain ----------
 
