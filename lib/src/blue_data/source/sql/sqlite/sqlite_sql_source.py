@@ -388,12 +388,17 @@ class SQLiteDBSource(SQLSource):
                     "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (entity,)
                 )
                 if cur.fetchone():
+                    # Do NOT commit here: the DELETE and the INSERT must be one atomic
+                    # unit, so a failing insert (column mismatch, type error) rolls back
+                    # the DELETE instead of leaving the target table empty (#208).
                     cur.execute(f'DELETE FROM "{entity}"')
-                conn.commit()
 
             df.to_sql(entity, conn, if_exists="append", index=False)
             conn.commit()
             return {"status": "success", "rows_imported": len(df)}
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             self._db_disconnect(conn)
 
