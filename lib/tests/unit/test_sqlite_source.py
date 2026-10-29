@@ -575,6 +575,27 @@ def test_import_data_overwrite_new_table(src, file_src, tmp_path):
     assert result["rows_imported"] == 2
 
 
+def test_import_data_overwrite_failure_leaves_target_intact(src, file_src):
+    # #208: a failing insert (schema mismatch) must roll back the DELETE, not leave
+    # the target table empty.
+    src.create_database("db")
+    src.execute_query(
+        'CREATE TABLE "customers" (id INTEGER, email TEXT)',
+        database="db", optional_properties={"commit": True},
+    )
+    src.execute_query(
+        "INSERT INTO \"customers\" VALUES (1, 'a@x'), (2, 'b@x'), (3, 'c@x')",
+        database="db", optional_properties={"commit": True},
+    )
+
+    # file_src rows have columns id/name — 'name' is not in customers, so insert fails.
+    with pytest.raises(Exception):
+        src.import_data(file_src, collection="users", database="db", entity="customers", mode="overwrite")
+
+    rows = src.execute_query('SELECT * FROM "customers"', database="db")
+    assert len(rows) == 3
+
+
 def test_import_data_empty_source_returns_zero(src, tmp_path):
     src.create_database("db")
     empty_src = FileSource("empty", directory=str(tmp_path / "empty"))
