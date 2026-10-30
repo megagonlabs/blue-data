@@ -44,3 +44,30 @@ def test_search_matches_camel_case_name():
 
 def test_search_ignores_trailing_punctuation():
     assert [h["name"] for h in _reg().search_records("freight?", type="attribute")] == ["freight"]
+
+
+# ---------- plural / singular folding (#218) ----------
+
+def test_tokenize_folds_plurals_to_singular():
+    assert tokenize_text("customers") == ["customer"]
+    assert tokenize_text("customer") == ["customer"]
+    assert tokenize_text("categories") == ["category"]
+    assert tokenize_text("orders") == ["order"]
+
+
+def test_tokenize_does_not_over_stem():
+    # -ss / -us / -is / -os endings and short tokens are left alone.
+    for word in ("class", "status", "basis", "address", "os"):
+        assert tokenize_text(word) == [word]
+
+
+def test_singular_query_matches_plural_entity():
+    from blue_data.registry.data_registry import DataRegistry
+    reg = DataRegistry()
+    scope = "/source/shop/database/main/collection/public"
+    for name in ("customers", "suppliers", "categories", "orders"):
+        reg.register_record(name=name, type="entity", scope=scope, description="")
+    for query, expected in [("customer", "customers"), ("supplier", "suppliers"),
+                            ("category", "categories"), ("order", "orders")]:
+        names = [r["name"] for r in reg.search_records(query, type="entity")]
+        assert expected in names, (query, names)

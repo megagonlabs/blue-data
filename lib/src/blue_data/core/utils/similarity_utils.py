@@ -13,15 +13,34 @@ _CAMEL_BOUNDARY_RE = re.compile(r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z]
 _NON_ALNUM_RE = re.compile(r"[^A-Za-z0-9]+")
 
 
+def _singularize(token: str) -> str:
+    """Light plural → singular folding so a singular query matches a plural name
+    (and vice versa). Applied to both document and query tokens, so the two sides
+    converge on the same stem: ``customers``/``customer`` → ``customer``,
+    ``categories``/``category`` → ``category``, ``orders``/``order`` → ``order``.
+    Deliberately conservative — leaves short tokens and -ss/-us/-is endings
+    (class, status, basis) alone rather than over-stemming. #218"""
+    if len(token) <= 3:
+        return token
+    if token.endswith("ies"):
+        return token[:-3] + "y"                      # categories -> category
+    if token.endswith(("ches", "shes", "sses", "xes", "zes")):
+        return token[:-2]                            # batches->batch, boxes->box, classes->class
+    if token.endswith("s") and not token.endswith(("ss", "us", "is", "os")):
+        return token[:-1]                            # customers->customer, orders->order
+    return token
+
+
 def tokenize_text(text: str) -> list[str]:
     """Lowercase, split on non-alphanumerics (``_``, punctuation, whitespace) and
-    camelCase boundaries, and drop empties. So ``order_date`` and ``ShipCountry``
-    tokenize to the same words a natural-language query produces, and trailing
-    punctuation (``freight?``) is ignored. #103"""
+    camelCase boundaries, drop empties, and fold plurals to a singular stem. So
+    ``order_date``/``ShipCountry`` tokenize to the words a query produces, trailing
+    punctuation (``freight?``) is ignored (#103), and a singular query like
+    ``customer`` matches an entity named ``customers`` (#218)."""
     if not text:
         return []
     spaced = _CAMEL_BOUNDARY_RE.sub(" ", str(text))
-    return [t.lower() for t in _NON_ALNUM_RE.split(spaced) if t]
+    return [_singularize(t.lower()) for t in _NON_ALNUM_RE.split(spaced) if t]
 
 
 def compute_bm25_score(
