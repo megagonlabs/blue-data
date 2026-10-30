@@ -24,7 +24,8 @@ def test_escape_tag_escapes_special_chars():
 # ---------- host/port deprecation shim ----------
 
 def test_host_port_shim_folds_into_connection(recwarn):
-    rv = RedisVectorSource(name="r", host="1.2.3.4", port=6380)
+    rv = RedisVectorSource(name="r", host="1.2.3.4", port=6380,
+                           properties={"connection": {"scan_prefix": "rv:"}})
     conn = rv.properties["connection"]
     assert conn["host"] == "1.2.3.4" and conn["port"] == 6380
     assert any(issubclass(w.category, DeprecationWarning) for w in recwarn)
@@ -33,6 +34,23 @@ def test_host_port_shim_folds_into_connection(recwarn):
 def test_unexpected_kwarg_still_raises():
     with pytest.raises(TypeError):
         RedisVectorSource(name="r", bogus=1)
+
+
+# ---------- scan_prefix is required (#226) ----------
+
+def test_missing_scan_prefix_raises_at_construction():
+    with pytest.raises(ValueError, match="scan_prefix"):
+        RedisVectorSource(name="r", properties={"connection": {"host": "h", "port": 1}})
+
+
+def test_empty_scan_prefix_raises_at_construction():
+    with pytest.raises(ValueError, match="scan_prefix"):
+        RedisVectorSource(name="r", properties={"connection": {"host": "h", "port": 1, "scan_prefix": ""}})
+
+
+def test_platform_scan_prefix_rejected():
+    with pytest.raises(ValueError, match="PLATFORM"):
+        RedisVectorSource(name="r", properties={"connection": {"host": "h", "port": 1, "scan_prefix": "PLATFORM:x"}})
 
 
 # ---------- idempotent create_index ----------

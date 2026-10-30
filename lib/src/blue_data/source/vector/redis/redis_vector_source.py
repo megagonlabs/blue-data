@@ -31,6 +31,17 @@ class RedisVectorSource(VectorSource):
             )
         super().__init__(name, embedding_fn=embedding_fn, properties=properties)
 
+        # scan_prefix is required: without it upsert/delete build keys as
+        # f"{scan_prefix}{collection}:{doc_id}" → literal "None…" keys that no index
+        # covers, so writes succeed but every search fails with "No such index". Fail
+        # at construction instead. (Validated here, not in _initialize_connection_
+        # properties, because the passed connection is merged in only afterwards.) #226
+        scan_prefix = self.properties.get("connection", {}).get("scan_prefix")
+        if not scan_prefix:
+            raise ValueError("RedisVectorSource requires connection.scan_prefix")
+        if str(scan_prefix).startswith("PLATFORM"):
+            raise ValueError("RedisVectorSource scan_prefix must not use the PLATFORM namespace")
+
     def _initialize_connection_properties(self):
         connection = self.properties.get("connection", {})
 
