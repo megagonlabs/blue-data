@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "blue-data"
 version = "1.0.0"
 description = "Blue Data Intelligence Layer"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
 authors = [
     {name = "Jalal Mahmud", email = "contact_oss@megagon.ai"},
 ]
@@ -19,29 +19,32 @@ dependencies = [
     "jsonpath-ng",
 ]
 
+# Each extra has a lower bound at the major the code is written against, so the
+# resolver installs a working version (or fails clearly on an unsupported Python)
+# rather than an old, unimportable release — e.g. chromadb 0.3.23 on Python 3.15. #225
 [project.optional-dependencies]
-postgres  = ["psycopg2-binary"]
-mysql     = ["mysql-connector-python"]
-mongodb   = ["pymongo"]
-neo4j     = ["neo4j"]
+postgres  = ["psycopg2-binary>=2.9"]
+mysql     = ["mysql-connector-python>=8"]
+mongodb   = ["pymongo>=4"]
+neo4j     = ["neo4j>=5"]
 redis     = ["redis>=5,<7"]
-chromadb  = ["chromadb"]
-bn        = ["pgmpy", "networkx"]
-parquet   = ["pyarrow"]
-llm       = ["anthropic"]
-server    = ["fastapi"]
-dev       = ["pytest", "pytest-cov"]
+chromadb  = ["chromadb>=1.0"]
+bn        = ["pgmpy>=0.1.20", "networkx>=3"]
+parquet   = ["pyarrow>=14"]
+llm       = ["anthropic>=0.40"]
+server    = ["fastapi>=0.100"]
+dev       = ["pytest>=7", "pytest-cov"]
 all = [
-    "psycopg2-binary",
-    "mysql-connector-python",
-    "pymongo",
-    "neo4j",
+    "psycopg2-binary>=2.9",
+    "mysql-connector-python>=8",
+    "pymongo>=4",
+    "neo4j>=5",
     "redis>=5,<7",
-    "chromadb",
-    "pgmpy",
-    "networkx",
-    "pyarrow",
-    "anthropic",
+    "chromadb>=1.0",
+    "pgmpy>=0.1.20",
+    "networkx>=3",
+    "pyarrow>=14",
+    "anthropic>=0.40",
 ]
 
 [tool.setuptools.packages.find]
