@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "blue-data"
 version = "1.0.0"
 description = "Blue Data Intelligence Layer"
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.12,<3.14"
 authors = [
     {name = "Jalal Mahmud", email = "contact_oss@megagon.ai"},
 ]
@@ -55,13 +55,13 @@ where = ["src"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
 
 [tool.pyright]
-pythonVersion = "3.10"
+pythonVersion = "3.12"
 typeCheckingMode = "strict"
 venvPath = "."
 venv = ".venv"

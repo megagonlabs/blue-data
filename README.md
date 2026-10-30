@@ -44,7 +44,7 @@ blue-data/
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.12 or 3.13 (every package declares `requires-python = ">=3.12,<3.14"`)
 - Runtime dependencies `pandas`, `numpy`, `jsonpath-ng` — installed automatically; no build step.
 - Optional: Redis Stack (`redis-stack-server`) for production registry persistence and vector search.
 - Optional: an LLM API key for metadata enrichment and natural-language queries (deterministic enrichment needs none):

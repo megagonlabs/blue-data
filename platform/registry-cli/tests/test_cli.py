@@ -1,3 +1,9 @@
+import json
+
+import pytest
+
+from blue_data.source.json.memory_json_source import MemoryJSONSource
+
 from registry_cli.main import cli
 
 
@@ -171,3 +177,23 @@ def test_query(runner):
 def test_query_invalid(runner):
     r = runner.invoke(cli, ["source", "query", "sales", "SELECT * FROM nope", "--database", "prod"])
     assert r.exit_code != 0
+
+
+@pytest.mark.parametrize("op", [
+    {"op": "JSON.SET", "path": "flag", "value": "placeholder"},  # declared write
+    {"op": "JSON.MERGE", "path": "flag", "value": "placeholder"},  # undeclared
+])
+def test_query_refuses_write_or_undeclared_json_op(runner, registry, op):
+    """#237 — `source query` is read-only: a dict op the source does not declare
+    in _READ_OPS is refused and nothing is written."""
+    registry.register_source(MemoryJSONSource("mem"))
+    r = runner.invoke(cli, ["source", "query", "mem", json.dumps(op), "--json"])
+    assert r.exit_code != 0
+    assert "commit" in r.output
+    assert registry.execute_query("mem", {"op": "JSON.GET"}) == {}
+
+
+def test_query_runs_declared_read_json_op(runner, registry):
+    registry.register_source(MemoryJSONSource("mem"))
+    r = runner.invoke(cli, ["source", "query", "mem", '{"op": "JSON.GET"}', "--json"])
+    assert r.exit_code == 0, r.output

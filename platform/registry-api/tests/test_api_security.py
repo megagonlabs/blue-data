@@ -127,3 +127,29 @@ def test_form_content_type_rejected_on_writes(client, monkeypatch):
     # the same call as JSON is accepted (not a 415)
     r2 = client.post("/sales/query", json={"query": "SELECT * FROM orders", "database": "prod"})
     assert r2.status_code != 415
+
+
+@pytest.mark.parametrize("op", [
+    {"op": "JSON.SET", "path": "flag", "value": "placeholder"},  # declared write
+    {"op": "JSON.MERGE", "path": "flag", "value": "placeholder"},  # undeclared
+])
+@pytest.mark.parametrize("encode", [False, True])
+def test_query_refuses_write_or_undeclared_json_op_without_commit(client, registry, op, encode):
+    """#237 — a dict op not in the source's _READ_OPS is refused on /query without
+    commit (deny-by-default) and nothing is written."""
+    from blue_data.source.json.memory_json_source import MemoryJSONSource
+    import json
+
+    registry.register_source(MemoryJSONSource("mem"))
+    r = client.post("/mem/query", json={"query": json.dumps(op) if encode else op})
+    assert r.status_code == 400
+    assert "commit" in r.json()["detail"]
+    assert registry.execute_query("mem", {"op": "JSON.GET"}) == {}
+
+
+def test_query_runs_declared_read_json_op(client, registry):
+    from blue_data.source.json.memory_json_source import MemoryJSONSource
+
+    registry.register_source(MemoryJSONSource("mem"))
+    r = client.post("/mem/query", json={"query": {"op": "JSON.GET"}})
+    assert r.status_code == 200

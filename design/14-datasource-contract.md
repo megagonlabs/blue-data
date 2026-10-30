@@ -47,6 +47,35 @@ and may be ignored) by every source:
 A source MUST NOT raise merely because it received a reserved or shared-optional key
 it does not use.
 
+### Declaring read and write ops (read-only is deny-by-default)
+
+A source whose `execute_query` takes dict ops (`{"op": "...", ...}`, or the same object
+as a JSON string) MUST declare every op it serves in exactly one of two class attributes:
+
+- `_READ_OPS: frozenset` — ops that do not change data;
+- `_WRITE_OPS: frozenset` — ops that do.
+
+`DataRegistry.execute_query` — and so the CLI's `source query`, the REST
+`POST /{source}/query` and the MCP `execute_query` tool — runs a dict or JSON op
+without `optional_properties["commit"]` **only when the op is in `_READ_OPS`**. An op in
+`_WRITE_OPS`, or one the source does not declare at all, needs `commit` and is refused
+on every read-only path. A source that forgets an op therefore loses read-only access to
+it rather than gaining unguarded writes (#237). Op names are matched upper-cased, so
+declare them upper-case. A dict without an `"op"` key counts as the op `None`; a source
+whose op-less dicts are reads (e.g. `FileSource`'s legacy filter) lists `None` in
+`_READ_OPS`. Plain query strings (SQL, Cypher) are not classified here: the source
+guards them itself, as `SQLSource.execute_query` does with a read-only connection.
+
+```python
+class MySource(DataSource):
+    _READ_OPS = frozenset({"MY.SEARCH", "MY.GET"})
+    _WRITE_OPS = frozenset({"MY.INGEST", "MY.DELETE"})
+```
+
+The default `_is_write_native_query` used by `execute_query_nl` applies the same rule to
+NL-generated dict ops. Each source SHOULD have a unit test asserting that every op it
+serves is in exactly one of the two sets (see `lib/tests/unit/test_write_guard_all_sources.py`).
+
 ## 4. Reconstructible from properties alone
 
 A source MUST be fully reconstructible from `(name, properties)`:
@@ -98,5 +127,6 @@ class TestMySourceConformance(DataSourceConformance):
 ```
 
 Structural checks (signature, async-override, reconstructible, reserved/shared
-properties) always run; behavioural checks (`list[dict]`, `commit` accepted) run when a
+properties, disjoint `_READ_OPS`/`_WRITE_OPS`) always run; behavioural checks
+(`list[dict]`, `commit` accepted, the sample read allowed without `commit`) run when a
 `sample_query` is supplied. Every source repo SHOULD run this in CI (finding XR-02).

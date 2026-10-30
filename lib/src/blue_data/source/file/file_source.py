@@ -25,6 +25,9 @@ class FileSource(DataSource):
     concept — ``database`` is always ``"default"``.
     """
 
+    # None: the deprecated op-less filter dict, also a read.
+    _READ_OPS = frozenset({"FILE.READ", "FILE.FIND", None})
+
     def __init__(self, name: str, directory: str | None = None, properties: dict | None = None):
         props = dict(properties or {})
         if directory is not None:

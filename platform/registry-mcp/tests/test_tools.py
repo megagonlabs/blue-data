@@ -375,3 +375,21 @@ def test_import_data_missing_entity_returns_error(registry, tmp_path):
         entity=None,
     ))
     assert "error" in result
+
+
+@pytest.mark.parametrize("op", [
+    {"op": "JSON.SET", "path": "flag", "value": "placeholder"},  # declared write
+    {"op": "JSON.MERGE", "path": "flag", "value": "placeholder"},  # undeclared
+])
+def test_execute_query_refuses_write_or_undeclared_json_op(registry, op):
+    """#237 — the MCP execute_query tool has no commit: a JSON op the source does
+    not declare in _READ_OPS is refused and nothing is written."""
+    registry.register_source(MemoryJSONSource("mem"))
+    result = json.loads(execute_query("mem", json.dumps(op)))
+    assert "commit" in result["error"]
+    assert registry.execute_query("mem", {"op": "JSON.GET"}) == {}
+
+
+def test_execute_query_runs_declared_read_json_op(registry):
+    registry.register_source(MemoryJSONSource("mem"))
+    assert json.loads(execute_query("mem", '{"op": "JSON.GET"}')) == {}

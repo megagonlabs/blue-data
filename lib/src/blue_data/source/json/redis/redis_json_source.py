@@ -12,6 +12,7 @@ from blue_data.core.schema import DataSchema
 class RedisJSONSource(JSONSource):
     """Redis-backed JSON source — registry backend and data source for Redis introspection."""
 
+    _READ_OPS = frozenset({"JSON.GET"})
     _WRITE_OPS = frozenset({"JSON.SET", "JSON.DEL"})
 
     def __init__(self, name: str = "redis_json", properties: dict | None = None):

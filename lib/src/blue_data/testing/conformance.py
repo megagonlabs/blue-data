@@ -86,6 +86,11 @@ class DataSourceConformance:
         rebuilt = DataSource.instantiate(path, data_source.name, properties=data_source.properties)
         assert isinstance(rebuilt, cls)
 
+    def test_read_and_write_ops_are_disjoint(self, data_source):
+        """§3 — an op is declared in at most one of _READ_OPS / _WRITE_OPS."""
+        both = data_source._READ_OPS & data_source._WRITE_OPS
+        assert not both, f"ops declared both read and write: {sorted(both, key=str)}"
+
     def test_reserved_metadata_property_tolerated(self, data_source):
         """§3 — a reserved `metadata` property must not break (re)construction."""
         cls = type(data_source)
@@ -114,3 +119,13 @@ class DataSourceConformance:
         kwargs["optional_properties"] = {**kwargs.get("optional_properties", {}), "commit": False}
         out = data_source.execute_query(query, **kwargs)
         assert isinstance(out, list)
+
+    def test_sample_query_runs_on_read_only_paths(self, data_source, sample_query):
+        """§3 — the sample read is allowed without commit: a dict/JSON op must be in
+        _READ_OPS, or DataRegistry.execute_query refuses it on read-only paths."""
+        if sample_query is None:
+            pytest.skip("no sample_query fixture; behavioural check skipped")
+        query, _ = _split_sample(sample_query)
+        assert not data_source._query_requires_commit(query), (
+            "sample_query needs commit — declare its op in _READ_OPS (design/14 §3)"
+        )

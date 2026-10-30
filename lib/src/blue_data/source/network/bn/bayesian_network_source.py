@@ -15,6 +15,11 @@ from blue_data.core.schema import DataSchema
 class BayesianNetworkSource(NetworkSource):
     """Bayesian network source — probabilistic graphical model backend using pgmpy."""
 
+    # execute_query takes an op-less inference dict (target_node, target_state,
+    # context) and never writes; the base dispatcher's NETWORK.* ops are not served.
+    _READ_OPS = frozenset({None})
+    _WRITE_OPS = frozenset()
+
     def __init__(self, name: str, properties: dict | None = None):
         super().__init__(name, properties=properties or {})
         self._cache: dict = {}

@@ -33,6 +33,18 @@ class MySource(DataSource):
 
 All methods have no-op defaults in the base class — override only what your backend supports.
 
+### Declare read and write ops
+
+If `execute_query` takes dict ops (`{"op": "MY.SEARCH", ...}`), declare every op in exactly one of `_READ_OPS` or `_WRITE_OPS`:
+
+```python
+class MySource(DataSource):
+    _READ_OPS = frozenset({"MY.SEARCH", "MY.GET"})
+    _WRITE_OPS = frozenset({"MY.INGEST", "MY.DELETE"})
+```
+
+Read-only is deny-by-default: `DataRegistry.execute_query` (and the CLI, REST and MCP surfaces built on it) runs an op without `optional_properties={"commit": True}` only when it is in `_READ_OPS`. A write op, or an op you did not declare, is refused with `ValueError` unless `commit` is set. Plain query strings are not classified; guard them in your own `execute_query` (as `SQLSource` does). See [design/14 §3](../design/14-datasource-contract.md#3-properties-reserved-and-shared-optional).
+
 ---
 
 ## Extending NL translation

@@ -59,6 +59,9 @@ class GraphTransaction:
 class GraphSource(DataSource, ABC):
     """Base class for graph data sources."""
 
+    _READ_OPS = frozenset({
+        "GRAPH.GET_NODE", "GRAPH.MATCH_NODE", "GRAPH.MATCH_EDGE", "GRAPH.GET_NEIGHBORS",
+    })
     _WRITE_OPS = frozenset({
         "GRAPH.ADD_NODE", "GRAPH.ADD_EDGE",
         "GRAPH.UPDATE_NODE", "GRAPH.UPDATE_EDGE",

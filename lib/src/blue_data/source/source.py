@@ -7,10 +7,15 @@ from contextlib import contextmanager
 class DataSource:
     """Base abstraction for all Blue data sources."""
 
-    # Op names (for dict/JSON-op sources) that mutate data. A query whose op is here
-    # is refused by DataRegistry.execute_query unless optional_properties["commit"] is
-    # true, so writes are read-only-by-default on every surface — not only SQL, whose
-    # string queries are guarded inside SQLSource.execute_query instead. #206
+    # Op names (for dict/JSON-op sources) this source serves, split by whether they
+    # change data. Read-only is deny-by-default (#237): DataRegistry.execute_query runs
+    # a dict or JSON op without optional_properties["commit"] only when its op is in
+    # _READ_OPS; an op in _WRITE_OPS, or one not declared at all, needs commit, so a
+    # source that forgets an op loses read-only access to it rather than gaining
+    # unguarded writes. Declare every op in exactly one set. A dict query without an
+    # "op" key counts as the op None. Plain SQL strings are not classified here;
+    # SQLSource.execute_query guards them itself. #206
+    _READ_OPS: frozenset = frozenset()
     _WRITE_OPS: frozenset = frozenset()
 
     def __init__(self, name: str, properties: dict | None = None):
@@ -21,22 +26,23 @@ class DataSource:
         self._start()
 
     def _query_requires_commit(self, query) -> bool:
-        """True when *query* is a write op (per ``_WRITE_OPS``) and therefore needs
-        ``commit``. Accepts a dict op or a JSON-encoded op string (the form MCP/REST
-        may pass through); a plain SQL string is never classed as a write here."""
-        op = None
-        if isinstance(query, dict):
-            op = query.get("op")
-        elif isinstance(query, str):
+        """True unless *query* is a read per ``_READ_OPS``. Classifies a dict op or a
+        JSON-encoded object string (the form MCP/REST may pass through); any other
+        query (a plain SQL string, ``None``) is left to the source's own guard."""
+        if isinstance(query, str):
             stripped = query.strip()
-            if stripped.startswith("{"):
-                try:
-                    parsed = json.loads(stripped)
-                except (ValueError, TypeError):
-                    parsed = None
-                if isinstance(parsed, dict):
-                    op = parsed.get("op")
-        return isinstance(op, str) and op.upper() in self._WRITE_OPS
+            if not stripped.startswith("{"):
+                return False
+            try:
+                query = json.loads(stripped)
+            except (ValueError, TypeError):
+                return False
+        if not isinstance(query, dict):
+            return False
+        op = query.get("op")
+        if op is None:
+            return None not in self._READ_OPS
+        return not isinstance(op, str) or op.upper() not in self._READ_OPS
 
     # ---------- initialization chain ----------
 
@@ -360,10 +366,11 @@ class DataSource:
         )
 
     def _is_write_native_query(self, native_query) -> bool:
-        """Whether *native_query* mutates data. Default False — SQL sources rely on
-        the execute_query commit guard; dialects whose NL output can carry writes
-        (e.g. Cypher) override this to detect them before execution."""
-        return False
+        """Whether *native_query* mutates data. Defaults to the registry's guard: a
+        dict/JSON op not in ``_READ_OPS`` is a write (#237); a plain string is not —
+        SQL sources rely on the execute_query commit guard, and dialects whose NL
+        output can carry writes (e.g. Cypher) override this to detect them."""
+        return self._query_requires_commit(native_query)
 
     # ---------- tool-based nl2q ----------
 

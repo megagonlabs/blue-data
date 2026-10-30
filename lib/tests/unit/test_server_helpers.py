@@ -61,6 +61,21 @@ def test_api_key_enforced_when_set(monkeypatch):
         guard(_req(headers={"x-api-key": "wrong"}))
 
 
+def test_api_key_compared_in_constant_time(monkeypatch):
+    """#243 — the key check uses hmac.compare_digest, not !=."""
+    import blue_data.server as server
+
+    calls = []
+    real = server.hmac.compare_digest
+    monkeypatch.setattr(server.hmac, "compare_digest", lambda a, b: calls.append((a, b)) or real(a, b))
+    monkeypatch.setenv("SVC_KEY", "sécret")
+    guard = make_api_key_guard("SVC")
+    guard(_req(headers={"x-api-key": "sécret"}))  # non-ASCII key still matches
+    with pytest.raises(HTTPException):
+        guard(_req(headers={"x-api-key": "sécreT"}))
+    assert calls == [("sécret".encode(), "sécret".encode()), ("sécreT".encode(), "sécret".encode())]
+
+
 # ---------- CSRF guard ----------
 
 def test_csrf_rejects_form_content_type_on_writes():

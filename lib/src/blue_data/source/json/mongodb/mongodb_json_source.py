@@ -10,6 +10,7 @@ from blue_data.core.schema import DataSchema
 class MongoDBSource(JSONSource):
     """MongoDB data source."""
 
+    _READ_OPS = frozenset({"FIND", "COUNT", "DISTINCT", "AGGREGATE"})
     _WRITE_OPS = frozenset({"INSERT_ONE", "DELETE_MANY"})
 
     def __init__(self, name, properties=None):

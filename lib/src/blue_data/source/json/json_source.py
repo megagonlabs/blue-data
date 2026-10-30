@@ -9,6 +9,9 @@ from blue_data.source.source import DataSource
 class JSONSource(DataSource, ABC):
     """Abstract JSON storage interface."""
 
+    _READ_OPS = frozenset({"GET", "JSON.GET"})
+    _WRITE_OPS = frozenset({"SET", "JSON.SET", "DEL", "DELETE", "JSON.DEL"})
+
     def __init__(self, name: str = "", properties: dict | None = None):
         super().__init__(name, properties=properties)
 

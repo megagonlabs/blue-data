@@ -4,6 +4,8 @@
 
 `blue-data` is organized into a core library (`lib/`) and platform components (`platform/`). Install `lib` first — all platform components depend on it.
 
+Supported Python: 3.12 and 3.13. Every package declares `requires-python = ">=3.12,<3.14"`.
+
 Each component has a `scripts/` directory. Run scripts from the component's root directory.
 
 | Script | Components | Purpose |

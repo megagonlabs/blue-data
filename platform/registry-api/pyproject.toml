@@ -2,7 +2,7 @@
 name = "blue-data-api"
 version = "1.0.0"
 description = "REST API exposing DataRegistry operations over HTTP"
-requires-python = ">=3.10"
+requires-python = ">=3.12,<3.14"
 authors = [
     {name = "Jalal Mahmud", email = "contact_oss@megagon.ai"},
 ]
@@ -11,6 +11,7 @@ maintainers = [
 ]
 
 dependencies = [
+    "blue-data[server]>=1.0,<2",
     "fastapi[standard]>=0.100.0",
 ]
 

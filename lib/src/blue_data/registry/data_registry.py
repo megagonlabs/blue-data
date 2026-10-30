@@ -199,10 +199,9 @@ class DataRegistry(Registry):
         if source_obj is None:
             raise ValueError(f"Source not registered or connectable: {source}")
 
-        # Read-only by default (design/14): a write op on any source — not just SQL —
-        # requires an explicit commit. Guards Mongo/Redis-JSON/graph/vector/stream
-        # mutations that previously ran on REST /query and MCP execute_query with
-        # writes disabled. #206
+        # Read-only by default (design/14), deny-by-default for dict/JSON ops: without
+        # an explicit commit only an op the source declares in _READ_OPS runs; a write
+        # or undeclared op is refused on every surface (CLI, REST, MCP). #206, #237
         optional_properties = optional_properties or {}
         if not optional_properties.get("commit") and source_obj._query_requires_commit(query):
             raise ValueError(

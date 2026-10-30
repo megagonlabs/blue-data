@@ -8,6 +8,9 @@ from blue_data.source.source import DataSource
 class NetworkSource(DataSource, ABC):
     """Base class for probabilistic / graph network data sources."""
 
+    _READ_OPS = frozenset({"NETWORK.FETCH_NODES", "NETWORK.FETCH_EDGES", "NETWORK.INFER"})
+    _WRITE_OPS = frozenset({"NETWORK.CREATE"})
+
     @abstractmethod
     def fetch_nodes(self, network: str) -> list[str]:
         raise NotImplementedError

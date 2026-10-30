@@ -18,6 +18,7 @@ imports this module.
 """
 from __future__ import annotations
 
+import hmac
 import os
 
 from fastapi import HTTPException, Request
@@ -68,7 +69,8 @@ def make_api_key_guard(prefix: str = "BLUE_DATA_API", open_paths=None):
             auth = request.headers.get("authorization", "")
             if auth[:7].lower() == "bearer ":
                 provided = auth[7:].strip()
-        if provided != expected:
+        # Constant-time so response timing does not leak how much of a guess matches. #243
+        if not provided or not hmac.compare_digest(provided.encode(), expected.encode()):
             raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
     return require_api_key

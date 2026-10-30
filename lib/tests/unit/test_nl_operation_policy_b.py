@@ -36,8 +36,18 @@ def test_execute_query_nl_rejects_write_under_read_only():
     assert s.execute_query_nl("do it", database="db", llm_fn=lambda p: "x", read_only=False) == [{"ran": "WRITE_OP"}]
 
 
-def test_default_is_write_native_query_is_false():
+def test_default_is_write_native_query_is_false_for_plain_strings():
     assert DataSource(name="d")._is_write_native_query("anything") is False
+
+
+def test_default_is_write_native_query_follows_read_ops():
+    """#237 — NL output that is a dict/JSON op is a write unless declared a read."""
+    from blue_data.source.json.memory_json_source import MemoryJSONSource
+    s = MemoryJSONSource("mem")
+    assert s._is_write_native_query({"op": "JSON.GET"}) is False
+    assert s._is_write_native_query('{"op": "get", "path": "x"}') is False
+    for w in ({"op": "JSON.SET", "path": "x", "value": 1}, '{"op": "DEL"}', {"op": "JSON.MERGE"}):
+        assert s._is_write_native_query(w) is True, w
 
 
 # ---------- neo4j Cypher write detector (no server) ----------

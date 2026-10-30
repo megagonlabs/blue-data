@@ -71,7 +71,7 @@ BLUE_DATA_REGISTRY_STORE=redis BLUE_DATA_REGISTRY_REDIS_URL=redis://localhost:63
 ### Docker
 
 ```dockerfile
-FROM python:3.10-slim
+FROM python:3.12-slim
 WORKDIR /app
 COPY . .
 RUN pip install -e "lib/" && pip install -e "platform/registry-api/"

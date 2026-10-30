@@ -2,7 +2,7 @@
 name = "blue-registry-cli"
 version = "1.0.0"
 description = "Command-line interface for blue-data DataRegistry"
-requires-python = ">=3.10"
+requires-python = ">=3.12,<3.14"
 authors = [
     {name = "Jalal Mahmud", email = "contact_oss@megagon.ai"},
 ]
@@ -11,6 +11,7 @@ maintainers = [
 ]
 
 dependencies = [
+    "blue-data>=1.0,<2",
     "click>=8.0",
     "rich>=13.0",
 ]

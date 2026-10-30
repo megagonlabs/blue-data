@@ -8,6 +8,7 @@ from blue_data.source.source import DataSource
 class StreamSource(DataSource, ABC):
     """Base class for stream data sources."""
 
+    _READ_OPS = frozenset({"STREAM.CONSUME"})
     _WRITE_OPS = frozenset({
         "STREAM.PUBLISH", "STREAM.CREATE", "STREAM.DELETE", "STREAM.ACKNOWLEDGE",
     })

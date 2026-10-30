@@ -12,16 +12,20 @@ from blue_data.source.source import DataSource
 class SQLSource(DataSource, ABC):
     """Base class for SQL data sources."""
 
+    # The SQL text an op carries still runs under execute_query's own read-only guard.
+    _READ_OPS = frozenset({"SQL.QUERY", "SQL.FETCH_ALL"})
+
     @staticmethod
     def _resolve_env_refs(config: dict) -> dict:
         """Resolve ``<key>_env`` credential references to ``<key>`` from the environment
         and drop the reference, so a stored reference (e.g. ``password_env``) is never
         passed to the DB driver, which rejects it as an unknown connection option (#207).
-        Mutates and returns *config*. An explicit base key already present wins."""
+        Mutates and returns *config*. An explicit non-empty base key wins; an empty one
+        (e.g. the sources' default ``password=""``) does not mask the reference (#239)."""
         for key in [k for k in config if isinstance(k, str) and k.endswith("_env")]:
             ref = config.pop(key)
             base = key[: -len("_env")]
-            if base and base not in config and isinstance(ref, str):
+            if base and config.get(base) in (None, "") and isinstance(ref, str):
                 value = os.environ.get(ref)
                 if value is not None:
                     config[base] = value
