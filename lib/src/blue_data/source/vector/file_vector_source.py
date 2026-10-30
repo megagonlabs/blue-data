@@ -16,14 +16,22 @@ class FileVectorSource(VectorSource):
         if directory is not None:
             props.setdefault("connection", {})["directory"] = directory
         super().__init__(name, embedding_fn=embedding_fn, properties=props)
-        self._directory = os.path.abspath(self.properties["connection"]["directory"])
+        # A required setting, not defaulted to ".": defaulting to the cwd scattered
+        # index/vector files across whatever directory the process ran from, so one
+        # run's data couldn't be found by the next and stray files landed in checkouts. #227
+        directory = self.properties["connection"].get("directory")
+        if not directory:
+            raise ValueError(
+                "FileVectorSource requires connection.directory (or the directory= "
+                "argument); it does not default to the current working directory."
+            )
+        self._directory = os.path.abspath(directory)
         os.makedirs(self._directory, exist_ok=True)
         self._indices: dict[str, dict] = self._load_indices()
 
     def _initialize_connection_properties(self) -> None:
         conn = self.properties.get("connection", {})
         conn.setdefault("protocol", "vector/file")
-        conn.setdefault("directory", ".")
         self.properties["connection"] = conn
 
     # ---------- persistence helpers ----------
