@@ -260,3 +260,18 @@ def test_file_index_persists(tmp_path):
                          "collection": "docs", "dim": DIM})
     src2 = FileVectorSource(name="fvs", directory=str(tmp_path))
     assert "saved_idx" in src2._indices
+
+
+def test_file_vector_requires_directory(monkeypatch, tmp_path):
+    # #227: must not silently default to the cwd. Refuse construction with no directory
+    # and write nothing into the working directory.
+    import os
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(ValueError, match="directory"):
+        FileVectorSource("v")
+    assert os.listdir(tmp_path) == []  # nothing scattered into the cwd
+
+
+def test_file_vector_directory_via_properties(tmp_path):
+    src = FileVectorSource("v", properties={"connection": {"directory": str(tmp_path)}})
+    assert src._directory == str(tmp_path)
