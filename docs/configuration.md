@@ -57,6 +57,8 @@ Enables AI-augmented metadata enrichment. Leave `BLUE_DATA_LLM_PROVIDER` blank t
 | `ANTHROPIC_API_KEY` | _(empty)_ | Required when `BLUE_DATA_LLM_PROVIDER=anthropic` |
 | `OPENAI_API_KEY` | _(empty)_ | Required when `BLUE_DATA_LLM_PROVIDER=openai` |
 
+Both SDKs ship in the `llm` extra: `pip install "blue-data[llm]"` (installs `anthropic` **and** `openai`). The same `openai` package backs embeddings (`BLUE_DATA_EMBEDDING_PROVIDER=openai`). If a provider is set but its SDK is not installed or its API key is unset, the provider is disabled and a `WARNING` is logged naming the missing package or variable — enrichment is skipped and search falls back to keyword-only.
+
 ---
 
 ## Search tuning
