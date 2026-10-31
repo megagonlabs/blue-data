@@ -131,11 +131,18 @@ class DataRegistry(Registry):
         Credentials (password, token, api_key, etc.) are stripped from the stored
         record so they are never persisted to the registry store or returned by any
         read tool.  The live DataSource object in self.sources retains full credentials.
+
+        Properties the source declares in ``_transient_properties`` describe only the
+        registering process (e.g. a UserSource's ``console``) and are dropped before
+        storing, so a source the registry rebuilds in another process gets the class
+        default rather than this process's value. #250
         """
         self.sources[source.name] = source
 
         cls = type(source)
         safe_properties = _sanitize_properties(source.properties)
+        for key in getattr(source, "_transient_properties", frozenset()):
+            safe_properties.pop(key, None)
         safe_properties["_class"] = f"{cls.__module__}.{cls.__qualname__}"
         self.register_record(
             name=source.name,

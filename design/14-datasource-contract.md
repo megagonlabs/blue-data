@@ -80,6 +80,28 @@ The default `_is_write_native_query` used by `execute_query_nl` applies the same
 NL-generated dict ops. Each source SHOULD have a unit test asserting that every op it
 serves is in exactly one of the two sets (see `lib/tests/unit/test_write_guard_all_sources.py`).
 
+### Declaring per-process (transient) properties
+
+Some properties describe only the process that registered the source, not its
+reconstructible configuration. A source lists these in a class attribute:
+
+- `_transient_properties: frozenset` — top-level property keys that are **not** persisted.
+
+`DataRegistry.register_source` drops these keys (after credential sanitising) before
+storing the record, so a source the registry rebuilds in another process gets the class
+default rather than the registering process's value. For example, a `UserSource` declares
+`_transient_properties = frozenset({"console"})`: a source registered with `console=True`
+from an interactive script must not be rebuilt with `console=True` inside a stdio MCP
+server or an API process, where a clarification prompt would corrupt the protocol stream
+or block an HTTP request on the server's own stdin (#250). This is distinct from
+credential stripping (§4): a transient property is dropped because it is process-scoped,
+not because it is a secret.
+
+```python
+class UserSource(DataSource):
+    _transient_properties = frozenset({"console"})
+```
+
 ## 4. Reconstructible from properties alone
 
 A source MUST be fully reconstructible from `(name, properties)`:
