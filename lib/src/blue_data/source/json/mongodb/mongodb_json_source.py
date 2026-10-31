@@ -6,6 +6,29 @@ from pymongo import MongoClient
 from blue_data.source.json.json_source import JSONSource
 from blue_data.core.schema import DataSchema
 
+# Aggregation stages that write a collection: $out replaces its target, $merge
+# writes into one. #248
+_WRITE_STAGES = frozenset({"$out", "$merge"})
+
+
+def _pipeline_writes(value) -> bool:
+    """True when *value* holds a $out or $merge stage at any depth, so nested
+    pipelines ($facet, $lookup, $unionWith) are covered."""
+    if isinstance(value, dict):
+        return any(k in _WRITE_STAGES or _pipeline_writes(v) for k, v in value.items())
+    if isinstance(value, list):
+        return any(_pipeline_writes(v) for v in value)
+    return False
+
+
+def _is_writing_aggregate(query) -> bool:
+    return (
+        isinstance(query, dict)
+        and isinstance(query.get("op"), str)
+        and query["op"].upper() == "AGGREGATE"
+        and _pipeline_writes(query.get("pipeline"))
+    )
+
 
 class MongoDBSource(JSONSource):
     """MongoDB data source."""
@@ -16,6 +39,18 @@ class MongoDBSource(JSONSource):
     def __init__(self, name, properties=None):
         super().__init__(name, properties=properties)
         self._schema_cache = {}
+
+    def _query_requires_commit(self, query) -> bool:
+        """AGGREGATE is a read unless its pipeline writes ($out/$merge), so it is
+        classified on its arguments. Also covers _is_write_native_query. #248"""
+        if super()._query_requires_commit(query):
+            return True
+        if isinstance(query, str):
+            try:
+                query = json.loads(query)
+            except (ValueError, TypeError):
+                return False
+        return _is_writing_aggregate(query)
 
     def _initialize_connection_properties(self):
         connection = self.properties.get("connection", {})
@@ -270,6 +305,13 @@ class MongoDBSource(JSONSource):
 
         if op == "AGGREGATE":
             pipeline = query.get("pipeline") or []
+            # Guard here too, so library callers and the NL tool loop, which call
+            # execute_query directly, cannot write through $out/$merge. #248
+            if _pipeline_writes(pipeline) and not (optional_properties or {}).get("commit"):
+                raise ValueError(
+                    "Aggregation pipeline with $out or $merge writes a collection; "
+                    "pass optional_properties={'commit': True}."
+                )
             result = []
             for doc in col.aggregate(pipeline):
                 if "_id" in doc:
@@ -519,6 +561,7 @@ class MongoDBSource(JSONSource):
             return self.execute_query(
                 {"op": "AGGREGATE", "pipeline": tool_input["pipeline"]},
                 database=db, collection=coll,
+                optional_properties=optional_properties,
             )
 
         if name == "distinct":

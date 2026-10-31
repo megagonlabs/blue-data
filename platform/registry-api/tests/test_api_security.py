@@ -153,3 +153,50 @@ def test_query_runs_declared_read_json_op(client, registry):
     registry.register_source(MemoryJSONSource("mem"))
     r = client.post("/mem/query", json={"query": {"op": "JSON.GET"}})
     assert r.status_code == 200
+
+
+def _mock_mongo(registry):
+    """A MongoDBSource on a mocked client; a pipeline reaching the driver shows up
+    as an aggregate() call on the returned collection mock."""
+    pytest.importorskip("pymongo")
+    from unittest.mock import patch
+    from blue_data.source.json.mongodb import mongodb_json_source as mod
+
+    with patch.object(mod, "MongoClient"):
+        src = mod.MongoDBSource("mongo", properties={"connection": {"host": "h", "port": 1}})
+    col = src.connection["db"]["people"]
+    col.aggregate.return_value = []
+    registry.register_source(src)
+    return col
+
+
+@pytest.mark.parametrize("stage", [
+    {"$out": "copy"},
+    {"$merge": {"into": "merged"}},
+    {"$facet": {"a": [{"$out": "copy"}]}},
+])
+def test_query_refuses_mongo_aggregate_out_or_merge_without_commit(client, registry, monkeypatch, stage):
+    """#248 — an AGGREGATE whose pipeline writes ($out/$merge) is a write: refused
+    without commit even though AGGREGATE is otherwise a read."""
+    col = _mock_mongo(registry)
+    pipeline = [{"$match": {}}, stage]
+    r = client.post("/mongo/query", json={"query": {"op": "AGGREGATE", "pipeline": pipeline},
+                                          "database": "db", "collection": "people"})
+    assert r.status_code == 400
+    assert "commit" in r.json()["detail"]
+    assert not col.aggregate.called
+
+    monkeypatch.setenv("BLUE_DATA_API_ALLOW_WRITES", "true")
+    r = client.post("/mongo/query", json={"query": {"op": "AGGREGATE", "pipeline": pipeline},
+                                          "database": "db", "collection": "people",
+                                          "commit": True})
+    assert r.status_code == 200
+    assert col.aggregate.call_args.args[0] == pipeline
+
+
+def test_query_runs_mongo_read_aggregate_without_commit(client, registry):
+    col = _mock_mongo(registry)
+    r = client.post("/mongo/query", json={"query": {"op": "AGGREGATE", "pipeline": [{"$match": {}}]},
+                                          "database": "db", "collection": "people"})
+    assert r.status_code == 200
+    assert col.aggregate.called

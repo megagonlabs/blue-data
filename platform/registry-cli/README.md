@@ -187,11 +187,14 @@ blue-registry source metadata mydb --rebuild      # overwrite existing enrichmen
 
 #### `source query`
 
-Execute raw SQL against a live source:
+Execute a read-only query against a live source: SQL for SQL sources, or a JSON op with
+`--json` for sources that take dict ops (MongoDB, doc, kb, web). Collection-scoped sources
+such as MongoDB also take `--collection`. There is no commit flag; a write is refused.
 
 ```bash
 blue-registry source query mydb "SELECT * FROM orders LIMIT 5" --database prod
 blue-registry --format json source query mydb "SELECT status, COUNT(*) FROM orders GROUP BY status" --database prod
+blue-registry source query mongo '{"op": "COUNT", "filter": {}}' --json --database shop --collection people
 ```
 
 #### `source inspect`

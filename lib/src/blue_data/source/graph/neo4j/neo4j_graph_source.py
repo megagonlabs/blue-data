@@ -45,6 +45,12 @@ ORDER BY type
 class NEO4JSource(GraphSource):
     """Neo4j graph database source."""
 
+    # execute_query serves Cypher strings only, not GraphSource's GRAPH.* dict ops, so
+    # declare none: a dict op is refused as undeclared rather than reaching
+    # session.run. Cypher is guarded by the READ-mode session without commit. #249
+    _READ_OPS = frozenset()
+    _WRITE_OPS = frozenset()
+
     def __init__(self, name, properties=None):
         super().__init__(name, properties=properties)
         self._edition = None
@@ -861,7 +867,9 @@ class NEO4JSource(GraphSource):
         optional_properties = optional_properties or {}
 
         params = optional_properties.get("params")
-        read = optional_properties.get("read", True)
+        # Without commit the session is READ mode, so Neo4j refuses a Cypher write;
+        # commit opens a WRITE session, as SQLSource honours commit. #249
+        read = optional_properties.get("read", not optional_properties.get("commit"))
         transaction_id = optional_properties.get("transaction_id")
 
         return self._run_query(

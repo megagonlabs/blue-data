@@ -65,6 +65,10 @@ declare them upper-case. A dict without an `"op"` key counts as the op `None`; a
 whose op-less dicts are reads (e.g. `FileSource`'s legacy filter) lists `None` in
 `_READ_OPS`. Plain query strings (SQL, Cypher) are not classified here: the source
 guards them itself, as `SQLSource.execute_query` does with a read-only connection.
+An op whose effect depends on its arguments is classified on its arguments: the source
+overrides `_query_requires_commit` and guards the op in `execute_query` as well, as
+`MongoDBSource` does for an `AGGREGATE` whose pipeline holds a `$out` or `$merge`
+stage (#248).
 
 ```python
 class MySource(DataSource):

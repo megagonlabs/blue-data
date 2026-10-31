@@ -197,3 +197,42 @@ def test_query_runs_declared_read_json_op(runner, registry):
     registry.register_source(MemoryJSONSource("mem"))
     r = runner.invoke(cli, ["source", "query", "mem", '{"op": "JSON.GET"}', "--json"])
     assert r.exit_code == 0, r.output
+
+
+def _mock_mongo(registry):
+    """A MongoDBSource on a mocked client: collection "people" in database "db"."""
+    pytest.importorskip("pymongo")
+    from unittest.mock import patch
+    from blue_data.source.json.mongodb import mongodb_json_source as mod
+
+    with patch.object(mod, "MongoClient"):
+        src = mod.MongoDBSource("mongo", properties={"connection": {"host": "h", "port": 1}})
+    col = src.connection["db"]["people"]
+    col.count_documents.return_value = 2
+    col.aggregate.return_value = []
+    registry.register_source(src)
+    return src
+
+
+def test_query_collection_scoped_source(runner, registry):
+    """#247 — `source query` takes --collection, so a MongoDB source is queryable."""
+    src = _mock_mongo(registry)
+    r = runner.invoke(cli, ["--format", "json", "source", "query", "mongo",
+                            '{"op": "COUNT", "filter": {}}',
+                            "--json", "--database", "db", "--collection", "people"])
+    assert r.exit_code == 0, r.output
+    assert json.loads(r.output) == [{"count": 2}]
+    src.connection.__getitem__.assert_any_call("db")
+    src.connection["db"].__getitem__.assert_any_call("people")
+
+
+@pytest.mark.parametrize("stage", [{"$out": "copy"}, {"$merge": {"into": "merged"}}])
+def test_query_refuses_mongo_aggregate_out_or_merge(runner, registry, stage):
+    """#248 — an AGGREGATE whose pipeline writes ($out/$merge) is refused."""
+    src = _mock_mongo(registry)
+    query = json.dumps({"op": "AGGREGATE", "pipeline": [{"$match": {}}, stage]})
+    r = runner.invoke(cli, ["source", "query", "mongo", query, "--json",
+                            "--database", "db", "--collection", "people"])
+    assert r.exit_code != 0
+    assert "commit" in r.output
+    assert not src.connection["db"]["people"].aggregate.called

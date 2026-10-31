@@ -355,14 +355,20 @@ def source_metadata(ctx: click.Context, name: str, rebuild: bool):
 @click.argument("name")
 @click.argument("sql")
 @click.option("--database", default=None, help="Target database.")
+@click.option("--collection", default=None,
+              help="Target collection, for collection-scoped sources such as MongoDB.")
 @click.option("--json", "as_json", is_flag=True, default=False,
-              help="Parse the query as a JSON op (for sources that take dict ops: doc, kb, web).")
+              help="Parse the query as a JSON op (for sources that take dict ops: "
+                   "MongoDB, doc, kb, web).")
 @click.pass_context
-def source_query(ctx: click.Context, name: str, sql: str, database: Optional[str], as_json: bool):
+def source_query(ctx: click.Context, name: str, sql: str, database: Optional[str],
+                 collection: Optional[str], as_json: bool):
     """Execute a query against a live source (read-only).
 
-    SQL sources take a SELECT string; sources that accept JSON ops (doc, kb, web)
-    take a JSON object — pass --json to parse the argument as one.
+    SQL sources take a SELECT string; sources that accept JSON ops (MongoDB, doc,
+    kb, web) take a JSON object — pass --json to parse the argument as one.
+    Collection-scoped sources such as MongoDB also need --collection. There is no
+    commit flag: a write is refused.
     """
     reg = ctx.obj["registry"]
     if reg.connect_source(name) is None:
@@ -374,7 +380,7 @@ def source_query(ctx: click.Context, name: str, sql: str, database: Optional[str
         except ValueError as e:
             _err("INVALID_ARGUMENT", f"--json given but query is not valid JSON: {e}")
     try:
-        results = reg.execute_query(name, query, database=database)
+        results = reg.execute_query(name, query, database=database, collection=collection)
         _out(results or [], ctx.obj["fmt"])
     except Exception as e:
         _err("COMMAND_FAILED", str(e))

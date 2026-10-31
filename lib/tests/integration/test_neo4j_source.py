@@ -318,6 +318,22 @@ def test_execute_query_write(src, testdb):
     assert result[0]["cnt"] == 1
 
 
+@skip_no_neo4j
+def test_execute_query_write_honours_commit(src, testdb):
+    """#249 — commit opens a WRITE session; without it the READ session refuses."""
+    from neo4j.exceptions import ClientError
+
+    label = f"Probe{uuid.uuid4().hex[:8]}"
+    with pytest.raises(ClientError):
+        src.execute_query(f"CREATE (n:{label})", database=testdb)
+    src.execute_query(f"CREATE (n:{label})", database=testdb,
+                      optional_properties={"commit": True})
+    result = src.execute_query(f"MATCH (n:{label}) RETURN count(n) AS cnt", database=testdb)
+    assert result[0]["cnt"] == 1
+    src.execute_query(f"MATCH (n:{label}) DELETE n", database=testdb,
+                      optional_properties={"commit": True})
+
+
 # ---------------------------------------------------------------------------
 # Schema caching
 # ---------------------------------------------------------------------------

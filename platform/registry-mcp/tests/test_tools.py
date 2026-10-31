@@ -393,3 +393,31 @@ def test_execute_query_refuses_write_or_undeclared_json_op(registry, op):
 def test_execute_query_runs_declared_read_json_op(registry):
     registry.register_source(MemoryJSONSource("mem"))
     assert json.loads(execute_query("mem", '{"op": "JSON.GET"}')) == {}
+
+
+@pytest.mark.parametrize("stage", [
+    {"$out": "copy"},
+    {"$merge": {"into": "merged"}},
+    {"$lookup": {"from": "o", "as": "o", "pipeline": [{"$merge": {"into": "merged"}}]}},
+])
+def test_execute_query_refuses_mongo_aggregate_out_or_merge(registry, stage):
+    """#248 — an AGGREGATE whose pipeline writes ($out/$merge) is refused; a read
+    pipeline still runs."""
+    pytest.importorskip("pymongo")
+    from unittest.mock import patch
+    from blue_data.source.json.mongodb import mongodb_json_source as mod
+
+    with patch.object(mod, "MongoClient"):
+        src = mod.MongoDBSource("mongo", properties={"connection": {"host": "h", "port": 1}})
+    col = src.connection["db"]["people"]
+    col.aggregate.return_value = []
+    registry.register_source(src)
+
+    query = json.dumps({"op": "AGGREGATE", "pipeline": [{"$match": {}}, stage]})
+    result = json.loads(execute_query("mongo", query, database="db", collection="people"))
+    assert "commit" in result["error"]
+    assert not col.aggregate.called
+
+    read = json.dumps({"op": "AGGREGATE", "pipeline": [{"$match": {}}]})
+    assert json.loads(execute_query("mongo", read, database="db", collection="people")) == []
+    assert col.aggregate.called
