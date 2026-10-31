@@ -127,23 +127,38 @@ def build_embedding_fn():
     Configure with BLUE_DATA_EMBEDDING_PROVIDER=openai (+ OPENAI_API_KEY) and,
     optionally, BLUE_DATA_EMBEDDING_MODEL (default text-embedding-3-small)."""
     provider = os.environ.get("BLUE_DATA_EMBEDDING_PROVIDER", "").lower()
+    if not provider:
+        return None
 
     if provider == "openai":
         api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key:
-            try:
-                import openai
-                model = os.environ.get("BLUE_DATA_EMBEDDING_MODEL", "text-embedding-3-small")
-                client = openai.OpenAI(api_key=api_key)
+        if not api_key:
+            logger.warning(
+                "BLUE_DATA_EMBEDDING_PROVIDER=openai but OPENAI_API_KEY is not set; "
+                "embeddings are disabled and registry search falls back to keyword-only."
+            )
+            return None
+        try:
+            import openai
+        except ImportError:
+            logger.warning(
+                "BLUE_DATA_EMBEDDING_PROVIDER=openai but the 'openai' package is not installed "
+                "(pip install 'blue-data[llm]'); embeddings are disabled (keyword-only search)."
+            )
+            return None
+        model = os.environ.get("BLUE_DATA_EMBEDDING_MODEL", "text-embedding-3-small")
+        client = openai.OpenAI(api_key=api_key)
 
-                def embedding_fn(text: str) -> list[float]:
-                    resp = client.embeddings.create(model=model, input=text)
-                    return resp.data[0].embedding
+        def embedding_fn(text: str) -> list[float]:
+            resp = client.embeddings.create(model=model, input=text)
+            return resp.data[0].embedding
 
-                return embedding_fn
-            except ImportError:
-                pass
+        return embedding_fn
 
+    logger.warning(
+        "Unknown BLUE_DATA_EMBEDDING_PROVIDER=%r (expected 'openai'); embeddings are disabled.",
+        provider,
+    )
     return None
 
 
@@ -183,61 +198,86 @@ def build_enricher():
     from blue_data.registry.enrichment.metadata import MetaData
 
     provider = os.environ.get("BLUE_DATA_LLM_PROVIDER", "").lower()
+    if not provider:
+        return MetaData(llm_fn=None)
 
     if provider == "anthropic":
         api_key = os.environ.get("ANTHROPIC_API_KEY")
-        if api_key:
-            try:
-                import anthropic
-                # Resolve the model after the provider: an empty/unset BLUE_DATA_LLM_MODEL
-                # must fall through to the Anthropic default, not a cross-provider value
-                # (e.g. the family default gpt-4o exported by the CLI). #101
-                model = (
-                    os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL")
-                    or os.environ.get("BLUE_DATA_LLM_MODEL")
-                    or "claude-opus-4-8"
-                )
-                client = anthropic.Anthropic(api_key=api_key)
+        if not api_key:
+            logger.warning(
+                "BLUE_DATA_LLM_PROVIDER=anthropic but ANTHROPIC_API_KEY is not set; "
+                "metadata enrichment is disabled."
+            )
+            return MetaData(llm_fn=None)
+        try:
+            import anthropic
+        except ImportError:
+            logger.warning(
+                "BLUE_DATA_LLM_PROVIDER=anthropic but the 'anthropic' package is not installed "
+                "(pip install 'blue-data[llm]'); metadata enrichment is disabled."
+            )
+            return MetaData(llm_fn=None)
+        # Resolve the model after the provider: an empty/unset BLUE_DATA_LLM_MODEL
+        # must fall through to the Anthropic default, not a cross-provider value
+        # (e.g. the family default gpt-4o exported by the CLI). #101
+        model = (
+            os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL")
+            or os.environ.get("BLUE_DATA_LLM_MODEL")
+            or "claude-opus-4-8"
+        )
+        client = anthropic.Anthropic(api_key=api_key)
 
-                def llm_fn(prompt: str) -> str:
-                    resp = client.messages.create(
-                        model=model, max_tokens=1024,
-                        messages=[{"role": "user", "content": prompt}],
-                    )
-                    for block in resp.content:
-                        if block.type == "text":
-                            return block.text
-                    return ""
+        def llm_fn(prompt: str) -> str:
+            resp = client.messages.create(
+                model=model, max_tokens=1024,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            for block in resp.content:
+                if block.type == "text":
+                    return block.text
+            return ""
 
-                return MetaData(llm_fn=llm_fn)
-            except ImportError:
-                pass
+        return MetaData(llm_fn=llm_fn)
 
-    elif provider == "openai":
+    if provider == "openai":
         api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key:
-            try:
-                import openai
-                # Resolve the model after the provider (#101): empty/unset falls
-                # through to the OpenAI default rather than a cross-provider value.
-                model = (
-                    os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL")
-                    or os.environ.get("BLUE_DATA_LLM_MODEL")
-                    or "gpt-4o"
-                )
-                client = openai.OpenAI(api_key=api_key)
+        if not api_key:
+            logger.warning(
+                "BLUE_DATA_LLM_PROVIDER=openai but OPENAI_API_KEY is not set; "
+                "metadata enrichment is disabled."
+            )
+            return MetaData(llm_fn=None)
+        try:
+            import openai
+        except ImportError:
+            logger.warning(
+                "BLUE_DATA_LLM_PROVIDER=openai but the 'openai' package is not installed "
+                "(pip install 'blue-data[llm]'); metadata enrichment is disabled."
+            )
+            return MetaData(llm_fn=None)
+        # Resolve the model after the provider (#101): empty/unset falls
+        # through to the OpenAI default rather than a cross-provider value.
+        model = (
+            os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL")
+            or os.environ.get("BLUE_DATA_LLM_MODEL")
+            or "gpt-4o"
+        )
+        client = openai.OpenAI(api_key=api_key)
 
-                def llm_fn(prompt: str) -> str:
-                    resp = client.chat.completions.create(
-                        model=model, max_completion_tokens=1024,
-                        messages=[{"role": "user", "content": prompt}],
-                    )
-                    return resp.choices[0].message.content or ""
+        def llm_fn(prompt: str) -> str:
+            resp = client.chat.completions.create(
+                model=model, max_completion_tokens=1024,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return resp.choices[0].message.content or ""
 
-                return MetaData(llm_fn=llm_fn)
-            except ImportError:
-                pass
+        return MetaData(llm_fn=llm_fn)
 
+    logger.warning(
+        "Unknown BLUE_DATA_LLM_PROVIDER=%r (expected 'anthropic' or 'openai'); "
+        "metadata enrichment is disabled.",
+        provider,
+    )
     return MetaData(llm_fn=None)
 
 

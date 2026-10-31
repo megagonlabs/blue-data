@@ -54,7 +54,7 @@ Optional extras (install with `pip install -e ".[redis]"` etc.):
 | `chromadb` | `chromadb` | `ChromaDBVectorSource` |
 | `bn` | `pgmpy`, `networkx` | `BayesianNetworkSource` |
 | `parquet` | `pyarrow` | Parquet file source |
-| `llm` | `anthropic` | LLM-augmented enrichment via `MetaData(llm_fn=...)` |
+| `llm` | `anthropic`, `openai` | LLM-augmented enrichment via `MetaData(llm_fn=...)`; `openai` also backs OpenAI embeddings |
 
 > **Redis Stack required:** `RedisJSONSource` and `RedisVectorSource` use `JSON.SET` and `FT.CREATE` commands that are not available in standard Redis. You need **Redis Stack** (`redis-stack-server`), not plain `redis`.
 

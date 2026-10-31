@@ -31,7 +31,7 @@ redis     = ["redis>=5,<7"]
 chromadb  = ["chromadb>=1.0"]
 bn        = ["pgmpy>=0.1.20", "networkx>=3"]
 parquet   = ["pyarrow>=14"]
-llm       = ["anthropic>=0.40"]
+llm       = ["anthropic>=0.40", "openai>=1.0"]
 server    = ["fastapi>=0.100"]
 dev       = ["pytest>=7", "pytest-cov"]
 all = [
@@ -45,6 +45,7 @@ all = [
     "networkx>=3",
     "pyarrow>=14",
     "anthropic>=0.40",
+    "openai>=1.0",
 ]
 
 [tool.setuptools.packages.find]
