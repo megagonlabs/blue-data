@@ -18,6 +18,17 @@ class DataSource:
     _READ_OPS: frozenset = frozenset()
     _WRITE_OPS: frozenset = frozenset()
 
+    # Property keys that describe only the running process, not the source's
+    # reconstructible configuration. DataRegistry.register_source drops these before
+    # persisting, so a source the registry rebuilds in another process gets the class
+    # default rather than the registering process's value. For example, a UserSource
+    # declares {"console"}: a source registered with console=True from an interactive
+    # script must not be rebuilt with console=True inside a stdio MCP server or an API
+    # process, where a clarification prompt would corrupt the protocol stream or block a
+    # request on the server's own stdin. Keys are matched at the top level of the stored
+    # properties. #250
+    _transient_properties: frozenset = frozenset()
+
     def __init__(self, name: str, properties: dict | None = None):
         if properties is None:
             properties = {}
