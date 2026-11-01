@@ -68,15 +68,23 @@ Sample values drive all downstream enrichment — this step is required before e
 
 ### 4. Enrich
 
-**Deterministic enrichment** (no API key required):
+**Deterministic enrichment** (no API key required) — run the full metadata pipeline with `llm_fn=None`:
 
 ```python
-registry.enrich_source("mydb")
+from blue_data.registry.enrichment.metadata import MetaData
+
+registry = DataRegistry(metadata_enricher=MetaData(llm_fn=None))
+registry.register_source(source)
+registry.sync_source("mydb", recursive=True)
+registry.collect_source_stats("mydb", recursive=True)
+registry.enrich_source_metadata("mydb", recursive=True)
 ```
 
-Detects ENUM columns, event-log tables, event-time columns, value axes, and coded domain values from sample data alone.
+Detects ENUM columns, event-log tables, event-time columns, value axes, semantic roles, process semantics, and coded domain values from sample data alone — no LLM involved.
 
-**LLM-augmented enrichment** (Anthropic or OpenAI):
+> `registry.enrich_source("mydb")` runs only the first layer of this — semantic column types (`value_semantics`). The event-table, event-time, value-axis and semantic-role annotations come from the metadata pipeline, so they need a `metadata_enricher` and `enrich_source_metadata`, which run deterministically even with `llm_fn=None`.
+
+**LLM-augmented enrichment** (Anthropic or OpenAI) — the same pipeline with a real `llm_fn`, which *adds* natural-language descriptions on top of the deterministic annotations:
 
 ```bash
 pip install anthropic
@@ -84,6 +92,7 @@ pip install anthropic
 
 ```python
 import anthropic
+from blue_data.registry.enrichment.metadata import MetaData
 
 client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
 
@@ -94,18 +103,14 @@ def llm_fn(prompt: str) -> str:
     )
     return msg.content[0].text
 
-from blue_data.registry.enrichment.metadata import MetaData
-
-registry = DataRegistry(
-    metadata_enricher=MetaData(llm_fn=llm_fn),
-)
+registry = DataRegistry(metadata_enricher=MetaData(llm_fn=llm_fn))
 registry.register_source(source)
 registry.sync_source("mydb", recursive=True)
 registry.collect_source_stats("mydb", recursive=True)
 registry.enrich_source_metadata("mydb", recursive=True)
 ```
 
-Generates natural-language descriptions for every entity and attribute, semantic role annotations, process semantics, and value-axis signals. Results are stored once in the registry and reused without further API calls.
+Adds natural-language descriptions for every entity and attribute, plus LLM-refined semantic types and domain-concept annotations, on top of the deterministic layer. Results are stored once in the registry and reused without further API calls.
 
 ### 5. Search
 
