@@ -4,8 +4,9 @@ DataRegistry with Redis backends — integration tests.
 Requires Redis Stack, at localhost:6379 or REDIS_HOST:REDIS_PORT.
 Auto-skipped when Redis is unavailable.
 
-Uses db=15 and a unique namespace/scan_prefix to avoid polluting real data.
-All keys are flushed before and after each test.
+Uses db=0 (RediSearch/FT.CREATE only builds indexes on db 0, #215) and a unique
+namespace/scan_prefix to avoid polluting real data. Only keys matching that namespace/
+prefix are deleted before and after each test (never FLUSHDB).
 """
 import hashlib
 import math
@@ -13,7 +14,7 @@ import os
 
 import pytest
 
-TEST_DB = 15
+TEST_DB = 0
 TEST_NAMESPACE = "test_registry"
 TEST_SCAN_PREFIX = "test_registry_vec"
 TEST_INDEX = "test_registry_index"

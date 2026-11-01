@@ -28,19 +28,23 @@ class RecordIndexer:
     # ---------- index lifecycle ----------
 
     def ensure_index(self) -> None:
-        """Create the vector index if it does not exist."""
+        """Create the vector index if it does not exist.
+
+        Failures propagate. Swallowing them meant a refused FT.CREATE (e.g. RediSearch
+        rejecting index creation on a Redis db other than 0) left the index missing,
+        every later KNN failed with "No such index", and registry search silently fell
+        back to BM25 with no signal to the caller. An index that already exists is not
+        an error — the vector source's create_index treats it as a no-op (#181), so any
+        exception reaching here is a real failure worth surfacing. #215"""
         if self._index_ensured or self.vector_source is None:
             return
-        try:
-            self.vector_source.execute_query({
-                "op": "VECTOR.CREATE_INDEX",
-                "index": self.index_name,
-                "collection": self.collection,
-                "dim": self.vector_dim,
-                "distance_metric": "COSINE",
-            })
-        except Exception:
-            pass
+        self.vector_source.execute_query({
+            "op": "VECTOR.CREATE_INDEX",
+            "index": self.index_name,
+            "collection": self.collection,
+            "dim": self.vector_dim,
+            "distance_metric": "COSINE",
+        })
         self._index_ensured = True
 
     # ---------- record text ----------

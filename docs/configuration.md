@@ -75,6 +75,8 @@ Enables the vector half of hybrid BM25 + vector search. Leave `BLUE_DATA_EMBEDDI
 
 The vector store defaults to match the registry store's durability — `file` store → file vectors beside the registry file, `redis` store → Redis vectors, `memory` store → in-memory vectors — so the embeddings a `source sync` pays for persist exactly when the registry record does. Setting `memory` vectors under a durable (`file`/`redis`) store makes a single-shot CLI command re-embed every record into a store discarded at process exit; the next search then finds no vectors and silently falls back to keyword-only. blue-data logs a `WARNING` in that case (#213).
 
+> **Redis vectors require logical db 0.** RediSearch (`FT.CREATE`) only builds indexes on db 0, so a `redis` vector store must point at db 0 — isolate tenants with `BLUE_DATA_REGISTRY_VECTOR_SCAN_PREFIX`, not the db number. If `BLUE_DATA_REGISTRY_REDIS_URL` selects another db (e.g. `redis://host:6379/3`), the Redis vector store is disabled with a `WARNING` and search runs keyword-only; constructing `RedisVectorSource` on db ≠ 0 directly raises (#215).
+
 ---
 
 ## Search tuning
