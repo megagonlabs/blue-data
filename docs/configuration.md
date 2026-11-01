@@ -61,6 +61,22 @@ Both SDKs ship in the `llm` extra: `pip install "blue-data[llm]"` (installs `ant
 
 ---
 
+## Embeddings & vector store
+
+Enables the vector half of hybrid BM25 + vector search. Leave `BLUE_DATA_EMBEDDING_PROVIDER` blank to run keyword-only (no API key needed); the vector settings below then have no effect.
+
+| Variable | Default | Description |
+|---|---|---|
+| `BLUE_DATA_EMBEDDING_PROVIDER` | _(empty)_ | Embedding provider: `openai`. Leave blank for keyword-only search |
+| `BLUE_DATA_EMBEDDING_MODEL` | `text-embedding-3-small` | Embedding model (its output size must match `BLUE_DATA_REGISTRY_VECTOR_DIM`) |
+| `BLUE_DATA_REGISTRY_VECTOR_SOURCE` | _(matches store)_ | Where embeddings live: `memory`, `file`, or `redis`. Unset follows `BLUE_DATA_REGISTRY_STORE` |
+| `BLUE_DATA_REGISTRY_VECTOR_DIR` | `<registry file dir>/vectors` | Directory for `file` vectors |
+| `BLUE_DATA_REGISTRY_VECTOR_SCAN_PREFIX` | `blue_data_vec:` | Redis key prefix for `redis` vectors |
+
+The vector store defaults to match the registry store's durability — `file` store → file vectors beside the registry file, `redis` store → Redis vectors, `memory` store → in-memory vectors — so the embeddings a `source sync` pays for persist exactly when the registry record does. Setting `memory` vectors under a durable (`file`/`redis`) store makes a single-shot CLI command re-embed every record into a store discarded at process exit; the next search then finds no vectors and silently falls back to keyword-only. blue-data logs a `WARNING` in that case (#213).
+
+---
+
 ## Search tuning
 
 Controls the hybrid search engine inside `DataRegistry`. Defaults are tuned for general use — adjust if your registry has specific recall/precision requirements.

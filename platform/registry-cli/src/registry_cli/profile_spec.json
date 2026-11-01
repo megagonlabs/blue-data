@@ -42,6 +42,36 @@
     "cast": "str",
     "inherits": ["BLUE_DATA_LLM_MODEL"]
   },
+  "BLUE_DATA_EMBEDDING_PROVIDER": {
+    "default": null,
+    "prompt": "Embedding provider for vector search (openai; blank = keyword-only)",
+    "required": false,
+    "cast": "str"
+  },
+  "BLUE_DATA_EMBEDDING_MODEL": {
+    "default": null,
+    "prompt": "Embedding model (default: text-embedding-3-small)",
+    "required": false,
+    "cast": "str"
+  },
+  "BLUE_DATA_REGISTRY_VECTOR_SOURCE": {
+    "default": null,
+    "prompt": "Vector store: memory, file, or redis (blank = match the registry store)",
+    "required": false,
+    "cast": "str"
+  },
+  "BLUE_DATA_REGISTRY_VECTOR_DIR": {
+    "default": null,
+    "prompt": "Directory for file vectors (default: next to the registry file)",
+    "required": false,
+    "cast": "directory"
+  },
+  "BLUE_DATA_REGISTRY_VECTOR_SCAN_PREFIX": {
+    "default": null,
+    "prompt": "Redis key prefix for vectors when vector store=redis (default: blue_data_vec:)",
+    "required": false,
+    "cast": "str"
+  },
   "BLUE_DATA_REGISTRY_VECTOR_DIM": {
     "default": 1536,
     "prompt": "Embedding vector dimensions (must match the embedding model)",
