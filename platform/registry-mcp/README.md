@@ -90,7 +90,7 @@ All configuration is via environment variables.
 | Variable | Default | Description |
 |---|---|---|
 | `BLUE_DATA_REGISTRY_STORE` | `memory` | `memory` — ephemeral in-process registry. `redis` — persistent Redis-backed registry (requires Redis Stack). |
-| `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. Used when `BLUE_DATA_REGISTRY_STORE=redis`. |
+| `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. Used when `BLUE_DATA_REGISTRY_STORE=redis`. Supports `user:password@` auth and the `rediss://` TLS scheme. |
 | `BLUE_DATA_REGISTRY_REDIS_NAMESPACE` | `blue_data` | Key prefix used to isolate registry records in Redis. |
 
 ### LLM enrichment

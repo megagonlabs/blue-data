@@ -44,23 +44,41 @@ def _getenv_bool(key: str, default: bool) -> bool:
     return default
 
 
+def _redis_connection_from_url(url: str) -> dict:
+    """Parse a Redis URL into a connection dict that preserves full credentials.
+
+    Carries the whole ``url`` so the source's ``_connect`` can authenticate via
+    ``redis.Redis.from_url`` — keeping the username, password, the ``rediss://`` TLS
+    scheme and any query options the URL sets. host/port/db are also parsed for
+    inspection, and username/ssl are surfaced as discrete keys. The password stays in
+    the URL only (the credential sanitiser strips URI userinfo before persisting, so a
+    registered data source never stores it). #211"""
+    import urllib.parse
+    parsed = urllib.parse.urlparse(url)
+    conn = {
+        "url": url,
+        "host": parsed.hostname or "localhost",
+        "port": parsed.port or 6379,
+        "db": int((parsed.path or "/0").lstrip("/") or "0"),
+    }
+    if parsed.username:
+        conn["username"] = urllib.parse.unquote(parsed.username)
+    if parsed.scheme == "rediss":
+        conn["ssl"] = True
+    return conn
+
+
 def build_store():
     """Build a JSONSource from env vars."""
     store_type = os.environ.get("BLUE_DATA_REGISTRY_STORE", "memory").lower()
 
     if store_type == "redis":
-        import urllib.parse
         from blue_data.source.json.redis.redis_json_source import RedisJSONSource
         url = os.environ.get("BLUE_DATA_REGISTRY_REDIS_URL", "redis://localhost:6379/0")
         namespace = os.environ.get("BLUE_DATA_REGISTRY_REDIS_NAMESPACE", "blue_data")
-        parsed = urllib.parse.urlparse(url)
         return RedisJSONSource(properties={
             "namespace": namespace,
-            "connection": {
-                "host": parsed.hostname or "localhost",
-                "port": parsed.port or 6379,
-                "db": int((parsed.path or "/0").lstrip("/") or "0"),
-            },
+            "connection": _redis_connection_from_url(url),
         })
 
     if store_type == "file":
@@ -185,18 +203,13 @@ def build_vector_source(embedding_fn=None):
     vs_type = os.environ.get("BLUE_DATA_REGISTRY_VECTOR_SOURCE", default_vs).lower()
 
     if vs_type == "redis":
-        import urllib.parse
         from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
         url = os.environ.get("BLUE_DATA_REGISTRY_REDIS_URL", "redis://localhost:6379/0")
-        parsed = urllib.parse.urlparse(url)
         scan_prefix = os.environ.get("BLUE_DATA_REGISTRY_VECTOR_SCAN_PREFIX", "blue_data_vec:")
+        connection = _redis_connection_from_url(url)
+        connection["scan_prefix"] = scan_prefix
         return RedisVectorSource(name="registry_vectors", properties={
-            "connection": {
-                "host": parsed.hostname or "localhost",
-                "port": parsed.port or 6379,
-                "db": int((parsed.path or "/0").lstrip("/") or "0"),
-                "scan_prefix": scan_prefix,
-            },
+            "connection": connection,
         })
 
     if vs_type == "file":

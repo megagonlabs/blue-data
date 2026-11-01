@@ -33,11 +33,18 @@ class RedisJSONSource(JSONSource):
         config = dict(connection)
         config.pop("protocol", None)
         config.pop("scan_prefix", None)
+        # A connection.url authenticates exactly as redis.Redis.from_url does — keeping
+        # the username, password, the rediss:// TLS scheme and any query options. #211
+        url = config.get("url")
+        if url:
+            return redis.Redis.from_url(url, decode_responses=True)
         return redis.Redis(
             host=config.get("host", "localhost"),
             port=config.get("port", 6379),
             db=config.get("db", 0),
+            username=config.get("username"),
             password=config.get("password"),
+            ssl=config.get("ssl", False),
             decode_responses=True,
         )
 

@@ -38,7 +38,7 @@ Controls where the registry state is persisted.
 | Variable | Default | Description |
 |---|---|---|
 | `BLUE_DATA_REGISTRY_STORE` | `memory` | Persistence backend: `memory`, `redis`, or `file` (json-mcp only) |
-| `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. Required when `BLUE_DATA_REGISTRY_STORE=redis` |
+| `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. Required when `BLUE_DATA_REGISTRY_STORE=redis`. Honors username/password userinfo, the `rediss://` TLS scheme and query options (authenticates as `redis.Redis.from_url` does). The password is read from the env only — it is never written to the registry store |
 | `BLUE_DATA_REGISTRY_REDIS_NAMESPACE` | `blue_data` | Key namespace prefix in Redis. Isolates multiple registry instances on the same server |
 | `BLUE_DATA_REGISTRY_FILE` | `blue_data_store.json` | Path to JSON file. Required when `BLUE_DATA_REGISTRY_STORE=file` (json-mcp only) |
 
