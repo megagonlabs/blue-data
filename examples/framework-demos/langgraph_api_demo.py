@@ -79,6 +79,9 @@ def _setup_demo() -> tuple[str, subprocess.Popen]:
     env = {
         **os.environ,
         "BLUE_DATA_SOURCES_CONFIG": config_path,
+        # Local demo over loopback: disable API auth so the httpx calls below don't
+        # need a key. For a real deployment set BLUE_DATA_API_KEY and send it instead.
+        "BLUE_DATA_API_AUTH_DISABLED": "true",
     }
     proc = subprocess.Popen(
         ["uvicorn", "registry_api.main:app", "--port", "8001", "--log-level", "warning"],
