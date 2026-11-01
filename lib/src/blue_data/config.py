@@ -167,12 +167,22 @@ def build_vector_source(embedding_fn=None):
 
     Returns None when *embedding_fn* is None — vector search needs embeddings, so
     without a provider the registry stays keyword-only rather than wiring a dead
-    vector source. Defaults to MemoryVectorSource; set
-    BLUE_DATA_REGISTRY_VECTOR_SOURCE=redis for RedisVectorSource."""
+    vector source.
+
+    The vector store defaults to match the registry store's durability, so the
+    embeddings a sync pays for outlive the command exactly when the registry record
+    does: a ``redis`` store gets RedisVectorSource, a ``file`` store gets a
+    FileVectorSource beside the registry file, and a ``memory`` store gets
+    MemoryVectorSource. Otherwise a single-shot CLI command would embed every record
+    (billed) into an in-memory store discarded at process exit, and the next search
+    would find no vectors (#213). BLUE_DATA_REGISTRY_VECTOR_SOURCE overrides the default
+    (memory | file | redis)."""
     if embedding_fn is None:
         return None
 
-    vs_type = os.environ.get("BLUE_DATA_REGISTRY_VECTOR_SOURCE", "memory").lower()
+    store_type = os.environ.get("BLUE_DATA_REGISTRY_STORE", "memory").lower()
+    default_vs = {"redis": "redis", "file": "file"}.get(store_type, "memory")
+    vs_type = os.environ.get("BLUE_DATA_REGISTRY_VECTOR_SOURCE", default_vs).lower()
 
     if vs_type == "redis":
         import urllib.parse
@@ -188,6 +198,24 @@ def build_vector_source(embedding_fn=None):
                 "scan_prefix": scan_prefix,
             },
         })
+
+    if vs_type == "file":
+        from blue_data.source.vector.file_vector_source import FileVectorSource
+        directory = os.environ.get("BLUE_DATA_REGISTRY_VECTOR_DIR")
+        if not directory:
+            # Default beside the registry file so the vectors sit next to the store
+            # they index (both survive the command).
+            reg_file = os.environ.get("BLUE_DATA_REGISTRY_FILE", "blue_data_store.json")
+            directory = os.path.join(os.path.dirname(os.path.abspath(reg_file)), "vectors")
+        return FileVectorSource(name="registry_vectors", directory=directory)
+
+    if store_type != "memory":
+        logger.warning(
+            "BLUE_DATA_REGISTRY_VECTOR_SOURCE=memory with a %s registry store: embeddings "
+            "computed at sync time are discarded when the process exits, so search falls "
+            "back to keyword-only. Set it to 'file' or 'redis' to persist vectors.",
+            store_type,
+        )
 
     from blue_data.source.vector.memory_vector_source import MemoryVectorSource
     return MemoryVectorSource(name="registry_vectors")

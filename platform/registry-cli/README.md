@@ -93,6 +93,11 @@ All parameters can be set in a profile. The full list, with defaults:
 | `BLUE_DATA_SOURCES_CONFIG` | _(unset)_ | Path to sources config JSON file |
 | `BLUE_DATA_SOURCES_SYNC` | `true` | Sync sources on startup from sources config |
 | `BLUE_DATA_REGISTRY_METADATA_LLM_MODEL` | _(inherits `BLUE_DATA_LLM_MODEL`)_ | Model override for `source metadata` |
+| `BLUE_DATA_EMBEDDING_PROVIDER` | _(unset)_ | Embedding provider for vector search (`openai`; blank = keyword-only) |
+| `BLUE_DATA_EMBEDDING_MODEL` | `text-embedding-3-small` | Embedding model |
+| `BLUE_DATA_REGISTRY_VECTOR_SOURCE` | _(matches store)_ | Vector store (`memory`, `file`, `redis`); blank follows `BLUE_DATA_REGISTRY_STORE` so embeddings persist |
+| `BLUE_DATA_REGISTRY_VECTOR_DIR` | `<registry file dir>/vectors` | Directory for file vectors |
+| `BLUE_DATA_REGISTRY_VECTOR_SCAN_PREFIX` | `blue_data_vec:` | Redis key prefix for vectors (vector store=redis) |
 | `BLUE_DATA_REGISTRY_VECTOR_DIM` | `1536` | Embedding dimensions (must match embedding model) |
 | `BLUE_DATA_REGISTRY_SEARCH_BM25_WEIGHT` | _(library default)_ | BM25 weight in hybrid search |
 | `BLUE_DATA_REGISTRY_SEARCH_VECTOR_WEIGHT` | _(library default)_ | Vector weight in hybrid search |
@@ -103,6 +108,8 @@ All parameters can be set in a profile. The full list, with defaults:
 | `BLUE_DATA_REGISTRY_SEARCH_HIERARCHICAL` | _(library default)_ | Enable hierarchical search boosting |
 
 Precedence: command-line flag → environment variable → profile value → default.
+
+> **Vector search needs a persistent vector store.** With an embedding provider set, `source sync` embeds every record (billed API calls). Leave `BLUE_DATA_REGISTRY_VECTOR_SOURCE` unset so the vector store follows `BLUE_DATA_REGISTRY_STORE` (`file`/`redis` persist across commands); forcing `memory` under a `file`/`redis` store throws those embeddings away at process exit, and the next `search` silently falls back to keyword-only (#213).
 
 ## Source config file
 
