@@ -83,10 +83,10 @@ All parameters can be set in a profile. The full list, with defaults:
 |---|---|---|
 | `OPENAI_API_KEY` | _(unset)_ | OpenAI API key |
 | `ANTHROPIC_API_KEY` | _(unset)_ | Anthropic API key |
-| `BLUE_DATA_LLM_PROVIDER` | `openai` | LLM provider (`openai` or `anthropic`) |
-| `BLUE_DATA_LLM_MODEL` | `gpt-4o` | Default LLM model |
+| `BLUE_DATA_LLM_PROVIDER` | _(unset)_ | LLM provider (`openai` or `anthropic`); blank = deterministic-only (no LLM enrichment) |
+| `BLUE_DATA_LLM_MODEL` | _(unset)_ | Default LLM model; blank resolves per provider (`claude-opus-4-8` for anthropic, `gpt-4o` for openai) |
 | `BLUE_DATA_CLI_FORMAT` | `table` | Output format (`table`, `json`, or `nl`) |
-| `BLUE_DATA_REGISTRY_STORE` | `memory` | Registry backend (`memory`, `file`, or `redis`) |
+| `BLUE_DATA_REGISTRY_STORE` | `file` | Registry backend (`memory`, `file`, or `redis`) |
 | `BLUE_DATA_REGISTRY_FILE` | `~/.blue-registry/registry.json` | Path to registry JSON file (store=file) |
 | `BLUE_DATA_REGISTRY_REDIS_URL` | _(unset)_ | Redis URL (store=redis) |
 | `BLUE_DATA_REGISTRY_REDIS_NAMESPACE` | `blue_data` | Redis key namespace |
@@ -147,6 +147,7 @@ blue-registry source list
 
 ```bash
 blue-registry source add NAME --type sqlite --database-dir /path/to/dbs
+# Postgres needs the driver: pip install 'blue-data[postgres]' (installs psycopg2)
 BLUE_REGISTRY_SOURCE_PASSWORD=secret blue-registry source add NAME --type postgres --host localhost --db-name mydb --user app
 ```
 
@@ -230,7 +231,7 @@ Hybrid BM25 + vector search across all registry records.
 
 ```bash
 blue-registry search "customer email"
-blue-registry search "orders" --type entity --limit 5
+blue-registry search "orders" --type entity --top-k 5
 blue-registry --format json search "total revenue" | jq '.[].name'
 ```
 
