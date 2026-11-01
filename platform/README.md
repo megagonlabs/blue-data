@@ -5,8 +5,8 @@ The `platform/` directory contains deployable components built on top of `lib/`.
 | Component | Description | Docs |
 |---|---|---|
 | `registry-mcp` | MCP server — exposes registry operations as tools for Claude and other MCP clients | [docs/registry-mcp.md](../docs/registry-mcp.md) |
-| `api` | REST API (FastAPI) with interactive docs at `/docs` | [docs/api.md](../docs/api.md) |
-| `cli` | Command-line interface for the full pipeline (register → sync → stats → enrich → search) | [docs/cli.md](../docs/cli.md) |
+| `registry-api` | REST API (FastAPI) with interactive docs at `/docs` | [docs/api.md](../docs/api.md) |
+| `registry-cli` | Command-line interface for the full pipeline (register → sync → stats → enrich → search) | [docs/cli.md](../docs/cli.md) |
 | `json-mcp` | MCP server for raw JSONSource operations (memory + file backends) | [docs/json-mcp.md](../docs/json-mcp.md) |
 
 ## Installation
@@ -16,10 +16,11 @@ Each component has a `scripts/install.sh` for editable installs. Run from the co
 ```bash
 pip install -e ../lib        # always install lib first
 
-cd registry-mcp && pip install -e .
-cd api && pip install -e .
-cd cli && pip install -e .
-cd json-mcp && pip install -e .
+# one subshell per package so each cd starts from platform/ again
+(cd registry-mcp && pip install -e .)
+(cd registry-api && pip install -e .)
+(cd registry-cli && pip install -e .)
+(cd json-mcp && pip install -e .)
 ```
 
 ## Quick start
@@ -36,9 +37,9 @@ blue-data-api  # http://localhost:8000 · interactive docs at /docs
 
 **cli**:
 ```bash
-blue-data source add mydb --type sqlite --database-dir /data
-blue-data source sync mydb
-blue-data search "revenue"
+blue-registry source add mydb --type sqlite --database-dir /data
+blue-registry source sync mydb
+blue-registry search "revenue"
 ```
 
 **json-mcp**:

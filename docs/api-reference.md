@@ -379,16 +379,11 @@ Production backend. Stores each registry path as a separate Redis key prefixed b
 ```python
 from blue_data.source.json.redis.redis_json_source import RedisJSONSource
 
-# Auto-connect from properties
+# Connects from properties; the client is built from connection settings.
 store = RedisJSONSource(properties={
     "namespace": "my_registry",
     "connection": {"host": "localhost", "port": 6379, "db": 0},
 })
-
-# Pass an existing connection
-import redis
-conn = redis.Redis(host="localhost", port=6379, decode_responses=True)
-store = RedisJSONSource(connection=conn, properties={"namespace": "my_registry"})
 ```
 
 > Requires **Redis Stack** (`redis-stack-server`) for `JSON.SET` / `JSON.GET`.

@@ -74,15 +74,28 @@ blue-data enriches registry records with two layers of intelligence.
 Prerequisites must be run in order — sync first, then collect stats, then enrich:
 
 ```python
+import tempfile
 from blue_data.registry.data_registry import DataRegistry
 from blue_data.registry.enrichment.metadata import MetaData
 from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
 # Deterministic-only (no API key needed)
 enricher = MetaData(llm_fn=None)
 registry = DataRegistry(store=MemoryJSONSource(), metadata_enricher=enricher)
 
-registry.sync_all(recursive=True)
+# Register and seed a source to enrich (named "sqlite", as in the Quick start)
+source = SQLiteDBSource("sqlite", properties={"connection": {"database_directory": tempfile.mkdtemp()}})
+registry.register_source(source)
+source.create_database("mydb")
+registry.execute_query(
+    source="sqlite", database="mydb",
+    query="CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);",
+    optional_properties={"commit": True},
+)
+
+# Prerequisites run in order — sync, then collect stats, then enrich
+registry.sync_source("sqlite", recursive=True)
 registry.collect_source_stats("sqlite", recursive=True)
 registry.enrich_source_metadata("sqlite", recursive=True, rebuild=False)
 ```
@@ -122,13 +135,13 @@ registry = DataRegistry(store=MemoryJSONSource(), metadata_enricher=enricher)
 Must run after `collect_source_stats`. Running `enrich_source` first improves Tier 2 accuracy (format checks use the semantic type) but is optional.
 
 ```python
-registry.collect_source_stats("mydb", recursive=True)
-registry.enrich_source("mydb")           # optional — sharpens Tier 2 format checks
-registry.compute_source_data_quality("mydb")
+registry.collect_source_stats("sqlite", recursive=True)
+registry.enrich_source("sqlite")           # optional — sharpens Tier 2 format checks
+registry.compute_source_data_quality("sqlite")
 
 # Read per-attribute DQ metrics
 dq = registry.get_source_database_collection_entity_attribute_property(
-    "mydb", "sales", "public", "contacts", "email", "data_quality"
+    "sqlite", "sales", "public", "contacts", "email", "data_quality"
 )
 print(dq["missing_value_rate"])          # 0.05  — true nulls
 print(dq["disguised_missing_rate"])      # 0.20  — "N/A", "NONE", "unknown", …
@@ -140,7 +153,7 @@ print(dq["repairability"])
 
 # Read entity-level summary
 summary = registry.get_source_database_collection_entity_property(
-    "mydb", "sales", "public", "contacts", "data_quality_summary"
+    "sqlite", "sales", "public", "contacts", "data_quality_summary"
 )
 print(summary["worst_attribute"])        # "email"
 print(summary["dominant_error_type"])    # "representation_fragmentation_rate"
@@ -218,6 +231,7 @@ import anthropic
 from blue_data.registry.data_registry import DataRegistry
 from blue_data.registry.enrichment.metadata import MetaData
 from blue_data.source.json.memory_json_source import MemoryJSONSource
+from blue_data.source.sql.sqlite.sqlite_sql_source import SQLiteDBSource
 
 client = anthropic.Anthropic()
 
@@ -232,11 +246,12 @@ registry = DataRegistry(
     store=MemoryJSONSource(),
     metadata_enricher=MetaData(llm_fn=llm_fn),
 )
-registry.sync_all(recursive=True)
-registry.collect_source_stats("mydb", recursive=True)
+registry.register_source(SQLiteDBSource("sqlite", properties={"connection": {"database_directory": "/tmp/my-data"}}))
+registry.sync_source("sqlite", recursive=True)
+registry.collect_source_stats("sqlite", recursive=True)
 
 rows = registry.execute_query_nl(
-    "mydb",
+    "sqlite",
     "show me all orders over $100",
     database="sales",
     collection="public",
@@ -321,12 +336,13 @@ registry = DataRegistry(
     store=MemoryJSONSource(),
     metadata_enricher=MetaData(llm_fn=llm_fn_single_turn),
 )
-registry.sync_source("mydb", recursive=True)
-registry.collect_source_stats("mydb", recursive=True)
-registry.enrich_source_metadata("mydb", recursive=True)
+registry.register_source(SQLiteDBSource("sqlite", properties={"connection": {"database_directory": "/tmp/my-data"}}))
+registry.sync_source("sqlite", recursive=True)
+registry.collect_source_stats("sqlite", recursive=True)
+registry.enrich_source_metadata("sqlite", recursive=True)
 
 rows = registry.execute_query_nl_tools(
-    source="mydb",
+    source="sqlite",
     query="which customers placed orders over $100?",
     database="sales",
     collection="public",
