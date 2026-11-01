@@ -207,6 +207,18 @@ def build_vector_source(embedding_fn=None):
         url = os.environ.get("BLUE_DATA_REGISTRY_REDIS_URL", "redis://localhost:6379/0")
         scan_prefix = os.environ.get("BLUE_DATA_REGISTRY_VECTOR_SCAN_PREFIX", "blue_data_vec:")
         connection = _redis_connection_from_url(url)
+        # RediSearch (FT.CREATE) only builds indexes on db 0. Rather than fail the whole
+        # registry (the JSON store may legitimately run on db != 0), disable vector search
+        # with a loud warning so the degradation to keyword-only is visible, not silent. #215
+        if connection.get("db", 0) != 0:
+            logger.warning(
+                "BLUE_DATA_REGISTRY_VECTOR_SOURCE=redis on db %s: RediSearch creates indexes "
+                "only on db 0, so vector search is disabled (registry search is keyword-only). "
+                "Point BLUE_DATA_REGISTRY_REDIS_URL at db 0 and isolate tenants with "
+                "BLUE_DATA_REGISTRY_VECTOR_SCAN_PREFIX.",
+                connection.get("db"),
+            )
+            return None
         connection["scan_prefix"] = scan_prefix
         return RedisVectorSource(name="registry_vectors", properties={
             "connection": connection,

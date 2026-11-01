@@ -42,6 +42,23 @@ class RedisVectorSource(VectorSource):
         if str(scan_prefix).startswith("PLATFORM"):
             raise ValueError("RedisVectorSource scan_prefix must not use the PLATFORM namespace")
 
+        # RediSearch (FT.CREATE) refuses to create an index on any logical db other than
+        # 0 ("Cannot create index on db != 0"). Allowing it meant the index was never
+        # built, every KNN failed with "No such index", and registry search silently
+        # degraded to BM25-only. Reject it at construction with a clear message instead.
+        # Isolate tenants on db 0 with scan_prefix (namespaced since #181), not the db. #215
+        db = self.properties.get("connection", {}).get("db", 0)
+        try:
+            db = int(db)
+        except (TypeError, ValueError):
+            pass
+        if db != 0:
+            raise ValueError(
+                f"RedisVectorSource requires Redis logical db 0: RediSearch (FT.CREATE) "
+                f"cannot create an index on db != 0 (got db={db!r}). Point the vector source "
+                f"at db 0 and isolate tenants with connection.scan_prefix."
+            )
+
     def _initialize_connection_properties(self):
         connection = self.properties.get("connection", {})
 

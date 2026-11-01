@@ -59,19 +59,22 @@ def test_build_store_tls_scheme(monkeypatch):
 # ---------- build_vector_source ----------
 
 def test_build_vector_source_carries_url_credentials(monkeypatch):
+    # RediSearch builds indexes only on db 0 (#215), so the vector source must use db 0;
+    # the credentials still have to survive URL parsing.
+    url0 = "redis://myuser:placeholder-pw@127.0.0.1:46480/0"
     monkeypatch.setenv("BLUE_DATA_REGISTRY_STORE", "redis")
-    monkeypatch.setenv("BLUE_DATA_REGISTRY_REDIS_URL", URL)
+    monkeypatch.setenv("BLUE_DATA_REGISTRY_REDIS_URL", url0)
     monkeypatch.setenv("BLUE_DATA_REGISTRY_VECTOR_SOURCE", "redis")
     monkeypatch.setenv("BLUE_DATA_REGISTRY_VECTOR_SCAN_PREFIX", "t211_vec:")
 
     vs = build_vector_source(embedding_fn=lambda t: [0.0] * 4)
     conn = vs.properties["connection"]
-    assert conn["url"] == URL
+    assert conn["url"] == url0
     assert conn["scan_prefix"] == "t211_vec:"   # URL parsing must not drop the prefix
 
     got = _kwargs(vs.connection)
     assert got["password"] == "placeholder-pw"
-    assert got["db"] == 2
+    assert got["db"] == 0
 
 
 # ---------- source-level: url and discrete username/ssl ----------
