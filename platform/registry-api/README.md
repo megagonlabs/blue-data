@@ -20,17 +20,42 @@ The interactive docs are available at `http://localhost:8000/docs` once the serv
 
 ## Environment variables
 
-Same set as `registry-mcp`:
+The registry/LLM variables match `registry-mcp`; the `BLUE_DATA_API_*` variables below are specific to this REST service:
 
 | Variable | Default | Description |
 |---|---|---|
-| `BLUE_DATA_REGISTRY_STORE` | `memory` | `memory` or `redis` |
-| `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379` | Redis connection URL (when store=redis) |
-| `BLUE_DATA_REGISTRY_REDIS_NAMESPACE` | `blue-data` | Key prefix for Redis |
-| `BLUE_DATA_LLM_PROVIDER` | _(none)_ | `anthropic` to enable LLM enrichment |
-| `ANTHROPIC_API_KEY` | _(none)_ | Required when LLM provider is anthropic |
-| `BLUE_DATA_LLM_MODEL` | `claude-opus-4-8` | Model ID for LLM enrichment |
+| `BLUE_DATA_API_KEY` | _(none)_ | API key required for data endpoints. When unset, those endpoints return 401 unless `BLUE_DATA_API_AUTH_DISABLED=true` (see [Authentication](#authentication)) |
+| `BLUE_DATA_API_AUTH_DISABLED` | `false` | Set `true` to disable auth (local/dev only) |
+| `BLUE_DATA_API_HOST` | `127.0.0.1` | Bind address for `blue-data-api` (loopback by default) |
+| `BLUE_DATA_API_PORT` | `8000` | Bind port for `blue-data-api` |
+| `BLUE_DATA_API_ALLOW_WRITES` | `false` | Set `true` to allow `commit=true` on `POST /{source}/query` |
+| `BLUE_DATA_REGISTRY_STORE` | `memory` | `memory`, `file`, or `redis` |
+| `BLUE_DATA_REGISTRY_FILE` | `blue_data_store.json` | Path to registry JSON file (when store=file) |
+| `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL (when store=redis) |
+| `BLUE_DATA_REGISTRY_REDIS_NAMESPACE` | `blue_data` | Key prefix for Redis |
+| `BLUE_DATA_LLM_PROVIDER` | _(none)_ | `anthropic` or `openai`; blank = deterministic-only (no LLM enrichment) |
+| `ANTHROPIC_API_KEY` | _(none)_ | Required when `BLUE_DATA_LLM_PROVIDER=anthropic` |
+| `OPENAI_API_KEY` | _(none)_ | Required when `BLUE_DATA_LLM_PROVIDER=openai` |
+| `BLUE_DATA_LLM_MODEL` | _(none)_ | Model ID; blank resolves per provider (`claude-opus-4-8` / `gpt-4o`) |
 | `BLUE_DATA_SOURCES_CONFIG` | _(none)_ | Path to JSON source config file |
+
+### Authentication
+
+Data endpoints require an API key by default (health and docs — `/health`, `/docs`, `/redoc`, `/openapi.json` — are always open). Set a key and send it with each request as `X-API-Key` or `Authorization: Bearer`:
+
+```bash
+export BLUE_DATA_API_KEY=changeme
+curl -H "X-API-Key: $BLUE_DATA_API_KEY" http://localhost:8000/search?q=orders
+curl -H "Authorization: Bearer $BLUE_DATA_API_KEY" http://localhost:8000/search?q=orders
+```
+
+For local development you can disable auth entirely (every endpoint open):
+
+```bash
+export BLUE_DATA_API_AUTH_DISABLED=true
+```
+
+State-changing requests (`POST`/`PUT`/`DELETE`) must send `Content-Type: application/json` (a CSRF guard rejects form/text bodies with 415), and `commit=true` on `POST /{source}/query` also requires `BLUE_DATA_API_ALLOW_WRITES=true`.
 
 ## Source config file
 
@@ -162,22 +187,24 @@ Errors use standard HTTP status codes with a `{"detail": "..."}` body.
 
 ```bash
 BASE=http://localhost:8000
+# Send the API key on every data call (or export BLUE_DATA_API_AUTH_DISABLED=true for local use).
+AUTH=(-H "X-API-Key: $BLUE_DATA_API_KEY")
 
 # 1. Sync a source that was pre-loaded via BLUE_DATA_SOURCES_CONFIG
-curl -X PUT $BASE/mydb/sync
+curl "${AUTH[@]}" -X PUT $BASE/mydb/sync
 
 # 2. Collect stats
-curl -X PUT $BASE/mydb/stats
+curl "${AUTH[@]}" -X PUT $BASE/mydb/stats
 
 # 3. Run enrichment
-curl -X PUT $BASE/mydb/enrich
-curl -X PUT $BASE/mydb/metadata
+curl "${AUTH[@]}" -X PUT $BASE/mydb/enrich
+curl "${AUTH[@]}" -X PUT $BASE/mydb/metadata
 
 # 4. Search
-curl "$BASE/search?q=customer+email"
+curl "${AUTH[@]}" "$BASE/search?q=customer+email"
 
 # 5. Inspect an entity
-curl $BASE/mydb/database/prod/collection/public/entity/customers
+curl "${AUTH[@]}" $BASE/mydb/database/prod/collection/public/entity/customers
 ```
 
 ## Running tests

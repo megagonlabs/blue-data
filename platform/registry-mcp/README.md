@@ -89,7 +89,8 @@ All configuration is via environment variables.
 
 | Variable | Default | Description |
 |---|---|---|
-| `BLUE_DATA_REGISTRY_STORE` | `memory` | `memory` — ephemeral in-process registry. `redis` — persistent Redis-backed registry (requires Redis Stack). |
+| `BLUE_DATA_REGISTRY_STORE` | `memory` | `memory` — ephemeral in-process registry. `file` — JSON file on disk. `redis` — persistent Redis-backed registry (requires Redis Stack). |
+| `BLUE_DATA_REGISTRY_FILE` | `blue_data_store.json` | Path to the registry JSON file. Used when `BLUE_DATA_REGISTRY_STORE=file`. |
 | `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. Used when `BLUE_DATA_REGISTRY_STORE=redis`. Supports `user:password@` auth and the `rediss://` TLS scheme. |
 | `BLUE_DATA_REGISTRY_REDIS_NAMESPACE` | `blue_data` | Key prefix used to isolate registry records in Redis. |
 
@@ -97,9 +98,10 @@ All configuration is via environment variables.
 
 | Variable | Default | Description |
 |---|---|---|
-| `BLUE_DATA_LLM_PROVIDER` | _(none)_ | Set to `anthropic` to enable LLM-augmented enrichment. Without this, only deterministic enrichment runs. |
+| `BLUE_DATA_LLM_PROVIDER` | _(none)_ | Set to `anthropic` or `openai` to enable LLM-augmented enrichment. Blank = deterministic-only. |
 | `ANTHROPIC_API_KEY` | _(none)_ | Required when `BLUE_DATA_LLM_PROVIDER=anthropic`. |
-| `BLUE_DATA_LLM_MODEL` | `claude-opus-4-8` | Model used for LLM enrichment calls. |
+| `OPENAI_API_KEY` | _(none)_ | Required when `BLUE_DATA_LLM_PROVIDER=openai`. |
+| `BLUE_DATA_LLM_MODEL` | _(none)_ | Model for LLM enrichment; blank resolves per provider (`claude-opus-4-8` / `gpt-4o`). |
 
 ### Source pre-loading
 
