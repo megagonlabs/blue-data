@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import os
 import re
+from urllib.parse import urlsplit, urlunsplit
 
 from blue_data.registry.registry import Registry
 from blue_data.registry.search.registry_search import RegistrySearch
@@ -13,22 +14,65 @@ from blue_data.source.source import DataSource
 from blue_data.registry.enrichment.semantic_types import SemanticTypeInferencer
 
 
-_CREDENTIAL_KEYS = frozenset({
-    "password", "passwd", "pwd", "pass",
-    "token", "access_token", "refresh_token",
-    "secret", "client_secret", "api_secret",
-    "api_key", "apikey", "private_key", "credentials",
-})
+# Case-insensitive substrings (matched against the key with separators removed) that
+# mark a value as a secret. Broader than an exact list, so db_password, sasl_password,
+# passphrase, auth_token, aws_secret_access_key and an Authorization header key are all
+# caught (#212). ``key`` is intentionally NOT a bare substring — it would strip
+# legitimate non-secret config such as partition_key / keyspace / aws_access_key_id; the
+# real key-shaped secrets (api_key, apikey, private_key) are covered explicitly.
+_SECRET_KEY_SUBSTRINGS = (
+    "pass", "pwd", "secret", "token", "credential", "authorization", "apikey", "privatekey",
+)
 
-# scheme://[user]:password@host  ->  scheme://[user]@host  (keep user, drop password)
-_URI_USERINFO_RE = re.compile(
-    r"(?P<scheme>[a-zA-Z][a-zA-Z0-9+.\-]*://)(?P<user>[^/@:\s]*):(?P<pw>[^/@\s]+)@"
+
+def _is_secret_key(key) -> bool:
+    """True when a dict key names a secret and its value must not be persisted."""
+    if not isinstance(key, str):
+        return False
+    lower = key.lower()
+    # Preserve ``<name>_env`` reference keys: they hold an env-var NAME, not the secret,
+    # and connect_source needs them to reconnect (#100/#207).
+    if lower.endswith("_env"):
+        return False
+    normalized = re.sub(r"[^a-z0-9]", "", lower)
+    return any(sub in normalized for sub in _SECRET_KEY_SUBSTRINGS)
+
+
+# scheme://user:password@host  — backstop for a password containing '/' (which truncates
+# the authority urlsplit parses). Greedy to the last '@' so it also spans '@' in the pw.
+_URI_PASSWORD_RE = re.compile(
+    r"(?P<scheme>[a-zA-Z][a-zA-Z0-9+.\-]*://)(?P<user>[^:/\s@]*):[^\s]*@"
+)
+
+# key=value secrets in ODBC/JDBC-style connection strings (Pwd=…, Password=…, Token=…).
+_KV_SECRET_RE = re.compile(
+    r"(?i)\b(?P<key>password|passwd|pwd|secret|token|api[_-]?key)\b(?P<sep>\s*=\s*)[^;]*"
 )
 
 
 def _strip_uri_userinfo(value: str) -> str:
-    """Strip the password from any connection-URI userinfo so it isn't persisted."""
-    return _URI_USERINFO_RE.sub(lambda m: f"{m.group('scheme')}{m.group('user')}@", value)
+    """Drop passwords embedded in a string value so they aren't persisted: URI userinfo
+    and ODBC/JDBC ``k=v;`` connection strings. Handles passwords containing '/' or '@'
+    (urlsplit splits on the last '@'; a regex backstop covers authorities a '/' in the
+    password would otherwise truncate). #100 #212"""
+    # 1) Well-formed URLs: rebuild without the password, keeping user/host/port/path/query.
+    try:
+        parts = urlsplit(value)
+    except ValueError:
+        parts = None
+    if parts is not None and parts.password is not None:
+        user = parts.username or ""
+        host = parts.hostname or ""
+        if parts.port is not None:
+            host = f"{host}:{parts.port}"
+        netloc = f"{user}@{host}" if user else host
+        value = urlunsplit((parts.scheme, netloc, parts.path, parts.query, parts.fragment))
+    # 2) Backstop: a '/' in the password truncates the authority urlsplit sees, so strip
+    #    scheme://user:…@ directly (greedy to the last '@').
+    value = _URI_PASSWORD_RE.sub(lambda m: f"{m.group('scheme')}{m.group('user')}@", value)
+    # 3) ODBC/JDBC connection-string secrets: keep the key, drop the value.
+    value = _KV_SECRET_RE.sub(lambda m: f"{m.group('key')}{m.group('sep')}", value)
+    return value
 
 
 def _sanitize_value(value):
@@ -36,7 +80,7 @@ def _sanitize_value(value):
         return {
             k: _sanitize_value(v)
             for k, v in value.items()
-            if not (isinstance(k, str) and k.lower() in _CREDENTIAL_KEYS)
+            if not _is_secret_key(k)
         }
     if isinstance(value, list):
         return [_sanitize_value(v) for v in value]
