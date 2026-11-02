@@ -122,7 +122,10 @@ def _served_ops():
             {"GRAPH.ADD_NODE", "GRAPH.ADD_EDGE", "GRAPH.UPDATE_NODE", "GRAPH.UPDATE_EDGE",
              "GRAPH.DELETE_NODE", "GRAPH.DELETE_EDGE"},
         ),
-        VectorSource: ({"VECTOR.KNN"}, {"VECTOR.CREATE_INDEX", "VECTOR.UPSERT", "VECTOR.DELETE"}),
+        VectorSource: (
+            {"VECTOR.KNN", "VECTOR.LIST_IDS"},
+            {"VECTOR.CREATE_INDEX", "VECTOR.UPSERT", "VECTOR.DELETE", "VECTOR.DELETE_BY_PREFIX"},
+        ),
         StreamSource: (
             {"STREAM.CONSUME"},
             {"STREAM.PUBLISH", "STREAM.ACKNOWLEDGE", "STREAM.CREATE", "STREAM.DELETE"},

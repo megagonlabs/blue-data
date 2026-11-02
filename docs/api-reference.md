@@ -419,11 +419,27 @@ source.execute_query({
     "embedding_field": "embedding",
 })
 
-# Delete a document
+# Delete a document (returns the count actually removed: 0 or 1)
 source.execute_query({
     "op": "VECTOR.DELETE",
     "collection": "registry_records",
     "id": "...",
+})
+
+# List doc ids (optionally only those whose id starts with a prefix)
+ids = source.execute_query({
+    "op": "VECTOR.LIST_IDS",
+    "collection": "registry_records",
+    "prefix": "https://example.com/page_",   # optional
+})
+
+# Bulk-delete every doc whose id starts with a prefix (returns the count removed).
+# Lets a caller clean up a logical group — e.g. a re-ingested page's stale chunks —
+# without tracking ids in external state.
+removed = source.execute_query({
+    "op": "VECTOR.DELETE_BY_PREFIX",
+    "collection": "registry_records",
+    "prefix": "https://example.com/page_",
 })
 
 # KNN search

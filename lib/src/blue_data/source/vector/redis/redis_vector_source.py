@@ -600,6 +600,34 @@ class RedisVectorSource(VectorSource):
             self.logger.error(f"RedisVector delete failed: {e}")
             raise
 
+    def list_ids(self, collection: str, prefix: str | None = None) -> list[str]:
+        scan_prefix = self.properties["connection"].get("scan_prefix")
+        key_prefix = f"{scan_prefix}{collection}:"
+        ids: list[str] = []
+        cursor = 0
+        while True:
+            cursor, keys = self.connection.scan(cursor=cursor, match=f"{key_prefix}*", count=500)
+            for key in keys:
+                key = self._decode_value(key)
+                if not isinstance(key, str) or not key.startswith(key_prefix):
+                    continue
+                doc_id = key[len(key_prefix):]
+                if prefix and not doc_id.startswith(prefix):
+                    continue
+                ids.append(doc_id)
+            if cursor == 0:
+                break
+        return ids
+
+    def delete_by_prefix(self, collection: str, prefix: str) -> int:
+        scan_prefix = self.properties["connection"].get("scan_prefix")
+        key_prefix = f"{scan_prefix}{collection}:"
+        ids = self.list_ids(collection, prefix=prefix)
+        if not ids:
+            return 0
+        keys = [f"{key_prefix}{doc_id}" for doc_id in ids]
+        return int(self.connection.delete(*keys))
+
     def knn(
         self,
         index_name: str,

@@ -106,6 +106,22 @@ class FileVectorSource(VectorSource):
         self._save_collection(collection, docs)
         return 1
 
+    def list_ids(self, collection: str, prefix: str | None = None) -> list[str]:
+        ids = list(self._load_collection(collection).keys())
+        if prefix:
+            ids = [doc_id for doc_id in ids if doc_id.startswith(prefix)]
+        return ids
+
+    def delete_by_prefix(self, collection: str, prefix: str) -> int:
+        # One load/save for the whole prefix, not one file rewrite per id.
+        docs = self._load_collection(collection)
+        to_remove = [doc_id for doc_id in docs if doc_id.startswith(prefix)]
+        for doc_id in to_remove:
+            del docs[doc_id]
+        if to_remove:
+            self._save_collection(collection, docs)
+        return len(to_remove)
+
     def knn(
         self,
         index_name: str,
