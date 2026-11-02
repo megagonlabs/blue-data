@@ -8,8 +8,10 @@ from blue_data.source.source import DataSource
 class VectorSource(DataSource, ABC):
     """Base class for vector data sources."""
 
-    _READ_OPS = frozenset({"VECTOR.KNN"})
-    _WRITE_OPS = frozenset({"VECTOR.CREATE_INDEX", "VECTOR.UPSERT", "VECTOR.DELETE"})
+    _READ_OPS = frozenset({"VECTOR.KNN", "VECTOR.LIST_IDS"})
+    _WRITE_OPS = frozenset({
+        "VECTOR.CREATE_INDEX", "VECTOR.UPSERT", "VECTOR.DELETE", "VECTOR.DELETE_BY_PREFIX",
+    })
 
     def __init__(self, name: str, embedding_fn=None, properties: dict | None = None):
         super().__init__(name, properties=properties)
@@ -49,6 +51,26 @@ class VectorSource(DataSource, ABC):
     ) -> list[dict]:
         raise NotImplementedError
 
+    # ---------- id enumeration / bulk delete ----------
+
+    def list_ids(self, collection: str, prefix: str | None = None) -> list[str]:
+        """Return the ids of every doc in *collection*, optionally only those whose id
+        starts with *prefix*. Lets a caller enumerate or clean up a logical group — e.g.
+        a page's chunks keyed ``{page}_0000``, ``{page}_0001``, … — without tracking the
+        ids in external state. Implemented by every in-tree backend. #139"""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement list_ids"
+        )
+
+    def delete_by_prefix(self, collection: str, prefix: str) -> int:
+        """Delete every doc in *collection* whose id starts with *prefix*; return the
+        number actually removed. Base implementation enumerates via list_ids and deletes
+        each id; backends override with a native bulk delete where cheaper. #139"""
+        removed = 0
+        for doc_id in self.list_ids(collection, prefix=prefix):
+            removed += self.delete(collection, doc_id)
+        return removed
+
     # ---------- query ----------
 
     def execute_query(self, query, database=None, collection=None, optional_properties=None):
@@ -61,6 +83,8 @@ class VectorSource(DataSource, ABC):
                 "VECTOR.DELETE"        collection, id
                 "VECTOR.KNN"           index, vector/embedding, k (opt), field (opt),
                                        score_alias (opt), return_fields (opt), filter (opt)
+                "VECTOR.LIST_IDS"      collection, prefix (opt)
+                "VECTOR.DELETE_BY_PREFIX"  collection, prefix
         """
         if not isinstance(query, dict):
             raise ValueError(
@@ -92,6 +116,18 @@ class VectorSource(DataSource, ABC):
                 doc_id=query["id"],
             )
 
+        if op == "VECTOR.LIST_IDS":
+            return self.list_ids(
+                collection=query["collection"],
+                prefix=query.get("prefix"),
+            )
+
+        if op == "VECTOR.DELETE_BY_PREFIX":
+            return self.delete_by_prefix(
+                collection=query["collection"],
+                prefix=query["prefix"],
+            )
+
         if op == "VECTOR.KNN":
             query_vector = (
                 query.get("vector")
@@ -116,7 +152,8 @@ class VectorSource(DataSource, ABC):
 
         raise ValueError(
             f"Unsupported VectorSource operation: {op!r}. "
-            "Supported: VECTOR.CREATE_INDEX, VECTOR.UPSERT, VECTOR.DELETE, VECTOR.KNN"
+            "Supported: VECTOR.CREATE_INDEX, VECTOR.UPSERT, VECTOR.DELETE, VECTOR.KNN, "
+            "VECTOR.LIST_IDS, VECTOR.DELETE_BY_PREFIX"
         )
 
     # ---------- index introspection (override per backend) ----------

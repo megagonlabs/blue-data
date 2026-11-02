@@ -58,8 +58,25 @@ class ChromaDBVectorSource(VectorSource):
 
     def delete(self, collection: str, doc_id: str) -> int:
         chroma_coll = self._client.get_or_create_collection(collection)
+        # Honor the -> int "count deleted" contract (0 or 1): check existence first so a
+        # caller can't be told a never-stored doc was removed. #139
+        if not chroma_coll.get(ids=[doc_id], include=[])["ids"]:
+            return 0
         chroma_coll.delete(ids=[doc_id])
         return 1
+
+    def list_ids(self, collection: str, prefix: str | None = None) -> list[str]:
+        chroma_coll = self._client.get_or_create_collection(collection)
+        ids = chroma_coll.get(include=[])["ids"]
+        if prefix:
+            ids = [doc_id for doc_id in ids if doc_id.startswith(prefix)]
+        return ids
+
+    def delete_by_prefix(self, collection: str, prefix: str) -> int:
+        ids = self.list_ids(collection, prefix=prefix)
+        if ids:
+            self._client.get_or_create_collection(collection).delete(ids=ids)
+        return len(ids)
 
     def knn(
         self,

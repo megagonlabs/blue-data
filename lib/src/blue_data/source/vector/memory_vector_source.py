@@ -185,6 +185,12 @@ class MemoryVectorSource(VectorSource):
             return 1
         return 0
 
+    def list_ids(self, collection: str, prefix: str | None = None) -> list[str]:
+        ids = list(self._store.get(collection, {}).keys())
+        if prefix:
+            ids = [doc_id for doc_id in ids if doc_id.startswith(prefix)]
+        return ids
+
     def knn(
         self,
         index_name: str,
