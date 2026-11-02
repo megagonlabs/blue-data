@@ -15,6 +15,16 @@ pip install -e lib/
 Each demo tells one clean story with a quantitative before/after result.
 Designed for presentations. Start here.
 
+> **LLM usage & cost.** "Zero LLM cost" / "no API key" refers to **deterministic
+> enrichment** — Layer 1 (coded-value, event-table, event-time and value-axis detection)
+> runs on sample data alone, with no API calls. The before/after **scores below that
+> compare baseline vs. enriched SQL come from live NL→SQL generation, which calls an LLM
+> and needs an API key.** Those numbers are **model- and run-dependent**: a stronger model
+> can score well even on the baseline, and a weaker one can underperform even when
+> enriched. Each scored demo defaults to **Anthropic `claude-haiku-4-5-20251001`**
+> (override with `BLUE_DATA_LLM_MODEL`), and the exact model is printed in the demo
+> output. Treat the scores as an illustration of the *mechanism*, not a benchmark.
+
 ### Demo 0 — Data Quality Profiling (`data_quality_demo.py`)
 
 **Story:** A vendor delivers a CRM export that looks structurally correct.
@@ -38,9 +48,11 @@ python3 examples/scenario-demos/data_quality_demo.py
 
 **Story:** SQL databases store values as domain codes (PRIJEM, VYDAJ, A/B/C/D).
 A baseline LLM guesses English equivalents and gets 0 rows. blue-data Layer 1
-auto-detects ENUM columns and captures the actual codes — zero LLM cost.
+auto-detects ENUM columns and captures the actual codes — the enrichment itself
+makes no LLM calls.
 
-**Result:** baseline 2/5 → enriched 5/5
+**Result:** baseline 2/5 → enriched 5/5 — from **live NL→SQL** with Anthropic
+`claude-haiku-4-5-20251001` (the comparison needs an API key; scores vary by model and run).
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
@@ -78,9 +90,10 @@ python3 examples/scenario-demos/description_search_demo.py --generate
 **Story:** LLMs treat event-log tables as static snapshots. "Current balance"
 becomes AVG(balance). "Monthly trend" becomes flat COUNT(*). blue-data Layer 1
 detects EVENT tables, identifies event_time, and flags temporal constraints —
-zero LLM cost, zero annotation.
+the detection runs with zero LLM cost and zero annotation.
 
-**Result:** 4 temporal failure modes shown, all fixed by Layer 1
+**Result:** 4 temporal failure modes shown, all fixed by Layer 1 (the optional
+`--live` mode re-generates the SQL with an LLM to confirm the output changes).
 
 ```bash
 # Pre-built examples, no API key:
