@@ -14,7 +14,7 @@ LLMs querying enterprise data fail in silent, predictable ways — they guess co
 - **Enrich** schemas with semantic metadata: coded-value detection, natural-language column descriptions, semantic types, and process/temporal semantics — cheaply, mostly without LLM calls.
 - **Discover** the right data by meaning with hybrid BM25 + vector search, so *"shipping cost"* finds `orders.freight`.
 - **Profile** data quality before querying — outliers, disguised missing values, representation fragmentation, suspected typos — stored as registry properties agents can act on.
-- **Query** sources in natural language, grounded in the enriched schema, as a one-shot translation or a multi-turn tool loop.
+- **Query** sources in natural language, grounded in the enriched schema, as a one-shot translation or a multi-turn tool loop (this step calls an LLM).
 - **Serve** all of this through a REST API, a CLI, and MCP servers for Claude and other agents.
 
 Full feature list: [docs/features.md](docs/features.md). Runnable demos: [examples/](examples/README.md). Demo datasets: [data/](data/README.md).
@@ -53,6 +53,8 @@ blue-data/
 export ANTHROPIC_API_KEY=sk-ant-...   # or
 export OPENAI_API_KEY=sk-...
 ```
+
+> **What costs LLM calls.** Deterministic (Layer 1) enrichment, data-quality profiling and BM25/vector search run entirely locally — no API key, no per-call cost. LLM-augmented enrichment (natural-language descriptions, Layer 2) and natural-language SQL generation **do** call an LLM, so they need an API key and incur that provider's cost. Any accuracy figures in the demos come from live NL→SQL and are **model- and run-dependent** — disclose the provider, model and mode when you cite them (the demos default to Anthropic `claude-haiku-4-5-20251001` and print the model they used).
 
 Optional extras (`[postgres]`, `[mysql]`, `[mongodb]`, `[neo4j]`, `[redis]`, `[chromadb]`, `[bn]`, `[parquet]`, `[llm]`, `[all]`) are documented in [docs/installation.md](docs/installation.md). Full configuration — store backends, LLM providers, search tuning, and profiles — is in [docs/configuration.md](docs/configuration.md).
 
