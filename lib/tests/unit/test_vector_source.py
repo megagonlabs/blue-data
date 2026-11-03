@@ -6,6 +6,8 @@ Both backends share the same four-op execute_query interface:
     VECTOR.DELETE        — remove a doc
     VECTOR.KNN           — nearest-neighbour search
 """
+import re
+
 import pytest
 import numpy as np
 
@@ -275,3 +277,23 @@ def test_file_vector_requires_directory(monkeypatch, tmp_path):
 def test_file_vector_directory_via_properties(tmp_path):
     src = FileVectorSource("v", properties={"connection": {"directory": str(tmp_path)}})
     assert src._directory == str(tmp_path)
+
+
+@pytest.mark.parametrize("name", [
+    "plain-name.txt", "report (1).txt", "x?y.txt", "a\\b.txt", "brace}x.txt",
+])
+def test_memory_tag_filter_matches_escaped_special_chars(name):
+    # A TAG value with special chars — escaped by the caller as RediSearch TAG
+    # syntax — must still match the stored value exactly, including one that
+    # contains a closing brace (#149). _unescape_tag restores it before comparing.
+    # (MemoryVectorSource only; FileVectorSource does not implement TAG filters.)
+    src = MemoryVectorSource()
+    src.execute_query({"op": "VECTOR.CREATE_INDEX", "index": "idx",
+                       "collection": "docs", "dim": DIM})
+    _upsert(src, "d1", _unit(0), file_name=name)
+    _upsert(src, "d2", _unit(1), file_name="other.txt")
+
+    escaped = re.sub(r"(\W)", r"\\\1", name)  # what the doc-source layer sends
+    results = _knn(src, _unit(0), k=5, return_fields=["file_name"],
+                   filter=f"@file_name:{{{escaped}}}")
+    assert [r["file_name"] for r in results] == [name]
