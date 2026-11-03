@@ -65,7 +65,10 @@ class MemoryVectorSource(VectorSource):
             return {k: v for k, v in docs.items() if k == doc_id}
 
         # TAG filter: @field:{value}
-        tag_match = re.match(r"@(\w+):\{([^}]*)\}", clause)
+        # Consume escaped chars (``\}``, ``\)``, …) so a value containing a closing
+        # brace isn't truncated at the first ``}``; _unescape_tag then restores it
+        # before the exact-match compare, mirroring RediSearch TAG semantics (#149).
+        tag_match = re.match(r"@(\w+):\{((?:\\.|[^}])*)\}", clause)
         if tag_match:
             field = tag_match.group(1)
             value = self._unescape_tag(tag_match.group(2))
