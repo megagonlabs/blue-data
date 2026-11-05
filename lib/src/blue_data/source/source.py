@@ -1,6 +1,7 @@
 import inspect
 import json
 import logging
+import os
 from contextlib import contextmanager
 
 
@@ -101,8 +102,34 @@ class DataSource:
         self.logger.info("Stopped source %s", self.name)
 
     def _start_connection(self):
-        connection = self.properties["connection"]
+        connection = self._resolve_connection_env_refs(self.properties["connection"])
         self.connection = self._connect(**connection)
+
+    @staticmethod
+    def _resolve_connection_env_refs(connection):
+        """Resolve ``<key>_env`` references (e.g. ``password_env``) against the
+        environment and strip the reference, returning a COPY passed to ``_connect``.
+
+        Doing this once in the base means every source — not just SQL — can keep a
+        secret out of its persisted record and still connect, whether it is built
+        directly with ``password_env`` or rebuilt by the registry (#267). A stored
+        reference holds an env-var NAME, never the secret, which is why the registry
+        sanitizer preserves ``*_env`` keys. An explicit non-empty value wins; an empty
+        or default one (e.g. the ``password=""`` sources set) does not mask the
+        reference (#239). The reference is always dropped so it never reaches a driver
+        as an unknown connection option (#207). ``self.properties`` is left untouched,
+        so the live source keeps the reference rather than a resolved literal."""
+        if not isinstance(connection, dict):
+            return connection
+        resolved = dict(connection)
+        for key in [k for k in resolved if isinstance(k, str) and k.endswith("_env")]:
+            ref = resolved.pop(key)
+            base = key[: -len("_env")]
+            if base and resolved.get(base) in (None, "") and isinstance(ref, str):
+                value = os.environ.get(ref)
+                if value is not None:
+                    resolved[base] = value
+        return resolved
 
     def _stop_connection(self):
         self._disconnect()
