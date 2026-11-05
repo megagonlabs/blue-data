@@ -5,6 +5,7 @@ import os
 
 import numpy as np
 
+from blue_data.core.utils.file_lock import file_lock, write_json_atomic
 from blue_data.source.vector.vector_source import VectorSource
 
 
@@ -42,27 +43,32 @@ class FileVectorSource(VectorSource):
     def _collection_path(self, collection: str) -> str:
         return os.path.join(self._directory, collection + ".json")
 
-    def _load_indices(self) -> dict:
-        path = self._indices_path()
-        if os.path.exists(path):
-            with open(path) as f:
+    @staticmethod
+    def _read_json(path: str) -> dict:
+        """Read a JSON file, returning {} when absent. Names the file on a parse
+        error so a corrupt store is diagnosable, not an anonymous JSONDecodeError
+        (#272). Atomic writes (below) make a torn read impossible for live files."""
+        if not os.path.exists(path):
+            return {}
+        try:
+            with open(path, encoding="utf-8") as f:
                 return json.load(f)
-        return {}
+        except (ValueError, OSError) as exc:
+            raise ValueError(f"FileVectorSource: cannot read {path!r}: {exc}") from exc
+
+    def _load_indices(self) -> dict:
+        return self._read_json(self._indices_path())
 
     def _save_indices(self) -> None:
-        with open(self._indices_path(), "w") as f:
-            json.dump(self._indices, f)
+        # Atomic replace + 0600 (like FileJSONSource) so an interrupted write never
+        # leaves invalid JSON and the embeddings/names aren't world/group-readable. #272
+        write_json_atomic(self._indices_path(), self._indices, mode=0o600)
 
     def _load_collection(self, collection: str) -> dict:
-        path = self._collection_path(collection)
-        if os.path.exists(path):
-            with open(path) as f:
-                return json.load(f)
-        return {}
+        return self._read_json(self._collection_path(collection))
 
     def _save_collection(self, collection: str, docs: dict) -> None:
-        with open(self._collection_path(collection), "w") as f:
-            json.dump(docs, f)
+        write_json_atomic(self._collection_path(collection), docs, mode=0o600)
 
     # ---------- cosine distance ----------
 
@@ -78,32 +84,42 @@ class FileVectorSource(VectorSource):
     # ---------- primitive operations ----------
 
     def create_index(self, index_name: str, collection: str, dim: int, distance_metric: str = "COSINE", extra_fields: list | None = None) -> str:
-        self._indices[index_name] = {
-            "collection": collection,
-            "dim": int(dim),
-            "metric": distance_metric,
-        }
-        self._save_indices()
-        if not os.path.exists(self._collection_path(collection)):
-            self._save_collection(collection, {})
+        # Reload under the lock before merging so a concurrent create_index in
+        # another process isn't clobbered by this process's stale in-memory copy. #272
+        with file_lock(self._indices_path()):
+            self._indices = self._load_indices()
+            self._indices[index_name] = {
+                "collection": collection,
+                "dim": int(dim),
+                "metric": distance_metric,
+            }
+            self._save_indices()
+        with file_lock(self._collection_path(collection)):
+            if not os.path.exists(self._collection_path(collection)):
+                self._save_collection(collection, {})
         return "OK"
 
     def upsert(self, collection: str, doc_id: str, doc: dict, embedding_field: str = "embedding") -> str:
         if embedding_field not in doc:
             raise Exception(f"VECTOR.UPSERT requires doc with '{embedding_field}' field")
-        docs = self._load_collection(collection)
-        docs[doc_id] = doc
-        self._save_collection(collection, docs)
+        # Hold the per-collection lock across the whole read-modify-write: each
+        # writer rewrites the entire collection, so without it concurrent upserts
+        # lose documents (#272).
+        with file_lock(self._collection_path(collection)):
+            docs = self._load_collection(collection)
+            docs[doc_id] = doc
+            self._save_collection(collection, docs)
         return "OK"
 
     def delete(self, collection: str, doc_id: str) -> int:
         # Return the number of documents actually removed (0 or 1), matching the
         # VectorSource contract and RedisVectorSource — not 1 unconditionally.
-        docs = self._load_collection(collection)
-        if doc_id not in docs:
-            return 0
-        del docs[doc_id]
-        self._save_collection(collection, docs)
+        with file_lock(self._collection_path(collection)):
+            docs = self._load_collection(collection)
+            if doc_id not in docs:
+                return 0
+            del docs[doc_id]
+            self._save_collection(collection, docs)
         return 1
 
     def list_ids(self, collection: str, prefix: str | None = None) -> list[str]:
@@ -114,12 +130,13 @@ class FileVectorSource(VectorSource):
 
     def delete_by_prefix(self, collection: str, prefix: str) -> int:
         # One load/save for the whole prefix, not one file rewrite per id.
-        docs = self._load_collection(collection)
-        to_remove = [doc_id for doc_id in docs if doc_id.startswith(prefix)]
-        for doc_id in to_remove:
-            del docs[doc_id]
-        if to_remove:
-            self._save_collection(collection, docs)
+        with file_lock(self._collection_path(collection)):
+            docs = self._load_collection(collection)
+            to_remove = [doc_id for doc_id in docs if doc_id.startswith(prefix)]
+            for doc_id in to_remove:
+                del docs[doc_id]
+            if to_remove:
+                self._save_collection(collection, docs)
         return len(to_remove)
 
     def knn(
