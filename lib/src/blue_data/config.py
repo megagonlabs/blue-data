@@ -36,12 +36,26 @@ def _getenv_int(key: str, default: int) -> int:
 
 
 def _getenv_bool(key: str, default: bool) -> bool:
-    val = os.environ.get(key, "").lower()
+    val = os.environ.get(key, "").strip().lower()
     if val in ("1", "true", "yes"):
         return True
     if val in ("0", "false", "no"):
         return False
     return default
+
+
+def _getenv_str(key: str, default=None):
+    """Return the env value for *key*, treating an empty or whitespace-only value as
+    unset so a blank export falls through to *default* rather than overriding it.
+
+    ``example.envrc`` exports optional settings as empty strings; ``os.environ.get(key,
+    default)`` returns that ``""`` instead of the default, so a sourced env file beat the
+    documented defaults (embedding model, vector source, scan prefix, …) (#268). The
+    numeric and bool readers above already treat blank as unset."""
+    value = os.environ.get(key)
+    if value is None or not value.strip():
+        return default
+    return value
 
 
 def _redis_connection_from_url(url: str) -> dict:
@@ -70,12 +84,12 @@ def _redis_connection_from_url(url: str) -> dict:
 
 def build_store():
     """Build a JSONSource from env vars."""
-    store_type = os.environ.get("BLUE_DATA_REGISTRY_STORE", "memory").lower()
+    store_type = _getenv_str("BLUE_DATA_REGISTRY_STORE", "memory").lower()
 
     if store_type == "redis":
         from blue_data.source.json.redis.redis_json_source import RedisJSONSource
-        url = os.environ.get("BLUE_DATA_REGISTRY_REDIS_URL", "redis://localhost:6379/0")
-        namespace = os.environ.get("BLUE_DATA_REGISTRY_REDIS_NAMESPACE", "blue_data")
+        url = _getenv_str("BLUE_DATA_REGISTRY_REDIS_URL", "redis://localhost:6379/0")
+        namespace = _getenv_str("BLUE_DATA_REGISTRY_REDIS_NAMESPACE", "blue_data")
         return RedisJSONSource(properties={
             "namespace": namespace,
             "connection": _redis_connection_from_url(url),
@@ -83,7 +97,7 @@ def build_store():
 
     if store_type == "file":
         from blue_data.source.json.file_json_source import FileJSONSource
-        path = os.environ.get("BLUE_DATA_REGISTRY_FILE", "blue_data_store.json")
+        path = _getenv_str("BLUE_DATA_REGISTRY_FILE", "blue_data_store.json")
         return FileJSONSource(properties={"connection": {"path": path}})
 
     from blue_data.source.json.memory_json_source import MemoryJSONSource
@@ -127,9 +141,11 @@ def build_hybrid_config() -> dict:
         except ValueError:
             pass
 
-    hierarchical = os.environ.get("BLUE_DATA_REGISTRY_SEARCH_HIERARCHICAL")
+    # Treat a blank value as unset so it keeps the default rather than silently
+    # becoming False (a blank export used to disable hierarchical search). #268
+    hierarchical = _getenv_str("BLUE_DATA_REGISTRY_SEARCH_HIERARCHICAL")
     if hierarchical is not None:
-        config["hierarchical_enabled"] = hierarchical.lower() in ("1", "true", "yes")
+        config["hierarchical_enabled"] = hierarchical.strip().lower() in ("1", "true", "yes")
 
     return config or None
 
@@ -144,7 +160,7 @@ def build_embedding_fn():
 
     Configure with BLUE_DATA_EMBEDDING_PROVIDER=openai (+ OPENAI_API_KEY) and,
     optionally, BLUE_DATA_EMBEDDING_MODEL (default text-embedding-3-small)."""
-    provider = os.environ.get("BLUE_DATA_EMBEDDING_PROVIDER", "").lower()
+    provider = (_getenv_str("BLUE_DATA_EMBEDDING_PROVIDER") or "").lower()
     if not provider:
         return None
 
@@ -164,7 +180,7 @@ def build_embedding_fn():
                 "(pip install 'blue-data[llm]'); embeddings are disabled (keyword-only search)."
             )
             return None
-        model = os.environ.get("BLUE_DATA_EMBEDDING_MODEL", "text-embedding-3-small")
+        model = _getenv_str("BLUE_DATA_EMBEDDING_MODEL", "text-embedding-3-small")
         client = openai.OpenAI(api_key=api_key)
 
         def embedding_fn(text: str) -> list[float]:
@@ -198,14 +214,14 @@ def build_vector_source(embedding_fn=None):
     if embedding_fn is None:
         return None
 
-    store_type = os.environ.get("BLUE_DATA_REGISTRY_STORE", "memory").lower()
+    store_type = _getenv_str("BLUE_DATA_REGISTRY_STORE", "memory").lower()
     default_vs = {"redis": "redis", "file": "file"}.get(store_type, "memory")
-    vs_type = os.environ.get("BLUE_DATA_REGISTRY_VECTOR_SOURCE", default_vs).lower()
+    vs_type = _getenv_str("BLUE_DATA_REGISTRY_VECTOR_SOURCE", default_vs).lower()
 
     if vs_type == "redis":
         from blue_data.source.vector.redis.redis_vector_source import RedisVectorSource
-        url = os.environ.get("BLUE_DATA_REGISTRY_REDIS_URL", "redis://localhost:6379/0")
-        scan_prefix = os.environ.get("BLUE_DATA_REGISTRY_VECTOR_SCAN_PREFIX", "blue_data_vec:")
+        url = _getenv_str("BLUE_DATA_REGISTRY_REDIS_URL", "redis://localhost:6379/0")
+        scan_prefix = _getenv_str("BLUE_DATA_REGISTRY_VECTOR_SCAN_PREFIX", "blue_data_vec:")
         connection = _redis_connection_from_url(url)
         # RediSearch (FT.CREATE) only builds indexes on db 0. Rather than fail the whole
         # registry (the JSON store may legitimately run on db != 0), disable vector search
@@ -226,11 +242,11 @@ def build_vector_source(embedding_fn=None):
 
     if vs_type == "file":
         from blue_data.source.vector.file_vector_source import FileVectorSource
-        directory = os.environ.get("BLUE_DATA_REGISTRY_VECTOR_DIR")
+        directory = _getenv_str("BLUE_DATA_REGISTRY_VECTOR_DIR")
         if not directory:
             # Default beside the registry file so the vectors sit next to the store
             # they index (both survive the command).
-            reg_file = os.environ.get("BLUE_DATA_REGISTRY_FILE", "blue_data_store.json")
+            reg_file = _getenv_str("BLUE_DATA_REGISTRY_FILE", "blue_data_store.json")
             directory = os.path.join(os.path.dirname(os.path.abspath(reg_file)), "vectors")
         return FileVectorSource(name="registry_vectors", directory=directory)
 
@@ -250,7 +266,7 @@ def build_enricher():
     """Build a MetaData enricher from env vars."""
     from blue_data.registry.enrichment.metadata import MetaData
 
-    provider = os.environ.get("BLUE_DATA_LLM_PROVIDER", "").lower()
+    provider = (_getenv_str("BLUE_DATA_LLM_PROVIDER") or "").lower()
     if not provider:
         return MetaData(llm_fn=None)
 
@@ -274,8 +290,8 @@ def build_enricher():
         # must fall through to the Anthropic default, not a cross-provider value
         # (e.g. the family default gpt-4o exported by the CLI). #101
         model = (
-            os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL")
-            or os.environ.get("BLUE_DATA_LLM_MODEL")
+            _getenv_str("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL")
+            or _getenv_str("BLUE_DATA_LLM_MODEL")
             or "claude-opus-4-8"
         )
         client = anthropic.Anthropic(api_key=api_key)
@@ -311,8 +327,8 @@ def build_enricher():
         # Resolve the model after the provider (#101): empty/unset falls
         # through to the OpenAI default rather than a cross-provider value.
         model = (
-            os.environ.get("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL")
-            or os.environ.get("BLUE_DATA_LLM_MODEL")
+            _getenv_str("BLUE_DATA_REGISTRY_METADATA_LLM_MODEL")
+            or _getenv_str("BLUE_DATA_LLM_MODEL")
             or "gpt-4o"
         )
         client = openai.OpenAI(api_key=api_key)
@@ -336,7 +352,7 @@ def build_enricher():
 
 def load_sources(registry) -> None:
     """Pre-load data sources from BLUE_DATA_SOURCES_CONFIG JSON file into registry."""
-    path = os.environ.get("BLUE_DATA_SOURCES_CONFIG")
+    path = _getenv_str("BLUE_DATA_SOURCES_CONFIG")
     if not path or not os.path.exists(path):
         return
 
