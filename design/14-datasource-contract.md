@@ -117,6 +117,21 @@ the rebuilt object inert and violates the contract. Such collaborators must be d
 from `properties` (e.g. a model name + factory) so a registry that only has the stored
 record can bring the source back to life.
 
+### Credentials: `<key>_env` references
+
+Because `properties` is the only rebuild state **and** the registry strips literal
+credentials before persisting a record (§3), a secret cannot be stored directly. Store a
+**reference** instead: for any connection key `<key>`, a sibling `<key>_env` whose value
+is the *name of an environment variable* holding the secret. The reference is persisted
+and survives a rebuild; the secret is read from the environment at connect time and never
+written to the store. This is not source-specific — `DataSource._start_connection`
+resolves and strips every `<key>_env` before calling `_connect`, so it applies to every
+source and every key (`password_env`, `token_env`, `api_key_env`, …). An explicit
+non-empty literal wins over the reference; an empty/default value does not mask it; the
+reference is always dropped before reaching a driver. A source MUST read its credentials
+from the connection mapping `_connect` receives (not re-read `self.properties`) so this
+resolution is honoured; the base provides it so no source reimplements it.
+
 ## 5. NL tool signatures
 
 `get_nl_tools()` returns the tool list; `execute_nl_tool(name, tool_input, database=None,

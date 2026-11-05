@@ -143,6 +143,38 @@ GRANT USAGE ON SCHEMA public TO blue_data_ro;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO blue_data_ro;  -- no superuser, no file I/O
 ```
 
+### Keeping secrets out of the registry: `<key>_env` references
+
+The registry **never persists a literal credential** — a `password`, `token`, `api_key`,
+etc. is stripped before a source record is stored, so a source rebuilt from its record
+(the registry's only rebuild state) would otherwise have no way to re-authenticate.
+Store a **reference** instead: for any connection key `<key>`, add `<key>_env` whose
+value is the *name of an environment variable* holding the secret. The reference (a
+variable name, not the secret) is persisted and survives a rebuild; the secret itself is
+read from the environment at connect time and is never written to disk.
+
+```json
+{
+  "type": "postgres",
+  "name": "prod",
+  "properties": { "connection": {
+    "host": "db.internal", "port": 5432, "user": "app", "database": "myapp",
+    "password_env": "APP_DB_PASSWORD"
+  } }
+}
+```
+
+```bash
+export APP_DB_PASSWORD='…'   # the secret lives only in the environment
+```
+
+This works for **every** source type that takes a password (Postgres, MySQL, Neo4j,
+MongoDB, Redis, …) and for any key, not just `password` (e.g. `token_env`,
+`api_key_env`). Resolution rules: an explicit non-empty literal value wins over the
+reference; an empty or default value (e.g. `password=""`) does not mask it; and the
+`<key>_env` reference is always dropped before reaching the driver. A literal credential
+is accepted for a *live* source but will not survive a rebuild — prefer the reference.
+
 ---
 
 ## REST API (`blue-data-api`)
