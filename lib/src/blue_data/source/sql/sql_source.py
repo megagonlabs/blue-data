@@ -15,6 +15,20 @@ class SQLSource(DataSource, ABC):
     # The SQL text an op carries still runs under execute_query's own read-only guard.
     _READ_OPS = frozenset({"SQL.QUERY", "SQL.FETCH_ALL"})
 
+    # Deny-by-default: without commit=True, only these leading keywords may run. The
+    # statement is classified *before* execution, so a side-effecting one (COPY,
+    # SET, CALL, DO, LOAD, PRAGMA x=, …) is refused rather than taking effect and
+    # then being "rolled back" — many act outside the transaction, so the old
+    # post-execution check reported a refusal after the write had already landed
+    # (#266). Matches the contract's "read-only is deny-by-default" (design/14).
+    _READ_ONLY_LEADING_KEYWORDS = frozenset(
+        {"SELECT", "WITH", "EXPLAIN", "SHOW", "VALUES"}
+    )
+    # Strip SQL comments before classifying so `/* */ COPY ...` can't hide the verb.
+    _SQL_COMMENT_RE = re.compile(r"/\*.*?\*/|--[^\n]*", re.DOTALL)
+    # Writes disguised as a SELECT: MySQL `SELECT ... INTO OUTFILE/DUMPFILE`.
+    _FILE_WRITE_RE = re.compile(r"\binto\s+(?:out|dump)file\b", re.IGNORECASE)
+
     @staticmethod
     def _resolve_env_refs(config: dict) -> dict:
         """Resolve ``<key>_env`` credential references to ``<key>`` from the environment
@@ -87,6 +101,12 @@ class SQLSource(DataSource, ABC):
                 "Pass optional_properties={'commit': True} to execute writes."
             )
 
+        # Classify before connecting: a refused statement must never reach the
+        # server, since the read-only session and the post-execution rollback
+        # below can't undo a statement that acts outside the transaction (#266).
+        if not commit:
+            self._assert_read_only_statement(query, write_guard_msg)
+
         conn = self._db_connect(database)
         cur = conn.cursor()
         try:
@@ -123,6 +143,30 @@ class SQLSource(DataSource, ABC):
         if not isinstance(query, str):
             return False
         return ";" in query.strip().rstrip(";").rstrip()
+
+    def _assert_read_only_statement(self, query, msg: str) -> None:
+        """Refuse a non-read statement *before* it runs (no-commit path).
+
+        The read-only session can't undo a statement that acts outside the
+        transaction (Postgres ``COPY … TO``, ``SET``, MySQL ``SELECT … INTO
+        OUTFILE``, SQLite ``PRAGMA x=``), so classification must happen up front.
+        Only the read-only leading keywords are allowed; everything else — DML,
+        DDL and the side-effecting statements above — is refused here (#266).
+        """
+        if not isinstance(query, str):
+            return
+        stripped = self._SQL_COMMENT_RE.sub(" ", query)
+        if self._FILE_WRITE_RE.search(stripped):
+            raise ValueError(f"{msg} Refused before execution: statement writes to a file.")
+        # Leading keyword, after dropping comments and any leading '(' (e.g. "(SELECT …)").
+        match = re.match(r"\s*\(*\s*([A-Za-z]+)", stripped)
+        keyword = match.group(1).upper() if match else ""
+        if keyword not in self._READ_ONLY_LEADING_KEYWORDS:
+            raise ValueError(
+                f"{msg} Refused before execution: {keyword or 'the statement'} is not "
+                "read-only. Without commit=True only "
+                f"{', '.join(sorted(self._READ_ONLY_LEADING_KEYWORDS))} statements run."
+            )
 
     def _set_read_only(self, conn) -> None:
         """Make *conn* reject writes/DDL before the statement runs. Override per dialect."""

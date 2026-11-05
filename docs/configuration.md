@@ -117,13 +117,31 @@ Source config file format:
     {
       "type": "postgres",
       "name": "prod",
-      "properties": { "connection": { "host": "localhost", "port": 5432, "database": "myapp", "user": "postgres", "password": "" } }
+      "properties": { "connection": { "host": "localhost", "port": 5432, "database": "myapp", "user": "blue_data_ro", "password": "" } }
     }
   ]
 }
 ```
 
 Supported source types: `sqlite`, `postgres`, `mysql`, `mongodb`. (`neo4j` and `file` sources exist as DataSource classes but are not yet wired into the config loader.)
+
+### Connect with a least-privilege role
+
+`execute_query` refuses non-read statements on the read-only path (anything that is
+not `SELECT` / `WITH … SELECT` / `EXPLAIN` / `SHOW` / `VALUES` is rejected *before* it
+runs — `COPY`, `SET`, `CALL`, `DO`, `LOAD`, `PRAGMA x=`, `… INTO OUTFILE`, DML and
+DDL). This is a guard, **not** a substitute for database permissions: a read that
+calls a privileged function — e.g. Postgres `SELECT pg_read_file('/etc/passwd')` or
+`SELECT pg_reload_conf()` — is still a valid `SELECT`, so the engine runs it with
+whatever rights the connection has. Do **not** connect as `postgres`/`root`. Create a
+dedicated role that can only read the tables you expose:
+
+```sql
+CREATE ROLE blue_data_ro LOGIN PASSWORD '…';
+GRANT CONNECT ON DATABASE myapp TO blue_data_ro;
+GRANT USAGE ON SCHEMA public TO blue_data_ro;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO blue_data_ro;  -- no superuser, no file I/O
+```
 
 ---
 
