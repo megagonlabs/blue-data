@@ -6,13 +6,23 @@ Both backends share the same four-op execute_query interface:
     VECTOR.DELETE        — remove a doc
     VECTOR.KNN           — nearest-neighbour search
 """
+import multiprocessing
+import os
 import re
+import stat
 
 import pytest
 import numpy as np
 
 from blue_data.source.vector.memory_vector_source import MemoryVectorSource
 from blue_data.source.vector.file_vector_source import FileVectorSource
+
+
+def _concurrent_upsert_worker(directory, start, count):
+    """Module-level so multiprocessing 'spawn' (macOS default) can import it (#272)."""
+    src = FileVectorSource("f", directory=directory)
+    for i in range(start, start + count):
+        src.upsert("c", f"d{i}", {"embedding": [1.0, 0.0], "text": "t"})
 
 
 # ---------------------------------------------------------------------------
@@ -297,3 +307,40 @@ def test_memory_tag_filter_matches_escaped_special_chars(name):
     results = _knn(src, _unit(0), k=5, return_fields=["file_name"],
                    filter=f"@file_name:{{{escaped}}}")
     assert [r["file_name"] for r in results] == [name]
+
+
+# ── #272: FileVectorSource durability — lock, atomic write, 0600, named errors ──
+
+def test_file_vector_writes_mode_0600(tmp_path):
+    src = FileVectorSource("f", directory=str(tmp_path))
+    src.create_index("idx", "c", DIM)
+    _upsert(src, "d1", _unit(0), collection="c")
+    for fname in ("c.json", "_indices.json"):
+        mode = stat.S_IMODE(os.stat(tmp_path / fname).st_mode)
+        assert mode == 0o600, f"{fname} is {oct(mode)}, expected 0o600"
+
+
+def test_file_vector_corrupt_file_error_names_path(tmp_path):
+    src = FileVectorSource("f", directory=str(tmp_path))
+    _upsert(src, "d1", _unit(0), collection="c")
+    path = tmp_path / "c.json"
+    path.write_text(path.read_text()[: len(path.read_text()) // 2])  # truncate (partial write)
+    with pytest.raises(ValueError, match="c.json"):
+        FileVectorSource("f", directory=str(tmp_path)).list_ids("c")
+
+
+def test_file_vector_concurrent_writers_keep_all_docs(tmp_path):
+    # Each writer rewrites the whole collection; without a load→save lock the
+    # processes clobber each other and documents are lost / the file corrupts (#272).
+    d = str(tmp_path)
+    procs = [
+        multiprocessing.Process(target=_concurrent_upsert_worker, args=(d, start, 40))
+        for start in (0, 100, 200, 300)
+    ]
+    for p in procs:
+        p.start()
+    for p in procs:
+        p.join(timeout=60)
+
+    assert all(p.exitcode == 0 for p in procs), "a writer process errored"
+    assert len(FileVectorSource("f", directory=d).list_ids("c")) == 160
