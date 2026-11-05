@@ -14,6 +14,23 @@ from blue_data.source.source import DataSource
 from blue_data.registry.enrichment.semantic_types import SemanticTypeInferencer
 
 
+def _normalize_attribute_info(attributes: dict) -> None:
+    """Normalise each attribute's ``info`` to a mapping, in place.
+
+    A source may return an attribute's ``info`` as a bare string (the type or
+    description — ``DataSchema.add_entity_attribute`` documents ``type`` that way,
+    and doc/user sources do this) or omit it. Storing one shape — ``{"type": ...}``
+    — means every registry consumer (``source inspect``, enrichment metadata,
+    description generation) can read ``info["type"]`` without crashing with
+    ``'str' object has no attribute 'get'`` (#281).
+    """
+    if not isinstance(attributes, dict):
+        return
+    for attr in attributes.values():
+        if isinstance(attr, dict) and isinstance(attr.get("info"), str):
+            attr["info"] = {"type": attr["info"]}
+
+
 # Case-insensitive substrings (matched against the key with separators removed) that
 # mark a value as a secret. Broader than an exact list, so db_password, sasl_password,
 # passphrase, auth_token, aws_secret_access_key and an Authorization header key are all
@@ -1245,6 +1262,7 @@ class DataRegistry(Registry):
                 .get("attributes", {})
             )
 
+            _normalize_attribute_info(attributes)
             fetched_attributes = set(attributes.keys())
 
             registry_attributes = {
@@ -1347,6 +1365,7 @@ class DataRegistry(Registry):
                 .get("attributes", {})
             )
 
+            _normalize_attribute_info(relation_attributes)
             fetched_relation_attributes = set(relation_attributes.keys())
 
             registry_relation_attributes = {
@@ -2686,6 +2705,7 @@ class DataRegistry(Registry):
                 .get("attributes", {})
             )
 
+        _normalize_attribute_info(attributes)
         fetched_attributes = set(attributes.keys())
 
         registry_attributes = {
@@ -2778,6 +2798,7 @@ class DataRegistry(Registry):
                 .get("attributes", {})
             )
 
+        _normalize_attribute_info(attributes)
         fetched_attributes = set(attributes.keys())
 
         registry_attributes = {
