@@ -76,6 +76,22 @@ def _fmt_record(r: dict) -> str:
     return "\n".join(parts)
 
 
+def _info_type(props: dict) -> str:
+    """Return an attribute's declared type from its ``info`` property, tolerantly.
+
+    ``info`` may be a mapping (``{"type": ...}``), a bare string (the type or
+    description — ``DataSchema.add_entity_attribute`` allows this), or absent.
+    Mirror ``DataRegistry.build_schema_for_nl`` so ``source inspect`` never crashes
+    with ``'str' object has no attribute 'get'`` on doc/user sources (#281).
+    """
+    info = props.get("info")
+    if isinstance(info, dict):
+        return info.get("type", "")
+    if isinstance(info, str):
+        return info
+    return ""
+
+
 def _status(msg: str, fmt: str) -> None:
     click.echo(msg, err=(fmt == "json"))
 
@@ -419,8 +435,7 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
             click.echo(json.dumps({"record": record}, indent=2, default=str))
         else:
             props = record.get("properties") or {}
-            info = props.get("info") or {}
-            sql_type = info.get("type", "")
+            sql_type = _info_type(props)
             sem = props.get("semantic_type", "")
             click.echo(_fmt_record(record))
             if sql_type:
@@ -441,7 +456,7 @@ def source_inspect(ctx: click.Context, name: str, database: Optional[str],
             for attr in attributes:
                 props = attr.get("properties") or {}
                 sem = props.get("semantic_type", "")
-                sql_type = (props.get("info") or {}).get("type", "")
+                sql_type = _info_type(props)
                 tag = sem or sql_type
                 suffix = f"  [{tag}]" if tag else ""
                 click.echo(f"    {attr['name']}{suffix}")
