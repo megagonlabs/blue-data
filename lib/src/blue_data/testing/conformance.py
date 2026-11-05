@@ -91,6 +91,40 @@ class DataSourceConformance:
         both = data_source._READ_OPS & data_source._WRITE_OPS
         assert not both, f"ops declared both read and write: {sorted(both, key=str)}"
 
+    def test_non_secret_properties_survive_sanitization(self, data_source):
+        """§3 — register_source persists non-secret configuration unchanged, so a
+        source rebuilt from its stored record keeps its settings (#265). The credential
+        sanitizer must strip only credentials: ceilings, prices, limits, tokenizers and
+        URLs with no password must survive the round-trip, and a rebuild from the
+        sanitized record must still succeed.
+        """
+        from blue_data.registry.data_registry import _sanitize_properties
+
+        # Names that are NOT credentials but historically tripped a substring match.
+        probe = {
+            "max_tokens": 1024,
+            "llm.max_tokens": 256,
+            "llm.price_per_input_token": 1e-6,
+            "llm.price_per_output_token": 2e-6,
+            "tokenizer": "cl100k_base",
+            "token_limit": 8000,
+            "credentials_file": "/opt/app/creds.json",
+            "secret_manager_arn": "arn:aws:secretsmanager:x",
+            "endpoint_url": "https://example.com:8443/@acme/pkg",
+        }
+        stored = _sanitize_properties({**dict(data_source.properties), **probe})
+        for key, value in probe.items():
+            assert stored.get(key, "<<REMOVED>>") == value, (
+                f"the credential sanitizer dropped or rewrote non-secret {key!r}: "
+                f"{value!r} -> {stored.get(key, '<<REMOVED>>')!r}"
+            )
+        cls = type(data_source)
+        path = f"{cls.__module__}.{cls.__qualname__}"
+        rebuilt = DataSource.instantiate(
+            path, data_source.name, properties=_sanitize_properties(dict(data_source.properties))
+        )
+        assert isinstance(rebuilt, cls)
+
     def test_reserved_metadata_property_tolerated(self, data_source):
         """§3 — a reserved `metadata` property must not break (re)construction."""
         cls = type(data_source)

@@ -31,32 +31,70 @@ def _normalize_attribute_info(attributes: dict) -> None:
             attr["info"] = {"type": attr["info"]}
 
 
-# Case-insensitive substrings (matched against the key with separators removed) that
-# mark a value as a secret. Broader than an exact list, so db_password, sasl_password,
-# passphrase, auth_token, aws_secret_access_key and an Authorization header key are all
-# caught (#212). ``key`` is intentionally NOT a bare substring — it would strip
-# legitimate non-secret config such as partition_key / keyspace / aws_access_key_id; the
-# real key-shaped secrets (api_key, apikey, private_key) are covered explicitly.
-_SECRET_KEY_SUBSTRINGS = (
-    "pass", "pwd", "secret", "token", "credential", "authorization", "apikey", "privatekey",
-)
+# A property NAME is secret when one of these words is its WHOLE name or its FINAL
+# segment — names are split on '.', '_' and '-' first. Matching whole segments, not
+# substrings, is what stops the sanitizer deleting ordinary configuration: max_tokens,
+# llm.max_tokens, token_limit, tokenizer, secret_manager_arn, credentials_file,
+# bypass_cache, compass_heading and passages all keep a secret word as a non-final
+# segment (or not at all) and are preserved, while db_password, sasl_passphrase and
+# auth_token are stripped (#265, correcting #212's separator-stripped substring match).
+_SECRET_SEGMENTS = frozenset({
+    "pass", "password", "passwd", "passphrase", "pwd", "secret",
+    "token", "credential", "credentials", "authorization", "apikey",
+})
+# Compound secrets written with a separator (api_key, private_key): matched on the
+# joined final two segments, since neither final segment ('key') is a secret alone.
+_SECRET_COMPOUNDS = frozenset({"apikey", "privatekey"})
+# 'token' is ambiguous: an auth token is a secret, but a per-token price or a token
+# ceiling is configuration. When 'token' is the final segment, these co-segments
+# (e.g. in price_per_input_token, cost_per_token) mark the name as non-secret.
+_NON_SECRET_HINTS = frozenset({
+    "price", "prices", "pricing", "cost", "max", "min", "limit", "count", "budget", "rate",
+})
 
 
-def _is_secret_key(key) -> bool:
-    """True when a dict key names a secret and its value must not be persisted."""
+def _is_secret_key(key, declared: frozenset = frozenset()) -> bool:
+    """True when a dict key names a secret and its value must not be persisted.
+
+    *declared* is the lower-cased set a source opts in via ``_secret_properties`` for
+    names the segment rule can't recognise (e.g. ``aws_secret_access_key``, whose
+    secret word is not the final segment).
+    """
     if not isinstance(key, str):
         return False
     lower = key.lower()
+    if lower in declared:
+        return True
     # Preserve ``<name>_env`` reference keys: they hold an env-var NAME, not the secret,
     # and connect_source needs them to reconnect (#100/#207).
     if lower.endswith("_env"):
         return False
-    normalized = re.sub(r"[^a-z0-9]", "", lower)
-    return any(sub in normalized for sub in _SECRET_KEY_SUBSTRINGS)
+    segments = [s for s in re.split(r"[._\-]+", lower) if s]
+    if not segments:
+        return False
+    joined = "".join(segments)
+    if joined in _SECRET_SEGMENTS or joined in _SECRET_COMPOUNDS:
+        return True
+    last = segments[-1]
+    if last in _SECRET_SEGMENTS:
+        if last == "token" and any(s in _NON_SECRET_HINTS for s in segments):
+            return False
+        return True
+    if len(segments) >= 2 and (segments[-2] + last) in _SECRET_COMPOUNDS:
+        return True
+    # A `*_key` qualified by 'secret' or 'private' is the secret half of a key pair
+    # (aws_secret_access_key, private signing keys) — but a bare access_key_id /
+    # partition_key / aws_access_key_id is an identifier, so is preserved.
+    if last == "key" and ({"secret", "private"} & set(segments)):
+        return True
+    return False
 
 
-# scheme://user:password@host  — backstop for a password containing '/' (which truncates
-# the authority urlsplit parses). Greedy to the last '@' so it also spans '@' in the pw.
+# scheme://user:password@host — backstop for a password containing '/', which truncates
+# the authority urlsplit parses (so parts.password is then None). Greedy to the last '@'
+# so it also spans an '@' in the password. Applied ONLY when urlsplit saw a malformed
+# authority, so a valid 'host:port/@path' (an npm-style scope path, not userinfo) is not
+# rewritten (#265).
 _URI_PASSWORD_RE = re.compile(
     r"(?P<scheme>[a-zA-Z][a-zA-Z0-9+.\-]*://)(?P<user>[^:/\s@]*):[^\s]*@"
 )
@@ -65,53 +103,95 @@ _URI_PASSWORD_RE = re.compile(
 _KV_SECRET_RE = re.compile(
     r"(?i)\b(?P<key>password|passwd|pwd|secret|token|api[_-]?key)\b(?P<sep>\s*=\s*)[^;]*"
 )
+# A `key=` pair at the start of a `;`-delimited segment (ODBC/JDBC fields).
+_KV_PAIR_RE = re.compile(r"^\s*[A-Za-z][\w .]*\s*=")
+# Markers that make a single-field value unambiguously a connection string, not prose.
+_DSN_MARKER_RE = re.compile(r"(?i)\b(driver|dsn|data source)\s*=")
+
+
+def _looks_like_connection_string(value: str) -> bool:
+    """True only for ODBC/JDBC-style ``k=v;k=v`` strings — not arbitrary prose that
+    merely contains an '=' (#265). A description like ``"password=never set here; ask
+    ops"`` has a single pair and no DSN marker, so it is left untouched."""
+    pairs = [seg for seg in value.split(";") if _KV_PAIR_RE.match(seg)]
+    if len(pairs) >= 2:
+        return True
+    return bool(pairs) and (value.strip().lower().startswith("jdbc:")
+                            or _DSN_MARKER_RE.search(value) is not None)
 
 
 def _strip_uri_userinfo(value: str) -> str:
-    """Drop passwords embedded in a string value so they aren't persisted: URI userinfo
-    and ODBC/JDBC ``k=v;`` connection strings. Handles passwords containing '/' or '@'
-    (urlsplit splits on the last '@'; a regex backstop covers authorities a '/' in the
-    password would otherwise truncate). #100 #212"""
-    # 1) Well-formed URLs: rebuild without the password, keeping user/host/port/path/query.
+    """Drop a password embedded in a connection string so it isn't persisted — but
+    never rewrite a value that only looks like one (#265, correcting #212).
+
+    A well-formed URL is rebuilt without its password ONLY when ``urlsplit()`` actually
+    parsed a password, so a ``host:port`` or an '@' in the path/query (e.g.
+    ``https://host:8443/@scope/pkg`` or ``?owner=a@b.c``) is left intact. A password
+    containing '/' truncates the authority (urlsplit then reports no password but a
+    malformed port); only then does a regex backstop strip ``scheme://user:…@``.
+    ODBC/JDBC ``k=v;`` strings have their secret values blanked; free text is not."""
+    # 1) URLs: rebuild without the password, keeping user/host/port/path/query.
     try:
         parts = urlsplit(value)
     except ValueError:
         parts = None
-    if parts is not None and parts.password is not None:
-        user = parts.username or ""
-        host = parts.hostname or ""
-        if parts.port is not None:
-            host = f"{host}:{parts.port}"
-        netloc = f"{user}@{host}" if user else host
-        value = urlunsplit((parts.scheme, netloc, parts.path, parts.query, parts.fragment))
-    # 2) Backstop: a '/' in the password truncates the authority urlsplit sees, so strip
-    #    scheme://user:…@ directly (greedy to the last '@').
-    value = _URI_PASSWORD_RE.sub(lambda m: f"{m.group('scheme')}{m.group('user')}@", value)
-    # 3) ODBC/JDBC connection-string secrets: keep the key, drop the value.
-    value = _KV_SECRET_RE.sub(lambda m: f"{m.group('key')}{m.group('sep')}", value)
+    malformed_authority = False
+    if parts is not None:
+        try:
+            port = parts.port
+        except ValueError:
+            # The authority urlsplit saw is malformed — most commonly because a '/' in
+            # the password truncated it, leaving a non-numeric "port" (#212).
+            malformed_authority = True
+        else:
+            if parts.password is not None:
+                user = parts.username or ""
+                host = parts.hostname or ""
+                if port is not None:
+                    host = f"{host}:{port}"
+                netloc = f"{user}@{host}" if user else host
+                value = urlunsplit((parts.scheme, netloc, parts.path, parts.query, parts.fragment))
+    # 2) Backstop for a '/'-in-password authority urlsplit couldn't parse. Gated on the
+    #    malformed signal so a valid 'host:port/@scope' path is never rewritten (#265).
+    if malformed_authority:
+        value = _URI_PASSWORD_RE.sub(lambda m: f"{m.group('scheme')}{m.group('user')}@", value)
+    # 3) ODBC/JDBC connection-string secrets: keep the key, drop the value — only for
+    #    values that really are k=v;k=v connection strings, never prose.
+    if _looks_like_connection_string(value):
+        value = _KV_SECRET_RE.sub(lambda m: f"{m.group('key')}{m.group('sep')}", value)
     return value
 
 
-def _sanitize_value(value):
+def _sanitize_value(value, declared: frozenset = frozenset()):
     if isinstance(value, dict):
         return {
-            k: _sanitize_value(v)
+            k: _sanitize_value(v, declared)
             for k, v in value.items()
-            if not _is_secret_key(k)
+            if not _is_secret_key(k, declared)
         }
     if isinstance(value, list):
-        return [_sanitize_value(v) for v in value]
+        return [_sanitize_value(v, declared) for v in value]
     if isinstance(value, str):
         return _strip_uri_userinfo(value)
     return value
 
 
-def _sanitize_properties(properties: dict) -> dict:
+def _secret_keys_declared_by(source) -> frozenset:
+    """Lower-cased property names a source opts in as secret via ``_secret_properties``,
+    so a name the segment rule can't recognise is still stripped (#265)."""
+    declared = getattr(source, "_secret_properties", None) or ()
+    if isinstance(declared, str):
+        declared = (declared,)
+    return frozenset(k.lower() for k in declared if isinstance(k, str))
+
+
+def _sanitize_properties(properties: dict, declared: frozenset = frozenset()) -> dict:
     """Return a copy of *properties* with credential keys removed at every depth and
-    passwords stripped from connection-URI userinfo (#100). Reference keys such as
-    ``password_env`` (an env-var NAME, not the secret) are preserved so connect_source
-    can resolve them after a restart."""
-    return _sanitize_value(properties)
+    passwords stripped from connection-URI userinfo (#100). Non-secret configuration is
+    preserved unchanged so a rebuilt source keeps its settings (#265). Reference keys
+    such as ``password_env`` (an env-var NAME, not the secret) are preserved so
+    connect_source can resolve them after a restart."""
+    return _sanitize_value(properties, declared)
 
 
 def _resolve_credential_references(properties: dict) -> dict:
@@ -201,7 +281,7 @@ class DataRegistry(Registry):
         self.sources[source.name] = source
 
         cls = type(source)
-        safe_properties = _sanitize_properties(source.properties)
+        safe_properties = _sanitize_properties(source.properties, _secret_keys_declared_by(source))
         for key in getattr(source, "_transient_properties", frozenset()):
             safe_properties.pop(key, None)
         safe_properties["_class"] = f"{cls.__module__}.{cls.__qualname__}"
