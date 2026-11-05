@@ -128,7 +128,7 @@ All configuration is via environment variables.
         "connection": {
           "host": "localhost",
           "port": 5432,
-          "user": "postgres",
+          "user": "blue_data_ro",
           "password": "<password>",
           "database": "warehouse"
         }
@@ -139,6 +139,12 @@ All configuration is via environment variables.
 ```
 
 Supported source types: `sqlite`, `postgres`.
+
+> **Use a least-privilege database role.** `query` runs read-only (writes need
+> `commit=true`, honored only when the API enables it), and non-read statements are
+> refused before they run. But a privileged `SELECT` — e.g. `pg_read_file()` — still
+> executes with the connection's rights, so connect as a dedicated read-only role,
+> **not** `postgres`/`root`. See blue-data `docs/configuration.md` for the grants.
 
 ---
 
