@@ -5,6 +5,7 @@ from typing import Any
 
 from blue_data.source.json.memory_json_source import MemoryJSONSource
 from blue_data.core.utils.utils import deep_merge
+from blue_data.core.utils.json_utils import json_safe
 
 
 class Registry:
@@ -121,7 +122,11 @@ class Registry:
             raise ValueError(f"Record not found: {scope}/{type}/{name}")
 
         record.setdefault("properties", {})
-        record["properties"][key] = value
+        # Coerce to JSON-safe primitives: source stats / sample values carry driver
+        # types (date, Decimal, ObjectId, bytes) that the file and Redis stores
+        # cannot serialise (#264). The memory store kept them natively, which is why
+        # this only surfaced on real backends.
+        record["properties"][key] = json_safe(value)
 
         self.store.set(self._record_key(name, type, scope), record)
         self._on_record_changed(record, rebuild=rebuild)

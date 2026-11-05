@@ -1,8 +1,47 @@
 from __future__ import annotations
 
+import datetime as _dt
+from decimal import Decimal as _Decimal
 from typing import Any
 
 from jsonpath_ng import parse as _parse
+
+
+def json_safe(obj: Any) -> Any:
+    """Recursively coerce *obj* into JSON-serializable primitives.
+
+    Driver values that reach the registry (e.g. source stats and sample values)
+    are not always JSON-native: Postgres/MySQL return ``date``/``datetime`` and
+    ``Decimal``, MongoDB returns ``ObjectId`` and ``bytes``. The registry persists
+    records as JSON (file store via ``json.dump``, Redis via RedisJSON), so any
+    such value crashes ``collect_source_stats`` / ``enrich`` / ``metadata`` with
+    "Object of type X is not JSON serializable" (#264). Normalise once, at the
+    registry write boundary, so every store — and every LLM prompt built from the
+    stored stats — sees only primitives.
+
+    - ``date`` / ``datetime`` / ``time`` → ISO-8601 string
+    - ``Decimal`` → ``float``
+    - ``bytes`` / ``bytearray`` → UTF-8 text, else hex
+    - ``set`` / ``tuple`` → ``list`` (recursed)
+    - ``dict`` / ``list`` → recursed
+    - any remaining exotic type (``ObjectId``, ``UUID``, …) → ``str``.
+    """
+    if obj is None or isinstance(obj, (str, bool, int, float)):
+        return obj
+    if isinstance(obj, (_dt.datetime, _dt.date, _dt.time)):
+        return obj.isoformat()
+    if isinstance(obj, _Decimal):
+        return float(obj)
+    if isinstance(obj, (bytes, bytearray)):
+        try:
+            return bytes(obj).decode("utf-8")
+        except UnicodeDecodeError:
+            return bytes(obj).hex()
+    if isinstance(obj, dict):
+        return {str(k): json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple, set)):
+        return [json_safe(v) for v in obj]
+    return str(obj)  # ObjectId, UUID, and any other non-JSON type
 
 
 def _normalize(path: str) -> str:
