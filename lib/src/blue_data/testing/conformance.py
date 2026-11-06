@@ -91,6 +91,17 @@ class DataSourceConformance:
         both = data_source._READ_OPS & data_source._WRITE_OPS
         assert not both, f"ops declared both read and write: {sorted(both, key=str)}"
 
+    def test_enrichment_tolerates_default_stats_hook(self, data_source):
+        """§3 — enrichment must survive a source that keeps the default
+        ``fetch_property_stats`` (which returns None): ``enrich_source`` over it completes
+        rather than crashing part-way with ``'NoneType' … has no attribute 'get'`` (#283).
+        """
+        from blue_data.registry.data_registry import DataRegistry
+
+        reg = DataRegistry()
+        reg.register_source(data_source)
+        reg.enrich_source(data_source.name)  # must not raise, even with no collected stats
+
     def test_non_secret_properties_survive_sanitization(self, data_source):
         """§3 — register_source persists non-secret configuration unchanged, so a
         source rebuilt from its stored record keeps its settings (#265). The credential

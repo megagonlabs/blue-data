@@ -1977,7 +1977,11 @@ class DataRegistry(Registry):
                 attribute,
             )
 
-        values = stats.get("sample_values", [])
+        # A source that keeps the default fetch_property_stats hook returns None (and so
+        # does collect_… above), so coalesce to {}: the attribute simply gets no value
+        # semantics and the run continues, rather than crashing part-way with
+        # 'NoneType' object has no attribute 'get' (#283).
+        values = (stats or {}).get("sample_values", [])
         semantic_info = self.semantic_type_inferencer.infer(values)
 
         self.set_source_database_collection_entity_attribute_property(
