@@ -32,6 +32,26 @@ def test_resolve_bind_reads_env_and_prefix(monkeypatch):
     assert resolve_bind("BLUE_DOC_API", 9999) == ("0.0.0.0", 8001)
 
 
+def test_resolve_bind_treats_blank_host_as_loopback(monkeypatch):
+    # #300: a blank export must not bind all interfaces ('' -> 0.0.0.0 / ::).
+    monkeypatch.setenv("BLUE_DATA_API_HOST", "")
+    monkeypatch.delenv("BLUE_DATA_API_PORT", raising=False)
+    assert resolve_bind("BLUE_DATA_API", 8000) == ("127.0.0.1", 8000)
+
+
+def test_resolve_bind_treats_blank_port_as_default(monkeypatch):
+    # #300: a blank port must not raise int('').
+    monkeypatch.delenv("BLUE_DATA_API_HOST", raising=False)
+    monkeypatch.setenv("BLUE_DATA_API_PORT", "")
+    assert resolve_bind("BLUE_DATA_API", 8000) == ("127.0.0.1", 8000)
+
+
+def test_resolve_bind_treats_whitespace_as_unset(monkeypatch):
+    monkeypatch.setenv("BLUE_DATA_API_HOST", "   ")
+    monkeypatch.setenv("BLUE_DATA_API_PORT", "  ")
+    assert resolve_bind("BLUE_DATA_API", 8000) == ("127.0.0.1", 8000)
+
+
 # ---------- api-key guard (mandatory by default) ----------
 
 def test_api_key_mandatory_by_default(monkeypatch):

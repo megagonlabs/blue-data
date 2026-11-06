@@ -39,9 +39,14 @@ def env_flag(name: str) -> bool:
 def resolve_bind(prefix: str = "BLUE_DATA_API", default_port: int = 8000) -> tuple[str, int]:
     """Return (host, port) from ``{prefix}_HOST`` / ``{prefix}_PORT``; defaults to
     loopback and *default_port* so services don't listen on all interfaces or
-    collide on a shared port unless configured to."""
-    host = os.environ.get(f"{prefix}_HOST", "127.0.0.1")
-    port = int(os.environ.get(f"{prefix}_PORT", str(default_port)))
+    collide on a shared port unless configured to.
+
+    An empty / whitespace-only value is treated as unset, not as a literal — a blank
+    ``{prefix}_HOST`` export used to bind ``''`` (all interfaces) and a blank
+    ``{prefix}_PORT`` raised ``int('')`` (#300)."""
+    host = (os.environ.get(f"{prefix}_HOST") or "").strip() or "127.0.0.1"
+    port_value = (os.environ.get(f"{prefix}_PORT") or "").strip()
+    port = int(port_value) if port_value else default_port
     return host, port
 
 
