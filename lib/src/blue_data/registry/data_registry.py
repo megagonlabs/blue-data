@@ -31,26 +31,55 @@ def _normalize_attribute_info(attributes: dict) -> None:
             attr["info"] = {"type": attr["info"]}
 
 
-# A property NAME is secret when one of these words is its WHOLE name or its FINAL
-# segment — names are split on '.', '_' and '-' first. Matching whole segments, not
-# substrings, is what stops the sanitizer deleting ordinary configuration: max_tokens,
-# llm.max_tokens, token_limit, tokenizer, secret_manager_arn, credentials_file,
-# bypass_cache, compass_heading and passages all keep a secret word as a non-final
-# segment (or not at all) and are preserved, while db_password, sasl_passphrase and
-# auth_token are stripped (#265, correcting #212's separator-stripped substring match).
+# A property NAME is secret when a secret word is its WHOLE name or its FINAL segment.
+# Names are split on '.', '_', '-' AND camelCase boundaries (so dbPassword / accessToken
+# split like db_password / access_token), a trailing plural 's' is folded, and trailing
+# digits and the qualifiers below are peeled — so password1, password_old, secret_value
+# and authorization_header are caught, while ordinary config with a secret word in a
+# non-final segment (max_tokens, token_limit, secret_manager_arn, credentials_file) is
+# preserved (#265/#293, correcting #212's substring match).
 _SECRET_SEGMENTS = frozenset({
     "pass", "password", "passwd", "passphrase", "pwd", "secret",
     "token", "credential", "credentials", "authorization", "apikey",
 })
-# Compound secrets written with a separator (api_key, private_key): matched on the
-# joined final two segments, since neither final segment ('key') is a secret alone.
+# Compound secrets written across two segments (api_key, private_key): neither final
+# segment ('key') is a secret alone.
 _SECRET_COMPOUNDS = frozenset({"apikey", "privatekey"})
-# 'token' is ambiguous: an auth token is a secret, but a per-token price or a token
-# ceiling is configuration. When 'token' is the final segment, these co-segments
-# (e.g. in price_per_input_token, cost_per_token) mark the name as non-secret.
+# 'token' is ambiguous: an auth token is a secret, but a per-token price, a token ceiling
+# and a pagination cursor are not. When 'token' is the final segment, one of these
+# co-segments marks the name as non-secret (price_per_input_token, next_token, …) (#293).
 _NON_SECRET_HINTS = frozenset({
     "price", "prices", "pricing", "cost", "max", "min", "limit", "count", "budget", "rate",
+    "next", "page", "continuation", "sync", "cursor", "pagination",
 })
+# Trailing words that qualify a preceding secret word rather than naming new config:
+# password_old, secret_value, token_string, authorization_header (#293).
+_SECRET_QUALIFIERS = frozenset({"value", "string", "old", "new", "header", "raw"})
+# Split on separators and camelCase/PascalCase boundaries; keep alpha and digit runs apart.
+_SEGMENT_RE = re.compile(r"[A-Z]+(?=[A-Z][a-z])|[A-Z][a-z]*|[a-z]+|[0-9]+")
+
+
+def _name_segments(name: str) -> list[str]:
+    """Lower-cased segments of *name*, split on '.', '_', '-' and camelCase."""
+    out: list[str] = []
+    for part in re.split(r"[._\-]+", name):
+        out.extend(m.lower() for m in _SEGMENT_RE.findall(part))
+    return out
+
+
+def _desuffix(seg: str) -> str:
+    """Fold a trailing plural 's' (tokens -> token, api_keys' keys -> key)."""
+    return seg[:-1] if len(seg) > 1 and seg.endswith("s") else seg
+
+
+def _is_secret_word(seg: str) -> bool:
+    """True if *seg* or its singular is a secret word (so 'pass' and its plural
+    'passwords' both match, without mis-folding the non-plural 'pass' to 'pas')."""
+    return seg in _SECRET_SEGMENTS or _desuffix(seg) in _SECRET_SEGMENTS
+
+
+def _is_secret_compound(seg: str) -> bool:
+    return seg in _SECRET_COMPOUNDS or _desuffix(seg) in _SECRET_COMPOUNDS
 
 
 def _is_secret_key(key, declared: frozenset = frozenset()) -> bool:
@@ -62,42 +91,52 @@ def _is_secret_key(key, declared: frozenset = frozenset()) -> bool:
     """
     if not isinstance(key, str):
         return False
-    lower = key.lower()
-    if lower in declared:
+    if key.lower() in declared:
         return True
     # Preserve ``<name>_env`` reference keys: they hold an env-var NAME, not the secret,
     # and connect_source needs them to reconnect (#100/#207).
-    if lower.endswith("_env"):
+    if key.lower().endswith("_env"):
         return False
-    segments = [s for s in re.split(r"[._\-]+", lower) if s]
+    segments = _name_segments(key)
+    # Peel trailing digits and qualifiers: password1, password_old, secret_value, …
+    while len(segments) > 1 and segments[-1].isdigit():
+        segments.pop()
+    while len(segments) > 1 and segments[-1] in _SECRET_QUALIFIERS:
+        segments.pop()
     if not segments:
         return False
     joined = "".join(segments)
-    if joined in _SECRET_SEGMENTS or joined in _SECRET_COMPOUNDS:
+    if _is_secret_word(joined) or _is_secret_compound(joined):
         return True
     last = segments[-1]
-    if last in _SECRET_SEGMENTS:
-        if last == "token" and any(s in _NON_SECRET_HINTS for s in segments):
+    if _is_secret_word(last):
+        if _desuffix(last) == "token" and any(s in _NON_SECRET_HINTS for s in segments):
             return False
         return True
-    if len(segments) >= 2 and (segments[-2] + last) in _SECRET_COMPOUNDS:
+    # Compound final two segments: api_key / private_key (and plurals api_keys).
+    if len(segments) >= 2 and _is_secret_compound(segments[-2] + segments[-1]):
         return True
     # A `*_key` qualified by 'secret' or 'private' is the secret half of a key pair
-    # (aws_secret_access_key, private signing keys) — but a bare access_key_id /
-    # partition_key / aws_access_key_id is an identifier, so is preserved.
-    if last == "key" and ({"secret", "private"} & set(segments)):
+    # (aws_secret_access_key) — but a bare access_key_id / partition_key is an identifier.
+    if _desuffix(last) == "key" and ({"secret", "private"} & set(segments)):
         return True
     return False
 
 
-# scheme://user:password@host — backstop for a password containing '/', which truncates
-# the authority urlsplit parses (so parts.password is then None). Greedy to the last '@'
-# so it also spans an '@' in the password. Applied ONLY when urlsplit saw a malformed
-# authority, so a valid 'host:port/@path' (an npm-style scope path, not userinfo) is not
-# rewritten (#265).
+# scheme://user:password@ — a userinfo password, run on every URL shape (including a URL
+# embedded in longer text, and a password containing '/'). The password may contain '/'
+# but must NOT contain '?' and must NOT end in '/': that keeps a 'host:port/@scope' path
+# and an '@' in a query string from being rewritten, while still catching
+# 'postgresql://u:12/FAKE@h' (#293). urlsplit (below) handles an '@' inside the password.
 _URI_PASSWORD_RE = re.compile(
-    r"(?P<scheme>[a-zA-Z][a-zA-Z0-9+.\-]*://)(?P<user>[^:/\s@]*):[^\s]*@"
+    r"(?P<scheme>[a-zA-Z][a-zA-Z0-9+.\-]*://)(?P<user>[^\s?@:/]*):[^\s?@]*[^\s?@/]@"
 )
+
+
+def _drop_uri_password(match: "re.Match") -> str:
+    user = match.group("user")
+    scheme = match.group("scheme")
+    return f"{scheme}{user}@" if user else scheme
 
 # key=value secrets in connection strings (Pwd=…, Password=…, Token=…). The value runs
 # to the next ';' OR whitespace, so a space-separated libpq DSN keeps the keywords after
@@ -145,30 +184,30 @@ def _strip_uri_userinfo(value: str) -> str:
     """Drop a password embedded in a connection string so it isn't persisted — but
     never rewrite a value that only looks like one (#265, correcting #212).
 
-    A well-formed URL is rebuilt without its password ONLY when ``urlsplit()`` actually
-    parsed a password (or it carries a secret query parameter), so a ``host:port`` or an
-    '@' in the path/query (e.g. ``https://host:8443/@scope/pkg`` or ``?owner=a@b.c``) is
-    left intact. A password containing '/' truncates the authority (urlsplit then reports
-    no password but a malformed port); only then does a regex backstop strip
-    ``scheme://user:…@``. ODBC/JDBC/libpq ``k=v`` strings have their secret values
-    blanked, an ``Authorization:`` header line is truncated, and secret URL query
-    parameters are blanked; free text is not touched (#212, #265, #269)."""
+    A well-formed URL is rebuilt without its password when ``urlsplit()`` parses one (it
+    splits userinfo on the last '@', so an '@' inside the password is handled) or it
+    carries a secret query parameter. A regex backstop then runs on every
+    ``scheme://user:…@`` shape — catching a password containing '/' (which truncates the
+    authority urlsplit sees) and a URL embedded in longer text — precise enough to leave a
+    ``host:port/@scope`` path and an '@' in a query alone (#293). ODBC/JDBC/libpq ``k=v``
+    strings have their secret values blanked, an ``Authorization:`` header line is
+    truncated, and secret URL query parameters are blanked; free text is not touched
+    (#212, #265, #269)."""
     # 0) Authorization / Proxy-Authorization header line: drop everything after the colon.
     value = _AUTH_HEADER_RE.sub(lambda m: f"{m.group('name')}:", value)
-    # 1) URLs: rebuild without the password and with secret query params blanked.
+    # 1) URLs: rebuild without the password and with secret query params blanked. Skipped
+    #    when the authority is malformed (e.g. a '/' in the password made the port
+    #    non-numeric) — step 2 handles that.
     try:
         parts = urlsplit(value)
     except ValueError:
         parts = None
-    malformed_authority = False
     if parts is not None:
         try:
             port = parts.port
         except ValueError:
-            # The authority urlsplit saw is malformed — most commonly because a '/' in
-            # the password truncated it, leaving a non-numeric "port" (#212).
-            malformed_authority = True
-        else:
+            parts = None
+        if parts is not None:
             has_secret_query = bool(parts.query) and _has_secret_query_param(parts.query)
             if parts.password is not None or has_secret_query:
                 user = parts.username or ""
@@ -178,10 +217,10 @@ def _strip_uri_userinfo(value: str) -> str:
                 netloc = f"{user}@{host}" if user else host
                 query = _redact_secret_query(parts.query) if has_secret_query else parts.query
                 value = urlunsplit((parts.scheme, netloc, parts.path, query, parts.fragment))
-    # 2) Backstop for a '/'-in-password authority urlsplit couldn't parse. Gated on the
-    #    malformed signal so a valid 'host:port/@scope' path is never rewritten (#265).
-    if malformed_authority:
-        value = _URI_PASSWORD_RE.sub(lambda m: f"{m.group('scheme')}{m.group('user')}@", value)
+    # 2) Backstop for userinfo passwords urlsplit can't see (a '/' in the password, or a
+    #    URL inside longer text). Run unconditionally; the regex itself excludes the
+    #    'host:port/@scope' and '?…@…' shapes so they are preserved (#293).
+    value = _URI_PASSWORD_RE.sub(_drop_uri_password, value)
     # 3) ODBC/JDBC connection-string secrets: keep the key, drop the value — only for
     #    values that really are k=v;k=v connection strings, never prose.
     if _looks_like_connection_string(value):
