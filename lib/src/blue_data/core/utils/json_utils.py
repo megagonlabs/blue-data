@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as _dt
+import math as _math
 from decimal import Decimal as _Decimal
 from typing import Any
 
@@ -20,19 +21,29 @@ def json_safe(obj: Any) -> Any:
     stored stats — sees only primitives.
 
     - ``date`` / ``datetime`` / ``time`` → ISO-8601 string
+    - non-finite ``float`` / ``Decimal`` (``NaN``, ``±Infinity``) → ``None``
     - ``Decimal`` → ``float``
-    - ``bytes`` / ``bytearray`` → UTF-8 text, else hex
+    - ``bytes`` / ``bytearray`` / ``memoryview`` → UTF-8 text, else hex
     - ``set`` / ``tuple`` → ``list`` (recursed)
     - ``dict`` / ``list`` → recursed
     - any remaining exotic type (``ObjectId``, ``UUID``, …) → ``str``.
+
+    ``NaN``/``Infinity`` map to ``None`` because, although Python's ``json.dump``
+    emits them, they are not valid JSON: RedisJSON rejects them, and a strict parser
+    (and FastAPI's response encoder) raise on them — so a single sampled non-finite
+    value broke the Redis store and the REST read of a file store (#294).
     """
-    if obj is None or isinstance(obj, (str, bool, int, float)):
+    if obj is None or isinstance(obj, (str, bool, int)):
         return obj
+    if isinstance(obj, float):
+        return obj if _math.isfinite(obj) else None
     if isinstance(obj, (_dt.datetime, _dt.date, _dt.time)):
         return obj.isoformat()
     if isinstance(obj, _Decimal):
+        if obj.is_nan() or obj.is_infinite():
+            return None
         return float(obj)
-    if isinstance(obj, (bytes, bytearray)):
+    if isinstance(obj, (bytes, bytearray, memoryview)):
         try:
             return bytes(obj).decode("utf-8")
         except UnicodeDecodeError:
