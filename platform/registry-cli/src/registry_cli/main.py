@@ -59,6 +59,47 @@ def _out(data, fmt: str) -> None:
             click.echo(str(data))
 
 
+def _out_rows(rows, fmt: str) -> None:
+    """Render query result rows — arbitrary columns, not registry records.
+
+    ``source query`` returns ``list[dict]`` keyed by the query's own columns, so the
+    record formatter (which prints ``type``/``name``) rendered every row as ``?  ?`` and
+    ``nl`` kept only a ``name`` column (#270). Here ``table`` is a real column table,
+    ``nl`` keeps every column as ``key=value`` pairs, and ``json`` is unchanged.
+    """
+    rows = rows or []
+    if fmt == "json":
+        click.echo(json.dumps(rows, indent=2, default=str))
+        return
+    if fmt == "nl":
+        for row in rows:
+            if isinstance(row, dict):
+                click.echo("  ".join(f"{k}={v}" for k, v in row.items()))
+            else:
+                click.echo(str(row))
+        return
+    # table — a column table of the result set
+    dict_rows = [r for r in rows if isinstance(r, dict)]
+    if not dict_rows:
+        for row in rows:  # non-dict rows (rare): print as-is
+            click.echo(str(row))
+        return
+    columns: list[str] = []
+    for row in dict_rows:
+        for key in row:
+            if key not in columns:
+                columns.append(key)
+    from rich.console import Console
+    from rich.table import Table
+
+    table = Table(show_header=True, header_style="bold")
+    for column in columns:
+        table.add_column(str(column))
+    for row in dict_rows:
+        table.add_row(*["" if row.get(c) is None else str(row.get(c)) for c in columns])
+    Console().print(table)
+
+
 def _fmt_record(r: dict) -> str:
     parts = [f"{r.get('type', '?')}  {r.get('name', '?')}"]
     if r.get("description"):
@@ -397,7 +438,7 @@ def source_query(ctx: click.Context, name: str, sql: str, database: Optional[str
             _err("INVALID_ARGUMENT", f"--json given but query is not valid JSON: {e}")
     try:
         results = reg.execute_query(name, query, database=database, collection=collection)
-        _out(results or [], ctx.obj["fmt"])
+        _out_rows(results or [], ctx.obj["fmt"])
     except Exception as e:
         _err("COMMAND_FAILED", str(e))
 
