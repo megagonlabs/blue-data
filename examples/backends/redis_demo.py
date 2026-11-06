@@ -236,13 +236,10 @@ registry = DataRegistry(
     hybrid_config={"vector_threshold": 0.0, "combined_threshold": 0.0},
 )
 
-# Create the vector search index in Redis
-vector_store.execute_query({
-    "op":         "VECTOR.CREATE_INDEX",
-    "index":      INDEX_NAME,
-    "collection": "records",
-    "dim":        DIM,
-})
+# The registry creates and owns its vector index (under its own "registry_records"
+# collection) when it indexes records — no manual CREATE_INDEX here. A manual index
+# under a different collection ("records") collides with the registry's on the same
+# index name and, since #215 stopped swallowing the mismatch, aborted the demo (#273).
 
 print(f"  Registry namespace : {NAMESPACE}")
 print(f"  Vector scan_prefix : {SCAN_PREFIX}")
@@ -508,15 +505,8 @@ registry2 = DataRegistry(
     rebuild=False,
 )
 
-try:
-    vector_store2.execute_query({
-        "op":         "VECTOR.CREATE_INDEX",
-        "index":      INDEX_NAME2,
-        "collection": "records",
-        "dim":        DIM,
-    })
-except Exception:
-    pass  # index may already exist from a previous run
+# As above: registry2 creates its own index under "registry_records" when it indexes
+# the records below — no manual CREATE_INDEX (which would collide on the index name).
 
 registry2.register_record("warehouses", "entity", "/source/logistics", description="Warehouse locations")
 registry2.register_record("shipments",  "entity", "/source/logistics", description="Outbound shipments")
