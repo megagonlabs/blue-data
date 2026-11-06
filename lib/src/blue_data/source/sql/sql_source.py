@@ -24,10 +24,12 @@ class SQLSource(DataSource, ABC):
     _READ_ONLY_LEADING_KEYWORDS = frozenset(
         {"SELECT", "WITH", "EXPLAIN", "SHOW", "VALUES"}
     )
-    # Strip SQL comments before classifying so `/* */ COPY ...` can't hide the verb.
-    _SQL_COMMENT_RE = re.compile(r"/\*.*?\*/|--[^\n]*", re.DOTALL)
     # Writes disguised as a SELECT: MySQL `SELECT ... INTO OUTFILE/DUMPFILE`.
     _FILE_WRITE_RE = re.compile(r"\binto\s+(?:out|dump)file\b", re.IGNORECASE)
+    # Whether a backslash escapes the next char inside a single-quoted string. MySQL: yes;
+    # Postgres (standard_conforming_strings, the default) and SQLite: no. Only affects
+    # where a string ends, and a wrong guess errs toward refusal (#292).
+    _string_backslash_escapes = False
 
     @staticmethod
     def _resolve_env_refs(config: dict) -> dict:
@@ -144,6 +146,87 @@ class SQLSource(DataSource, ABC):
             return False
         return ";" in query.strip().rstrip(";").rstrip()
 
+    @staticmethod
+    def _sql_code_outside_comments_and_strings(sql: str, backslash_escapes: bool):
+        """Return ``(code, refuse)`` — *sql* with comments removed and string/quoted-
+        identifier contents blanked, so the real statement is classified on code the
+        server actually executes.
+
+        A plain regex can't do this: it ended a block comment at the first ``*/`` (but
+        Postgres nests them), stripped ``/*! … */`` (but MySQL *runs* its contents), and
+        treated ``--`` inside a string literal as a comment — so a refusable statement
+        slipped through and ran (#292). This walks the text instead. ``refuse`` is set
+        — "refuse when in doubt" — for a MySQL executable ``/*!`` or optimizer ``/*+``
+        comment (whose body executes) and for an unterminated string or comment.
+        """
+        out: list[str] = []
+        i, n = 0, len(sql)
+        while i < n:
+            ch = sql[i]
+            pair = sql[i:i + 2]
+            if pair == "--" or ch == "#":  # line comment (-- SQL, # MySQL)
+                nl = sql.find("\n", i)
+                if nl == -1:
+                    break
+                out.append(" ")
+                i = nl + 1
+            elif pair == "/*":
+                if sql[i + 2:i + 3] in ("!", "+"):  # MySQL executable / optimizer hint: runs
+                    return "".join(out), True
+                depth, i = 1, i + 2
+                while i < n and depth:  # Postgres nests block comments
+                    if sql[i:i + 2] == "/*":
+                        depth, i = depth + 1, i + 2
+                    elif sql[i:i + 2] == "*/":
+                        depth, i = depth - 1, i + 2
+                    else:
+                        i += 1
+                if depth:
+                    return "".join(out), True  # unterminated comment
+                out.append(" ")
+            elif ch in "'\"`":
+                i, ok = SQLSource._skip_quoted(sql, i, backslash_escapes)
+                if not ok:
+                    return "".join(out), True  # unterminated string / identifier
+                out.append(ch + ch)  # blanked placeholder, keeps token boundaries
+            elif ch == "$":  # Postgres dollar-quoted string: $tag$ ... $tag$
+                m = re.match(r"\$[A-Za-z0-9_]*\$", sql[i:])
+                if m:
+                    tag = m.group(0)
+                    end = sql.find(tag, i + len(tag))
+                    if end == -1:
+                        return "".join(out), True
+                    i = end + len(tag)
+                    out.append("''")
+                else:
+                    out.append(ch)
+                    i += 1
+            else:
+                out.append(ch)
+                i += 1
+        return "".join(out), False
+
+    @staticmethod
+    def _skip_quoted(sql: str, i: int, backslash_escapes: bool):
+        """Advance past a '…', "…" or `…` quoted span starting at *i*. Returns
+        ``(next_index, terminated)``. Handles doubled-quote escaping and, when
+        *backslash_escapes*, backslash escaping (MySQL)."""
+        quote = sql[i]
+        i += 1
+        n = len(sql)
+        while i < n:
+            ch = sql[i]
+            if backslash_escapes and quote != "`" and ch == "\\":
+                i += 2
+                continue
+            if ch == quote:
+                if sql[i + 1:i + 2] == quote:  # doubled quote -> literal
+                    i += 2
+                    continue
+                return i + 1, True
+            i += 1
+        return i, False
+
     def _assert_read_only_statement(self, query, msg: str) -> None:
         """Refuse a non-read statement *before* it runs (no-commit path).
 
@@ -151,15 +234,25 @@ class SQLSource(DataSource, ABC):
         transaction (Postgres ``COPY … TO``, ``SET``, MySQL ``SELECT … INTO
         OUTFILE``, SQLite ``PRAGMA x=``), so classification must happen up front.
         Only the read-only leading keywords are allowed; everything else — DML,
-        DDL and the side-effecting statements above — is refused here (#266).
+        DDL and the side-effecting statements above — is refused here (#266). The
+        statement is tokenised comment- and string-aware so a comment or string
+        literal can't hide the real verb (#292).
         """
         if not isinstance(query, str):
             return
-        stripped = self._SQL_COMMENT_RE.sub(" ", query)
-        if self._FILE_WRITE_RE.search(stripped):
+        code, refuse = self._sql_code_outside_comments_and_strings(
+            query, self._string_backslash_escapes
+        )
+        if refuse:
+            raise ValueError(
+                f"{msg} Refused before execution: the statement uses an executable or "
+                "nested comment, or unterminated quoting, that a read-only check cannot "
+                "classify safely."
+            )
+        if self._FILE_WRITE_RE.search(code):
             raise ValueError(f"{msg} Refused before execution: statement writes to a file.")
         # Leading keyword, after dropping comments and any leading '(' (e.g. "(SELECT …)").
-        match = re.match(r"\s*\(*\s*([A-Za-z]+)", stripped)
+        match = re.match(r"\s*\(*\s*([A-Za-z]+)", code)
         keyword = match.group(1).upper() if match else ""
         if keyword not in self._READ_ONLY_LEADING_KEYWORDS:
             raise ValueError(
