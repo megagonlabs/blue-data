@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import os
 import re
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from blue_data.registry.registry import Registry
 from blue_data.registry.search.registry_search import RegistrySearch
@@ -99,25 +99,46 @@ _URI_PASSWORD_RE = re.compile(
     r"(?P<scheme>[a-zA-Z][a-zA-Z0-9+.\-]*://)(?P<user>[^:/\s@]*):[^\s]*@"
 )
 
-# key=value secrets in ODBC/JDBC-style connection strings (Pwd=…, Password=…, Token=…).
+# key=value secrets in connection strings (Pwd=…, Password=…, Token=…). The value runs
+# to the next ';' OR whitespace, so a space-separated libpq DSN keeps the keywords after
+# the password (``password=x dbname=y`` -> ``password= dbname=y``) rather than swallowing
+# the rest of the string (#269).
 _KV_SECRET_RE = re.compile(
-    r"(?i)\b(?P<key>password|passwd|pwd|secret|token|api[_-]?key)\b(?P<sep>\s*=\s*)[^;]*"
+    r"(?i)\b(?P<key>password|passwd|pwd|secret|token|api[_-]?key)\b(?P<sep>\s*=\s*)[^;\s]*"
 )
-# A `key=` pair at the start of a `;`-delimited segment (ODBC/JDBC fields).
+# A `key=` pair at the start of a delimited segment (ODBC/JDBC/libpq fields).
 _KV_PAIR_RE = re.compile(r"^\s*[A-Za-z][\w .]*\s*=")
 # Markers that make a single-field value unambiguously a connection string, not prose.
 _DSN_MARKER_RE = re.compile(r"(?i)\b(driver|dsn|data source)\s*=")
+# An Authorization / Proxy-Authorization header line — drop everything after the colon.
+_AUTH_HEADER_RE = re.compile(r"(?im)^\s*(?P<name>(?:proxy-)?authorization)\s*:\s*\S.*$")
 
 
 def _looks_like_connection_string(value: str) -> bool:
-    """True only for ODBC/JDBC-style ``k=v;k=v`` strings — not arbitrary prose that
-    merely contains an '=' (#265). A description like ``"password=never set here; ask
-    ops"`` has a single pair and no DSN marker, so it is left untouched."""
-    pairs = [seg for seg in value.split(";") if _KV_PAIR_RE.match(seg)]
-    if len(pairs) >= 2:
+    """True only for ``k=v`` connection strings — ODBC/JDBC (``;``-delimited) or libpq
+    (whitespace-delimited) — not arbitrary prose that merely contains an '=' (#265,
+    #269). ``"password=never set here; ask ops"`` has one pair under either delimiter
+    and no DSN marker, so it is left untouched."""
+    v = value.strip()
+    semi_pairs = [seg for seg in v.split(";") if _KV_PAIR_RE.match(seg)]
+    ws_pairs = [seg for seg in re.split(r"\s+", v) if _KV_PAIR_RE.match(seg)]
+    if len(semi_pairs) >= 2 or len(ws_pairs) >= 2:
         return True
-    return bool(pairs) and (value.strip().lower().startswith("jdbc:")
-                            or _DSN_MARKER_RE.search(value) is not None)
+    return bool(semi_pairs or ws_pairs) and (
+        v.lower().startswith("jdbc:") or _DSN_MARKER_RE.search(v) is not None
+    )
+
+
+def _has_secret_query_param(query: str) -> bool:
+    return any(_is_secret_key(k) for k, _ in parse_qsl(query, keep_blank_values=True))
+
+
+def _redact_secret_query(query: str) -> str:
+    """Blank the value of any URL query parameter whose name is a secret, by the same
+    name-segment rule used for dict keys (#269: ``?access_token=…`` is a credential)."""
+    pairs = [(k, "" if _is_secret_key(k) else val)
+             for k, val in parse_qsl(query, keep_blank_values=True)]
+    return urlencode(pairs)
 
 
 def _strip_uri_userinfo(value: str) -> str:
@@ -125,12 +146,16 @@ def _strip_uri_userinfo(value: str) -> str:
     never rewrite a value that only looks like one (#265, correcting #212).
 
     A well-formed URL is rebuilt without its password ONLY when ``urlsplit()`` actually
-    parsed a password, so a ``host:port`` or an '@' in the path/query (e.g.
-    ``https://host:8443/@scope/pkg`` or ``?owner=a@b.c``) is left intact. A password
-    containing '/' truncates the authority (urlsplit then reports no password but a
-    malformed port); only then does a regex backstop strip ``scheme://user:…@``.
-    ODBC/JDBC ``k=v;`` strings have their secret values blanked; free text is not."""
-    # 1) URLs: rebuild without the password, keeping user/host/port/path/query.
+    parsed a password (or it carries a secret query parameter), so a ``host:port`` or an
+    '@' in the path/query (e.g. ``https://host:8443/@scope/pkg`` or ``?owner=a@b.c``) is
+    left intact. A password containing '/' truncates the authority (urlsplit then reports
+    no password but a malformed port); only then does a regex backstop strip
+    ``scheme://user:…@``. ODBC/JDBC/libpq ``k=v`` strings have their secret values
+    blanked, an ``Authorization:`` header line is truncated, and secret URL query
+    parameters are blanked; free text is not touched (#212, #265, #269)."""
+    # 0) Authorization / Proxy-Authorization header line: drop everything after the colon.
+    value = _AUTH_HEADER_RE.sub(lambda m: f"{m.group('name')}:", value)
+    # 1) URLs: rebuild without the password and with secret query params blanked.
     try:
         parts = urlsplit(value)
     except ValueError:
@@ -144,13 +169,15 @@ def _strip_uri_userinfo(value: str) -> str:
             # the password truncated it, leaving a non-numeric "port" (#212).
             malformed_authority = True
         else:
-            if parts.password is not None:
+            has_secret_query = bool(parts.query) and _has_secret_query_param(parts.query)
+            if parts.password is not None or has_secret_query:
                 user = parts.username or ""
                 host = parts.hostname or ""
                 if port is not None:
                     host = f"{host}:{port}"
                 netloc = f"{user}@{host}" if user else host
-                value = urlunsplit((parts.scheme, netloc, parts.path, parts.query, parts.fragment))
+                query = _redact_secret_query(parts.query) if has_secret_query else parts.query
+                value = urlunsplit((parts.scheme, netloc, parts.path, query, parts.fragment))
     # 2) Backstop for a '/'-in-password authority urlsplit couldn't parse. Gated on the
     #    malformed signal so a valid 'host:port/@scope' path is never rewritten (#265).
     if malformed_authority:
@@ -170,7 +197,16 @@ def _sanitize_value(value, declared: frozenset = frozenset()):
             if not _is_secret_key(k, declared)
         }
     if isinstance(value, list):
-        return [_sanitize_value(v, declared) for v in value]
+        sanitized = []
+        for item in value:
+            # A [name, value] header pair (e.g. ["Authorization", "Bearer …"]) — blank the
+            # value when the name is a secret, since _is_secret_key only sees dict keys (#269).
+            if (isinstance(item, (list, tuple)) and len(item) == 2
+                    and isinstance(item[0], str) and _is_secret_key(item[0], declared)):
+                sanitized.append([item[0], ""])
+            else:
+                sanitized.append(_sanitize_value(item, declared))
+        return sanitized
     if isinstance(value, str):
         return _strip_uri_userinfo(value)
     return value
@@ -1994,8 +2030,16 @@ class DataRegistry(Registry):
         description: str | None = None,
         properties: dict | None = None,
         icon: str | None = None,
+        rebuild: bool | None = None,
     ):
-        """Update metadata fields on the top-level source record."""
+        """Update metadata fields on the top-level source record, sanitising *properties*
+        as register_source does so a credential is never persisted (#269). The live source
+        keeps the full (unsanitised) properties merged in."""
+        if properties is not None:
+            src = self.sources.get(source)
+            if src is not None:
+                src._update_properties(properties)  # live source keeps the full values
+            properties = _sanitize_properties(properties, _secret_keys_declared_by(src))
         return self.update_record(
             source,
             "source",
@@ -2003,6 +2047,7 @@ class DataRegistry(Registry):
             description=description,
             properties=properties,
             icon=icon,
+            rebuild=rebuild,
         )
 
     def deregister_source(self, source: str):
@@ -2686,22 +2731,40 @@ class DataRegistry(Registry):
         )
 
 
-    def set_source_property(self, source: str, key: str, value):
+    def set_source_property(self, source: str, key: str, value, rebuild: bool | None = None):
+        """Set a property on the source record, applying the same credential sanitising
+        as register_source so a write here can't persist a secret (#269). The live
+        source stays authoritative (keeps the full value); a secret key is never written
+        to the store, and a non-secret value is sanitised at every depth before storing.
+        """
+        src = self.sources.get(source)
+        if src is not None:
+            src.properties[key] = value  # live source keeps the full value, like register_source
+        declared = _secret_keys_declared_by(src)
+        if _is_secret_key(key, declared):
+            # A credential must never reach the store; the live source above holds it.
+            # Don't rebuild — that would reconstruct from the secret-free record.
+            return self.get_source_record(source)
         return self.set_record_property(
             source,
             "source",
             "/",
             key,
-            value,
+            _sanitize_value(value, declared),
+            rebuild=rebuild,
         )
 
 
-    def delete_source_property(self, source: str, key: str):
+    def delete_source_property(self, source: str, key: str, rebuild: bool | None = None):
+        src = self.sources.get(source)
+        if src is not None:
+            src.properties.pop(key, None)  # keep the live source in sync with the record
         return self.delete_record_property(
             source,
             "source",
             "/",
             key,
+            rebuild=rebuild,
         )
 
 
