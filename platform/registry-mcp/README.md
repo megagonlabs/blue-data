@@ -94,6 +94,12 @@ All configuration is via environment variables.
 | `BLUE_DATA_REGISTRY_REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL. Used when `BLUE_DATA_REGISTRY_STORE=redis`. Supports `user:password@` auth and the `rediss://` TLS scheme. |
 | `BLUE_DATA_REGISTRY_REDIS_NAMESPACE` | `blue_data` | Key prefix used to isolate registry records in Redis. |
 
+### Writes
+
+| Variable | Default | Description |
+|---|---|---|
+| `BLUE_DATA_MCP_ALLOW_WRITES` | `false` | When `true`, the `import_data` tool may write to a target source. Otherwise it is refused (read-only by default, matching every other surface). |
+
 ### LLM enrichment
 
 | Variable | Default | Description |
@@ -322,6 +328,12 @@ Import rows from one registered data source into another.
 | `database` | `str` | `"default"` | Database name on the target |
 | `entity` | `str \| None` | `None` | Destination table name on the target (required for SQL targets) |
 | `mode` | `str` | `"append"` | `append` adds rows; `overwrite` clears the target first |
+
+> **Write opt-in required.** `import_data` writes to the target, so — like every other
+> surface, which is read-only by default — it is **refused unless** the server is started
+> with `BLUE_DATA_MCP_ALLOW_WRITES=true`. Without it the tool returns an error and nothing
+> is written (so `mode="overwrite"` can't replace a table that `execute_query` protects in
+> the same session).
 
 ---
 

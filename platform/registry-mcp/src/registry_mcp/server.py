@@ -50,6 +50,7 @@ from __future__ import annotations
 import asyncio
 import functools
 import json
+import os
 import threading
 from typing import Optional
 
@@ -76,6 +77,19 @@ def _ok(data) -> str:
 
 def _err(e: Exception) -> str:
     return json.dumps({"error": str(e)}, indent=2)
+
+
+# Writes are opt-in, matching the rest of the platform: read-only is the default on
+# every surface (design/14 §3), and REST gates writes behind BLUE_DATA_API_ALLOW_WRITES.
+# The MCP server exposes one write tool (import_data); it is refused unless this flag is
+# set, so it can't overwrite a table the same session's execute_query would protect (#271).
+# (env_flag lives in blue_data.server, which requires fastapi — not an MCP dep — so the
+# one-liner is inlined here.)
+_WRITE_FLAG = "BLUE_DATA_MCP_ALLOW_WRITES"
+
+
+def _writes_allowed() -> bool:
+    return os.environ.get(_WRITE_FLAG, "").lower() in ("1", "true", "yes")
 
 
 def _tool(fn):
@@ -433,6 +447,10 @@ def import_data(
     writes it to *target*.  SQL targets (SQLite, Postgres, MySQL) require
     *entity* (destination table name).
 
+    This is a **write** operation and is disabled by default (read-only is the
+    platform default). Start the MCP server with ``BLUE_DATA_MCP_ALLOW_WRITES=true``
+    to allow it; otherwise it is refused, like a write via execute_query (#271).
+
     Args:
         source:     Name of the registered source data source (data origin).
         target:     Name of the registered target data source (data destination).
@@ -441,6 +459,11 @@ def import_data(
         entity:     Destination table name on the target (required for SQL targets).
         mode:       'append' (default) adds rows; 'overwrite' clears the target first.
     """
+    if not _writes_allowed():
+        return _err(PermissionError(
+            "import_data is a write operation and is disabled by default. Start the MCP "
+            f"server with {_WRITE_FLAG}=true to allow writes."
+        ))
     try:
         result = get_registry().import_data(
             source=source,

@@ -120,6 +120,14 @@ def inject_registry(registry):
     config_module._registry = None
 
 
+@pytest.fixture(autouse=True)
+def _allow_writes(monkeypatch):
+    """import_data is a write op gated behind BLUE_DATA_MCP_ALLOW_WRITES (#271). Most
+    tests here exercise its behaviour, so enable writes by default; the opt-in gating
+    itself is tested explicitly below (which re-disables it)."""
+    monkeypatch.setenv("BLUE_DATA_MCP_ALLOW_WRITES", "true")
+
+
 # ---------------------------------------------------------------------------
 # Explore tools
 # ---------------------------------------------------------------------------
@@ -335,6 +343,59 @@ def test_import_data_copies_rows(registry, tmp_path):
 
     rows = json.loads(execute_query("testdb", "SELECT * FROM orders", database="sales"))
     assert len(rows) == 5  # 3 original + 2 imported
+
+
+# ---- #271: import_data is a write and needs the server-side opt-in ----
+
+def test_import_data_refused_without_write_optin(monkeypatch):
+    # No BLUE_DATA_MCP_ALLOW_WRITES -> refused before touching the target.
+    monkeypatch.delenv("BLUE_DATA_MCP_ALLOW_WRITES", raising=False)
+    result = json.loads(import_data(
+        source="filesrc", target="testdb", collection="x", database="sales", entity="orders",
+    ))
+    assert "error" in result
+    assert "BLUE_DATA_MCP_ALLOW_WRITES" in result["error"]
+
+
+def test_import_data_overwrite_refused_leaves_target_untouched(registry, tmp_path, monkeypatch):
+    # The reported case: DELETE is refused, so an overwrite import must be too (#271).
+    monkeypatch.delenv("BLUE_DATA_MCP_ALLOW_WRITES", raising=False)
+    from blue_data.source.file.file_source import FileSource
+    import pandas as pd
+
+    d = tmp_path / "ov"
+    d.mkdir()
+    pd.DataFrame([{"id": 1, "customer_id": 1, "total": 1.0, "status": "new"}]).to_csv(
+        d / "orders.csv", index=False
+    )
+    registry.register_source(FileSource("ovsrc", directory=str(d)))
+
+    before = json.loads(execute_query("testdb", "SELECT * FROM orders", database="sales"))
+    result = json.loads(import_data(
+        source="ovsrc", target="testdb", collection="orders",
+        database="sales", entity="orders", mode="overwrite",
+    ))
+    assert "error" in result and "BLUE_DATA_MCP_ALLOW_WRITES" in result["error"]
+    after = json.loads(execute_query("testdb", "SELECT * FROM orders", database="sales"))
+    assert len(after) == len(before) == 3  # overwrite refused, table intact
+
+
+def test_import_data_allowed_with_write_optin(registry, tmp_path, monkeypatch):
+    monkeypatch.setenv("BLUE_DATA_MCP_ALLOW_WRITES", "true")
+    from blue_data.source.file.file_source import FileSource
+    import pandas as pd
+
+    d = tmp_path / "ok"
+    d.mkdir()
+    pd.DataFrame([{"id": 99, "customer_id": 1, "total": 5.0, "status": "new"}]).to_csv(
+        d / "orders.csv", index=False
+    )
+    registry.register_source(FileSource("oksrc", directory=str(d)))
+    result = json.loads(import_data(
+        source="oksrc", target="testdb", collection="orders",
+        database="sales", entity="orders", mode="append",
+    ))
+    assert result["status"] == "success"
 
 
 def test_import_data_unknown_source_returns_error():
