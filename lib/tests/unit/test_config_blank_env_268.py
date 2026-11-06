@@ -124,3 +124,19 @@ def test_example_envrc_does_not_force_memory_store():
     assert not any(l.endswith("memory") or "=memory" in l for l in active), (
         f"example.envrc still force-exports the memory store: {active}"
     )
+
+
+def test_example_envrc_does_not_pin_registry_file_to_cwd():
+    # #300: an exported relative BLUE_DATA_REGISTRY_FILE pins the CLI registry to the
+    # working directory, so `source add` in one dir is invisible from another.
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(config.__file__)))))
+    envrc = os.path.join(root, "example.envrc")
+    if not os.path.exists(envrc):
+        pytest.skip("example.envrc not found from this checkout layout")
+    with open(envrc) as f:
+        active = [l.strip() for l in f if l.strip().startswith("export BLUE_DATA_REGISTRY_FILE=")]
+    for line in active:
+        value = line.split("=", 1)[1].split("#", 1)[0].strip().strip('"\'')
+        assert os.path.isabs(value), (
+            f"example.envrc exports a non-absolute BLUE_DATA_REGISTRY_FILE: {line!r}"
+        )
