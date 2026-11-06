@@ -48,9 +48,12 @@ Claude Desktop config (~/.config/claude-desktop/claude_desktop_config.json):
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import functools
 import json
+import logging
 import os
+import sys
 import threading
 from typing import Optional
 
@@ -58,7 +61,68 @@ from mcp.server.fastmcp import FastMCP
 
 from registry_mcp.config import get_registry
 
-mcp = FastMCP(
+
+# ---------------------------------------------------------------------------
+# stdio transport isolation
+# ---------------------------------------------------------------------------
+# On a stdio MCP server, stdout carries JSON-RPC only. A hosted source (e.g. a user
+# source that calls an LLM via LiteLLM) writes log lines to stdout, corrupting the
+# protocol stream — and whether it does depends on which source ran first, because
+# llm-source mutates the process-wide logger. Guard the transport boundary so only the
+# JSON-RPC writer owns the real stdout; everything else goes to stderr (#282).
+
+@contextlib.contextmanager
+def _reserve_stdout_for_protocol():
+    """Yield a text stream bound to the REAL stdout for the JSON-RPC protocol, and point
+    the process stdout (fd 1) at stderr for the duration, so a hosted source's logging or
+    stray prints can't reach the transport. Done at the fd level, so it also catches a
+    logging handler that captured the original ``sys.stdout`` stream (#282)."""
+    sys.stdout.flush()
+    saved_stdout_fd = os.dup(1)   # to restore fd 1 afterwards
+    protocol_fd = os.dup(1)       # the real stdout, reserved for JSON-RPC
+    try:
+        os.dup2(2, 1)             # fd 1 -> stderr: stray writes can't hit the protocol
+        protocol = os.fdopen(protocol_fd, "w", encoding="utf-8", buffering=1, closefd=False)
+        try:
+            yield protocol
+        finally:
+            protocol.flush()
+    finally:
+        os.dup2(saved_stdout_fd, 1)
+        os.close(saved_stdout_fd)
+        os.close(protocol_fd)
+
+
+def _quiet_litellm() -> None:
+    """Raise embedded LiteLLM logging to WARNING so a hosted source's per-call INFO lines
+    don't spam the stream. Defense-in-depth alongside the fd guard; no litellm import, so
+    it is a no-op cost when no LLM source is hosted (#282)."""
+    for name in ("LiteLLM", "litellm", "LiteLLM Proxy", "LiteLLM Router"):
+        logging.getLogger(name).setLevel(logging.WARNING)
+
+
+class IsolatedStdoutFastMCP(FastMCP):
+    """FastMCP whose stdio transport reserves the real stdout for JSON-RPC (#282)."""
+
+    async def run_stdio_async(self) -> None:
+        import anyio
+        from mcp.server.stdio import stdio_server
+
+        try:
+            cm = _reserve_stdout_for_protocol()
+        except OSError:  # pragma: no cover - non-POSIX / no real stdout; fall back
+            await super().run_stdio_async()
+            return
+        with cm as protocol:
+            async with stdio_server(stdout=anyio.wrap_file(protocol)) as (read_stream, write_stream):
+                await self._mcp_server.run(
+                    read_stream,
+                    write_stream,
+                    self._mcp_server.create_initialization_options(),
+                )
+
+
+mcp = IsolatedStdoutFastMCP(
     "blue-data-registry",
     instructions=(
         "Data intelligence registry — discover, explore, and enrich data assets "
@@ -483,6 +547,7 @@ def import_data(
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    _quiet_litellm()
     mcp.run()
 
 
