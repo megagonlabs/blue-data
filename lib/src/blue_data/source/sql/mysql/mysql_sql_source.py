@@ -10,6 +10,11 @@ from blue_data.core.schema import DataSchema
 class MySQLDBSource(SQLSource):
     """MySQL data source."""
 
+    # MySQL treats a backslash as an escape inside string literals, so the read-only
+    # guard's tokeniser must too (otherwise `SELECT '\\' INTO OUTFILE …` could hide the
+    # write). Postgres/SQLite use standard strings and keep the base default (#292).
+    _string_backslash_escapes = True
+
     def __init__(self, name, properties=None):
         super().__init__(name, properties=properties)
 
