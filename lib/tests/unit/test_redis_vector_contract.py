@@ -100,3 +100,29 @@ def test_hybrid_keeps_bm25_match_when_no_vector_signal():
     records = [_rec("orders", description="customer orders"), _rec("zzz", description="unrelated")]
     names = [r["name"] for r in hs.search(records, "orders")]
     assert "orders" in names  # not dropped by vector_threshold despite no vector signal
+
+
+# ---------- #198: FT.SEARCH must carry LIMIT 0 k ----------
+
+def _knn_cmd(k=None):
+    rv = RedisVectorSource(name="r", properties={"connection": {"host": "h", "port": 1, "scan_prefix": "x:"}})
+    query = {"index": "idx", "vector": [0.1, 0.2, 0.3, 0.4]}
+    if k is not None:
+        query["k"] = k
+    return rv._build_knn_command(query)
+
+
+def test_knn_command_sets_limit_to_k():
+    # Without LIMIT, FT.SEARCH returns RediSearch's default of 10 rows whatever k is (#198).
+    cmd = _knn_cmd(k=25)
+    assert "LIMIT" in cmd
+    i = cmd.index("LIMIT")
+    assert cmd[i:i + 3] == ["LIMIT", 0, 25]
+    # the KNN clause asks for k too
+    assert any(isinstance(part, str) and "KNN 25 " in part for part in cmd)
+
+
+def test_knn_command_limit_defaults_to_default_k():
+    cmd = _knn_cmd()  # no k -> default 5
+    i = cmd.index("LIMIT")
+    assert cmd[i:i + 3] == ["LIMIT", 0, 5]
