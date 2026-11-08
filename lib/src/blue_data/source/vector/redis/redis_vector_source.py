@@ -396,6 +396,11 @@ class RedisVectorSource(VectorSource):
         if return_fields:
             command.extend(["RETURN", len(return_fields), *return_fields])
 
+        # Without an explicit LIMIT, FT.SEARCH returns RediSearch's default of 10 rows
+        # regardless of the KNN `k`, so a caller asking for k>10 silently got only 10
+        # (#198). Page the full k back.
+        command.extend(["LIMIT", 0, k])
+
         command.extend(["DIALECT", dialect])
 
         return command
